@@ -9,8 +9,6 @@ void loc::get_product_feature()
   _mgmt_fee_periods = product[_test_cell-1][5];
   int teaser_periods = product[_test_cell-1][2];
 
-
-
   for(int i=0; i<periods; ++i){
     if(i<=teaser_periods)
       _series[i][3] =  teaser_rate/12.0;
@@ -638,8 +636,6 @@ double loc::max_npv_line(int trails, double &npv_value, double &pb, double npv[]
 {
   double max_npv = npv[0][1];
   double max_line = npv[0][0];
-//  double max_npv = 0;
-//  double max_line = 0;
   double max_npv_pb = npv[0][2];
   bool over_limit = false;
   double line_ceiling;
@@ -650,7 +646,6 @@ double loc::max_npv_line(int trails, double &npv_value, double &pb, double npv[]
   else
     line_ceiling = Max_Granting_Ratio_DATA * _nav;
 
-//  for(int i=1; i<trails;++i){
   for(int i=0; i<trails;++i){
     double line = npv[i][0];
     double total_exposure = _existing_mortgage + line;
@@ -691,12 +686,12 @@ double loc::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigne
   if(!secured){
   	upper = (upper > secured_line) ? secured_line : upper;
 
-//    if(_personal_risk > 0.04759){
-//      if (_principal >= 100)
-//        upper = _principal < 500 ? _principal : 500;
-//      else
-//        upper = 500;
-//    }
+    if(_personal_risk > 0.04759){
+      if (_principal >= 100)
+        upper = _principal < 500 ? _principal : 500;
+      else
+        upper = 500;
+    }
   }
   int trails = (upper - MIN_LENDING_AMOUNT) / 10.0 + 1;
 
@@ -1216,15 +1211,15 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
   };
 
   int upper = secured ? MAX_LENDING_SECURED : MAX_LENDING_UNSECURED;
-//  if(!secured){
-//  	upper = (upper > secured_amount) ? secured_amount : upper;
-//    if(_personal_risk > 0.04759){
-//      if (_principal >= 100)
-//        upper = _principal < 500 ? _principal : 500;
-//      else
-//        upper = 500;
-//    }
-//  }
+  if(!secured){
+  	upper = (upper > secured_amount) ? secured_amount : upper;
+    if(_personal_risk > 0.04759){
+      if (_principal >= 100)
+        upper = _principal < 500 ? _principal : 500;
+      else
+        upper = 500;
+    }
+  }
   int trails = (upper - MIN_LENDING_AMOUNT) / 10.0 + 1;
   double (*npv)[3] = new double [trails][3];
   for(int i = 0; i < trails; ++i){
@@ -1345,9 +1340,6 @@ double il::max_npv_amount(int trails, double &npv_value, double &pb, double npv[
   double max_amount = npv[0][0];
   double max_npv_pb = npv[0][2];
   bool over_limit = false;
-//  double max_npv = 0;
-//  double max_amount = 0;
-//  double max_npv_pb = 0;
   double amount_ceiling;
   if(filter == 0)
     amount_ceiling = Max_Granting_Ratio* _nav;
