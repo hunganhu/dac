@@ -269,7 +269,7 @@ void Loan::validate()
        success = false;
     }
     sum_periods += (*iter1).get_period();
-    if (! success) break;
+//    if (! success) break;
   }
 
   if (sum_periods != periods) {
@@ -424,11 +424,11 @@ void Loan::postFilter()
  else if (max_bucket >= 4)
     throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
  else if (fs044 > 0)
-    throw (RiskEx ("拒絕 [貸款有逾期記錄]", 105));
+    throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
  else if (cash_max_bucket >= 0.5)
-    throw (RiskEx ("拒絕 [現金卡前期有逾期記錄]", 106));
+    throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
  else if (cash_utilization >= 1)
-    throw (RiskEx ("拒絕 [現金卡放款額度大於或等於訂約額度]", 107));
+    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
 }
 
 void Loan::calculate_npv()

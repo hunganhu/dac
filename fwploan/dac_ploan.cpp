@@ -31,6 +31,7 @@ int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *retur
     ptrLoan->calculate_npv();
     ptrLoan->postFilter();
 
+/*******  First check NPV, then check principal is in valid range.
     if (ptrLoan->get_npv() < -1000)
        Message = "拒絕 [NPV小於NT$-1,000]";
     else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
@@ -65,7 +66,60 @@ int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *retur
           }
        }
     }
-
+*/
+/*******  First check principal is in valid range, then check NPV. */
+    if (ptrLoan->get_principal() >= 2000000)
+       Message = "人工審核 [申貸金額大於NT$200萬]";
+    else {
+       if (ptrLoan->get_segment() == "01" || ptrLoan->get_segment() == "02"){
+          if (ptrLoan->get_principal() >= 1100000)
+             Message = "人工審核 [優級/A1級客層；申貸金額大於NT$110萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+       else if (ptrLoan->get_segment() == "03" || ptrLoan->get_segment() == "04") {
+          if (ptrLoan->get_principal() >= 900000)
+             Message = "人工審核 [A2/A3級客層；申貸金額大於NT$90萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+       else if (ptrLoan->get_segment() == "05") {
+          if (ptrLoan->get_principal() >= 700000)
+             Message = "人工審核 [A4級客層；申貸金額大於NT$70萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+       else {
+          if (ptrLoan->get_principal() >= 450000)
+             Message = "人工審核 [B級以下客層；申貸金額大於NT$45萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+    }
     // Assign NPV, PD, Risk score
     sprintf (sqlCommand, SQLCommands[Write_PLoan_Result],
                          ptrLoan->get_npv(), ptrLoan->get_pd(), ptrLoan->get_rscore(), 0.0);
@@ -159,7 +213,7 @@ int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
 //    ptrLoan->get_pd(idn, dbhandle);
     ptrLoan->calculate_npv();
     ptrLoan->postFilter();
-
+/*******  First check NPV, then check principal is in valid range.
     if (ptrLoan->get_npv() < -1000)
        Message = "拒絕 [NPV小於NT$-1,000]";
     else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
@@ -189,6 +243,60 @@ int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
           else {
              if (ptrLoan->get_principal() >= 450000)
                 Message = "人工審核 [B級以下客層；申貸金額介於NT$45萬和NT$200萬]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+    }
+*/
+/*******  First check principal is in valid range, then check NPV. */
+    if (ptrLoan->get_principal() >= 2000000)
+       Message = "人工審核 [申貸金額大於NT$200萬]";
+    else {
+       if (ptrLoan->get_segment() == "01" || ptrLoan->get_segment() == "02"){
+          if (ptrLoan->get_principal() >= 1100000)
+             Message = "人工審核 [優級/A1級客層；申貸金額大於NT$110萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+       else if (ptrLoan->get_segment() == "03" || ptrLoan->get_segment() == "04") {
+          if (ptrLoan->get_principal() >= 900000)
+             Message = "人工審核 [A2/A3級客層；申貸金額大於NT$90萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+       else if (ptrLoan->get_segment() == "05") {
+          if (ptrLoan->get_principal() >= 700000)
+             Message = "人工審核 [A4級客層；申貸金額大於NT$70萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
+             else
+                Message = "核准 [NPV大於NT$1,000]";
+          }
+       }
+       else {
+          if (ptrLoan->get_principal() >= 450000)
+             Message = "人工審核 [B級以下客層；申貸金額大於NT$45萬]";
+          else {
+             if (ptrLoan->get_npv() < -1000)
+                Message = "拒絕 [NPV小於NT$-1,000]";
+             else if (ptrLoan->get_npv() >= -1000 && ptrLoan->get_npv() < 1000)
+                Message = "人工審核 [NPV介於NT$-1,000和NT$1,000]";
              else
                 Message = "核准 [NPV大於NT$1,000]";
           }
