@@ -167,11 +167,14 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
     		      status = -1;
         		}
         	}//End of IL / LOC
-        	if(loan_amount_unsecured > loan_amount_secured)
+//commented out on Apr. 6 2005 for the following code should have no effect
+//when confirmed via testing, this comment and the following commented-out codes
+//will be deleted
+/*        	if(loan_amount_unsecured > loan_amount_secured)
     		  	loan_amount_unsecured = loan_amount_secured;
           if(loan_amount_unsecured == 0)
-            unsecured_npv = 0;
-       	};     
+            unsecured_npv = 0;  */
+       	};
         if(risk_score == 0){
             int risk_code = 0;
 		        if(data_flag == 0)
@@ -214,8 +217,11 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
                      		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance);
   		    } //end of normal case adjustment
       		else{
-          	if(decline_code == 0)
-          		decline_code = 3;
+//commented out on Apr. 6 2005 for the following code should have no effect
+//when confirmed via testing, this comment and the following commented-out codes
+//will be deleted
+/*          	if(decline_code == 0)
+          		decline_code = 3;*/
 
            	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
@@ -275,16 +281,6 @@ void connect(TADOConnection *connection, const AnsiString &connection_string,
     AnsiString ConnectionSource = "Data Source=";
     AnsiString password_ansi = "JCIC";
 
-/*  ifstream passwd("passwd");
-    string c_password = " ";
-    char ch = ' ';
-    while (ch != '\n'){
-      passwd.get(ch);
-      c_password += ch;
-    }
-    string password = decrypt(c_password);
-    password_ansi = password.c_str();*/
-
     ConnectionUser += ("JCIC;");
     ConnectionPassword += (password_ansi + ";");
     ConnectionCatalog += ("DAPHNE;");
@@ -292,7 +288,6 @@ void connect(TADOConnection *connection, const AnsiString &connection_string,
     connection->ConnectionString = ConnectionProvider + ConnectionPassword +
                                    ConnectionPersist + ConnectionUser +
                                    ConnectionCatalog + ConnectionSource;
-//    connection->ConnectionString = "Provider=SQLOLEDB.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=BSP_2nd_Mortgage";
     }
   connection->Connected = true;
 }
