@@ -867,7 +867,7 @@ char *SQLCommands[] = {
 "    select idn, 9, sum(v1)"
 "    from #tmp1"
 "    where (@now - mon) <= 9"
-"      and (@now - mon) > 0"
+"      and (@now - mon) > 0"     // add for inquiry date is system date
 "    group by idn;"
 "   update #daco_v32_cal"
 "    set fs002_1k_9m = v1"
@@ -880,7 +880,7 @@ char *SQLCommands[] = {
 "   select idn, 9, count(distinct issue)"
 "   from #krm023_dedup"
 "   where (@now - mon_since) <= 9"
-"     and (@now - mon_since) > 0"
+"     and (@now - mon_since) > 0"    // add for inquiry date is system date
 "     and cash = 'Y'"
 "     group by idn;"
 "  update #daco_v32_cal"
@@ -895,7 +895,7 @@ char *SQLCommands[] = {
 "   from #krm023_dedup"
 "   where bucket_ef_1k >= 2"
 "     and (@now - mon_since) <= 3"
-"     and (@now - mon_since) > 0"
+"     and (@now - mon_since) > 0"    // add for inquiry date is system date
 "   group by idn;"
 "  update #daco_v32_cal"
 "   set fs062_1k_3m = v1"
@@ -990,7 +990,7 @@ char *SQLCommands[] = {
 "   select idn, 9, count(distinct issue)"
 "   from #krm023_dedup"
 "   where (@now - mon_since) <= 9"
-"     and (@now - mon_since) > 0"
+"     and (@now - mon_since) > 0"     // add for inquiry date is system date
 " group by idn;"
 "   update #daco_v32_cal"
 "    set fs101_9m = v1"
@@ -1008,7 +1008,7 @@ char *SQLCommands[] = {
 "    select idn, 6, avg(v1)"
 "    from #tmp1"
 "    where (@now - mon) <= 6"
-"      and (@now - mon) > 0"
+"      and (@now - mon) > 0"      // add for inquiry date is system date
 "    group by idn;"
 "   update #daco_v32_cal"
 "    set fs105_6m = v1"
@@ -1027,7 +1027,7 @@ char *SQLCommands[] = {
 "    select idn, 12, max(v1)"
 "    from #tmp1"
 "    where (@now - mon)<= 12"
-"      and (@now - mon) > 0"
+"      and (@now - mon) > 0"     // add for inquiry date is system date
 "    group by idn;"
 "   update #daco_v32_cal"
 "    set ms001_1k_12m = v1"
@@ -1049,7 +1049,7 @@ char *SQLCommands[] = {
 "      select idn, @i, max(v1)"
 "      from #tmp1"
 "      where (@now - mon) <= @i"
-"        and (@now - mon) > 0"
+"        and (@now - mon) > 0"      // add for inquiry date is system date
 "      group by idn"
 "      set @i = @i + 3"
 "    end;"
@@ -1077,7 +1077,7 @@ char *SQLCommands[] = {
 "      select idn, @i, avg(v1)"
 "      from #tmp1"
 "      where (@now - mon) <= @i"
-"        and (@now - mon) > 0"
+"        and (@now - mon) > 0"      // add for inquiry date is system date
 "      group by idn"
 "     set @i = @i + 3"
 "    end;"
@@ -1105,7 +1105,7 @@ char *SQLCommands[] = {
 "      select idn, @i, avg(v1)"
 "      from #tmp1"
 "      where (@now - mon) <= @i"
-"        and (@now - mon) > 0"
+"        and (@now - mon) > 0"      // add for inquiry date is system date
 "      group by idn"
 "     set @i = @i + 3"
 "    end;"
@@ -1135,7 +1135,7 @@ char *SQLCommands[] = {
 "    select idn, 3, max(payment_amt / convert(decimal(16, 8), limit))"
 "    from #krm023_dedup"
 "    where (@now - mon_since) <= 3"
-"      and (@now - mon_since) > 0"
+"      and (@now - mon_since) > 0"      // add for inquiry date is system date
 "      and pay_code = 'C'"
 "      and convert(decimal(16, 8), limit) <> 0"
 "    group by idn;"
@@ -1159,7 +1159,7 @@ char *SQLCommands[] = {
 "      select idn, @i, avg(v1)"
 "      from #tmp1"
 "      where (@now - mon) <= @i"
-"        and (@now - mon) > 0"
+"        and (@now - mon) > 0"      // add for inquiry date is system date
 "      group by idn"
 "     set @i = @i + 3"
 "    end;"
@@ -1192,7 +1192,7 @@ char *SQLCommands[] = {
 "      select idn, @i, max(v1)"
 "      from #tmp1"
 "      where (@now - mon) <= @i"
-"        and (@now - mon) > 0"
+"        and (@now - mon) > 0"      // add for inquiry date is system date
 "      group by idn"
 "     set @i = @i + 3"
 "    end;"
@@ -1285,7 +1285,7 @@ char *SQLCommands[] = {
 "    		     where mob <= 12 and idn = a.idn)"
 "        and bucket_def_1k <> 0"
 "        and @now - mon_since <= @i"
-"        and @now - mon_since > 0"
+"        and @now - mon_since > 0"      // add for inquiry date is system date
 "      group by idn"
 "     set @i = @i + 3"
 "    end;"
@@ -1319,7 +1319,7 @@ char *SQLCommands[] = {
 "        and pay_code in ('C', 'D', 'E','F')"
 "        and payment_amt > 1"
 "        and (@now - mon_since) <= @i"
-"        and (@now - mon_since) > 0"
+"        and (@now - mon_since) > 0"    // add for inquiry date is system date
 "       group by idn"
 "      set @i = @i + 3"
 "     end;"
@@ -1480,7 +1480,7 @@ char *SQLCommands[] = {
 "   select idn, @i, count(distinct issuer)"
 "   from #open_issuer"
 "   where (@now - mon) <= @i"
-"     and (@now - mon) > 0"
+"     and (@now - mon) >= 0"      // add for inquiry date is system date
 "   group by idn"
 "   set @i = @i + 3"
 " end;"
@@ -1505,7 +1505,7 @@ char *SQLCommands[] = {
 "   select idn, @i, count(*)"
 "   from #krm021_dedup"
 "   where (@now - end_mon_since) <= @i"
-"     and (@now - end_mon_since) > 0"
+"     and ((@now - end_mon_since) > 0 or end_mon_since = 12000)"  // add for inquiry date is system date
 "     and issue in ('021', '081', '974')"
 "     and convert(decimal(16, 8), limit) > 100"
 "   group by idn;"
@@ -1532,7 +1532,7 @@ char *SQLCommands[] = {
 "  from #stm001_dedup"
 "  where item_list like '%K%'"
 "    and (@now - query_mon_since) <= 12"
-"    and (@now - query_mon_since) > 0"
+"    and (@now - query_mon_since) > 0"       // add for inquiry date is system date
 "  group by idn;"
 " update #daco_v32_cal"
 " set fs029 = v1"
@@ -1628,7 +1628,7 @@ char *SQLCommands[] = {
 "     		   where mob <= 12 and idn = a.idn)"
 "     and bucket_def_1k != 0"
 "     and (@now - mon_since) <= @i"
-"     and (@now - mon_since) > 0"
+"     and (@now - mon_since) > 0"    // add for inquiry date is system date
 "   group by idn"
 "   set @i = @i + 3;"
 " end;"
@@ -1659,7 +1659,7 @@ char *SQLCommands[] = {
 "   select idn, @i, avg(convert(decimal (16, 8),limit))"
 "   from #krm023_dedup"
 "   where (@now - mon_since) <= @i"
-"     and (@now - mon_since) > 0"
+"     and (@now - mon_since) > 0"          // add for inquiry date is system date
 "     and convert(decimal (16, 8), limit) > 0"
 "   group by idn"
 "   set @i = @i + 3"
@@ -1688,7 +1688,7 @@ char *SQLCommands[] = {
 "   select idn, @i, min(payment_amt / convert(decimal(16, 8), limit))"
 "   from #krm023_dedup"
 "   where (@now - mon_since) <= @i"
-"     and (@now - mon_since) > 0"
+"     and (@now - mon_since) > 0"         // add for inquiry date is system date
 "     and pay_code in ('A', 'B', 'C', 'D')"
 "     and convert(decimal(16, 8), limit) <> 0"
 "   group by idn"

@@ -441,7 +441,7 @@ void Loan::calculate_npv()
   npv_init();
   set_apr();
   set_attrition();
-  if ((repayment == '1') || (repayment == '3'))
+  if ((repayment == '1') || (repayment == '3'))    //(1:一般法;2:本息法;3:本金法)
      set_amortize();
   else
      set_annuity();
