@@ -32,23 +32,33 @@ int    statementCount;
 int    accountCount;
 
 
+//---------------------------------------------------------------------------
 /*
-  4.1.	CONTROL File (from "Host" computer to "Scoring" computer)
+  function : get_control_info
+  parameter: none
+  return :  -1 - file not exist.
+            ## - number of records of the file.
+*/
+int get_control_info()
+{
+ char rec[MAX], *name, count[10];
+ ifstream controlFile;
+ int stmtCNT, acctCNT;
 
+/*
+4.1.	CONTROL File (from "Host" computer to "Scoring" computer)
 4.1.1.	Naming convention: FHBSAUTO.CTL
-
 4.1.2.	Contents: 4 lines (records)
 Line	Description	                                        Format
+====    ======================================================  ============================================
 1	Date and time (in hour) when the file is created	yyyymmddhh
 2	Cycle date	Yyyymmdd
 3	STATEMENT file: <file name> <space><number of records>	STATEMENT_cycledate_creationdate.csv #######
 4	ACCOUNT file: <file name> <space><number of records>	ACCOUNT_cycledate_creationdate.csv #######
 */
-bool get_control_info()
-{
- char rec[MAX], *name, count[10];
- ifstream controlFile("FHBSAUTO.CTL");
- int stmtCNT, acctCNT;
+ controlFile.open("FHBSAUTO.CTL", ios::in);
+ if (!controlFile)
+    return (1);    // Control file does not exist
 
  if (!controlFile.eof()) {
     controlFile.getline(rec, MAX);
@@ -72,28 +82,49 @@ bool get_control_info()
  }
 
  stmtCNT = get_linecount(statementFile);
- acctCNT = get_linecount(accountFile);
+ if (stmtCNT == -1)
+    return 2;    // statement file does not exist
+ else if (stmtCNT != statementCount)
+    return 4;    // #rec of statement indicated in control file and actual #rec mismatch.
 
- return(true);
+ acctCNT = get_linecount(accountFile);
+ if (acctCNT == -1)
+    return 3;    // account file does not exist
+ else if (acctCNT != accountCount)
+    return 5;    // #rec of account indicated in control file and actual #rec mismatch.
+
+ return(0);
 }
 
-
+//---------------------------------------------------------------------------
+/*
+  function : get_linecount
+  parameter: filename - name of input file.
+  return :  -1 - file not exist.
+            ## - number of records of the file.
+*/
 int get_linecount(char *filename)
 {
  int linecount = 0;
  char buffer[MAX];
  FILE *fid;
 
-/* Very slow process, try to use 8k block read (written in C).
- ifstream infile(filename);
+// Very slow process, try to use 8k block read (written in C).
+ ifstream infile;
+ infile.open(filename, ios::in);
+ if (!infile)
+    return (-1);
+ infile.getline(buffer, MAX);
  while (!infile.eof()) {
-    infile.getline(buffer, MAX);
     linecount++;
+    infile.getline(buffer, MAX);
  }
-*/
+ return (linecount);
+
+/*
  if ((fid = fopen(filename, "r")) == NULL) {
     fprintf (stderr, "%s:Can't open file: %s\n", CurrDateTime(), filename);
-    return (1);
+    return (-1);
  }
  Scan_Read_Buffer (fid);
  while (Char_Value() != ENDFILE) {
@@ -118,10 +149,11 @@ int get_linecount(char *filename)
             Char_Move_Ptr();
     }
  }
-
  return (linecount);
+*/
 }
 
+//---------------------------------------------------------------------------
 int get_filename (char *line, char *name, char *count)
 {
   char *ptr1, *ptr2;
@@ -158,6 +190,7 @@ int get_filename (char *line, char *name, char *count)
   return (0);
 }
 
+//---------------------------------------------------------------------------
 static char daytab[2][13] = {
  {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
  {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
@@ -179,8 +212,7 @@ bool validate_date(String date)
  return(true);
 }
 
-
-
+//---------------------------------------------------------------------------
 int  chars_read = 0;
 char old_sentinel;
 

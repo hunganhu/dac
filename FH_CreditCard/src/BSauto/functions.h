@@ -17,7 +17,7 @@ const char LF = 10;
 const char CR = 12;
 
 
-bool get_control_info();
+int get_control_info();
 int  get_filename (char *line, char *name, char *count);
 int  get_linecount(char *filename);
 bool validate_date(String date);
