@@ -81,6 +81,17 @@ class Loan {
     int acct_mgmt_fee_ind;
     int bt_fee_ind;
 
+    /* Prefilter and postfilter variables */
+    int avail_flag;
+    int jas002_defect;
+    int krm021_hit;
+    int krm023_hit;
+    int fs044;
+    int max_bucket;
+    int cash_max_bucket;
+    int cash_utilization;
+    int ind001;
+
     /* cash flow arrays to calculate NPV */
     String Message;
     list<Rate> rateList;
@@ -109,21 +120,21 @@ class Loan {
     double credit_loss[TERM+4];
 
     /* maintenance variables*/
-    double m1_recovery_ratio;
-    int    m1_avg_late_days;
-    double m1_penalty_rate;
-    double m6_recovery_ratio;
-    int    m6_avg_late_days;
-    double m6_penalty_rate;
-    int    early_closing_period;
-    double early_closing_fee_pct;
-    double early_closing_fee_collectable_ratio;
+    double m1_recovery_ratio;            // Late fee recovery ratio - 4 days
+    int    m1_avg_late_days;             // Average late days - 4 days
+    double m1_penalty_rate;              // 違約率 - 4 days
+    double m6_recovery_ratio;            // Late fee recovery ratio - 180+ days
+    int    m6_avg_late_days;             // Average late days - 180+ days
+    double m6_penalty_rate;              // 違約率 - 180+ days
+    int    early_closing_period;         // 提早還款期間
+    double early_closing_fee_pct;        // 提早還款費率
+    double early_closing_fee_collectable_ratio; //  提早還款費可徵收之比率
     double leverage_ratio;               //舉債比率（％）
     double cof;                          //資金成本（％）
     double roe;                          //股東權益報酬（％）
-    double query_fee;                     //查詢費、文件費
+    double query_fee;                    //查詢費、文件費
     double commission_ratio;             //25~50%of 手續費
-    double acquisition_data_cost;        //Cost of Jcic data acquisition
+    double acquisition_data_cost;        //Cost of Jcic data acquisition  提早還款期間
     double acct_mgmt_cost;               //臨櫃繳款
     double short_message_expense;        //簡訊費用
     double phone_expense_north;          //電話催收費用-北區
@@ -194,6 +205,7 @@ class Loan {
     String get_segment ();
     void Init_Maintenance(TADOHandler *handler);
     double get_pd(char *idn, TADOHandler *handler);
+    void postFilter();
 };
 
 #endif

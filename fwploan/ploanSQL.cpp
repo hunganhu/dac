@@ -39,12 +39,12 @@ char *SQLCommands[] = {
 " where idn = :v1",
 
 /*Write_PreFilter_Result*/
-" insert into ploan_result(case_sn, idn, dac_sn, application_date, return_msg, checksum1, ev, pb)"
-"  values (:v0, :v1, :v2, :v3, :v4, :v5, NULL, NULL);",
+" insert into ploan_result(case_sn, idn, dac_sn, application_date, return_msg, checksum1, checksum2, ev, pb)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v5, NULL, NULL);",
 
 /*Write_PLoan_Result*/
-" insert into ploan_result(case_sn, idn, dac_sn, application_date,  return_msg, ev, pb, checksum1)"
-"  values (:v0, :v1, :v2, :v3, :v4, %16.2f, %10.6f, %10.6f);",
+" insert into ploan_result(case_sn, idn, dac_sn, application_date,  return_msg, ev, pb, checksum1, checksum2)"
+"  values (:v0, :v1, :v2, :v3, :v4, %16.2f, %10.6f, %10.6f, %10.6f);",
 
 /*Get_PD*/
 " select rscore, pd"

@@ -331,8 +331,8 @@ String Loan::get_segment ()
 void Loan::calculate_pd(TADOHandler *handler)
 {
  Variant hostVars[5];
- int avail_flag, jas002_defect, krm021_hit, krm023_hit, fs044;
- int max_bucket, cash_max_bucket, cash_utilization, ind001;
+// int avail_flag, jas002_defect, krm021_hit, krm023_hit, fs044;
+// int max_bucket, cash_max_bucket, cash_utilization, ind001;
  int now;
  // bool success = true;
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
@@ -373,7 +373,7 @@ void Loan::calculate_pd(TADOHandler *handler)
     }
     if (avail_flag == 0)
         throw (RiskEx ("人工審核 [無JCIC資料]", 101));
-    else if (jas002_defect > 0)
+/*    else if (jas002_defect > 0)
         throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 103));
     else if (max_bucket >= 4)
         throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 104));
@@ -383,12 +383,10 @@ void Loan::calculate_pd(TADOHandler *handler)
         throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 106));
     else if (cash_utilization >= 1)
         throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 107));
+*/
     else if (krm021_hit ==0 || krm023_hit == 0 || ind001 == 1)
         throw (RiskEx ("人工審核 [JCIC資料不足]", 102));
 
-    hostVars[0] = case_sn;
-    hostVars[1] = idn;
-    hostVars[2] = dac_sn;
     handler->ExecSQLCmd(SQLCommands[Update_Base]);
 
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Daco32_Score]);
@@ -414,14 +412,23 @@ void Loan::calculate_pd(TADOHandler *handler)
        rscore = ds->FieldValues["rscore"];
        pd = ds->FieldValues["pd"];
     }
-    /* Drop all temporary tables before closing a connection to avoid connection creep problem.
-       Without droping temp tables will not release system resource after connection is closed.
-    */
-    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
 
  } catch (Exception &E) {
      throw;
    }
+}
+void Loan::postFilter()
+{
+ if (jas002_defect > 0)
+    throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
+ else if (max_bucket >= 4)
+    throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
+ else if (fs044 > 0)
+    throw (RiskEx ("拒絕 [貸款有逾期記錄]", 105));
+ else if (cash_max_bucket >= 0.5)
+    throw (RiskEx ("拒絕 [現金卡前期有逾期記錄]", 106));
+ else if (cash_utilization >= 1)
+    throw (RiskEx ("拒絕 [現金卡放款額度大於或等於訂約額度]", 107));
 }
 
 void Loan::calculate_npv()
