@@ -14,6 +14,29 @@
 #pragma package(smart_init)
 
 //---------------------------------------------------------------------------
+/*
+4.1.	CONTROL File (from "Host" computer to "Scoring" computer)
+4.1.1.	Naming convention: FHBSAUTO.CTL
+4.1.2.	Contents: 4 lines (records)
+Line	Description	                                        Format
+====    ======================================================  ============================================
+1	Date and time (in hour) when the file is created	yyyymmddhh
+2	Cycle date	                                        yyyymmdd
+3	STATEMENT file: <file name> <space><number of records>	STATEMENT_cycledate_creationdate.csv #######
+4	ACCOUNT file: <file name> <space><number of records>	ACCOUNT_cycledate_creationdate.csv #######
+
+5.	Return Codes
+Code	Message
+0	Success
+1	Control file does not exist
+2	Statement file does not exist
+3	Account file does not exist
+4	Statement - number of records mismatch between text file and temp table
+5	Account - number of records mismatch between text file and temp table
+6	Statement - number of records mismatch between temp and production table
+7	Account - number of records mismatch between temp and production table
+
+*/
 #define Char_Value()        (* ptrbuf)
 #define Char_Addr()         (ptrbuf)
 #define Char_Next()         (* (ptrbuf + 1))
@@ -27,7 +50,14 @@
 
 char buffer[BUF_SIZE], *ptrbuf, *begin_line;
 
-
+ControlFile::ControlFile():
+             statementCount(0), accountCount(0), statement_read_count(0),
+             account_read_count(0), statement_temp_count(0), account_temp_count(0),
+             statement_load_count(0), account_load_count(0)
+{
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+}
 
 //---------------------------------------------------------------------------
 /*
@@ -35,27 +65,20 @@ char buffer[BUF_SIZE], *ptrbuf, *begin_line;
   parameter: none
   return :  -1 - file not exist.
             ## - number of records of the file.
-
-            */
-
+*/
 int ControlFile::get_control_info()
 {
  char rec[MAX], *name, count[10];
  ifstream control_file;
  int stmtCNT, acctCNT;
+ char curr_dir[128], control_path[128];
+ char *bs_home;
 
-/*
-4.1.	CONTROL File (from "Host" computer to "Scoring" computer)
-4.1.1.	Naming convention: FHBSAUTO.CTL
-4.1.2.	Contents: 4 lines (records)
-Line	Description	                                        Format
-====    ======================================================  ============================================
-1	Date and time (in hour) when the file is created	yyyymmddhh
-2	Cycle date	                                        yyyymmdd
-3	STATEMENT file: <file name> <space><number of records>	STATEMENT_cycledate_creationdate.csv #######
-4	ACCOUNT file: <file name> <space><number of records>	ACCOUNT_cycledate_creationdate.csv #######
-*/
- control_file.open("FHBSAUTO.CTL", ios::in);
+ current_directory(curr_dir);
+ if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
+    bs_home = curr_dir;
+ sprintf (control_path, "%s\\FHBSAUTO.CTL", bs_home);
+ control_file.open(control_path, ios::in);
  if (!control_file)
     return (1);    // Control file does not exist
 
@@ -96,7 +119,7 @@ Line	Description	                                        Format
 }
 //---------------------------------------------------------------------------
 
-int ControlFile::bulk_insert(TADOHandler *dbhandle)
+void ControlFile::bulk_insert(TADOHandler *dbhandle)
 {
  char curr_dir[32];
  char *bs_home;
@@ -105,13 +128,13 @@ int ControlFile::bulk_insert(TADOHandler *dbhandle)
  current_directory(curr_dir);
  if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
     bs_home = curr_dir;
-
+ try {
  sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data],
           bs_home, statementFile, bs_home, bs_home, accountFile, bs_home);
  dbhandle->ExecSQLCmd(sqlcmd);
-
-
- return(0);
+ } catch (Exception &E) {
+    throw;
+ }
 }
 //---------------------------------------------------------------------------
 char * ControlFile::get_cycledate()
@@ -121,12 +144,6 @@ char * ControlFile::get_cycledate()
 //---------------------------------------------------------------------------
 int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
 {
- TADODataSet *ds;
- Variant hostVars[5];
-
- ds = new TADODataSet(NULL);
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
-
  try {
     dbhandle->ExecSQLQry(SQLCommands[Check_Statement_Loaded], ds);
     ds->First();
@@ -143,7 +160,6 @@ int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
 
     if (account_read_count != (account_temp_count + 1))
        return 7;    // #rec of account read and  #rec in temp mismatch.
-    delete ds;
  } catch (Exception &E) {
     throw;
  }
@@ -152,26 +168,32 @@ int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
 //---------------------------------------------------------------------------
 int ControlFile::check_production_insert_status(TADOHandler *dbhandle)
 {
- Variant hostVars[5];
+ char  sqlcmd[512];
 
  try {
-    hostVars[0] = cycleDate;
     dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Statement]);
     dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Statement]);
-    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Statement], hostVars, 1);
-    statement_load_count = hostVars[1];
+    sprintf (sqlcmd, SQLCommands[EXEC_PROCEDURE_Load_to_Statement], cycleDate);
+    dbhandle->ExecSQLCmd(sqlcmd);
+    dbhandle->ExecSQLQry(SQLCommands[Check_Production_Statement_Loaded], ds);
+    ds->First();
+    if (!ds->Eof)
+       statement_load_count = ds->FieldValues["row_affected"];
     dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Statement]);
 
     dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
     dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Account]);
-    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Account], hostVars, 0);
-    account_load_count = hostVars[0];
+    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Account]);
+    dbhandle->ExecSQLQry(SQLCommands[Check_Production_Account_Loaded], ds);
+    ds->First();
+    if (!ds->Eof)
+       account_load_count = ds->FieldValues["row_affected"];
     dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
 
-    if (statement_read_count != statement_load_count)
+    if (statement_temp_count != statement_load_count)
        return 6;    // #rec of statement in temp and #rec loaded in production mismatch.
 
-    if (account_read_count != account_load_count)
+    if (account_temp_count != account_load_count)
        return 7;    // #rec of account in temp and  #rec loaded in production mismatch.
  } catch (Exception &E) {
     throw;
@@ -180,13 +202,51 @@ int ControlFile::check_production_insert_status(TADOHandler *dbhandle)
  return(0);
 }
 //---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+int ControlFile::get_filename (char *line, char *name, char *count)
+{
+  char *ptr1, *ptr2;
+  int  length;
+
+  length = strlen (line);
+  ptr1 = line;
+
+  while (Is_White(*ptr1) && length) {  /* Skip spaces, tabs */
+    length--;
+    ptr1++;
+  }
+  ptr2 = name;  /* get file name */
+  *ptr2 = '\0'; /* initialized */
+  while (! Is_White(*ptr1) && length) {
+    *ptr2++ = *ptr1++;
+    length--;
+  }
+  *ptr2 = '\0';
+
+  while (Is_White(*ptr1) && length) {  /* Skip spaces, tabs */
+    length--;
+    ptr1++;
+  }
+
+  ptr2 = count;  /* get host */
+  *ptr2 = '\0'; /* initialized */
+  while (! Is_White(*ptr1) && length) {
+    *ptr2++ = *ptr1++;
+    length--;
+  }
+  *ptr2 = '\0';
+
+  return (0);
+}
+
 /*
   function : get_linecount
   parameter: filename - name of input file.
   return :  -1 - file not exist.
             ## - number of records of the file.
 */
-int ControlFile::get_linecount(char *filename)
+int get_linecount(char *filename)
 {
  int linecount = 0;
  char buffer[MAX];
@@ -237,44 +297,6 @@ int ControlFile::get_linecount(char *filename)
 
 }
 //---------------------------------------------------------------------------
-
-int ControlFile::get_filename (char *line, char *name, char *count)
-{
-  char *ptr1, *ptr2;
-  int  length;
-
-  length = strlen (line);
-  ptr1 = line;
-
-  while (Is_White(*ptr1) && length) {  /* Skip spaces, tabs */
-    length--;
-    ptr1++;
-  }
-  ptr2 = name;  /* get file name */
-  *ptr2 = '\0'; /* initialized */
-  while (! Is_White(*ptr1) && length) {
-    *ptr2++ = *ptr1++;
-    length--;
-  }
-  *ptr2 = '\0';
-
-  while (Is_White(*ptr1) && length) {  /* Skip spaces, tabs */
-    length--;
-    ptr1++;
-  }
-
-  ptr2 = count;  /* get host */
-  *ptr2 = '\0'; /* initialized */
-  while (! Is_White(*ptr1) && length) {
-    *ptr2++ = *ptr1++;
-    length--;
-  }
-  *ptr2 = '\0';
-
-  return (0);
-}
-
-//---------------------------------------------------------------------------
 int  chars_read = 0;
 char old_sentinel;
 
@@ -290,7 +312,7 @@ char old_sentinel;
  * line in the buffer. This makes it very easy to detect when more input
  * is needed.
  */
-void ControlFile::Scan_Read_Buffer (FILE * fid)
+void Scan_Read_Buffer (FILE * fid)
 
    {int   tail, inx;
     char *ptr, *qtr, *out;

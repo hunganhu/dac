@@ -15,6 +15,8 @@ enum SQLCodes { Clean_Temp_Tables,
                 EXEC_PROCEDURE_Load_to_Account,
                 Check_Production_Statement_Loaded,
                 Check_Production_Account_Loaded,
+                Write_Log,
+
                 SYSTEM_Exec_Advscore,
                 SYSTEM_Exec_Bcp_PD,
                 SYSTEM_Exec_Bcp_Profile,

@@ -43,6 +43,17 @@ char *SQLCommands[] = {
 " ELSE"
 "   delete from account_tmp"
 " "
+" if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[bcauto_log]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
+"   BEGIN"
+"     CREATE TABLE [bcauto_log] ("
+"     	[cycle_date] [char] (8),"
+"     	[start_time] [char] (20),"
+"     	[end_time] [char] (20),"
+"     	[return_code] int,"
+"     	[status] [varchar] (80)"
+"     )"
+"   END"
+" "
 " if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[statement_tmp]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
 "   BEGIN"
 "     CREATE TABLE [statement_tmp] ("
@@ -184,12 +195,14 @@ char *SQLCommands[] = {
 " set @row_affected = @@ROWCOUNT",
 
 /* EXEC_PROCEDURE_Load_to_Statement */
-" EXEC Load_to_Statement :v0, :v1 OUTPUT",
+" declare @row_affected int"
+" EXEC Load_to_Statement '%s', @row_affected OUTPUT"
+" select @row_affected as row_affected into #statement_load_rows",
 
 /* DROP_PROCEDURE_Load_to_Account */
 "if exists (select * from dbo.sysobjects where id = object_id(N'[Load_to_Account]') and"
 " OBJECTPROPERTY(id, N'IsProcedure') = 1)"
-" drop procedure Load_to_Statement;",
+" drop procedure Load_to_Account;",
 
 /* CREATE_PROCEDURE_Load_to_Account */
 "CREATE PROCEDURE Load_to_Account"
@@ -211,24 +224,29 @@ char *SQLCommands[] = {
 " set @row_affected = @@ROWCOUNT",
 
 /* EXEC_PROCEDURE_Load_to_Account */
-" EXEC Load_to_Account :v0 OUTPUT",
+" declare @row_affected int"
+" EXEC Load_to_account @row_affected OUTPUT"
+" select @row_affected as row_affected into #account_load_rows",
 
 /* Check_Production_Statement_Loaded */
-" select count(*) as load_count from statement where [statement month] = :v0",
+" select row_affected from #statement_load_rows",
 
 /* Check_Production_Account_Loaded */
-" select count(*) as load_count from account",
+" select row_affected from #account_load_rows",
 
+/* Write_Log */
+" insert into bcauto_log(cycle_date, start_time, end_time, return_code, status) "
+"   values (:v0, :v1, :v2, :v3, :v4)",
 
 /*SYSTEM_Exec_Advscore*/
 "advscore -m %s  -u %s -p %s -s %s -d %s ",
 
 /*SYSTEM_Exec_Bcp_PD*/
 "bcp \"select * from %s..credit_card_monthly_profile_riskgroup where cycle_date='%s'\" "
-" queryout PD_%s_%s.csv -c -t , -U %s -P %s -S %s",
+" queryout \"%s\\PD_%s_%s.csv\" -c -t , -U %s -P %s -S %s",
 
 /*SYSTEM_Exec_Bcp_Profile*/
 "bcp \"select * from %s..credit_card_monthly_profile_riskgroup where cycle_date='%s'\" "
-"queryout PROFILE_%s_%s.csv -c -t , -U %s -P %s -S %s"
+"queryout \"%s\\PROFILE_%s_%s.csv\" -c -t , -U %s -P %s -S %s"
 
 };

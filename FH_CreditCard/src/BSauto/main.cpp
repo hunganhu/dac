@@ -3,8 +3,21 @@
  *         All rights reserved. Duplication or distribution prohibited
  *
  * Program: main.cpp
- * Description:
- *
+ * Description:  The program does the following tasks.
+ *    Operation Process
+ *    -	When the "Host" computer is ready to calculate the scores of the most recently cycled credit card accounts, it sends (by FTP) three files to the "Scoring" computer:
+ *      o ACCOUNT: All accounts of the most recent cycle
+ *      o STATEMENT: Most recent statement data of the accounts
+ *      o CONTROL: Signal file that also contains the control information for the specific run of cycle
+ *    -	Periodically (every 30 minutes), a batch program running on the "Scoring" compute checks the existence of the CONTROL file as the signal that the data is ready for calculation.
+ *    -	When the batch program detects the CONTROL file, it starts to execute the sequence of data loading, checking, and scoring procedures.
+ *    -	Upon finishing up, the batch program
+ *      o Returns a code to indicate whether the program executes successfully
+ *      o Writes log to the log table
+ *      o Upload the scoring results to the "Host" computer
+ *         "	PD: Scored accounts with PD values and assigned group ID's
+ *         "	PROFILE: Numbers of accounts in each assigned group for the cycle
+ *         "	CONTROL: Signal file that contains control information for the result of the specific run of cycle
  *
  * To run bsauto -h for command usage.
  *   Usage: bsauto -u user -p password -s source -d database
@@ -15,7 +28,7 @@
  *           -h, -?: disply this help message.
  *
  * First   Revision: Fri March 11 2005, by Oliver Hu <oliver.hu@burkelee.com>
- * Current Revision: Mon March 21 2005
+ * Current Revision: Mon March 25 2005
  *
  *
  *
@@ -42,15 +55,15 @@
 int main(int argc, char* argv[])
 {
   GetOpt getopt (argc, argv, "c:C:u:U:p:P:s:S:d:D:hHgG");
-  int option_char, i, Debug = 0;
-  char *target_month, *config_file, *user, *password, *source, *database;
+  int option_char, i, Debug = 0, returnCode;
+  char *target_month, *config_file, *user, *password, *source, *database, *create_dtime;
   char connect_string[128], buf[20], syscmd[256], PD_file[32], Profile_file[32];
-  Variant hostVars[10];
   TADOHandler *dbhandle;
   TADOQuery *Query;
-  ControlFile   *control;
+  ControlFile *control;
+  char start_time[20];
 
-
+  strcpy(start_time, CurrDateTime());
   config_file = user = password = source = database = (char *) NULL;
   while ((option_char = getopt ()) != EOF)
     switch (option_char)
@@ -126,41 +139,101 @@ int main(int argc, char* argv[])
  try {
     dbhandle = new TADOHandler();
     control  = new ControlFile();
-    dbhandle->OpenDatabase(connect_string);
     dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
-    control->get_control_info();
-
+    returnCode = control->get_control_info();
+    if (! returnCode) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                       CurrDateTime(), returnCode, return_msgs[returnCode]);
+       return (returnCode);
+    }
+    dbhandle->OpenDatabase(connect_string);
     control->bulk_insert(dbhandle);
-    control->check_bulk_insert_status(dbhandle);
-    control->check_production_insert_status(dbhandle);
+    returnCode = control->check_bulk_insert_status(dbhandle);
+    if (! returnCode) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                       CurrDateTime(), returnCode, return_msgs[returnCode]);
+       return (returnCode);
+    }
+    returnCode = control->check_production_insert_status(dbhandle);
+    if (! returnCode) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                       CurrDateTime(), returnCode, return_msgs[returnCode]);
+       return (returnCode);
+    }
 
 // Prepare system command to execute behavior scoring module advscore
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Advscore], control->get_cycledate(),
              user, password, source, database);
-//    system(syscmd);
+    system(syscmd);
 
+   char *bs_home, curr_dir[128];
+   current_directory(curr_dir);
+   if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
+      bs_home = curr_dir;
+
+   create_dtime =  Create_date();
 // Prepare system command bcp to dump PDs of the accounts with specific cycle date
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_PD], database, control->get_cycledate(),
-             control->get_cycledate(), Create_date(), user, password, source);
+             bs_home, control->get_cycledate(), create_dtime, user, password, source);
     system(syscmd);
 
 // Prepare system command bcp to dump profile of the specific cycle date
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Profile], database, control->get_cycledate(),
-             control->get_cycledate(), Create_date(), user, password, source);
+             bs_home, control->get_cycledate(), create_dtime, user, password, source);
     system(syscmd);
-
+    write_result (bs_home, control->get_cycledate(), create_dtime);
  } catch (Exception &E) {
      fprintf(stderr, E.Message.c_str());
+     write_log_table(dbhandle, control->get_cycledate(), start_time,
+                     CurrDateTime(), SQL_EXEC_ERROR, E.Message.c_str());
      dbhandle->CloseDatabase();
      delete control;
      delete dbhandle;
      return (-1);
  }
 
-
  dbhandle->CloseDatabase();
  delete control;
  delete dbhandle;
+ write_log_table(dbhandle, control->get_cycledate(), start_time,
+                 CurrDateTime(), SUCCESS, return_msgs[SUCCESS]);
  return (0);
 }
 
+int write_result(char *bs_home, char *cycle_date, char *create_date)
+{
+ ofstream outfile;
+ char control_path[128], line[80], file_path[128];
+
+ sprintf (control_path, "%s\\BCRESULT.CTL", bs_home);
+ outfile.open(control_path, ios::out);
+
+ outfile << create_date << endl;
+ outfile << cycle_date << endl;
+ sprintf(file_path, "%s\\PD_%s_%s.csv", bs_home, cycle_date, create_date);
+ sprintf(line, "PD_%s_%s.csv %d", cycle_date, create_date, get_linecount(file_path));
+ outfile << line << endl;
+ sprintf(file_path, "%s\\PROFILE_%s_%s.csv", bs_home, cycle_date, create_date);
+ sprintf(line, "PROFILE_%s_%s.csv %d", cycle_date, create_date, get_linecount(file_path));
+ outfile << line << endl;
+
+ return(0);
+}
+
+
+void write_log_table(TADOHandler *dbhandle, char *cycle_date, char *start,
+                     char *end, int retcode, char *msg)
+{
+  Variant hostVars[10];
+
+  try {
+     hostVars[0] = cycle_date;
+     hostVars[1] = start;
+     hostVars[2] = end;
+     hostVars[3] = retcode;
+     hostVars[4] = msg;
+     dbhandle->ExecSQLCmd(SQLCommands[Write_Log], hostVars, 4);
+  } catch (Exception &E) {
+     throw;
+  }
+}
