@@ -4,7 +4,8 @@
 #define BSautoSQLH
 //---------------------------------------------------------------------------
 enum SQLCodes { Clean_Temp_Tables,
-                Bulk_Insert_Data,
+                Bulk_Insert_Data_STMT,
+                Bulk_Insert_Data_ACCT,
                 Check_Statement_Loaded,
                 Check_Account_Loaded,
                 Check_Cycledate_Loaded,
@@ -18,6 +19,7 @@ enum SQLCodes { Clean_Temp_Tables,
                 Check_Production_Account_Loaded,
                 Write_Log,
 
+                SYSTEM_Rename_Control_File,
                 SYSTEM_Exec_Advscore,
                 SYSTEM_Exec_Bcp_PD,
                 SYSTEM_Exec_Bcp_Profile,

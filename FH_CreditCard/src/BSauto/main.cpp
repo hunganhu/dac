@@ -55,7 +55,7 @@
 int main(int argc, char* argv[])
 {
   GetOpt getopt (argc, argv, "c:C:u:U:p:P:s:S:d:D:hHgG");
-  int option_char, i, Debug = 0, returnCode;
+  int option_char, i, Debug = 0, returnCode, ret;
   char *target_month, *config_file, *user, *password, *source, *database, *create_dtime;
   char connect_string[128], buf[20], syscmd[256], PD_file[32], Profile_file[32];
   TADOHandler *dbhandle;
@@ -141,14 +141,16 @@ int main(int argc, char* argv[])
     control  = new ControlFile();
     dbhandle->OpenDatabase(connect_string);
 
-    dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
     returnCode = control->get_control_info();
     if (returnCode > 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                        CurrDateTime(), returnCode, return_msgs[returnCode]);
        return (returnCode);
     }
+    fprintf(stderr, "Clean temporary table...\n");
+    dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
 
+    fprintf(stderr, "Bulk insert data...\n");
     control->bulk_insert(dbhandle);
     returnCode = control->check_bulk_insert_status(dbhandle);
     if (returnCode > 0) {
@@ -157,6 +159,7 @@ int main(int argc, char* argv[])
        return (returnCode);
     }
 
+    fprintf(stderr, "Load to production tables...\n");
     returnCode = control->check_production_insert_status(dbhandle);
     if (returnCode > 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
@@ -165,9 +168,15 @@ int main(int argc, char* argv[])
     }
 
 // Prepare system command to execute behavior scoring module advscore
+    fprintf(stderr, "Run advscore...\n");
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Advscore], control->get_cycledate(),
              user, password, source, database);
-    system(syscmd);
+    ret = system(syscmd);
+    if (ret < 0) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                     CurrDateTime(), COMMAND_ERROR, "Exec Advscore error");
+       return (COMMAND_ERROR);
+    }
 
    char *bs_data, curr_dir[128];
    current_directory(curr_dir);
@@ -176,14 +185,35 @@ int main(int argc, char* argv[])
 
    create_dtime =  Create_date();
 // Prepare system command bcp to dump PDs of the accounts with specific cycle date
+    fprintf(stderr, "Dump PD table...\n");
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_PD], database, control->get_cycledate(),
              bs_data, control->get_cycledate(), create_dtime, user, password, source);
+    fprintf(stderr, "%s\n", syscmd);
     system(syscmd);
+    if (ret < 0) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                     CurrDateTime(), COMMAND_ERROR, "Dump table PD error");
+       return (COMMAND_ERROR);
+    }
 
 // Prepare system command bcp to dump profile of the specific cycle date
+    fprintf(stderr, "Dump Profile table...\n");
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Profile], database, control->get_cycledate(),
              bs_data, control->get_cycledate(), create_dtime, user, password, source);
+    fprintf(stderr, "%s\n", syscmd);
     system(syscmd);
+    if (ret < 0) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                     CurrDateTime(), COMMAND_ERROR, "Dump table PROFILE error");
+       return (COMMAND_ERROR);
+    }
+ /* Rename the control file by append datatime to the filename */
+    fprintf(stderr, "Rename control file\n");
+    sprintf (syscmd, SQLCommands[SYSTEM_Rename_Control_File], bs_data, create_dtime);
+    fprintf(stderr, "%s\n", syscmd);
+    system(syscmd);
+
+// Write control file for upload result to IBM DW server
     write_result (bs_data, control->get_cycledate(), create_dtime);
  } catch (Exception &E) {
      fprintf(stderr, E.Message.c_str());
@@ -194,12 +224,12 @@ int main(int argc, char* argv[])
      delete dbhandle;
      return (SQL_RUNTIME_ERROR);
  }
+ write_log_table(dbhandle, control->get_cycledate(), start_time,
+                 CurrDateTime(), SUCCESS, return_msgs[SUCCESS]);
 
  dbhandle->CloseDatabase();
  delete control;
  delete dbhandle;
- write_log_table(dbhandle, control->get_cycledate(), start_time,
-                 CurrDateTime(), SUCCESS, return_msgs[SUCCESS]);
  return (0);
 }
 

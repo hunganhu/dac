@@ -118,9 +118,6 @@ int ControlFile::get_control_info()
  else if (account_read_count != accountCount)
     return 5;    // #rec of account indicated in control file and actual #rec mismatch.
 
- /* Rename the control file by append datatime to the filename */
- sprintf (syscmd, "ren %s\\FHBSAUTO.CTL %s\\FHBSAUTO_%s.CTL", bs_data, bs_data, Create_date());
- system(syscmd);
 
  return(0);
 }
@@ -138,8 +135,11 @@ void ControlFile::bulk_insert(TADOHandler *dbhandle)
  if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
     bs_data = curr_dir;
  try {
- sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data],
-          bs_data, statementFile, bs_home, bs_data, accountFile, bs_home);
+ sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data_STMT],
+          bs_data, statementFile, bs_home);
+ dbhandle->ExecSQLCmd(sqlcmd);
+ sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data_ACCT],
+          bs_data, accountFile, bs_home);
  dbhandle->ExecSQLCmd(sqlcmd);
  } catch (Exception &E) {
     throw;

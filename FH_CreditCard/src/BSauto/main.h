@@ -22,7 +22,8 @@ typedef enum return_types_
    UNMATCHED_ACCT_CYCLE_UPLOAD,
    UNMATCHED_STMT_TRANSFER,
    UNMATCHED_ACCT_TRANSFER,
-   SQL_RUNTIME_ERROR
+   SQL_RUNTIME_ERROR,
+   COMMAND_ERROR
   } Return_Type;
 /* List of return messages */
 char *return_msgs [] = {
