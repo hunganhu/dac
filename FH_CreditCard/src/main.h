@@ -228,7 +228,6 @@ char *SQLCommands[] = {
 " insert into account_adv ([account_open_date], [gender], [home_ownership], [educational_level], [Marital_status], [idn])"
 "  select [account open date], [gender], [home ownership], [educational level], [Marital status], [Customer id]"
 "  from account"
-"  where [Cycle Date] = @cycle_date"
 " "
 " declare month_cur CURSOR local scroll static for"
 "    select top 13 [statement month]"
