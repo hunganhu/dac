@@ -1,0 +1,6 @@
+LIBRARY     DAC_SML_NPV.DLL
+
+EXPORTS
+    _DAC_SML_NPV                   @1   ; _DAC_SML_NPV
+    ___CPPdebugHook                @2   ; ___CPPdebugHook
+    DAC_SML_NPV =  _DAC_SML_NPV    

@@ -1,0 +1,80 @@
+libname ez2 oledb init_string="provider=SQloledb;
+password = dac;
+persist security info=true;
+user id = test;
+initial catalog=bsp_sml_20041209;
+data source=notebook"
+schema=dbo;
+
+libname mine "c:\";
+run;
+data mine.id;
+set ez2.APPLICANTS(keep = msn test_cell);
+where TEST_CELL < 17;
+run;
+data mine.id;
+set mine.id;
+ ran = ranuni(0);
+run;
+proc sort data=mine.id;
+by ran;
+run;
+proc rank data=mine.id out=mine.id groups=4;
+	var ran; 
+	ranks quartile;
+run;
+data mine.id;
+set mine.id;
+    quartile=quartile+1;
+run;
+proc means data=mine.id;
+class quartile;
+run;
+data mine.id;
+set mine.id;
+test_cell = quartile + 32;
+run;
+proc means data=mine.id;
+class test_cell;
+run;
+
+
+data mine.id1;
+set ez2.APPLICANTS(keep = msn test_cell);
+where TEST_CELL > 16;
+run;
+data mine.id1;
+set mine.id1;
+ ran = ranuni(0);
+run;
+proc sort data=mine.id1;
+by ran;
+run;
+proc rank data=mine.id1 out=mine.id1 groups=4;
+	var ran; 
+	ranks quartile;
+run;
+data mine.id1;
+set mine.id1;
+    quartile=quartile+1;
+run;
+proc means data=mine.id1;
+class quartile;
+run;
+data mine.id1;
+set mine.id1;
+test_cell = quartile + 36;
+run;
+proc means data=mine.id1;
+class test_cell;
+run;
+
+
+
+proc means data=mine.id noprint;
+class quartile;
+var ran;
+output out=temp MAX=;
+run;
+proc print data=temp;
+run;
