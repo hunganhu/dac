@@ -108,8 +108,8 @@ int step[] = {
  Create_Proc_Generate_Score,
  Execute_Proc_Generate_Score,
  Drop_Proc_Generate_Score,
-// Drop_Input_Table,
-// Drop_Vars_Table,
+ Drop_Input_Table,
+ Drop_Vars_Table,
  End_of_SQL
 };
 
@@ -651,6 +651,8 @@ char *SQLCommands[] = {
 "   and a.[account_open_date] <@twentyfour_month_ago",
 */
 /* New definition of account age of an account, number of statements issued
+   The number of statements of each account is re-calculated to avoid the
+   situation that the job is rerun for the same cycle date.
 */
 " CREATE PROCEDURE Assign_AccountAge"
 " (@cycle_date varchar(8))"
@@ -676,23 +678,17 @@ char *SQLCommands[] = {
 "    set @mm = @mm - 1"
 " set @target_month = cast ((@yyyy * 100 + @mm) as char(6))"
 " "
-" update statement_count"
-" set num_stmt = num_stmt + 1"
-" from statement_count a, statement b"
-" where a.[customer id] = b.[customer id]"
-"   and b.[statement month] = @target_month;"
-" insert into statement_count([customer id], num_stmt)"
-" select [customer id], 1"
+" select [customer id], count(*) as num_stmt"
+" into #statement_count"
 " from statement"
-" where [statement month] = @target_month"
-"   and [customer id] not in"
-" (select [customer id] from statement_count);"
+" where [statement month] <= @target_month"
+" group by [customer id]"
 " update source_adv"
 " set age = (case when b.num_stmt <= 6  then 0"
 "                 when b.num_stmt <= 12 then 1"
 "                 when b.num_stmt <= 24 then 2"
 "                 else 3 end)"
-" from source_adv a, statement_count b"
+" from source_adv a, #statement_count b"
 " where a.idn = b.[customer id]"
 "   and a.statement_month = @target_month;",
 
@@ -705,8 +701,6 @@ char *SQLCommands[] = {
 "if exists (select * from dbo.sysobjects where id = object_id(N'[Assign_AccountAge]') and"
 " OBJECTPROPERTY(id, N'IsProcedure') = 1)"
 " drop procedure [Assign_AccountAge];",
-
-
 
 
 /* Drop_Vars_Table */
