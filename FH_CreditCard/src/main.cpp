@@ -63,8 +63,8 @@ int main(int argc, char* argv[])
          case 'h':
          case '?':
          default:
-//           fprintf (stderr,"usage: Calscore -m statement_month -c config_file ");
-           fprintf (stderr,"usage: Calscore -m statement_month ");
+//           fprintf (stderr,"usage: Advscore -m statement_month -c config_file ");
+           fprintf (stderr,"usage: Advscore -m statement_month ");
            fprintf (stderr,"-u user -p password -s source -d database\n\n");
            fprintf (stderr,"\tstatement_month: the month in which the PD are calculated.\n");
 //           fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.\n");
@@ -79,9 +79,9 @@ int main(int argc, char* argv[])
 //  if (argc < 2 || target_month == (char*) NULL) {
  if (target_month == (char*) NULL || password == (char*) NULL ||
     user == (char*) NULL || database == (char*) NULL || source == (char*) NULL) {
-//     fprintf (stderr,"usage: Calscore -m statement_month -c config_file ");
+//     fprintf (stderr,"usage: Advscore -m statement_month -c config_file ");
      fprintf (stderr,"All options are REQUIRED.\n");
-     fprintf (stderr,"usage: Calscore -m statement_month ");
+     fprintf (stderr,"usage: Advscore -m statement_month ");
      fprintf (stderr,"-u user -p password -s source -d database\n\n");
      fprintf (stderr,"\tstatement_month: the month in which the PD are calculated.\n");
 //     fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.");
@@ -116,11 +116,12 @@ int main(int argc, char* argv[])
     return (1);
  }
 
- fprintf(stderr, "%s: Calculating Behavior Score started.\n", CurrDateTime());
+ fprintf(stderr, "%s: Calculating Behavior Score Ver. 2 started.\n", CurrDateTime());
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
         case Execute_Proc_Load_Input_Table:
         case Execute_Proc_Assign_SegCode:
+        case Execute_Proc_Assign_AccountAge:
         case Load_Vars_Table:
         case Execute_Proc_Generate_Profile:
         case Execute_Proc_Generate_Score:
@@ -132,7 +133,7 @@ int main(int argc, char* argv[])
            }
            break;
         case End_of_SQL:
-           fprintf(stderr, "%s: Calculating Behavior Score completed.\n", CurrDateTime());
+           fprintf(stderr, "%s: Calculating Behavior Score Ver. 2 completed.\n", CurrDateTime());
            try {
               Query = new TADOQuery(NULL);
               Query->ConnectionString = connect_string;
