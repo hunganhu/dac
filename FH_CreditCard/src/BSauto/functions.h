@@ -31,8 +31,10 @@ class ControlFile {
   public:
     ControlFile();
     int  get_control_info();
-    void  bulk_insert(TADOHandler *dbhandle);
-    char * get_cycledate();
+    void bulk_insert(TADOHandler *dbhandle);
+    char *get_cycledate();
+    char *get_statementFile();
+    char *get_accountFile();
     int  check_bulk_insert_status(TADOHandler *dbhandle);
     int  check_production_insert_status(TADOHandler *dbhandle);
 

@@ -134,21 +134,33 @@ void ControlFile::bulk_insert(TADOHandler *dbhandle)
     bs_home = curr_dir;
  if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
     bs_data = curr_dir;
+
  try {
- sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data_STMT],
+  sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data_STMT],
           bs_data, statementFile, bs_home);
- dbhandle->ExecSQLCmd(sqlcmd);
- sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data_ACCT],
+  dbhandle->ExecSQLCmd(sqlcmd);
+  sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data_ACCT],
           bs_data, accountFile, bs_home);
- dbhandle->ExecSQLCmd(sqlcmd);
+  dbhandle->ExecSQLCmd(sqlcmd);
  } catch (Exception &E) {
     throw;
  }
-}
+
+ }
 //---------------------------------------------------------------------------
 char * ControlFile::get_cycledate()
 {
   return(cycleDate);
+}
+//---------------------------------------------------------------------------
+char * ControlFile::get_statementFile()
+{
+  return(statementFile);
+}
+//---------------------------------------------------------------------------
+char * ControlFile::get_accountFile()
+{
+  return(accountFile);
 }
 //---------------------------------------------------------------------------
 int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)

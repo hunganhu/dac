@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "Clean temporary table...\n");
     dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
-
+/*
     fprintf(stderr, "Bulk insert data...\n");
     control->bulk_insert(dbhandle);
     returnCode = control->check_bulk_insert_status(dbhandle);
@@ -157,6 +157,36 @@ int main(int argc, char* argv[])
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                        CurrDateTime(), returnCode, return_msgs[returnCode]);
        return (returnCode);
+    }
+*/
+    char *bs_data, *bs_home, curr_dir[128];
+    current_directory(curr_dir);
+    if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
+        bs_home = curr_dir;
+    if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
+        bs_data = curr_dir;
+
+    fprintf(stderr, "Bulk insert Statement table...\n");
+    sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Statement], database,
+             bs_data, control->get_statementFile(), bs_home, user, password, source);
+    fprintf(stderr, "%s\n", syscmd);
+    ret=system(syscmd);
+    if (ret < 0) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                     CurrDateTime(), COMMAND_ERROR, "Statement: Bulk insert error");
+       return (COMMAND_ERROR);
+    }
+
+
+    fprintf(stderr, "Bulk insert Account table...\n");
+    sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Account], database,
+             bs_data, control->get_accountFile(), bs_home, user, password, source);
+    fprintf(stderr, "%s\n", syscmd);
+    ret=system(syscmd);
+    if (ret < 0) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                     CurrDateTime(), COMMAND_ERROR, "Account: Bulk insert error");
+       return (COMMAND_ERROR);
     }
 
     fprintf(stderr, "Load to production tables...\n");
@@ -178,10 +208,6 @@ int main(int argc, char* argv[])
        return (COMMAND_ERROR);
     }
 
-   char *bs_data, curr_dir[128];
-   current_directory(curr_dir);
-   if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
-      bs_data = curr_dir;
 
    create_dtime =  Create_date();
 // Prepare system command bcp to dump PDs of the accounts with specific cycle date
@@ -189,7 +215,7 @@ int main(int argc, char* argv[])
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_PD], database, control->get_cycledate(),
              bs_data, control->get_cycledate(), create_dtime, user, password, source);
     fprintf(stderr, "%s\n", syscmd);
-    system(syscmd);
+    ret=system(syscmd);
     if (ret < 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                      CurrDateTime(), COMMAND_ERROR, "Dump table PD error");
@@ -201,7 +227,7 @@ int main(int argc, char* argv[])
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Profile], database, control->get_cycledate(),
              bs_data, control->get_cycledate(), create_dtime, user, password, source);
     fprintf(stderr, "%s\n", syscmd);
-    system(syscmd);
+    ret=system(syscmd);
     if (ret < 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                      CurrDateTime(), COMMAND_ERROR, "Dump table PROFILE error");

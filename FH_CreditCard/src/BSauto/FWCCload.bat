@@ -1,7 +1,12 @@
-::@ECHO OFF
+@ECHO OFF
+:: Set environment variable BSAUTO_HOME to the directory in which the programs and format
+::   files reside.
+:: Set environment variable BSAUTO_DATA to the directory in which the control file and
+::   data files reside.
+::
 SET BSAUTO_HOME=c:\tmp\FH_CreditCard\src\BSauto
 SET BSAUTO_DATA=%BSAUTO_HOME%\data
-
+::
 ::Append the path at which advscore is located
 SET PATH=%PATH%;c:\dac\fuhwa\CreditCard\prog\advanceRiskModel\release_nv
 CD %BSAUTO_DATA%
@@ -27,8 +32,11 @@ del /Q PROFILE*.csv
 del /Q PD*.csv
 
 :: Execute automation program
+:: change the options
+:: -u user_name -p password -s sql_server_name -d database
 ..\fhbsauto -u sa -p Emily1013 -s oliver\daisy -d fw_auto
 
+IF ERRORLEVEL 12 GOTO ERROR12
 IF ERRORLEVEL 11 GOTO ERROR11
 IF ERRORLEVEL 10 GOTO ERROR10
 IF ERRORLEVEL 9 GOTO ERROR9
@@ -43,9 +51,12 @@ IF ERRORLEVEL 1 GOTO ERROR1
 
 :: FTP result to host
 :: Create the temporary script file
-> script.ftp ECHO USER oliver
->>script.ftp ECHO Emily1013
->>script.ftp ECHO cd files/pictures
+:: Change the user name
+:: Change the password
+:: Change the working directory if needed
+> script.ftp ECHO ftpguest@decision-analytics.com
+>>script.ftp ECHO gonzalez
+::>>script.ftp ECHO cd files/pictures
 >>script.ftp ECHO ascii
 >>script.ftp ECHO prompt n
 >>script.ftp ECHO mput PD*.csv
@@ -53,8 +64,7 @@ IF ERRORLEVEL 1 GOTO ERROR1
 >>script.ftp ECHO put  BCRESULT.CTL
 >>script.ftp ECHO quit
 :: Use the temporary script for unattended FTP
-FTP -v -s:script.ftp giza
-IF ERRORLEVEL 1 GOTO FTPERR
+FTP -v -s:script.ftp ftp.decision-analytics.com
 :: For the paranoid: overwrite the temporary file before deleting it
 TYPE NUL >script.ftp
 DEL script.ftp
@@ -63,51 +73,49 @@ ECHO *** Success!! > FHBSAUTO.LOG
 GOTO DELLOCK
 
 :NOTFOUND
-ECHO "CONTROL FILE NOT FOUND" > FHBSAUTO.LOG
+ECHO Control file not fount > FHBSAUTO.LOG
 GOTO DELLOCK
 
 :ERROR1
-ECHO ERROR1 > FHBSAUTO.LOG
+ECHO Control file does not exist. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR2
-ECHO ERROR2 > FHBSAUTO.LOG
+ECHO Statement file does not exist. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR3
-ECHO ERROR3 > FHBSAUTO.LOG
+ECHO Account file does not exist. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR4
-ECHO ERROR4 > FHBSAUTO.LOG
+ECHO Statement - number of records mismatch between text file and control file. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR5
-ECHO ERROR5 > FHBSAUTO.LOG
+ECHO Account - number of records mismatch between text file and control file. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR6
-ECHO ERROR6 > FHBSAUTO.LOG
+ECHO Statement - number of records mismatch between text file and temp table. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR7
-ECHO ERROR7 > FHBSAUTO.LOG
+ECHO Account - number of records mismatch between text file and temp table. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR8
-ECHO ERROR8 > FHBSAUTO.LOG
+ECHO Account - number of records mismatch between text and cycle date loaded. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR9
-ECHO ERROR9 > FHBSAUTO.LOG
+ECHO Statement - number of records mismatch between temp and production table. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR10
-ECHO ERROR10 > FHBSAUTO.LOG
+ECHO Account - number of records mismatch between temp and production table. > FHBSAUTO.LOG
 GOTO DELLOCK
 :ERROR11
-ECHO ERROR11 > FHBSAUTO.LOG
+ECHO SQL runtime error. > FHBSAUTO.LOG
+GOTO DELLOCK
+:ERROR12
+ECHO System command error. > FHBSAUTO.LOG
 GOTO DELLOCK
 
 :LOCK
 ECHO The same job is currently running, you have to wait until it completes. > FHBSAUTO.LOG
 GOTO END
-
-:FTPERR
-ECHO FTP error. > FHBSAUTO.LOG
-TYPE NUL >script.ftp
-DEL script.ftp
 
 :DELLOCK
 DEL .lock

@@ -221,6 +221,16 @@ char *SQLCommands[] = {
 /*SYSTEM_Exec_Advscore*/
 "advscore -g -m %s  -u %s -p %s -s %s -d %s ",
 
+/*SYSTEM_Exec_Bcp_Statement*/
+/* the option -q is required because the field name of table has blank.
+   So we have to set quoted_identifier on*/
+"bcp %s..statement_tmp in %s\\%s -F 2 -f %s\\statement.fmt -q -U %s -P %s -S %s ",
+
+/*SYSTEM_Exec_Bcp_Account*/
+/* the option -q is required because the field name of table has blank.
+   So we have to set quoted_identifier on*/
+"bcp %s..account_tmp in %s\\%s -F 2 -f %s\\account.fmt -q -U %s -P %s -S %s ",
+
 /*SYSTEM_Exec_Bcp_PD*/
 "bcp \"select * from %s..credit_card_monthly_pd_riskgroup where cycle_date='%s'\" "
 " queryout \"%s\\PD_%s_%s.csv\" -c -t , -U %s -P %s -S %s",
