@@ -103,13 +103,13 @@ int step[] = {
  Drop_Proc_Generate_Profile,
  Create_Proc_Generate_Profile,
  Execute_Proc_Generate_Profile,
- Drop_Proc_Generate_Profile,
+// Drop_Proc_Generate_Profile,
  Drop_Proc_Generate_Score,
  Create_Proc_Generate_Score,
  Execute_Proc_Generate_Score,
- Drop_Proc_Generate_Score,
- Drop_Input_Table,
- Drop_Vars_Table,
+// Drop_Proc_Generate_Score,
+// Drop_Input_Table,
+// Drop_Vars_Table,
  End_of_SQL
 };
 
@@ -2066,7 +2066,7 @@ char *SQLCommands[] = {
 "         [risk_group] [int] NULL,"
 "         [group_count] [int] NULL"
 "     );"
-"     alter table credit_card_monthly_profile_riskgroup add constraint p_profile_stmtmonth primary key (cycle_date);"
+"     alter table credit_card_monthly_profile_riskgroup add constraint p_profile_stmtmonth primary key (cycle_date, risk_group);"
 "   end"
 " delete from credit_card_monthly_profile_riskgroup where cycle_date = @cycle_date;"
 " insert into credit_card_monthly_profile_riskgroup (cycle_date, risk_group, group_count)"
