@@ -579,6 +579,8 @@ char *SQLCommands[] = {
 " drop procedure [Assign_SegCode];",
 
 /* CREATE PROCEDURE Assign_AccountAge */
+/* Old definition of account age, different of current cycle date from account
+   open date.
 " CREATE PROCEDURE Assign_AccountAge"
 " (@cycle_date varchar(8))"
 " AS"
@@ -647,6 +649,54 @@ char *SQLCommands[] = {
 " where a.[idn] = b.idn"
 "   and b.statement_month=@target_month"
 "   and a.[account_open_date] <@twentyfour_month_ago",
+*/
+/* New definition of account age of an account, number of statements issued
+*/
+" CREATE PROCEDURE Assign_AccountAge"
+" (@cycle_date varchar(8))"
+" AS"
+" declare @yyyymm int"
+" declare @yyyy int"
+" declare @mm int"
+" declare @dd int"
+" declare @six_month_ago varchar(10)"
+" declare @twelve_month_ago varchar(10)"
+" declare @twentyfour_month_ago varchar(10)"
+" declare @target_month varchar(6)"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = cast (substring(@cycle_date, 1, 4) as int)"
+" set @mm = @yyyymm % 100"
+" set @dd = cast (@cycle_date as int) % 100"
+" if @mm <= 1"
+"    begin"
+"      set @mm = @mm - 1 + 12"
+"      set @yyyy = @yyyy - 1"
+"    end"
+" else"
+"    set @mm = @mm - 1"
+" set @target_month = cast ((@yyyy * 100 + @mm) as char(6))"
+" "
+" update statement_count"
+" set num_stmt = num_stmt + 1"
+" from statement_count a, statement b"
+" where a.[customer id] = b.[customer id]"
+"   and b.[statement month] = @target_month;"
+" insert into statement_count([customer id], num_stmt)"
+" select [customer id], 1"
+" from statement"
+" where [statement month] = @target_month"
+"   and [customer id] not in"
+" (select [customer id] from statement_count);"
+" update source_adv"
+" set age = (case when b.num_stmt <= 6  then 0"
+"                 when b.num_stmt <= 12 then 1"
+"                 when b.num_stmt <= 24 then 2"
+"                 else 3 end)"
+" from source_adv a, statement_count b"
+" where a.idn = b.[customer id]"
+"   and a.statement_month = @target_month;",
+
+
 
 /* Execute_Proc_Assign_AccountAge */
 "EXEC Assign_AccountAge :v1",

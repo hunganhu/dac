@@ -22,7 +22,6 @@ int main(int argc, char* argv[])
   int option_char, i, Debug = 0;
   char *target_month, *config_file, *user, *password, *source, *database;
   char connect_string[128], buf[20];
-  AnsiString low, medium, high, not_scored;
   Variant hostVars[10];
   TADOHandler *dbhandle;
   TADOQuery *Query;
@@ -116,13 +115,13 @@ int main(int argc, char* argv[])
     return (1);
  }
 
- fprintf(stderr, "%s: Calculating Behavior Score Ver. 2 started.\n", CurrDateTime());
+ fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 started.\n", CurrDateTime());
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
         case Execute_Proc_Load_Input_Table:
         case Execute_Proc_Assign_SegCode:
         case Execute_Proc_Assign_AccountAge:
-        case Load_Vars_Table:
+        case Execute_Proc_Load_Vars_Table:
         case Execute_Proc_Generate_Profile:
         case Execute_Proc_Generate_Score:
            hostVars[0] = target_month;
@@ -133,32 +132,30 @@ int main(int argc, char* argv[])
            }
            break;
         case End_of_SQL:
-           fprintf(stderr, "%s: Calculating Behavior Score Ver. 2 completed.\n", CurrDateTime());
+           fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 completed.\n", CurrDateTime());
+           fprintf (stderr, "\nFuHwa Holding Credit Card Risk Monthly Profile (%s)\n", target_month);
+           int risk_group, group_count;
            try {
               Query = new TADOQuery(NULL);
               Query->ConnectionString = connect_string;
               Query->Close();
               Query->SQL->Clear();
-              Query->SQL->Add("select low, medium, high, not_scored from credit_card_monthly_profile where statement_month=:v1");
+              Query->SQL->Add("select risk_group, group_count from credit_card_monthly_profile_riskgroup where cycle_date=:v1 order by risk_group");
               Query->Parameters->ParamValues["v1"] = target_month;
               Query->Open();
               Query->First();
-              low = Query->FieldValues["low"];
-              medium = Query->FieldValues["medium"];
-              high = Query->FieldValues["high"];
-              not_scored = Query->FieldValues["not_scored"];
+              while (!Query->Eof) {
+                 risk_group = Query->FieldValues["risk_group"];
+                 group_count = Query->FieldValues["group_count"];
+                 fprintf (stderr, "   Group %3d = %d\n", risk_group, group_count);
+                 Query->Next();
+              }
            }
            catch (Exception &E){
                fprintf(stderr,"Error: %s, %s\n", AnsiString(E.ClassName()), E.Message);
                delete dbhandle;
                return (false);
            }
-
-           fprintf (stderr, "\nFuHwa Holding Credit Card Risk Monthly Profile (%s)\n", target_month);
-           fprintf (stderr, "   Low = %s\n", low);
-           fprintf (stderr, "   Medium = %s\n", medium);
-           fprintf (stderr, "   High = %s\n", high);
-           fprintf (stderr, "   Not_Scored = %s\n", not_scored);
            break;
         default:
            DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);
