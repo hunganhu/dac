@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iomanip>
 #include <stdio.h>
+#include <dir.h>
+#include "AdoHandle.h"
 #include "functions.h"
 #include "BSautoSQL.h"
 //---------------------------------------------------------------------------
@@ -35,13 +37,11 @@ char buffer[BUF_SIZE], *ptrbuf, *begin_line;
             ## - number of records of the file.
 
             */
-ControlFile::~ControlFile ()
-{ }
 
 int ControlFile::get_control_info()
 {
  char rec[MAX], *name, count[10];
- ifstream controlFile;
+ ifstream control_file;
  int stmtCNT, acctCNT;
 
 /*
@@ -55,41 +55,41 @@ Line	Description	                                        Format
 3	STATEMENT file: <file name> <space><number of records>	STATEMENT_cycledate_creationdate.csv #######
 4	ACCOUNT file: <file name> <space><number of records>	ACCOUNT_cycledate_creationdate.csv #######
 */
- controlFile.open("FHBSAUTO.CTL", ios::in);
- if (!controlFile)
+ control_file.open("FHBSAUTO.CTL", ios::in);
+ if (!control_file)
     return (1);    // Control file does not exist
 
- if (!controlFile.eof()) {
-    controlFile.getline(rec, MAX);
+ if (!control_file.eof()) {
+    control_file.getline(rec, MAX);
     strcpy(createDate, rec);
  }
- if (!controlFile.eof()) {
-    controlFile.getline(rec, MAX);
+ if (!control_file.eof()) {
+    control_file.getline(rec, MAX);
     strcpy(cycleDate, rec);
  }
- if (!controlFile.eof()) {
-    controlFile.getline(rec, MAX);
+ if (!control_file.eof()) {
+    control_file.getline(rec, MAX);
     name = statementFile;
     get_filename(rec, name, count);     // get file name, line count of statement
     statementCount = atoi(count);
  }
- if (!controlFile.eof()) {
-    controlFile.getline(rec, MAX);
+ if (!control_file.eof()) {
+    control_file.getline(rec, MAX);
     name = accountFile;
     get_filename(rec, name, count);     // get file name, line count of account
     accountCount = atoi(count);
  }
 
- stmtCNT = get_linecount(statementFile);
- if (stmtCNT == -1)
+ statement_read_count = get_linecount(statementFile);
+ if (statement_read_count == -1)
     return 2;    // statement file does not exist
- else if (stmtCNT != statementCount)
+ else if (statement_read_count != statementCount)
     return 4;    // #rec of statement indicated in control file and actual #rec mismatch.
 
- acctCNT = get_linecount(accountFile);
- if (acctCNT == -1)
+ account_read_count = get_linecount(accountFile);
+ if (account_read_count == -1)
     return 3;    // account file does not exist
- else if (acctCNT != accountCount)
+ else if (account_read_count != accountCount)
     return 5;    // #rec of account indicated in control file and actual #rec mismatch.
 
  return(0);
@@ -98,10 +98,11 @@ Line	Description	                                        Format
 
 int ControlFile::bulk_insert(TADOHandler *dbhandle)
 {
- char *curr_dir = ".\\";
+ char curr_dir[32];
  char *bs_home;
  char  sqlcmd[512];
 
+ current_directory(curr_dir);
  if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
     bs_home = curr_dir;
 
@@ -113,14 +114,70 @@ int ControlFile::bulk_insert(TADOHandler *dbhandle)
  return(0);
 }
 //---------------------------------------------------------------------------
+char * ControlFile::get_cycledate()
+{
+  return(cycleDate);
+}
+//---------------------------------------------------------------------------
 int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
 {
-  return(0);
+ TADODataSet *ds;
+ Variant hostVars[5];
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+
+ try {
+    dbhandle->ExecSQLQry(SQLCommands[Check_Statement_Loaded], ds);
+    ds->First();
+    if (!ds->Eof)
+       statement_temp_count = ds->FieldValues["load_count"];
+
+    dbhandle->ExecSQLQry(SQLCommands[Check_Account_Loaded], ds);
+    ds->First();
+    if (!ds->Eof)
+       account_temp_count = ds->FieldValues["load_count"];
+
+    if (statement_read_count != (statement_temp_count + 1))
+       return 6;    // #rec of statement read and #rec in temp mismatch.
+
+    if (account_read_count != (account_temp_count + 1))
+       return 7;    // #rec of account read and  #rec in temp mismatch.
+    delete ds;
+ } catch (Exception &E) {
+    throw;
+ }
+ return(0);
 }
 //---------------------------------------------------------------------------
 int ControlFile::check_production_insert_status(TADOHandler *dbhandle)
 {
-  return(0);
+ Variant hostVars[5];
+
+ try {
+    hostVars[0] = cycleDate;
+    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Statement]);
+    dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Statement]);
+    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Statement], hostVars, 1);
+    statement_load_count = hostVars[1];
+    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Statement]);
+
+    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
+    dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Account]);
+    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Account], hostVars, 0);
+    account_load_count = hostVars[0];
+    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
+
+    if (statement_read_count != statement_load_count)
+       return 6;    // #rec of statement in temp and #rec loaded in production mismatch.
+
+    if (account_read_count != account_load_count)
+       return 7;    // #rec of account in temp and  #rec loaded in production mismatch.
+ } catch (Exception &E) {
+    throw;
+ }
+
+ return(0);
 }
 //---------------------------------------------------------------------------
 /*
@@ -136,6 +193,7 @@ int ControlFile::get_linecount(char *filename)
  FILE *fid;
 
 // Very slow process, try to use 8k block read (written in C).
+/*
  ifstream infile;
  infile.open(filename, ios::in);
  if (!infile)
@@ -146,8 +204,8 @@ int ControlFile::get_linecount(char *filename)
     infile.getline(buffer, MAX);
  }
  return (linecount);
+*/
 
-/*
  if ((fid = fopen(filename, "r")) == NULL) {
     fprintf (stderr, "%s:Can't open file: %s\n", CurrDateTime(), filename);
     return (-1);
@@ -176,7 +234,7 @@ int ControlFile::get_linecount(char *filename)
     }
  }
  return (linecount);
-*/
+
 }
 //---------------------------------------------------------------------------
 
@@ -288,6 +346,19 @@ char * CurrDateTime ()
  return (buf);
 }
 //---------------------------------------------------------------------------
+char * Create_date ()
+{
+ time_t timer;
+ struct tm *tblock;
+ static char buf[20];
+
+ timer = time(NULL);
+ tblock = localtime(&timer);
+ sprintf (buf, "%04d%02d%02d%02d", tblock->tm_year+1900, tblock->tm_mon+1,
+          tblock->tm_mday, tblock->tm_hour);
+ return (buf);
+}
+//---------------------------------------------------------------------------
 static char daytab[2][13] = {
  {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
  {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
@@ -308,12 +379,14 @@ bool validate_date(String date)
 
  return(true);
 }
+
 //---------------------------------------------------------------------------
-
-int load_tables(TADOHandler *dbhandle)
+char *current_directory(char *path)
 {
-
-  return(0);
+  strcpy(path, "X:\\");      /* fill string with form of response: X:\ */
+  path[0] = 'A' + getdisk();    /* replace X with current drive letter */
+  getcurdir(0, path+3);  /* fill rest of string with current directory */
+  return(path);
 }
 
 

@@ -24,7 +24,12 @@ class ControlFile {
     char accountFile[64];
     int  statementCount;
     int  accountCount;
-
+    int  statement_read_count;
+    int  account_read_count;
+    int  statement_temp_count;
+    int  account_temp_count;
+    int  statement_load_count;
+    int  account_load_count;
 
     int  get_filename (char *line, char *name, char *count);
     int  get_linecount(char *filename);
@@ -33,13 +38,14 @@ class ControlFile {
   public:
     int  get_control_info();
     int  bulk_insert(TADOHandler *dbhandle);
-    ~ControlFile ();
-    int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle);
-    int ControlFile::check_production_insert_status(TADOHandler *dbhandle);
+    char * get_cycledate();
+    int  check_bulk_insert_status(TADOHandler *dbhandle);
+    int  check_production_insert_status(TADOHandler *dbhandle);
 
 };
 
 bool validate_date(String date);
-char * CurrDateTime ();
-int  load_tables(TADOHandler *dbhandle);
+char *CurrDateTime ();
+char *current_directory(char *path);
+char *Create_date ();
 #endif

@@ -44,8 +44,7 @@ int main(int argc, char* argv[])
   GetOpt getopt (argc, argv, "c:C:u:U:p:P:s:S:d:D:hHgG");
   int option_char, i, Debug = 0;
   char *target_month, *config_file, *user, *password, *source, *database;
-  char connect_string[128], buf[20];
-  AnsiString low, medium, high, not_scored;
+  char connect_string[128], buf[20], syscmd[256], PD_file[32], Profile_file[32];
   Variant hostVars[10];
   TADOHandler *dbhandle;
   TADOQuery *Query;
@@ -128,32 +127,39 @@ int main(int argc, char* argv[])
     dbhandle = new TADOHandler();
     control  = new ControlFile();
     dbhandle->OpenDatabase(connect_string);
+    dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
     control->get_control_info();
+
     control->bulk_insert(dbhandle);
     control->check_bulk_insert_status(dbhandle);
-    dbhandle->ExecSQLCmd(SQLCommands[Insert_Into_Production_Tables]);
     control->check_production_insert_status(dbhandle);
 
-    load_tables(dbhandle);
+// Prepare system command to execute behavior scoring module advscore
+    sprintf (syscmd, SQLCommands[SYSTEM_Exec_Advscore], control->get_cycledate(),
+             user, password, source, database);
+//    system(syscmd);
 
-/*
-    bulk_insert(statement);
-    load_account();
-    load_statement();
-    system(advscore);
-    dump_monthly_pd();
-    dump_monthly_profile();
-*/    
-    
+// Prepare system command bcp to dump PDs of the accounts with specific cycle date
+    sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_PD], database, control->get_cycledate(),
+             control->get_cycledate(), Create_date(), user, password, source);
+    system(syscmd);
+
+// Prepare system command bcp to dump profile of the specific cycle date
+    sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Profile], database, control->get_cycledate(),
+             control->get_cycledate(), Create_date(), user, password, source);
+    system(syscmd);
+
  } catch (Exception &E) {
      fprintf(stderr, E.Message.c_str());
      dbhandle->CloseDatabase();
+     delete control;
      delete dbhandle;
      return (-1);
  }
 
 
  dbhandle->CloseDatabase();
+ delete control;
  delete dbhandle;
  return (0);
 }

@@ -96,7 +96,7 @@ Comments=
 DebugSourceDirs=$(BCB)\source\vcl
 
 [Parameters]
-RunParams=-u oliver -p Emily1013 -s giza -d oliver
+RunParams=-u sa -p Emily1013 -s oliver\daisy -d fuhwa
 Launcher=
 UseLauncher=0
 DebugCWD=
