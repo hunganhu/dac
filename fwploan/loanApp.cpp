@@ -31,7 +31,7 @@ Loan::Loan (char * caseNo, char* pid, int seq, TADOHandler *handler):
     repayment_ind(0), periods_ind(0), grace_period_ind(0),
     num_int_period_ind(0), appropriation_ind(0), zip_ind(0),
     segment_ind(0), application_fee_ind(0), risk_mgmt_fee_ind(0),
-    acct_mgmt_fee_ind(0), bt_fee_ind(0), inquiry_date_ind(0)
+    acct_mgmt_fee_ind(0), bt_fee_ind(0), inquiry_date_ind(0), early_closing_period_ind(0)
 {
  Variant hostVars[5];
  ds = new TADODataSet(NULL);
@@ -138,6 +138,11 @@ Loan::Loan (char * caseNo, char* pid, int seq, TADOHandler *handler):
 //          bt_fee = ds->FieldByName("bt_fee")->AsFloat;
        else
           bt_fee_ind = -1;
+
+       if (! ds->FieldValues["early_close_period"].IsNull())
+          early_closing_period = ds->FieldByName("early_close_period")->AsInteger;
+       else
+          early_closing_period_ind = -1;
     }
     handler->ExecSQLQry(SQLCommands[Get_AppI_Record], hostVars, 2, ds);
 
@@ -201,6 +206,12 @@ void Loan::validate()
      Message += "寬限期錯誤，必須介於0和貸款期數。";
      success = false;
   }
+
+  if ((early_closing_period_ind == -1) || (early_closing_period < 0) || (early_closing_period > periods)) {
+     Message += "閉鎖期錯誤，必須介於0和貸款期數。";
+     success = false;
+  }
+
   if ((repayment == "1") && (periods != grace_period)) {
      Message += "錯誤:還款方式為1(一般法)時，寬限期必須等於貸款期數。";
      success = false;
@@ -833,10 +844,10 @@ void Loan::Init_Maintenance(TADOHandler *handler)
 
        if (! ds->FieldValues["m6_penalty_rate"].IsNull())
           m6_penalty_rate = ds->FieldByName("m6_penalty_rate")->AsFloat / 100.0;
-
+/*
        if (! ds->FieldValues["early_closing_period"].IsNull())
           early_closing_period = ds->FieldByName("early_closing_period")->AsInteger;
-
+*/
        if (! ds->FieldValues["early_closing_fee_pct"].IsNull())
           early_closing_fee_pct = ds->FieldByName("early_closing_fee_pct")->AsFloat / 100.0;
 

@@ -12,7 +12,7 @@ char *SQLCommands[] = {
 " select case_sn, idn, dac_sn, ltrim(rtrim(application_date)) as application_date, "
 "  ltrim(rtrim(inquiry_date)) as inquiry_date, product_code, project_source, case_source, recommender,"
 "  guarantor, principal, repayment, periods, grace_period, num_int_period, appropriation, zip, ltrim(rtrim(segment)) as segment,"
-"  application_fee, risk_mgmt_fee, acct_mgmt_fee, bt_fee"
+"  application_fee, risk_mgmt_fee, acct_mgmt_fee, bt_fee, early_close_period"
 " from app_info"
 " where case_sn = :v0 and idn = :v1 and dac_sn = :v2;",
 

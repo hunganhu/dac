@@ -34,30 +34,31 @@ class Rate {
 class Loan {
   private:
     /* application information */
-    String case_sn;
-    String idn;
-    int dac_sn;
-    int record_count;
-    String application_date;
-    String inquiry_date;
-    String product_code;
-    String project_source;
-    String case_source;
-    String recommender;
-    String guarantor;
-    double principal;
-    String repayment;
-    int periods;
-    int grace_period;
-    int num_int_period;
-    String appropriation;
-    String zip;
-    String segment;
-    int application_fee;
-    int risk_mgmt_fee;
-    int acct_mgmt_fee;
-    int bt_fee;
-    double max_apr;
+    String case_sn;                 // 案件編號
+    String idn;                     // 身份證號
+    int dac_sn;                     // 序號
+    int record_count;               // number of records read
+    String application_date;        // 申請日期YYYYMMDD
+    String inquiry_date;            // JCIC 查詢日期 YYYYMMDD
+    String product_code;            // 性質別
+    String project_source;          // 專案代碼
+    String case_source;             // 案件來源
+    String recommender;             // 引薦人(0: 無引薦人; 1: 有引薦人)
+    String guarantor;               // 保人(0: 無保人; 1: 有保人)
+    double principal;               // 貸款金額(新台幣元)
+    String repayment;               // 還款方式(1; 一般法;2:本息法;3:本金法)
+    int periods;                    // 貸款期數(月數)
+    int grace_period;               // 寬限期(月數)
+    int num_int_period;             // 利率時段個數，必須是1, 2 或3
+    String appropriation;           // 撥款方式(1: 一次撥貸; 3: 分次撥貸; 4: 循環)，本次專案不包含3 和 4
+    String zip;                     // 三位郵遞區號
+    String segment;                 // 客層 "01"~"09", "99"
+    int application_fee;            // 手續費+查詢費(新台幣元)
+    int risk_mgmt_fee;              // 風險管理費(新台幣元)
+    int acct_mgmt_fee;              // 帳戶管理費 (新台幣元)
+    int bt_fee;                     // 代償費(新台幣元)
+    int early_closing_period;       // 提早還款期間
+    double max_apr;                 // max. of apr among each interest preiod
     TADODataSet *ds;
 
     /* Null indicator for each application feature */
@@ -80,6 +81,7 @@ class Loan {
     int risk_mgmt_fee_ind;
     int acct_mgmt_fee_ind;
     int bt_fee_ind;
+    int early_closing_period_ind;       // 提早還款期間 NULL indicator
 
     /* Prefilter and postfilter variables */
     int avail_flag;
@@ -126,7 +128,7 @@ class Loan {
     double m6_recovery_ratio;            // Late fee recovery ratio - 180+ days
     int    m6_avg_late_days;             // Average late days - 180+ days
     double m6_penalty_rate;              // 違約率 - 180+ days
-    int    early_closing_period;         // 提早還款期間
+//    int    early_closing_period;         // 提早還款期間 -- move to app_info
     double early_closing_fee_pct;        // 提早還款費率
     double early_closing_fee_collectable_ratio; //  提早還款費可徵收之比率
     double leverage_ratio;               //舉債比率（％）
