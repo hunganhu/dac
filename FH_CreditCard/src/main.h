@@ -33,7 +33,9 @@ enum SQLCodes { Drop_Input_Table,
 
                 Drop_Vars_Table,
                 Create_Vars_Table,
-                Load_Vars_Table,
+                Create_Proc_Load_Vars_Table,
+                Execute_Proc_Load_Vars_Table,
+                Drop_Proc_Load_Vars_Table,
                 Create_Index_u_idn_on_Vars,
 
                 Create_Proc_Calculate_Variables_Scores,
@@ -45,6 +47,7 @@ enum SQLCodes { Drop_Input_Table,
                 Update_PD_For_Flag_12,
                 Update_PD_For_Flag_11,
                 Update_PD_For_Flag_10,
+                Update_Risk_Group,
                 Update_Risk_Level_For_Flag_10_11_12,
 
                 Create_Proc_Generate_Profile,
@@ -82,7 +85,10 @@ int step[] = {
  Drop_Proc_Assign_AccountAge,
  Drop_Vars_Table,
  Create_Vars_Table,
- Load_Vars_Table,
+ Drop_Proc_Load_Vars_Table,
+ Create_Proc_Load_Vars_Table,
+ Execute_Proc_Load_Vars_Table,
+ Drop_Proc_Load_Vars_Table,
  Create_Index_u_idn_on_Vars,
  Drop_Proc_Calculate_Variables_Scores,
  Create_Proc_Calculate_Variables_Scores,
@@ -93,7 +99,7 @@ int step[] = {
  Update_PD_For_Flag_12,
  Update_PD_For_Flag_11,
  Update_PD_For_Flag_10,
- Update_Risk_Level_For_Flag_10_11_12,
+ Update_Risk_Group,
  Drop_Proc_Generate_Profile,
  Create_Proc_Generate_Profile,
  Execute_Proc_Generate_Profile,
@@ -127,7 +133,9 @@ char *SQLNames[]= {"Drop_Input_Table",
                 "Drop_Proc_Assign_AccountAge",
                 "Drop_Vars_Table",
                 "Create_Vars_Table",
-                "Load_Vars_Table",
+                "Create_Proc_Load_Vars_Table",
+                "Execute_Proc_Load_Vars_Table",
+                "Drop_Proc_Load_Vars_Table",
                 "Create_Index_u_idn_on_Vars",
                 "Create_Proc_Calculate_Variables_Scores",
                 "Execute_Proc_Calculate_Variables_Scores",
@@ -137,6 +145,7 @@ char *SQLNames[]= {"Drop_Input_Table",
  		"Update_PD_For_Flag_12",
                 "Update_PD_For_Flag_11",
                 "Update_PD_For_Flag_10",
+                "Update_Risk_Group",
                 "Update_Risk_Level_For_Flag_10_11_12",
                 "Create_Proc_Generate_Profile",
                 "Execute_Proc_Generate_Profile",
@@ -188,18 +197,48 @@ char *SQLCommands[] = {
 " );",
 
 /* Create_Proc_Load_Input_Table */
+/*
+  The sql code is changed according to the request of FUHWA that DAC module is run with the specific
+  cycle date and generate new risk group cutting.
+  1. Load input account and statement data in the cycle date
+  2. create new 2 output tables credit_card_monthly_pd_riskgroup and credit_card_monthly_profile_riskgroup
+  3. generate new risk group cutting.
+*/
 " CREATE PROCEDURE Load_Input_Table"
-" (@target_month varchar(8))"
+" (@cycle_date varchar(8))"
 " AS"
+" declare @target_month varchar(8)"
+" declare @yyyymm int"
+" declare @yyyy int"
+" declare @mm int"
+" declare @dd int"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = cast (substring(@cycle_date, 1, 4) as int)"
+" set @mm = @yyyymm % 100"
+" set @dd = cast (@cycle_date as int) % 100"
+" if @mm <= 1"
+"    begin"
+"      set @mm = @mm - 1 + 12"
+"      set @yyyy = @yyyy - 1"
+"    end"
+" else"
+"    set @mm = @mm - 1"
+" set @target_month = cast ((@yyyy * 100 + @mm) as char(6))"
+" "
+" insert into account_adv ([account_open_date], [gender], [home_ownership], [educational_level], [Marital_status], [idn])"
+"  select [account open date], [gender], [home ownership], [educational level], [Marital status], [Customer id]"
+"  from account"
+"  where [Cycle Date] = @cycle_date"
+" "
 " declare month_cur CURSOR local scroll static for"
 "    select top 13 [statement month]"
 "      from statement"
 "      where [statement month] <= @target_month"
 "      group by [statement month]"
 "      order by [statement month] desc;"
-" open month_cur "
-" declare @month varchar(8) "
-" fetch next from month_cur into @month "
+" open month_cur"
+" declare @month varchar(8)"
+" fetch next from month_cur into @month"
 " while (@@fetch_status = 0)"
 "  begin"
 "     insert into source_adv (Statement_month, Account_Status, Inactive_date_for_status_6, Credit_Limit, Purchase_Average_Daily_Balance,"
@@ -210,13 +249,12 @@ char *SQLCommands[] = {
 "       [Late Fee Assessed], [Payment Amount], [Minimum Payment], [# cycles Past Due], [Total bal on bill], [Customer id]"
 "     from statement"
 "     where [statement month] = @month"
+"       and [Customer id] in (select idn from account_adv)"
 "     fetch next from month_cur into @month"
 "  end"
-" close month_cur "
-" deallocate month_cur "
-" insert into account_adv ([account_open_date], [gender], [home_ownership], [educational_level], [Marital_status], [idn])"
-" select [account open date], [gender], [home ownership], [educational level], [Marital status], [Customer id]"
-" from account",
+" close month_cur"
+" deallocate month_cur",
+
 
 /* Execute_Proc_Load_Input_Table */
 "EXEC Load_Input_Table :v1",
@@ -362,35 +400,40 @@ char *SQLCommands[] = {
 
 /* CREATE PROCEDURE Assign_SegCode */
 " CREATE PROCEDURE Assign_SegCode"
-" (@target_month varchar(6))"
+" (@cycle_date varchar(8))"
 " AS"
+" declare @target_month varchar(6)"
 " declare @yyyymm int"
 " declare @yyyy int"
 " declare @mm int"
-" declare @next_month varchar(10)"
+" declare @dd int"
 " declare @six_month_ago varchar(10)"
-" set @yyyymm = cast (@target_month as int)"
-" set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
+" declare @next_month varchar(10)"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = cast (substring(@cycle_date, 1, 4) as int)"
 " set @mm = @yyyymm % 100"
-" if  @mm + 1 > 12"
-" begin"
-"  set @mm = @mm + 1 - 12"
-"  set @yyyy = @yyyy + 1"
-" end"
+" set @dd = cast (@cycle_date as int) % 100"
+" if @mm <= 1"
+"    begin"
+"      set @mm = @mm - 1 + 12"
+"      set @yyyy = @yyyy - 1"
+"    end"
 " else"
-"  set @mm = @mm + 1"
-" set @next_month = cast ((@yyyy * 100 + @mm) as char(6)) + '01'"
-" set @yyyymm = cast (@target_month as int)"
+"    set @mm = @mm - 1"
+" set @target_month = cast ((@yyyy * 100 + @mm) as char(6))"
+" "
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
 " set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
 " set @mm = @yyyymm % 100"
-" if  @mm < 6"
+" if  @mm <= 6"
 " begin"
-"  set @mm = @mm - 5 + 12"
+"  set @mm = @mm - 6 + 12"
 "  set @yyyy = @yyyy - 1"
 " end"
 " else"
-"  set @mm = @mm - 5"
-" set @six_month_ago = cast ((@yyyy * 100 + @mm) as char(6)) + '01'"
+"  set @mm = @mm - 6"
+" set @six_month_ago = cast (((@yyyy * 100 + @mm) * 100 + @dd) as char(8))"
+" set @next_month = @cycle_date"
 " "
 " update source_adv"
 " set flag = 8"
@@ -537,65 +580,47 @@ char *SQLCommands[] = {
 
 /* CREATE PROCEDURE Assign_AccountAge */
 " CREATE PROCEDURE Assign_AccountAge"
-" (@target_month varchar(6))"
+" (@cycle_date varchar(8))"
 " AS"
 " declare @yyyymm int"
 " declare @yyyy int"
 " declare @mm int"
-" declare @next_month varchar(10)"
+" declare @dd int"
 " declare @six_month_ago varchar(10)"
 " declare @twelve_month_ago varchar(10)"
 " declare @twentyfour_month_ago varchar(10)"
-" set @yyyymm = cast (@target_month as int)"
-" set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
+" declare @target_month varchar(6)"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = cast (substring(@cycle_date, 1, 4) as int)"
 " set @mm = @yyyymm % 100"
-" if  @mm + 1 > 12"
-" begin"
-"  set @mm = @mm + 1 - 12"
-"  set @yyyy = @yyyy + 1"
-" end"
+" set @dd = cast (@cycle_date as int) % 100"
+" if @mm <= 1"
+"    begin"
+"      set @mm = @mm - 1 + 12"
+"      set @yyyy = @yyyy - 1"
+"    end"
 " else"
-"  set @mm = @mm + 1"
-" set @next_month = cast ((@yyyy * 100 + @mm) as char(6)) + '01'"
+"    set @mm = @mm - 1"
+" set @target_month = cast ((@yyyy * 100 + @mm) as char(6))"
 " "
-" set @yyyymm = cast (@target_month as int)"
-" set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = cast (substring(@cycle_date, 1, 4) as int)"
 " set @mm = @yyyymm % 100"
-" if  @mm < 6"
+" if  @mm <= 6"
 " begin"
-"  set @mm = @mm - 5 + 12"
+"  set @mm = @mm - 6 + 12"
 "  set @yyyy = @yyyy - 1"
 " end"
 " else"
-"  set @mm = @mm - 5"
-" set @six_month_ago = cast ((@yyyy * 100 + @mm) as char(6)) + '01'"
-" "
-" set @yyyymm = cast (@target_month as int)"
+"  set @mm = @mm - 6"
+" set @six_month_ago = cast (((@yyyy * 100 + @mm) * 100 + @dd) as char(8))"
+""
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
 " set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
 " set @mm = @yyyymm % 100"
-" if  @mm + 1 > 12"
-"  set @mm = @mm + 1 - 12"
-" else"
-"  begin"
-"    set @mm = @mm + 1"
-"    set @yyyy = @yyyy - 1"
-"  end"
-" set @twelve_month_ago = cast ((@yyyy * 100 + @mm) as char(6)) + '01'"
+" set @twelve_month_ago = cast (((@yyyy - 1) * 100 + @mm) * 100 + @dd as char(8))"
+" set @twentyfour_month_ago = cast (((@yyyy - 2) * 100 + @mm) * 100 + @dd as char(8))"
 " "
-" set @yyyymm = cast (@target_month as int)"
-" set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
-" set @mm = @yyyymm % 100"
-" if  @mm + 1 > 12"
-"  begin"
-"    set @mm = @mm + 1 - 12"
-"    set @yyyy = @yyyy - 1"
-"  end"
-" else"
-"  begin"
-"    set @mm = @mm + 1"
-"    set @yyyy = @yyyy - 2"
-"  end"
-" set @twentyfour_month_ago = cast ((@yyyy * 100 + @mm) as char(6)) + '01'"
 " update source_adv"
 " set age = 0"
 " from account_adv a, source_adv b"
@@ -619,9 +644,9 @@ char *SQLCommands[] = {
 " update source_adv"
 " set age = 3"
 " from account_adv a, source_adv b"
-" where a.[idn] = b.idn and"
-"       b.statement_month=@target_month and"
-"       a.[account_open_date] <@twentyfour_month_ago;",
+" where a.[idn] = b.idn"
+"   and b.statement_month=@target_month"
+"   and a.[account_open_date] <@twentyfour_month_ago",
 
 /* Execute_Proc_Assign_AccountAge */
 "EXEC Assign_AccountAge :v1",
@@ -686,16 +711,46 @@ char *SQLCommands[] = {
 "        [AMMS066_09_tran] [decimal] (16, 8) default 0.0,"
 "        [score] [float] NULL,"
 "        [risk_level] [char] (1) NULL,"
-"        [pd] [decimal] (7, 4) NULL"
+"        [pd] [decimal] (7, 4) NULL,"
+"        [risk_group] [int]  NULL"
 " );",
 
-
 /* Load_Vars_Table */
+/* Create_Proc_Load_Vars_Table */
+" CREATE PROCEDURE Load_Vars_Table"
+" (@cycle_date varchar(8))"
+" AS"
+" declare @target_month varchar(6)"
+" declare @yyyymm int"
+" declare @yyyy int"
+" declare @mm int"
+" declare @dd int"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = cast (substring(@cycle_date, 1, 4) as int)"
+" set @mm = @yyyymm % 100"
+" set @dd = cast (@cycle_date as int) % 100"
+" if @mm <= 1"
+"    begin"
+"      set @mm = @mm - 1 + 12"
+"      set @yyyy = @yyyy - 1"
+"    end"
+" else"
+"    set @mm = @mm - 1"
+" set @target_month = cast ((@yyyy * 100 + @mm) as char(6))"
 " insert into vars_adv (statement_month, idn, paycode, flag, age, month_since, beg_adb, beg_revolver)"
 " select statement_month, idn, paycode, flag, age, month_since,"
 "  Purchase_Average_Daily_Balance+Cash_Average_Daily_Balance, (case when interest_charge > 0 then 1 else 0 end)"
 " from source_adv"
-" where statement_month=:v1;",
+" where statement_month=@target_month;",
+
+/* Execute_Proc_Load_Vars_Table */
+" EXEC Load_Vars_Table :v1",
+
+/* Drop_Proc_Load_Vars_Table */
+"if exists (select * from dbo.sysobjects where id = object_id(N'[Load_Vars_Table]') and"
+" OBJECTPROPERTY(id, N'IsProcedure') = 1)"
+" drop procedure [Load_Vars_Table];",
+
 
 /* Create_Index_u_idn_on_Vars */
 " create unique index u_idn on vars_adv (idn);",
@@ -1907,6 +1962,32 @@ char *SQLCommands[] = {
 " set pd = 0.0004"
 " where flag = 10;",
 
+/* Update_Risk_Group */
+"update vars_adv"
+"  set risk_group ="
+"    (case"
+"        when pd is null and flag in (0,1,2,3,4,5,6,8) then 97"
+"        when pd is null and flag in (7) then 99"
+"        when pd is null and flag = 9 then 98"
+"        when pd <= 0.0011 and flag = 11 then 1"
+"        when pd <= 0.0011 and flag = 10 then 2"
+"        when pd <= 0.0011 and flag = 12 then 3"
+"        when pd <= 0.0047 then 4"
+"        when pd <= 0.0100 then 5"
+"        when pd <= 0.0180 then 6"
+"        when pd <= 0.0340 then 7"
+"        when pd <= 0.0440 then 8"
+"        when pd <= 0.0530 then 9"
+"        when pd <= 0.0660 then 10"
+"        when pd <= 0.0810 then 11"
+"        when pd <= 0.1000 then 12"
+"        when pd <= 0.1400 then 13"
+"        when pd <= 0.2300 then 14"
+"        when pd <= 0.3600 then 15"
+"        else 16"
+"     end)",
+
+/*The risk level L/M/H is replaced by risk group. */
 /* Update_Risk_Level_For_Flag_10_11_12 */
 " update vars_adv"
 " set risk_level = case"
@@ -1918,27 +1999,22 @@ char *SQLCommands[] = {
 
 /* Create_Proc_Generate_Profile */
 " CREATE PROCEDURE Generate_Profile"
-" (@target_month varchar(8))"
+" (@cycle_date varchar(8))"
 " AS"
-" if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[credit_card_monthly_profile]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
+" if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[credit_card_monthly_profile_riskgroup]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
 "   begin"
-"     CREATE TABLE [credit_card_monthly_profile] ("
-"         [Statement_month] [varchar] (8) NOT NULL,"
-"         [Low] [int] NULL ,"
-"         [Medium] [int] NULL ,"
-"         [High] [int] NULL ,"
-"         [Not_Scored] [int] NULL"
+"     CREATE TABLE [credit_card_monthly_profile_riskgroup] ("
+"         [cycle_date] [varchar] (8) NOT NULL,"
+"         [risk_group] [int] NULL,"
+"         [group_count] [int] NULL"
 "     );"
-"     alter table credit_card_monthly_profile add constraint p_profile_stmtmonth primary key (statement_month);"
+"     alter table credit_card_monthly_profile_riskgroup add constraint p_profile_stmtmonth primary key (cycle_date);"
 "   end"
-" delete from credit_card_monthly_profile where statement_month = @target_month;"
-" insert into credit_card_monthly_profile (statement_month) values (@target_month);"
-" update credit_card_monthly_profile"
-"  set low = (select count(*) from vars_adv where risk_level= 'L'),"
-"      Medium = (select count(*) from vars_adv where risk_level= 'M'),"
-"      High = (select count(*) from vars_adv where risk_level= 'H'),"
-"      Not_Scored = (select count(*) from vars_adv where risk_level is null)"
-" where statement_month = @target_month;",
+" delete from credit_card_monthly_profile_riskgroup where cycle_date = @cycle_date;"
+" insert into credit_card_monthly_profile_riskgroup (cycle_date, risk_group, group_count)"
+"  select @cycle_date, risk_group, count(*)"
+"  from vars_adv"
+"  group by risk_group",
 
 /* Execute_Proc_Generate_Profile */
 "EXEC Generate_Profile :v1",
@@ -1950,20 +2026,21 @@ char *SQLCommands[] = {
 
 /*  Create_Proc_Generate_Score */
 " CREATE PROCEDURE Generate_Score"
-"  (@target_month varchar(8))"
+"  (@cycle_date varchar(8))"
 " AS"
-" if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[credit_card_monthly_pd]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
+" if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[credit_card_monthly_pd_riskgroup]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
 "   begin"
-"     CREATE TABLE [credit_card_monthly_pd] ("
-"         [Statement_month] [char] (8) NOT NULL,"
+"     CREATE TABLE [credit_card_monthly_pd_riskgroup] ("
+"         [cycle_date] [char] (8) NOT NULL,"
 "         [Customer_id] [char] (11) NOT NULL,"
-"         [pd] [float] NULL"
+"         [pd] [decimal] (7,4) NULL,"
+"         [risk_group] [int] NULL"
 "     );"
-"     alter table credit_card_monthly_pd add constraint p_PD_month_CustID primary key (statement_month, Customer_id);"
+"     alter table credit_card_monthly_pd_riskgroup add constraint p_PD_month_CustID primary key (cycle_date, Customer_id);"
 "   end"
-" delete from credit_card_monthly_pd where statement_month = @target_month;"
-" insert into credit_card_monthly_pd (statement_month, Customer_id, pd)"
-"  select statement_month, idn, pd"
+" delete from credit_card_monthly_pd_riskgroup where cycle_date = @cycle_date;"
+" insert into credit_card_monthly_pd_riskgroup (cycle_date, Customer_id, pd, risk_group)"
+"  select @cycle_date, idn, pd, risk_group"
 "  from vars_adv;",
 
 /* Execute_Proc_Generate_Score */
