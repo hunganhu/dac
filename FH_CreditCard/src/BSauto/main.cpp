@@ -139,23 +139,26 @@ int main(int argc, char* argv[])
  try {
     dbhandle = new TADOHandler();
     control  = new ControlFile();
+    dbhandle->OpenDatabase(connect_string);
+
     dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
     returnCode = control->get_control_info();
-    if (! returnCode) {
+    if (returnCode > 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                        CurrDateTime(), returnCode, return_msgs[returnCode]);
        return (returnCode);
     }
-    dbhandle->OpenDatabase(connect_string);
+
     control->bulk_insert(dbhandle);
     returnCode = control->check_bulk_insert_status(dbhandle);
-    if (! returnCode) {
+    if (returnCode > 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                        CurrDateTime(), returnCode, return_msgs[returnCode]);
        return (returnCode);
     }
+
     returnCode = control->check_production_insert_status(dbhandle);
-    if (! returnCode) {
+    if (returnCode > 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                        CurrDateTime(), returnCode, return_msgs[returnCode]);
        return (returnCode);
@@ -166,30 +169,30 @@ int main(int argc, char* argv[])
              user, password, source, database);
     system(syscmd);
 
-   char *bs_home, curr_dir[128];
+   char *bs_data, curr_dir[128];
    current_directory(curr_dir);
-   if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
-      bs_home = curr_dir;
+   if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
+      bs_data = curr_dir;
 
    create_dtime =  Create_date();
 // Prepare system command bcp to dump PDs of the accounts with specific cycle date
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_PD], database, control->get_cycledate(),
-             bs_home, control->get_cycledate(), create_dtime, user, password, source);
+             bs_data, control->get_cycledate(), create_dtime, user, password, source);
     system(syscmd);
 
 // Prepare system command bcp to dump profile of the specific cycle date
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Profile], database, control->get_cycledate(),
-             bs_home, control->get_cycledate(), create_dtime, user, password, source);
+             bs_data, control->get_cycledate(), create_dtime, user, password, source);
     system(syscmd);
-    write_result (bs_home, control->get_cycledate(), create_dtime);
+    write_result (bs_data, control->get_cycledate(), create_dtime);
  } catch (Exception &E) {
      fprintf(stderr, E.Message.c_str());
      write_log_table(dbhandle, control->get_cycledate(), start_time,
-                     CurrDateTime(), SQL_EXEC_ERROR, E.Message.c_str());
+                     CurrDateTime(), SQL_RUNTIME_ERROR, E.Message.c_str());
      dbhandle->CloseDatabase();
      delete control;
      delete dbhandle;
-     return (-1);
+     return (SQL_RUNTIME_ERROR);
  }
 
  dbhandle->CloseDatabase();

@@ -21,6 +21,7 @@ class ControlFile {
     int  account_read_count;    // #rec read from account file
     int  statement_temp_count;  // #rec of statement load to statement temp table
     int  account_temp_count;    // #rec of account load to account temp table
+    int  account_cycle_count;   // #rec of account load to account temp table with specific cycle date
     int  statement_load_count;  // #rec load from statement temp table to production table
     int  account_load_count;    // #rec load from account temp table to production table
     TADODataSet *ds;

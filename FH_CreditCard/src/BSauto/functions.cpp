@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <stdio.h>
+#include <stdlib.h>
 #include <dir.h>
 #include "AdoHandle.h"
 #include "functions.h"
@@ -71,13 +72,13 @@ int ControlFile::get_control_info()
  char rec[MAX], *name, count[10];
  ifstream control_file;
  int stmtCNT, acctCNT;
- char curr_dir[128], control_path[128];
- char *bs_home;
+ char curr_dir[128], control_path[128], syscmd[512];
+ char *bs_data;
 
  current_directory(curr_dir);
- if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
-    bs_home = curr_dir;
- sprintf (control_path, "%s\\FHBSAUTO.CTL", bs_home);
+ if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
+    bs_data = curr_dir;
+ sprintf (control_path, "%s\\FHBSAUTO.CTL", bs_data);
  control_file.open(control_path, ios::in);
  if (!control_file)
     return (1);    // Control file does not exist
@@ -103,17 +104,23 @@ int ControlFile::get_control_info()
     accountCount = atoi(count);
  }
 
- statement_read_count = get_linecount(statementFile);
+ sprintf (control_path, "%s\\%s", bs_data, statementFile);
+ statement_read_count = get_linecount(control_path);
  if (statement_read_count == -1)
     return 2;    // statement file does not exist
  else if (statement_read_count != statementCount)
     return 4;    // #rec of statement indicated in control file and actual #rec mismatch.
 
- account_read_count = get_linecount(accountFile);
+ sprintf (control_path, "%s\\%s", bs_data, accountFile);
+ account_read_count = get_linecount(control_path);
  if (account_read_count == -1)
     return 3;    // account file does not exist
  else if (account_read_count != accountCount)
     return 5;    // #rec of account indicated in control file and actual #rec mismatch.
+
+ /* Rename the control file by append datatime to the filename */
+ sprintf (syscmd, "ren %s\\FHBSAUTO.CTL %s\\FHBSAUTO_%s.CTL", bs_data, bs_data, Create_date());
+ system(syscmd);
 
  return(0);
 }
@@ -122,15 +129,17 @@ int ControlFile::get_control_info()
 void ControlFile::bulk_insert(TADOHandler *dbhandle)
 {
  char curr_dir[32];
- char *bs_home;
+ char *bs_home, *bs_data;
  char  sqlcmd[512];
 
  current_directory(curr_dir);
  if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
     bs_home = curr_dir;
+ if ((bs_data = getenv("BSAUTO_DATA")) == NULL)
+    bs_data = curr_dir;
  try {
  sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data],
-          bs_home, statementFile, bs_home, bs_home, accountFile, bs_home);
+          bs_data, statementFile, bs_home, bs_data, accountFile, bs_home);
  dbhandle->ExecSQLCmd(sqlcmd);
  } catch (Exception &E) {
     throw;
@@ -144,6 +153,8 @@ char * ControlFile::get_cycledate()
 //---------------------------------------------------------------------------
 int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
 {
+  Variant hostVars[10];
+
  try {
     dbhandle->ExecSQLQry(SQLCommands[Check_Statement_Loaded], ds);
     ds->First();
@@ -155,11 +166,20 @@ int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
     if (!ds->Eof)
        account_temp_count = ds->FieldValues["load_count"];
 
+    hostVars[0] = cycleDate;
+    dbhandle->ExecSQLQry(SQLCommands[Check_Cycledate_Loaded], hostVars, 0, ds);
+    ds->First();
+    if (!ds->Eof)
+       account_cycle_count = ds->FieldValues["load_count"];
+
     if (statement_read_count != (statement_temp_count + 1))
        return 6;    // #rec of statement read and #rec in temp mismatch.
 
     if (account_read_count != (account_temp_count + 1))
        return 7;    // #rec of account read and  #rec in temp mismatch.
+
+    if (account_cycle_count != (account_temp_count))
+       return 8;    // #rec of account of specific cycle data read and  #rec in temp mismatch.
  } catch (Exception &E) {
     throw;
  }
@@ -171,6 +191,18 @@ int ControlFile::check_production_insert_status(TADOHandler *dbhandle)
  char  sqlcmd[512];
 
  try {
+    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
+    dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Account]);
+    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Account]);
+    dbhandle->ExecSQLQry(SQLCommands[Check_Production_Account_Loaded], ds);
+    ds->First();
+    if (!ds->Eof)
+       account_load_count = ds->FieldValues["row_affected"];
+    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
+
+    if (account_temp_count != account_load_count)
+       return 10;    // #rec of account in temp and  #rec loaded in production mismatch.
+
     dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Statement]);
     dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Statement]);
     sprintf (sqlcmd, SQLCommands[EXEC_PROCEDURE_Load_to_Statement], cycleDate);
@@ -181,20 +213,9 @@ int ControlFile::check_production_insert_status(TADOHandler *dbhandle)
        statement_load_count = ds->FieldValues["row_affected"];
     dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Statement]);
 
-    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
-    dbhandle->ExecSQLCmd(SQLCommands[CREATE_PROCEDURE_Load_to_Account]);
-    dbhandle->ExecSQLCmd(SQLCommands[EXEC_PROCEDURE_Load_to_Account]);
-    dbhandle->ExecSQLQry(SQLCommands[Check_Production_Account_Loaded], ds);
-    ds->First();
-    if (!ds->Eof)
-       account_load_count = ds->FieldValues["row_affected"];
-    dbhandle->ExecSQLCmd(SQLCommands[DROP_PROCEDURE_Load_to_Account]);
-
     if (statement_temp_count != statement_load_count)
-       return 6;    // #rec of statement in temp and #rec loaded in production mismatch.
+       return 9;    // #rec of statement in temp and #rec loaded in production mismatch.
 
-    if (account_temp_count != account_load_count)
-       return 7;    // #rec of account in temp and  #rec loaded in production mismatch.
  } catch (Exception &E) {
     throw;
  }

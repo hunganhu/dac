@@ -15,11 +15,14 @@ typedef enum return_types_
    MISSING_CONTROL,
    MISSING_STATEMENT,
    MISSING_ACCOUNT,
+   UNMATCHED_STMT_CONTROL,
+   UNMATCHED_ACCT_CONTROL,
    UNMATCHED_STMT_UPLOAD,
    UNMATCHED_ACCT_UPLOAD,
+   UNMATCHED_ACCT_CYCLE_UPLOAD,
    UNMATCHED_STMT_TRANSFER,
    UNMATCHED_ACCT_TRANSFER,
-   SQL_EXEC_ERROR
+   SQL_RUNTIME_ERROR
   } Return_Type;
 /* List of return messages */
 char *return_msgs [] = {
@@ -27,10 +30,13 @@ char *return_msgs [] = {
    "Control file does not exist.",   // return code = 1
    "Statement file does not exist.", // return code = 2
    "Account file does not exist.",   // return code = 3
-   "Statement - number of records mismatch between text file and temp table.",  // return code = 4
-   "Account - number of records mismatch between text file and temp table.",    // return code = 5
-   "Statement - number of records mismatch between temp and production table.", // return code = 6
-   "Account - number of records mismatch between temp and production table."    // return code = 7
+   "Statement - number of records mismatch between text file and control file.", // return code = 4
+   "Account - number of records mismatch between text file and control file.",   // return code = 5
+   "Statement - number of records mismatch between text file and temp table.",  // return code = 6
+   "Account - number of records mismatch between text file and temp table.",    // return code = 7
+   "Account - number of records mismatch between text and cycle date loaded.",  // return code = 8
+   "Statement - number of records mismatch between temp and production table.", // return code = 9
+   "Account - number of records mismatch between temp and production table."    // return code = 10
 };
 
 int write_result(char *bs_home, char *cycle_date, char *create_date);

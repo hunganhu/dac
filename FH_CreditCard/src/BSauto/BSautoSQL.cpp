@@ -128,6 +128,9 @@ char *SQLCommands[] = {
 /* Check_Account_Loaded */
 " select count(*) as load_count from account_tmp",
 
+/* Check_Cycledate_Loaded */
+" select count(*) as load_count from account_tmp where [cycle date] = :v0",
+
 /* DROP_PROCEDURE_Load_to_Statement */
 "if exists (select * from dbo.sysobjects where id = object_id(N'[Load_to_Statement]') and"
 " OBJECTPROPERTY(id, N'IsProcedure') = 1)"
@@ -162,7 +165,10 @@ char *SQLCommands[] = {
 " "
 "   delete from statement"
 "   where [statement month] = @target_month"
-"     and [customer id] in (select [customer id] from statement_tmp)"
+"     and [customer id] in (select [customer id] from statement_tmp);"
+" insert into statement select * from statement_tmp; "
+" set @row_affected = @@ROWCOUNT",
+/*  The sql statement is truncated. not know the reason. change the sql above.
 "  insert into statement([Customer ID], [Account ID], [Statement month], [Account Type],"
 "   [Total # open cards with Fuhwa], [Account Status], [Inactive date for status 6], [APR],"
 "   [Credit Limit], [Cash Credit Limit], [Purchase Average Daily Balance], [Cash Average Daily Balance],"
@@ -193,7 +199,7 @@ char *SQLCommands[] = {
 "   [Payment count], [Last payment date], [Minimum Payment], [# cycles Past Due], [Total bal on bill]"
 " from statement_tmp;"
 " set @row_affected = @@ROWCOUNT",
-
+*/
 /* EXEC_PROCEDURE_Load_to_Statement */
 " declare @row_affected int"
 " EXEC Load_to_Statement '%s', @row_affected OUTPUT"
