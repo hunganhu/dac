@@ -1,0 +1,145 @@
+//---------------------------------------------------------------------------
+#pragma hdrstop
+
+#include "BSautoSQL.h"
+
+//---------------------------------------------------------------------------
+
+#pragma package(smart_init)
+
+char *SQLCommands[] = {
+/* Clean_Temp_Tables */
+" IF NOT exists (select * from dbo.sysobjects where id = object_id(N'[account_tmp]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
+"   BEGIN"
+"     CREATE TABLE [account_tmp] ("
+"     	[Customer ID] [char] (11) NOT NULL,"
+"     	[Account ID] [char] (16) NOT NULL,"
+"     	[Account Type] [char] (1) NOT NULL,"
+"     	[Account Open Date] [float] NOT NULL,"
+"     	[Account Close Date] [float] NULL,"
+"     	[Cycle Date] [float] NOT NULL,"
+"     	[Secured Amount] [int] NOT NULL,"
+"     	[Channel] [char] (3) NOT NULL,"
+"     	[# of payment terms] [int] NULL,"
+"     	[Initial Loan Amount] [int] NULL,"
+"     	[Setup Fee] [int] NULL,"
+"     	[Maintenance Fee] [int] NOT NULL,"
+"     	[Maintenance Fee Term] [int] NULL,"
+"     	[Interest Rate] [float] NOT NULL,"
+"     	[Birthday] [float] NOT NULL,"
+"     	[Resident Phone] [char] (14) NOT NULL,"
+"     	[Residence City / Province] [char] (14) NOT NULL,"
+"     	[Residence ZIP] [char] (5) NOT NULL,"
+"     	[GENDer] [char] (1) NOT NULL,"
+"     	[Annual Income] [int] NULL,"
+"     	[Home Ownership] [char] (1) NULL,"
+"     	[Educational Level] [char] (1) NULL,"
+"     	[Marital status] [char] (1) NULL,"
+"     	[Occupation Status] [char] (1) NULL,"
+"     	[# months in current residence] [int] NULL,"
+"     	[# months with current occupation] [int] NULL"
+"     )"
+"   END"
+" ELSE"
+"   delete from account_tmp"
+" "
+" if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[statement_tmp]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
+"   BEGIN"
+"     CREATE TABLE [statement_tmp] ("
+"     	[Customer ID] [char] (11) NOT NULL,"
+"     	[Account ID] [char] (16) NOT NULL,"
+"     	[Statement month] [char] (6) NOT NULL,"
+"     	[Account Type] [char] (1) NULL,"
+"     	[Total # open cards with Fuhwa] [int] NULL,"
+"     	[Account Status] [char] (1) NULL,"
+"     	[Inactive date for status 6] [int] NULL,"
+"     	[APR] [float] NULL,"
+"     	[Credit Limit] [int] NULL,"
+"     	[Cash Credit Limit] [int] NULL,"
+"     	[Purchase Average Daily Balance] [float] NULL,"
+"     	[Cash Average Daily Balance] [float] NULL,"
+"     	[Purchase balance] [int] NULL,"
+"     	[Cash balance] [int] NULL,"
+"     	[Purchase amount] [int] NULL,"
+"     	[Purchase count] [int] NULL,"
+"     	[Purchase Credited Amount] [int] NULL,"
+"     	[Cash amount] [int] NULL,"
+"     	[Cash Advance count] [int] NULL,"
+"     	[Cash Credited Amount] [int] NULL,"
+"     	[other x-sell purchase amount] [int] NULL,"
+"     	[other x-sell purchase count] [int] NULL,"
+"     	[other x-sell purchase Credited amount] [int] NULL,"
+"     	[Offshore purchase amount] [int] NULL,"
+"     	[Offshore purchase count] [int] NULL,"
+"     	[Offshore purchase Credited amount] [int] NULL,"
+"     	[Offshore Cash amount] [int] NULL,"
+"     	[Offshore Cash count] [int] NULL,"
+"     	[Offshore Cash Credited amount] [int] NULL,"
+"     	[Interest charge] [int] NULL,"
+"     	[Interest charge credited] [int] NULL,"
+"     	[Cash Advance Fee Assessed] [int] NULL,"
+"     	[Cash Advance Fee Credited] [int] NULL,"
+"     	[Annual Fee Assessed] [int] NULL,"
+"     	[Annual Fee Credited] [int] NULL,"
+"     	[Late Fee Assessed] [int] NULL,"
+"     	[Late Fee Credited] [int] NULL,"
+"     	[Other Fee Assessed] [int] NULL,"
+"     	[Other Fee Credited] [int] NULL,"
+"     	[Other Fee count] [int] NULL,"
+"     	[Fraud Credit Amount] [int] NULL,"
+"     	[Fraud Cash Credit Amount] [int] NULL,"
+"     	[Bonus Points claimed] [int] NULL,"
+"     	[Unclaimed Bonus Points balance] [int] NULL,"
+"     	[Rebate (cash)] [int] NULL,"
+"     	[Payment due date] [int] NULL,"
+"     	[Payment amount] [int] NULL,"
+"     	[Payment count] [int] NULL,"
+"     	[Last payment date] [int] NULL,"
+"     	[Minimum Payment] [int] NULL,"
+"     	[# cycles Past Due] [int] NULL,"
+"     	[Total bal on bill] [int] NULL"
+"     )"
+"   END"
+" else"
+"   delete from statement_tmp",
+
+/* Bulk_Insert_Data */
+" bulk insert statement_tmp"
+" from '%s\\%s'"
+" with (firstrow = 2, formatfile='%s\statement.fmt', keepnulls); "
+" bulk insert account_tmp"
+" from '%s\\%s'"
+" with (firstrow = 2, formatfile='%s\account.fmt', keepnulls)",
+
+/* Check_Statement_Loaded */
+" select count(*) from statement_tmp",
+
+/* Check_Account_Loaded */
+" select count(*) from account_tmp",
+
+/* Insert_Into_Production_Tables */
+" insert into statement([Customer ID], [Account ID], [Statement month], [Account Type], [Total # open cards with Fuhwa], [Account Status], [Inactive date for status 6], [APR], [Credit Limit], [Cash Credit Limit], [Purchase Average Daily Balance], [Cash Aver"
+"age Daily Balance], [Purchase balance], [Cash balance], [Purchase amount], [Purchase count], [Purchase Credited Amount], [Cash amount], [Cash Advance count], [Cash Credited Amount], [other x-sell purchase amount], [other x-sell purchase count], [other x-se"
+"ll purchase Credited amount], [Offshore purchase amount], [Offshore purchase count], [Offshore purchase Credited amount], [Offshore Cash amount], [Offshore Cash count], [Offshore Cash Credited amount], [Interest charge], [Interest charge credited], [Cash A"
+"dvance Fee Assessed], [Cash Advance Fee Credited], [Annual Fee Assessed], [Annual Fee Credited], [Late Fee Assessed], [Late Fee Credited], [Other Fee Assessed], [Other Fee Credited], [Other Fee count], [Fraud Credit Amount], [Fraud Cash Credit Amount], [Bo"
+"nus Points claimed], [Unclaimed Bonus Points balance], [Rebate (cash)], [Payment due date], [Payment amount], [Payment count], [Last payment date], [Minimum Payment], [# cycles Past Due], [Total bal on bill])"
+" select [Customer ID], [Account ID], [Statement month], [Account Type], [Total # open cards with Fuhwa], [Account Status], [Inactive date for status 6], [APR], [Credit Limit], [Cash Credit Limit], [Purchase Average Daily Balance], [Cash Average Daily Balan"
+"ce], [Purchase balance], [Cash balance], [Purchase amount], [Purchase count], [Purchase Credited Amount], [Cash amount], [Cash Advance count], [Cash Credited Amount], [other x-sell purchase amount], [other x-sell purchase count], [other x-sell purchase Cre"
+"dited amount], [Offshore purchase amount], [Offshore purchase count], [Offshore purchase Credited amount], [Offshore Cash amount], [Offshore Cash count], [Offshore Cash Credited amount], [Interest charge], [Interest charge credited], [Cash Advance Fee Asse"
+"ssed], [Cash Advance Fee Credited], [Annual Fee Assessed], [Annual Fee Credited], [Late Fee Assessed], [Late Fee Credited], [Other Fee Assessed], [Other Fee Credited], [Other Fee count], [Fraud Credit Amount], [Fraud Cash Credit Amount], [Bonus Points clai"
+"med], [Unclaimed Bonus Points balance], [Rebate (cash)], [Payment due date], [Payment amount], [Payment count], [Last payment date], [Minimum Payment], [# cycles Past Due], [Total bal on bill]"
+" from statement_tmp"
+" "
+" insert into account([Customer ID], [Account ID], [Account Type], [Account Open Date], [Account Close Date], [Cycle Date], [Secured Amount], [Channel], [# of payment terms], [Initial Loan Amount], [Setup Fee], [Maintenance Fee], [Maintenance Fee Term], [In"
+"terest Rate], [Birthday], [Resident Phone], [Residence City / Province], [Residence ZIP], [GENDer], [Annual Income], [Home Ownership], [Educational Level], [Marital status], [Occupation Status], [# months in current residence], [# months with current occup"
+"ation])"
+" select [Customer ID], [Account ID], [Account Type], [Account Open Date], [Account Close Date], [Cycle Date], [Secured Amount], [Channel], [# of payment terms], [Initial Loan Amount], [Setup Fee], [Maintenance Fee], [Maintenance Fee Term], [Interest Rate],"
+" [Birthday], [Resident Phone], [Residence City / Province], [Residence ZIP], [GENDer], [Annual Income], [Home Ownership], [Educational Level], [Marital status], [Occupation Status], [# months in current residence], [# months with current occupation]"
+" from account_tmp",
+
+/* Check_Production_Statement_Loaded */
+" select count(*) from statement where [statement month] = @statement_month",
+" "
+/* Check_Production_Account_Loaded */
+" select count(*) from account"
+};
