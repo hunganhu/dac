@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
          case 'm':
          case 'M':
            target_month = getopt.optarg;
-           DEBUG (stderr,"statement_month: %s\n", target_month); break;
+           DEBUG (stderr,"cycle_date: %s\n", target_month); break;
          case 'c':
          case 'C':
            config_file = getopt.optarg;
@@ -62,10 +62,10 @@ int main(int argc, char* argv[])
          case 'h':
          case '?':
          default:
-//           fprintf (stderr,"usage: Advscore -m statement_month -c config_file ");
-           fprintf (stderr,"usage: Advscore -m statement_month ");
+//           fprintf (stderr,"usage: Advscore -m cycle_date -c config_file ");
+           fprintf (stderr,"usage: Advscore -m cycle_date ");
            fprintf (stderr,"-u user -p password -s source -d database\n\n");
-           fprintf (stderr,"\tstatement_month: the month in which the PD are calculated.\n");
+           fprintf (stderr,"\tcycle_date: the cycle date in which the PD are calculated.\n");
 //           fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.\n");
 //           fprintf (stderr,"\t             default is ./AdoConnect.udl\n");
            fprintf (stderr,"\tuser: user name to connect to SQL server.\n");
@@ -78,11 +78,11 @@ int main(int argc, char* argv[])
 //  if (argc < 2 || target_month == (char*) NULL) {
  if (target_month == (char*) NULL || password == (char*) NULL ||
     user == (char*) NULL || database == (char*) NULL || source == (char*) NULL) {
-//     fprintf (stderr,"usage: Advscore -m statement_month -c config_file ");
+//     fprintf (stderr,"usage: Advscore -m cycle_date -c config_file ");
      fprintf (stderr,"All options are REQUIRED.\n");
-     fprintf (stderr,"usage: Advscore -m statement_month ");
+     fprintf (stderr,"usage: Advscore -m cycle_date ");
      fprintf (stderr,"-u user -p password -s source -d database\n\n");
-     fprintf (stderr,"\tstatement_month: the month in which the PD are calculated.\n");
+     fprintf (stderr,"\tcycle_date: the cycle date in which the PD are calculated.\n");
 //     fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.");
 //     fprintf (stderr," default is ./AdoConnect.udl\n");
      fprintf (stderr,"\tuser: user name to connect to SQL server.\n");
