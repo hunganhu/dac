@@ -261,3 +261,4 @@ GetOpt::operator () (void)
     return c;
   }
 }
+

@@ -15,7 +15,7 @@
  *           -h, -?: disply this help message.
  *
  * First   Revision: Fri March 11 2005, by Oliver Hu <oliver.hu@burkelee.com>
- * Current Revision: Mon November 06 2000
+ * Current Revision: Mon March 21 2005
  *
  *
  *
@@ -33,6 +33,7 @@
 #include "GetOpt.h"
 #include "AdoHandle.h"
 #include "functions.h"
+#include "BSautoSQL.h"
 #include "main.h"
 
 //---------------------------------------------------------------------------
@@ -40,7 +41,6 @@
 #pragma argsused
 int main(int argc, char* argv[])
 {
-  using namespace std;
   GetOpt getopt (argc, argv, "c:C:u:U:p:P:s:S:d:D:hHgG");
   int option_char, i, Debug = 0;
   char *target_month, *config_file, *user, *password, *source, *database;
@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
   Variant hostVars[10];
   TADOHandler *dbhandle;
   TADOQuery *Query;
+  ControlFile   *control;
 
 
   config_file = user = password = source = database = (char *) NULL;
@@ -125,10 +126,17 @@ int main(int argc, char* argv[])
 
  try {
     dbhandle = new TADOHandler();
+    control  = new ControlFile();
     dbhandle->OpenDatabase(connect_string);
-    get_control_info();
+    control->get_control_info();
+    control->bulk_insert(dbhandle);
+    control->check_bulk_insert_status(dbhandle);
+    dbhandle->ExecSQLCmd(SQLCommands[Insert_Into_Production_Tables]);
+    control->check_production_insert_status(dbhandle);
+
+    load_tables(dbhandle);
+
 /*
-    bulk_insert(account);
     bulk_insert(statement);
     load_account();
     load_statement();

@@ -4,7 +4,7 @@
   <MACROS>
     <VERSION value="BCB.06.00"/>
     <PROJECT value="fhbsauto.exe"/>
-    <OBJFILES value="AdoHandle.obj main.obj functions.obj GetOpt.obj"/>
+    <OBJFILES value="AdoHandle.obj main.obj functions.obj BSautoSQL.obj GetOpt.obj"/>
     <RESFILES value="fhbsauto.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -58,7 +58,8 @@
       <FILE FILENAME="AdoHandle.cpp" FORMNAME="" UNITNAME="AdoHandle" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="main.cpp" FORMNAME="" UNITNAME="main.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="functions.cpp" FORMNAME="" UNITNAME="functions.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="GetOpt.cpp" FORMNAME="" UNITNAME="GetOpt.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="BSautoSQL.cpp" FORMNAME="" UNITNAME="BSautoSQL" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="GetOpt.cpp" FORMNAME="" UNITNAME="GetOpt" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

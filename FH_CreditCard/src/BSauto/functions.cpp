@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include "functions.h"
+#include "BSautoSQL.h"
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
@@ -24,12 +25,6 @@
 
 char buffer[BUF_SIZE], *ptrbuf, *begin_line;
 
-String createDate;
-String cycleDate;
-char statementFile[64];
-char accountFile[64];
-int    statementCount;
-int    accountCount;
 
 
 //---------------------------------------------------------------------------
@@ -38,8 +33,12 @@ int    accountCount;
   parameter: none
   return :  -1 - file not exist.
             ## - number of records of the file.
-*/
-int get_control_info()
+
+            */
+ControlFile::~ControlFile ()
+{ }
+
+int ControlFile::get_control_info()
 {
  char rec[MAX], *name, count[10];
  ifstream controlFile;
@@ -52,7 +51,7 @@ int get_control_info()
 Line	Description	                                        Format
 ====    ======================================================  ============================================
 1	Date and time (in hour) when the file is created	yyyymmddhh
-2	Cycle date	Yyyymmdd
+2	Cycle date	                                        yyyymmdd
 3	STATEMENT file: <file name> <space><number of records>	STATEMENT_cycledate_creationdate.csv #######
 4	ACCOUNT file: <file name> <space><number of records>	ACCOUNT_cycledate_creationdate.csv #######
 */
@@ -62,22 +61,22 @@ Line	Description	                                        Format
 
  if (!controlFile.eof()) {
     controlFile.getline(rec, MAX);
-    createDate = rec;
+    strcpy(createDate, rec);
  }
  if (!controlFile.eof()) {
     controlFile.getline(rec, MAX);
-    cycleDate = rec;
+    strcpy(cycleDate, rec);
  }
  if (!controlFile.eof()) {
     controlFile.getline(rec, MAX);
     name = statementFile;
-    get_filename(rec, name, count);
+    get_filename(rec, name, count);     // get file name, line count of statement
     statementCount = atoi(count);
  }
  if (!controlFile.eof()) {
     controlFile.getline(rec, MAX);
     name = accountFile;
-    get_filename(rec, name, count);
+    get_filename(rec, name, count);     // get file name, line count of account
     accountCount = atoi(count);
  }
 
@@ -95,7 +94,34 @@ Line	Description	                                        Format
 
  return(0);
 }
+//---------------------------------------------------------------------------
 
+int ControlFile::bulk_insert(TADOHandler *dbhandle)
+{
+ char *curr_dir = ".\\";
+ char *bs_home;
+ char  sqlcmd[512];
+
+ if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
+    bs_home = curr_dir;
+
+ sprintf (sqlcmd, SQLCommands[Bulk_Insert_Data],
+          bs_home, statementFile, bs_home, bs_home, accountFile, bs_home);
+ dbhandle->ExecSQLCmd(sqlcmd);
+
+
+ return(0);
+}
+//---------------------------------------------------------------------------
+int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
+{
+  return(0);
+}
+//---------------------------------------------------------------------------
+int ControlFile::check_production_insert_status(TADOHandler *dbhandle)
+{
+  return(0);
+}
 //---------------------------------------------------------------------------
 /*
   function : get_linecount
@@ -103,7 +129,7 @@ Line	Description	                                        Format
   return :  -1 - file not exist.
             ## - number of records of the file.
 */
-int get_linecount(char *filename)
+int ControlFile::get_linecount(char *filename)
 {
  int linecount = 0;
  char buffer[MAX];
@@ -152,9 +178,9 @@ int get_linecount(char *filename)
  return (linecount);
 */
 }
-
 //---------------------------------------------------------------------------
-int get_filename (char *line, char *name, char *count)
+
+int ControlFile::get_filename (char *line, char *name, char *count)
 {
   char *ptr1, *ptr2;
   int  length;
@@ -191,28 +217,6 @@ int get_filename (char *line, char *name, char *count)
 }
 
 //---------------------------------------------------------------------------
-static char daytab[2][13] = {
- {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
- {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-};
-
-bool validate_date(String date)
-{
- int year, month, day;
- int leap;
-
- year = StrToInt(date.SubString(1,4));
- month = StrToInt(date.SubString(5,2));
- day = StrToInt(date.SubString(7,2));
-
- leap = (year%4 == 0 && year%100 != 0 || year%400 == 0);
- if (month > 12) return false;
- if (day > daytab[leap][month]) return false;
-
- return(true);
-}
-
-//---------------------------------------------------------------------------
 int  chars_read = 0;
 char old_sentinel;
 
@@ -228,7 +232,7 @@ char old_sentinel;
  * line in the buffer. This makes it very easy to detect when more input
  * is needed.
  */
-void Scan_Read_Buffer (FILE * fid)
+void ControlFile::Scan_Read_Buffer (FILE * fid)
 
    {int   tail, inx;
     char *ptr, *qtr, *out;
@@ -271,7 +275,6 @@ void Scan_Read_Buffer (FILE * fid)
 
 
 //---------------------------------------------------------------------------
-
 char * CurrDateTime ()
 {
  time_t timer;
@@ -284,3 +287,34 @@ char * CurrDateTime ()
           tblock->tm_mday, tblock->tm_hour, tblock->tm_min, tblock->tm_sec);
  return (buf);
 }
+//---------------------------------------------------------------------------
+static char daytab[2][13] = {
+ {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+ {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+};
+
+bool validate_date(String date)
+{
+ int year, month, day;
+ int leap;
+
+ year = StrToInt(date.SubString(1,4));
+ month = StrToInt(date.SubString(5,2));
+ day = StrToInt(date.SubString(7,2));
+
+ leap = (year%4 == 0 && year%100 != 0 || year%400 == 0);
+ if (month > 12) return false;
+ if (day > daytab[leap][month]) return false;
+
+ return(true);
+}
+//---------------------------------------------------------------------------
+
+int load_tables(TADOHandler *dbhandle)
+{
+
+  return(0);
+}
+
+
+
