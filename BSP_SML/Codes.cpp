@@ -210,11 +210,16 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
             double lending_ratio = (first_lien_value / 1.2 +
              	                 loan_amount_secured * 1000) / nav;
 
-            store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+            store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         loan_amount_secured, loan_amount_unsecured,
                  		     risk_score, propensity_decile, principal,
                          lending_ratio, bsp_exclusion,
-                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance);
+                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, propensity_decile, balance);
+/*            store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+             		         loan_amount_secured, loan_amount_unsecured,
+                 		     risk_score, propensity_decile, principal,
+                         lending_ratio, bsp_exclusion,
+                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance); */
   		    } //end of normal case adjustment
       		else{
 //commented out on Apr. 6 2005 for the following code should have no effect
@@ -223,9 +228,12 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
 /*          	if(decline_code == 0)
           		decline_code = 3;*/
 
-           	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+           	store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
-                         0, 0, decline_code, sc, balance);
+                         0, 0, decline_code, propensity_decile, balance);
+/*           	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+             		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
+                         0, 0, decline_code, sc, balance);*/
       	  }//end of abnormal case output
         }//end of if status != -1
   		}
@@ -1512,7 +1520,7 @@ double propensity_score(TADOQuery *query, AnsiString idn)
   return score;
 }
 
-void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
+void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
                   AnsiString idno2, AnsiString msn_no, AnsiString time_stamp_no,
                   int test_cell, double secured_amount, double unsecured_amount,
                   double risk_score, int propensity_decile, double principal,
@@ -1529,18 +1537,15 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
   sql_stmt +=":unsecured, :risk_score, :sc, ";
   sql_stmt += ":balance, ";
   sql_stmt += ":manual, :secured_npv, :unsecured_npv, :secured_pb, :unsecured_pb, :decline_code);";
-//  int secured = (secured_amount * 1000 / 10000);
-//  secured *= 10000;
-//  int unsecured = (unsecured_amount *1000 / 10000);
-//  unsecured *= 10000;
-  double secured = secured_amount * 1000;
-  double unsecured = unsecured_amount * 1000;
+  int secured = (secured_amount * 1000 / 10000);
+  secured *= 10000;
+  int unsecured = (unsecured_amount *1000 / 10000);
+  unsecured *= 10000;
 
   int review_flag = 0;
 
   double number = risk_score;
   if(propensity_decile != 0){
-//    for(int i=1; i<15; ++i)
       number *= 100000000000000;
     if(number > 0)
       number = floor(number);
@@ -1552,7 +1557,6 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
       number += pdecile_code;
     else
       number -= pdecile_code;
-//  for(int i=1; i<16; ++i)
     number /=1000000000000000;
   }
 
@@ -1636,6 +1640,128 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
   command->Parameters->ParamValues["sc"] = sc;
   command->Execute();
 }
+
+void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
+                  AnsiString idno2, AnsiString msn_no, AnsiString time_stamp_no,
+                  int test_cell, double secured_amount, double unsecured_amount,
+                  double risk_score, int propensity_decile, double principal,
+                  double lending_ratio, bool bsp_exclusion, double secured_npv,
+                  double unsecured_npv, double secured_pb, double unsecured_pb,
+                  int decline_code, int sc, double balance)
+{
+  AnsiString sql_stmt;
+  sql_stmt = "INSERT INTO RESULT (IDN, IDN1, IDN2, MSN, TIME_STAMP, TEST_CELL, ";
+  sql_stmt +="HIGHEST_1, HIGHEST_2, RISK_SCORE, SC, ";
+//  sql_stmt +="UNSECURED_BALANCE, ";
+  sql_stmt +="REVIEWED, SECURED_NPV, UNSECURED_NPV, SECURED_PB, UNSECURED_PB, DECLINE_REASON) VALUES ";
+  sql_stmt +="(:idn, :idn1, :idn2, :msn, :time_stamp, :cell,  :secured, ";
+  sql_stmt +=":unsecured, :risk_score, :sc, ";
+//  sql_stmt += ":balance, ";
+  sql_stmt += ":manual, :secured_npv, :unsecured_npv, :secured_pb, :unsecured_pb, :decline_code);";
+  int secured = (secured_amount * 1000 / 10000);
+  secured *= 10000;
+  int unsecured = (unsecured_amount *1000 / 10000);
+  unsecured *= 10000;
+
+  int review_flag = 0;
+
+  double number = risk_score;
+  if(propensity_decile != 0){
+      number *= 100000000000000;
+    if(number > 0)
+      number = floor(number);
+    else
+      number = ceil(number);
+    number *= 10;
+    int pdecile_code = propensity_decile - 1;
+    if(number > 0)
+      number += pdecile_code;
+    else
+      number -= pdecile_code;
+    number /=1000000000000000;
+  }
+
+  command->CommandText = sql_stmt;
+  command->Parameters->ParamValues["msn"] = msn_no;
+  command->Parameters->ParamValues["time_stamp"] = time_stamp_no;
+  command->Parameters->ParamValues["idn"] = idno;
+  command->Parameters->ParamValues["idn1"] = idno1;
+  command->Parameters->ParamValues["idn2"] = idno2;
+  command->Parameters->ParamValues["secured"] = secured;
+  command->Parameters->ParamValues["unsecured"] = unsecured;
+  command->Parameters->ParamValues["risk_score"] = number;
+  command->Parameters->ParamValues["cell"] = test_cell;
+  command->Parameters->ParamValues["secured_npv"] = secured_npv;
+  command->Parameters->ParamValues["unsecured_npv"] = unsecured_npv;
+  command->Parameters->ParamValues["sc"] = sc;
+//  command->Parameters->ParamValues["balance"] = balance;
+    double secured_diff = principal - secured;
+    double unsecured_diff = principal - unsecured;
+    if(!bsp_exclusion){
+      if (principal >= 100000 && (risk_score<=0.04759)){
+        if (
+            (((unsecured_diff > 0) && (unsecured_diff < 100000)) || ((secured_diff > 0) && (secured_diff < 100000)))
+            ||
+            (((unsecured / principal)>0.9 &&(unsecured / principal)<1.0) || ((secured / principal)>0.9&&(secured / principal)<1.0))
+            )
+          review_flag = -1;
+        else if ((secured_diff > 0) &&
+                 ((lending_ratio > 0) && (lending_ratio < 1.2) ) &&
+                 ((risk_score<=0.04759) && (unsecured < 500000)))
+          review_flag = -2;
+      }//end of requested
+    } //end of bsp_exclusion (NAV = GAV = 0)
+    else
+      review_flag = -3;
+
+  if (((review_flag == 0) || (lending_ratio == -1)) && (review_flag != -3))
+    review_flag = 1;
+  if(decline_code == 5)
+    review_flag = -4;
+  else if(decline_code == 107){
+    if(secured == 0)
+      decline_code = 3;
+    else
+      decline_code = 0;
+    review_flag = 1;
+  }
+  else if((decline_code == 101) || (decline_code == 102)){
+    decline_code = 5;
+    review_flag = -4;
+  }
+
+  command->Parameters->ParamValues["manual"] = review_flag;
+  command->Parameters->ParamValues["secured_pb"] = secured_pb;
+  command->Parameters->ParamValues["unsecured_pb"] = unsecured_pb;
+  command->Parameters->ParamValues["decline_code"] = decline_code;
+  command->Execute();
+
+  sql_stmt = "INSERT INTO RESULT_R (IDN, IDN1, IDN2, MSN, TIME_STAMP, TEST_CELL, ";
+  sql_stmt +="HIGHEST_1, HIGHEST_2, RISK_SCORE, SC, ";
+  sql_stmt +="REVIEWED, SECURED_NPV, UNSECURED_NPV, SECURED_PB, UNSECURED_PB, DECLINE_REASON) VALUES ";
+  sql_stmt +="(:idn, :idn1, :idn2, :msn, :time_stamp, :cell,  :secured, ";
+  sql_stmt +=":unsecured, :risk_score, :sc, ";
+  sql_stmt += ":manual, :secured_npv, :unsecured_npv, :secured_pb, :unsecured_pb, :decline_code);";
+  command->CommandText = sql_stmt;
+  command->Parameters->ParamValues["msn"] = msn_no;
+  command->Parameters->ParamValues["time_stamp"] = time_stamp_no;
+  command->Parameters->ParamValues["idn"] = idno;
+  command->Parameters->ParamValues["idn1"] = idno1;
+  command->Parameters->ParamValues["idn2"] = idno2;
+  command->Parameters->ParamValues["secured"] = secured;
+  command->Parameters->ParamValues["unsecured"] = unsecured;
+  command->Parameters->ParamValues["risk_score"] = number;
+  command->Parameters->ParamValues["cell"] = test_cell;
+  command->Parameters->ParamValues["secured_npv"] = secured_npv;
+  command->Parameters->ParamValues["unsecured_npv"] = unsecured_npv;
+  command->Parameters->ParamValues["manual"] = review_flag;
+  command->Parameters->ParamValues["secured_pb"] = secured_pb;
+  command->Parameters->ParamValues["unsecured_pb"] = unsecured_pb;
+  command->Parameters->ParamValues["decline_code"] = decline_code;
+  command->Parameters->ParamValues["sc"] = sc;
+  command->Execute();
+}
+
 
 void clean_up(TADOCommand *command)
 {
@@ -3066,8 +3192,11 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
     command->Parameters->ParamValues["idn"] = idn;
 	  command->Execute();
 
+//commented out on Apr. 6 2005 for the following code should have no effect
+//when confirmed via testing, this comment and the following commented-out codes
+//will be deleted    
 //PB assignment for the first PB fit - M4
-    sql_stmt="UPDATE PDACO_V1_00_CAL ";
+/*    sql_stmt="UPDATE PDACO_V1_00_CAL ";
     sql_stmt+="SET  ";
     sql_stmt+="PB1 =  ";
     sql_stmt+="(CASE  ";
@@ -3127,7 +3256,7 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
     sql_stmt = sql_stmt.UpperCase();
     command->CommandText = sql_stmt;
     command->Parameters->ParamValues["idn"] = idn;
-	  command->Execute();
+	  command->Execute();        */
 
 	  sql_stmt = "SELECT SCORE FROM PDACO_V1_00_CAL WHERE IDN = :idn;";
 	  sql_stmt = sql_stmt.UpperCase();
