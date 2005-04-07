@@ -25,33 +25,27 @@ extern "C" __declspec(dllexport)int DAC_SML_NPV(char *idn, char *idn1, char *idn
 
 
 void prepare_2xx_infra(TADOCommand *command, int now);
-void not_in_hulu_41(TADOCommand *command);
-void hulu_41(TADOCommand *command, TADOQuery *query, int now);
-void hu_41(TADOCommand *command, int now);
-void lu_41(TADOCommand *command, TADOQuery *query, int now);
-void load_and_initialize_hu41(TADOCommand *command);
-void load_and_initialize_lu41(TADOCommand *command);
-void create_hu41_tables(TADOCommand *command);
-void create_lu41_tables(TADOCommand *command);
-unsigned char applicant_in_hu(TADOQuery *query, AnsiString idno,
-                              int propensity_decile);
-double get_risk_score(TADOQuery *query, AnsiString idno, bool hu);
 
-void capture_hu_result(TADOCommand *command);
-void capture_lu_result(TADOCommand *command);
 void capture_propensity_result(TADOCommand *command);
 
 void store_input(TADOCommand *command, AnsiString idno,AnsiString idno1,
                  AnsiString idno2, AnsiString msn_no, AnsiString time_stamp_no,
                  double gender, double principal, int test_cell, double gav,
                  double nav, AnsiString zip, double first_lien_value, int sc);
+void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
+                       AnsiString idno2, AnsiString msn_no, AnsiString time_stamp_no,
+                       int test_cell, double secured_amount, double unsecured_amount,
+                       double risk_score, int propensity_decile, double principal,
+                       double lending_ratio, bool bsp_exclusion, double secured_npv,
+                       double unsecured_npv, double secured_pb, double unsecured_pb,
+                       int decline_reason, int sc, double balance);
 void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
-                  AnsiString idno2, AnsiString msn_no, AnsiString time_stamp_no,
-                  int test_cell, double secured_amount, double unsecured_amount,
-                  double risk_score, int propensity_decile, double principal,
-                  double lending_ratio, bool bsp_exclusion, double secured_npv,
-                  double unsecured_npv, double secured_pb, double unsecured_pb,
-                  int decline_reason, int sc, double balance);
+                       AnsiString idno2, AnsiString msn_no, AnsiString time_stamp_no,
+                       int test_cell, double secured_amount, double unsecured_amount,
+                       double risk_score, int propensity_decile, double principal,
+                       double lending_ratio, bool bsp_exclusion, double secured_npv,
+                       double unsecured_npv, double secured_pb, double unsecured_pb,
+                       int decline_reason, int sc, double balance);
 //void get_idn_list(TADOCommand *command, AnsiString KRM001, AnsiString KRM023,
 //                  AnsiString BAM086, AnsiString STM001, AnsiString DAM103,
 //                  AnsiString DAM203);
@@ -62,8 +56,6 @@ bool error_checking(int gender, int test_cell, double gav, double nav, double li
 
 double krm023_balance(TADOQuery *query, AnsiString idn, int now);
 double bam009_balance(TADOQuery *query, AnsiString idn);
-
-double total_pass_due(TADOQuery *query, AnsiString idno);
 
 void clean_up(TADOCommand *command);
 //------------------------------------
