@@ -1,4 +1,4 @@
-@ECHO OFF
+::@ECHO OFF
 :: Set environment variable BSAUTO_HOME to the directory in which the programs and format
 ::   files reside.
 :: Set environment variable BSAUTO_DATA to the directory in which the control file and
@@ -16,9 +16,9 @@ IF EXIST ".lock" GOTO LOCK
 TYPE NUL >.lock
 
 :: Check if the control file was given
-IF "%1"=="" GOTO DEFAULT
-SET CTLFILE=%1
-GOTO PROCESS
+::IF "%1"=="" GOTO DEFAULT
+::SET CTLFILE=%1
+::GOTO PROCESS
 
 :DEFAULT
 SET CTLFILE=%BSAUTO_DATA%\FHBSAUTO.CTL
@@ -34,7 +34,8 @@ del /Q PD*.csv
 :: Execute automation program
 :: change the options
 :: -u user_name -p password -s sql_server_name -d database
-..\fhbsauto -u sa -p Emily1013 -s oliver\daisy -d fw_auto
+::..\fhbsauto -u oliver -p oliver -s giza -d oliver
+..\fhbsauto -u %1 -p %2 -s %3 -d %4
 
 IF ERRORLEVEL 12 GOTO ERROR12
 IF ERRORLEVEL 11 GOTO ERROR11

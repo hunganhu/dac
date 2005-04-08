@@ -219,7 +219,7 @@ char *SQLCommands[] = {
 "ren %s\\FHBSAUTO.CTL FHBSAUTO_%s.CTL ",
 
 /*SYSTEM_Exec_Advscore*/
-"advscore -g -m %s  -u %s -p %s -s %s -d %s ",
+"advscore -m %s  -u %s -p %s -s %s -d %s ",
 
 /*SYSTEM_Exec_Bcp_Statement*/
 /* the option -q is required because the field name of table has blank.

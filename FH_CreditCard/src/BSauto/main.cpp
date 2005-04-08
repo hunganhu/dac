@@ -149,16 +149,9 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "Clean temporary table...\n");
     dbhandle->ExecSQLCmd(SQLCommands[Clean_Temp_Tables]);
-/*
+
     fprintf(stderr, "Bulk insert data...\n");
-    control->bulk_insert(dbhandle);
-    returnCode = control->check_bulk_insert_status(dbhandle);
-    if (returnCode > 0) {
-       write_log_table(dbhandle, control->get_cycledate(), start_time,
-                       CurrDateTime(), returnCode, return_msgs[returnCode]);
-       return (returnCode);
-    }
-*/
+//    control->bulk_insert(dbhandle);
     char *bs_data, *bs_home, curr_dir[128];
     current_directory(curr_dir);
     if ((bs_home = getenv("BSAUTO_HOME")) == NULL)
@@ -177,7 +170,6 @@ int main(int argc, char* argv[])
        return (COMMAND_ERROR);
     }
 
-
     fprintf(stderr, "Bulk insert Account table...\n");
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Bcp_Account], database,
              bs_data, control->get_accountFile(), bs_home, user, password, source);
@@ -187,6 +179,13 @@ int main(int argc, char* argv[])
        write_log_table(dbhandle, control->get_cycledate(), start_time,
                      CurrDateTime(), COMMAND_ERROR, "Account: Bulk insert error");
        return (COMMAND_ERROR);
+    }
+// Check #rec of bulk insert matches with #rec of file
+    returnCode = control->check_bulk_insert_status(dbhandle);
+    if (returnCode > 0) {
+       write_log_table(dbhandle, control->get_cycledate(), start_time,
+                       CurrDateTime(), returnCode, return_msgs[returnCode]);
+       return (returnCode);
     }
 
     fprintf(stderr, "Load to production tables...\n");
@@ -201,6 +200,7 @@ int main(int argc, char* argv[])
     fprintf(stderr, "Run advscore...\n");
     sprintf (syscmd, SQLCommands[SYSTEM_Exec_Advscore], control->get_cycledate(),
              user, password, source, database);
+    fprintf(stderr, "%s\n", syscmd);
     ret = system(syscmd);
     if (ret < 0) {
        write_log_table(dbhandle, control->get_cycledate(), start_time,

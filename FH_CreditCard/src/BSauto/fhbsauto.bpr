@@ -96,7 +96,7 @@ Comments=
 DebugSourceDirs=$(BCB)\source\vcl
 
 [Parameters]
-RunParams=-u sa -p Emily1013 -s oliver\daisy -d fw_auto
+RunParams=
 Launcher=
 UseLauncher=0
 DebugCWD=
