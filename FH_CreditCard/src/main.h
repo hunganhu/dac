@@ -103,13 +103,13 @@ int step[] = {
  Drop_Proc_Generate_Profile,
  Create_Proc_Generate_Profile,
  Execute_Proc_Generate_Profile,
-// Drop_Proc_Generate_Profile,
+ Drop_Proc_Generate_Profile,
  Drop_Proc_Generate_Score,
  Create_Proc_Generate_Score,
  Execute_Proc_Generate_Score,
-// Drop_Proc_Generate_Score,
-// Drop_Input_Table,
-// Drop_Vars_Table,
+ Drop_Proc_Generate_Score,
+ Drop_Input_Table,
+ Drop_Vars_Table,
  End_of_SQL
 };
 
@@ -2062,11 +2062,11 @@ char *SQLCommands[] = {
 " if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[credit_card_monthly_profile_riskgroup]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
 "   begin"
 "     CREATE TABLE [credit_card_monthly_profile_riskgroup] ("
-"         [cycle_date] [varchar] (8) NOT NULL,"
-"         [risk_group] [int] NULL,"
+"         [cycle_date] [char] (8) NOT NULL,"
+"         [risk_group] [int] NOT NULL,"
 "         [group_count] [int] NULL"
 "     );"
-"     alter table credit_card_monthly_profile_riskgroup add constraint p_profile_stmtmonth primary key (cycle_date, risk_group);"
+"     alter table credit_card_monthly_profile_riskgroup add constraint p_profile_cyclegroup primary key (cycle_date, risk_group);"
 "   end"
 " delete from credit_card_monthly_profile_riskgroup where cycle_date = @cycle_date;"
 " insert into credit_card_monthly_profile_riskgroup (cycle_date, risk_group, group_count)"

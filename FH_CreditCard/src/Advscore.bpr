@@ -97,7 +97,7 @@ c:\program files\borland\cbuilder6\Bin\dclite60.bpl=Borland Integrated Translati
 DebugSourceDirs=$(BCB)\source\vcl
 
 [Parameters]
-RunParams=-g -m 20050110 -u sa -p Emily1013 -s oliver\daisy -d fw_auto
+RunParams=
 Launcher=
 UseLauncher=0
 DebugCWD=
