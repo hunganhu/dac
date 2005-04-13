@@ -673,6 +673,7 @@ double loc::max_npv_line(int trails, double &npv_value, double &pb, double npv[]
 double loc::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned int filter, double secured_line)
 {
   bool out = false;
+  int cap;
   if(!secured && filter != 0)
     out = true;
   if(secured && (filter != 0 && filter != 0x80))
@@ -688,9 +689,10 @@ double loc::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigne
 
     if(_personal_risk > 0.04759){
       if (_principal >= 100)
-        upper = _principal < 500 ? _principal : 500;
+        cap = _principal < 500 ? _principal : 500;
       else
-        upper = 500;
+        cap = 500;
+      upper = (upper > cap) ? cap : upper;  
     }
   }
   int trails = (upper - MIN_LENDING_AMOUNT) / 10.0 + 1;
@@ -767,9 +769,12 @@ double loc::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigne
   double pb_value = 0;
 //  dump_npv(60,npv);
 
-  double optimal_line = max_npv_line(trails, npv_value, pb_value, npv, filter);
+  double optimal_line = 0;
+  if(trails > 0)
+    optimal_line = max_npv_line(trails, npv_value, pb_value, npv, filter);
 //  max_npv_value = static_cast<int>(npv_value+0.5) * 1000;
-  max_npv_value = npv_value * 1000;
+//  max_npv_value = npv_value * 1000;
+  max_npv_value = npv_value;
   pb_max_npv = pb_value;
   delete[] npv;
   return optimal_line;
@@ -1209,15 +1214,16 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
     pb_max_npv = 0;
     return 0;
   };
-
+  int cap;
   int upper = secured ? MAX_LENDING_SECURED : MAX_LENDING_UNSECURED;
   if(!secured){
   	upper = (upper > secured_amount) ? secured_amount : upper;
     if(_personal_risk > 0.04759){
       if (_principal >= 100)
-        upper = _principal < 500 ? _principal : 500;
+        cap = _principal < 500 ? _principal : 500;
       else
-        upper = 500;
+        cap = 500;
+      upper = (upper > cap) ? cap : upper;
     }
   }
   int trails = (upper - MIN_LENDING_AMOUNT) / 10.0 + 1;
@@ -1293,11 +1299,14 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
   }//end if i
   double npv_value = 0;
   double pb_value = 0;
-  double optimal_amount = max_npv_amount(trails, npv_value, pb_value, npv, filter);
+  double optimal_amount = 0;;
+  if(trails > 0)
+    optimal_amount = max_npv_amount(trails, npv_value, pb_value, npv, filter);
 //  dump_npv(60,npv);
 
 //  max_npv_value = static_cast<int>(npv_value+0.5) * 1000;
-  max_npv_value = npv_value * 1000;
+//  max_npv_value = npv_value * 1000;
+  max_npv_value = npv_value;
   pb_max_npv = pb_value;
   delete[] npv;
 //  delete[] pbs;
