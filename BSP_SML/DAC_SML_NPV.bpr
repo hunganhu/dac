@@ -36,9 +36,8 @@
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-src_suffix cpp -D_DEBUG 
-      -I&quot;C:\Documents and Settings\DAC\桌面\BSP_SML_DLL_Testing&quot; 
-      -I$(BCB)\include -I$(BCB)\include\vcl -boa"/>
+    <IDLCFLAGS value="-I&quot;C:\Documents and Settings\DAC\桌面\BSP_SML_DLL_Testing&quot; 
+      -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix cpp -D_DEBUG -boa"/>
     <CFLAG1 value="-WD -Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- 
       -tWD -tWM -c"/>
     <PFLAGS value="-$Y+ -$W -$O- -$A8 -v -JPHNE -M"/>
@@ -99,7 +98,7 @@ RunParams=
 Launcher=
 UseLauncher=0
 DebugCWD=
-HostApplication=C:\Documents and Settings\Administrator\My Documents\Projects\BSP SML\V2.3_Testing\Project1.exe
+HostApplication=C:\Documents and Settings\Administrator\My Documents\Projects\BSP SML\CVS controlled\BSP_SML\Project1.exe
 RemoteHost=
 RemotePath=
 RemoteLauncher=
