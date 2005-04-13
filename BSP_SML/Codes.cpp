@@ -210,16 +210,16 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
             double lending_ratio = (first_lien_value / 1.2 +
              	                 loan_amount_secured * 1000) / nav;
 
-            store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+/*            store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         loan_amount_secured, loan_amount_unsecured,
                  		     risk_score, propensity_decile, principal,
                          lending_ratio, bsp_exclusion,
-                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, propensity_decile, balance);
-/*            store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, propensity_decile, balance);*/
+            store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         loan_amount_secured, loan_amount_unsecured,
                  		     risk_score, propensity_decile, principal,
                          lending_ratio, bsp_exclusion,
-                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance); */
+                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance);
   		    } //end of normal case adjustment
       		else{
 //commented out on Apr. 6 2005 for the following code should have no effect
@@ -228,12 +228,12 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
 /*          	if(decline_code == 0)
           		decline_code = 3;*/
 
-           	store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+/*           	store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
-                         0, 0, decline_code, propensity_decile, balance);
-/*           	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+                         0, 0, decline_code, propensity_decile, balance);*/
+           	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
-                         0, 0, decline_code, sc, balance);*/
+                         0, 0, decline_code, sc, balance);
       	  }//end of abnormal case output
         }//end of if status != -1
   		}
@@ -1542,6 +1542,9 @@ void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
   int unsecured = (unsecured_amount *1000 / 10000);
   unsecured *= 10000;
 
+  secured_npv *= 1000;
+  unsecured_npv *= 1000;
+
   int review_flag = 0;
 
   double number = risk_score;
@@ -1663,6 +1666,9 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
   int unsecured = (unsecured_amount *1000 / 10000);
   unsecured *= 10000;
 
+  int secured_npv_amount = static_cast<int>(secured_npv + 0.5) * 1000;
+  int unsecured_npv_amount = static_cast<int>(unsecured_npv + 0.5) * 1000;
+
   int review_flag = 0;
 
   double number = risk_score;
@@ -1691,8 +1697,8 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
   command->Parameters->ParamValues["unsecured"] = unsecured;
   command->Parameters->ParamValues["risk_score"] = number;
   command->Parameters->ParamValues["cell"] = test_cell;
-  command->Parameters->ParamValues["secured_npv"] = secured_npv;
-  command->Parameters->ParamValues["unsecured_npv"] = unsecured_npv;
+  command->Parameters->ParamValues["secured_npv"] = secured_npv_amount;
+  command->Parameters->ParamValues["unsecured_npv"] = unsecured_npv_amount;
   command->Parameters->ParamValues["sc"] = sc;
 //  command->Parameters->ParamValues["balance"] = balance;
     double secured_diff = principal - secured;
