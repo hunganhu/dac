@@ -210,16 +210,16 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
             double lending_ratio = (first_lien_value / 1.2 +
              	                 loan_amount_secured * 1000) / nav;
 
-/*            store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
-             		         loan_amount_secured, loan_amount_unsecured,
-                 		     risk_score, propensity_decile, principal,
-                         lending_ratio, bsp_exclusion,
-                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, propensity_decile, balance);*/
-            store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+            store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         loan_amount_secured, loan_amount_unsecured,
                  		     risk_score, propensity_decile, principal,
                          lending_ratio, bsp_exclusion,
                      		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance);
+/*            store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+             		         loan_amount_secured, loan_amount_unsecured,
+                 		     risk_score, propensity_decile, principal,
+                         lending_ratio, bsp_exclusion,
+                     		 secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance);*/
   		    } //end of normal case adjustment
       		else{
 //commented out on Apr. 6 2005 for the following code should have no effect
@@ -228,12 +228,12 @@ int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
 /*          	if(decline_code == 0)
           		decline_code = 3;*/
 
-/*           	store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
-             		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
-                         0, 0, decline_code, propensity_decile, balance);*/
-           	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+           	store_result_test(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
              		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
                          0, 0, decline_code, sc, balance);
+/*           	store_result(command, idno, idno1, idno2, msn_no, time_stamp_no, test_cell,
+             		         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
+                         0, 0, decline_code, sc, balance); */
       	  }//end of abnormal case output
         }//end of if status != -1
   		}
@@ -1531,19 +1531,19 @@ void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
   AnsiString sql_stmt;
   sql_stmt = "INSERT INTO RESULT (IDN, IDN1, IDN2, MSN, TIME_STAMP, TEST_CELL, ";
   sql_stmt +="HIGHEST_1, HIGHEST_2, RISK_SCORE, SC, ";
-  sql_stmt +="UNSECURED_BALANCE, ";
+  sql_stmt +="UNSECURED_BALANCE, FILTER_FLAG, PROPENSITY_DECILE, ";
   sql_stmt +="REVIEWED, SECURED_NPV, UNSECURED_NPV, SECURED_PB, UNSECURED_PB, DECLINE_REASON) VALUES ";
   sql_stmt +="(:idn, :idn1, :idn2, :msn, :time_stamp, :cell,  :secured, ";
   sql_stmt +=":unsecured, :risk_score, :sc, ";
-  sql_stmt += ":balance, ";
+  sql_stmt += ":balance, :filter, :pdecile, ";
   sql_stmt += ":manual, :secured_npv, :unsecured_npv, :secured_pb, :unsecured_pb, :decline_code);";
   int secured = (secured_amount * 1000 / 10000);
   secured *= 10000;
   int unsecured = (unsecured_amount *1000 / 10000);
   unsecured *= 10000;
 
-  secured_npv *= 1000;
-  unsecured_npv *= 1000;
+  secured_npv = static_cast<int>(secured_npv + 0.5) * 1000;
+  unsecured_npv = static_cast<int>(unsecured_npv + 0.5) * 1000;
 
   int review_flag = 0;
 
@@ -1577,6 +1577,8 @@ void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
   command->Parameters->ParamValues["unsecured_npv"] = unsecured_npv;
   command->Parameters->ParamValues["sc"] = sc;
   command->Parameters->ParamValues["balance"] = balance;
+  command->Parameters->ParamValues["filter"] = decline_code;
+  command->Parameters->ParamValues["pdecile"] = propensity_decile;  
     double secured_diff = principal - secured;
     double unsecured_diff = principal - unsecured;
     if(!bsp_exclusion){
@@ -1596,7 +1598,7 @@ void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
     else
       review_flag = -3;
 
-/*  if (((review_flag == 0) || (lending_ratio == -1)) && (review_flag != -3))
+  if (((review_flag == 0) || (lending_ratio == -1)) && (review_flag != -3))
     review_flag = 1;
   if(decline_code == 5)
     review_flag = -4;
@@ -1610,7 +1612,7 @@ void store_result_test(TADOCommand * command, AnsiString idno, AnsiString idno1,
   else if((decline_code == 101) || (decline_code == 102)){
     decline_code = 5;
     review_flag = -4;
-  }*/
+  }
 
   command->Parameters->ParamValues["manual"] = review_flag;
   command->Parameters->ParamValues["secured_pb"] = secured_pb;
@@ -1655,11 +1657,11 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
   AnsiString sql_stmt;
   sql_stmt = "INSERT INTO RESULT (IDN, IDN1, IDN2, MSN, TIME_STAMP, TEST_CELL, ";
   sql_stmt +="HIGHEST_1, HIGHEST_2, RISK_SCORE, SC, ";
-//  sql_stmt +="UNSECURED_BALANCE, ";
+//  sql_stmt +="UNSECURED_BALANCE, FILTER_FLAG, PROPENSITY_DECILE, ";
   sql_stmt +="REVIEWED, SECURED_NPV, UNSECURED_NPV, SECURED_PB, UNSECURED_PB, DECLINE_REASON) VALUES ";
   sql_stmt +="(:idn, :idn1, :idn2, :msn, :time_stamp, :cell,  :secured, ";
   sql_stmt +=":unsecured, :risk_score, :sc, ";
-//  sql_stmt += ":balance, ";
+//  sql_stmt += ":balance, :filter, :pdecile, ";
   sql_stmt += ":manual, :secured_npv, :unsecured_npv, :secured_pb, :unsecured_pb, :decline_code);";
   int secured = (secured_amount * 1000 / 10000);
   secured *= 10000;
@@ -1701,6 +1703,8 @@ void store_result(TADOCommand * command, AnsiString idno, AnsiString idno1,
   command->Parameters->ParamValues["unsecured_npv"] = unsecured_npv_amount;
   command->Parameters->ParamValues["sc"] = sc;
 //  command->Parameters->ParamValues["balance"] = balance;
+//  command->Parameters->ParamValues["filter"] = decline_code;
+//  command->Parameters->ParamValues["pdecile"] = propensity_decile;
     double secured_diff = principal - secured;
     double unsecured_diff = principal - unsecured;
     if(!bsp_exclusion){
