@@ -400,18 +400,18 @@ void Loan::calculate_pd(TADOHandler *handler)
 
     handler->ExecSQLCmd(SQLCommands[Update_Base]);
 
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Daco32_Score]);
-    handler->ExecSQLCmd(SQLCommands[Create_Procedure_Generate_Daco32_Score]);
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Daco41_Score]);
+    handler->ExecSQLCmd(SQLCommands[Create_Procedure_Generate_Daco41_Score]);
 
     hostVars[0] = now;
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_Generate_Daco32_Score], hostVars, 0);
+    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_Generate_Daco41_Score], hostVars, 0);
 
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Ploan_Score]);
-    handler->ExecSQLCmd(SQLCommands[Create_Procedure_Generate_Ploan_Score]);
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Ploan_Score41]);
+    handler->ExecSQLCmd(SQLCommands[Create_Procedure_Generate_Ploan_Score41]);
 
     hostVars[0] = now;
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_Generate_Ploan_Score], hostVars, 0);
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Ploan_Score]);
+    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_Generate_Ploan_Score41], hostVars, 0);
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Ploan_Score41]);
 
 //    handler->ExecSQLCmd(SQLCommands[Insert_Intermediate_Table]);
     if (DEBUG)

@@ -23,13 +23,13 @@ enum SQLCodes { Get_AppInfo_Record,
 		Insert_Audit_Table,
 		Insert_Intermediate_Table,
 
- 		Drop_Procedure_Generate_Daco32_Score,
- 		Exec_Procedure_Generate_Daco32_Score,
- 		Create_Procedure_Generate_Daco32_Score,
+ 		Drop_Procedure_Generate_Daco41_Score,
+ 		Exec_Procedure_Generate_Daco41_Score,
+ 		Create_Procedure_Generate_Daco41_Score,
 
-		Drop_Procedure_Generate_Ploan_Score,
-		Exec_Procedure_Generate_Ploan_Score,
-		Create_Procedure_Generate_Ploan_Score,
+		Drop_Procedure_Generate_Ploan_Score41,
+		Exec_Procedure_Generate_Ploan_Score41,
+		Create_Procedure_Generate_Ploan_Score41,
                 Drop_Working_Tables
 		};
 extern char *SQLCommands[];
