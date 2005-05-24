@@ -48,11 +48,11 @@ char *SQLCommands[] = {
 "  values (:v0, :v1, :v2, :v3, :v4, %16.2f, %10.6f, %10.6f, %10.6f);",
 
 /*Get_PD*/
-" select rscore, pd"
+" select pd, pd"
 "  from #daco_v41_cal",
 /*Get_Ploan_PD*/
-" select rscore, pd"
-"  from dac_ploan_cal where idn = :v0;",
+" select new_pd, new_pd"
+"  from PLNPV where idn = :v0;",
 
 /* jcic data preparation for a idn */
 /* Create_Working_Tables */
@@ -557,12 +557,12 @@ char *SQLCommands[] = {
 
 /* Insert_Daco_Table */
 " insert into #daco_v41_cal(case_sn, idn, dac_sn, now)"
-"    values (@case_sn, @idn, @dac_sn, @now)",
+"    values (:v0, :v1, :v2, :v3)",
 
 /* Update_Inquiry_Date*/
 " update #daco_v41_cal"
 "    set inquiry_date = a.inquiry_date,"
-"        sex = a.sex,"
+"        sex = (case when substring(a.idn,2,1) = 1 then 1 else 0 end),"
 "        guarantor = a.guarantor"
 "    from app_info a"
 "    where a.case_sn = #daco_v41_cal.case_sn"
@@ -584,7 +584,7 @@ char *SQLCommands[] = {
 "    where a.idn = #daco_v41_cal.idn;",
 
 /* Insert_Audit_Table */
-"if NOT exists (select * from dbo.sysobjects where id = object_id(N'dac_audit')"
+"if NOT exists (select * from dbo.sysobjects where id = object_id(N'dac_audit41')"
 "   and objectproperty(id, N'IsUserTable') = 1)"
 "  begin"
 "  create table dac_audit41 ("
@@ -2648,4 +2648,4 @@ MT009_43_q_tran2	•≠ß°æl√B (Total OS)					keep "15 day" rule
 " drop table #base;"
 " drop table #daco_v41_cal;"
 };
-
+                      

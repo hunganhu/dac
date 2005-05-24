@@ -1,3 +1,13 @@
+const double PDterm_coeff[][2] = {{6.0, 1.00},    // 0: dummy record
+                                  {7.0, 7.85},    // 1: {peak_month, divisor}
+                                  {8.0, 7.58},    // 2: {peak_month, divisor}
+                                  {9.0, 7.31},    // 3: {peak_month, divisor}
+                                  {10.0, 7.04},   // 4: {peak_month, divisor}
+                                  {11.0, 6.77},   // 5: {peak_month, divisor}
+                                  {12.0, 6.5},    // 6: {peak_month, divisor}
+                                  {12.0, 6.5}};   // 7: {peak_month, divisor}
+const double PD_FACTOR = 0.77;                  
+
 /*
 attrition_table[catagory][cycle]:
    The value of attrition is depended on the catagory and cycle. The catagory is combination of loan term and APR.

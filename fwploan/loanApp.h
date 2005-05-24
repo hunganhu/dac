@@ -104,6 +104,7 @@ class Loan {
     double total_npv;
     double apr[TERM+4];
     double open_attrition[TERM+4];
+    double PD_attrition[TERM+4];
     double voluntary_attrition[TERM+4];
     double involuntary_attrition[TERM+4];
     double m1_attrition[TERM+4];

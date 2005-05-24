@@ -126,6 +126,28 @@ int yrmon_to_mon(String inquiry_month, bool time_lock, String lock)
   return (year - 1911) * 12 + month;
 }
 
+int after_day15(String inquiry_month)
+{
+  int year;
+  int month;
+  int day;
+
+  if (inquiry_month == ""){
+     tm *today;
+     time_t ltime;
+     ltime = time( NULL );
+     today = localtime( &ltime );
+     day = today->tm_mday;
+  }
+  else {
+    day = StrToInt(inquiry_month.SubString(7,2));
+  }
+  if (day <= 15)
+     return(0);
+  else
+     return(1);
+}
+
 static char daytab[2][13] = {
  {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
  {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},

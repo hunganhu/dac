@@ -344,10 +344,11 @@ void Loan::calculate_pd(TADOHandler *handler)
  Variant hostVars[5];
 // int avail_flag, jas002_defect, krm021_hit, krm023_hit, fs044;
 // int max_bucket, cash_max_bucket, cash_utilization, ind001;
- int now;
+ int now, curr_month;
  // bool success = true;
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  now = yrmon_to_mon(inquiry_date, false, expire_date);
+ curr_month = after_day15(inquiry_date);
  avail_flag = jas002_defect = krm021_hit = krm023_hit = fs044 = 0;
  try {
     handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
@@ -410,7 +411,8 @@ void Loan::calculate_pd(TADOHandler *handler)
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_Generate_Ploan_Score41]);
 
     hostVars[0] = now;
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_Generate_Ploan_Score41], hostVars, 0);
+    hostVars[1] = curr_month;
+    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_Generate_Ploan_Score41], hostVars, 1);
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_Generate_Ploan_Score41]);
 
 //    handler->ExecSQLCmd(SQLCommands[Insert_Intermediate_Table]);
@@ -564,8 +566,9 @@ void Loan::set_apr()
 
 void Loan::set_attrition()
 {
-  double monthly_pd = pd / 12.0;
+//  double monthly_pd = pd / 12.0;
   int cat, term;
+  int pd_term;
 
   if (periods < 48) { // 3 year (4 * 12 month)
      if (max_apr <= 0.05)
@@ -593,14 +596,32 @@ void Loan::set_attrition()
      term = 120; // month
   }
 
+  if (periods < 7)
+     pd_term = 0;
+  else if (periods > 84)
+     pd_term = 7;
+  else
+     pd_term = (periods + 6) / 12;     // rounding
+
   for (int i = 0; i < term; i++)
       base_attrition[i] = Attrition_Table[cat][i];
+
+  for (int i = 0; i < periods; i++) {
+      if (pd_term == 0)
+          PD_attrition[i] = pd * (i + 1) / (periods + 1) / 6;
+          /* (2*PD*periods)/(12*(periods+1)*(i+1)/periods */
+      else
+         if (i < PDterm_coeff[pd_term][0])
+            PD_attrition[i] = pd * (i + 1) / PDterm_coeff[pd_term][0] / PDterm_coeff[pd_term][1];
+         else
+            PD_attrition[i] = pd * PD_FACTOR / PDterm_coeff[pd_term][1];
+  }    
 
   open_attrition[0] = 1.0;
   voluntary_attrition[0] = involuntary_attrition[0] = m1_attrition[0] = 0.0;
   for (int i = 1; i <= periods; i++) {
       voluntary_attrition[i] = open_attrition[i-1] * base_attrition[i-1];
-      involuntary_attrition[i] = open_attrition[i-1] * monthly_pd;
+      involuntary_attrition[i] = open_attrition[i-1] * PD_attrition[i-1];
       open_attrition[i] = open_attrition[i-1] - voluntary_attrition[i] - involuntary_attrition[i];
       m1_attrition[i] = involuntary_attrition[i] * m1_to_m7_ratio;
   }
@@ -956,11 +977,17 @@ double Loan::get_pd(char *idn, TADOHandler *handler)
     record_count = ds->RecordCount;
 
     ds->First();
-    if (!ds->Eof) {
+/*    if (!ds->Eof) {
        if (! ds->FieldValues["pd"].IsNull())
           pb = ds->FieldByName("pd")->AsFloat;
        if (! ds->FieldValues["rscore"].IsNull())
           rscore = ds->FieldByName("rscore")->AsFloat;
+    }
+*/    if (!ds->Eof) {
+       if (! ds->FieldValues["new_pd"].IsNull())
+          pb = ds->FieldByName("new_pd")->AsFloat;
+       if (! ds->FieldValues["new_pd"].IsNull())
+          rscore = ds->FieldByName("new_pd")->AsFloat;
     }
     if (rscore == 101)
         throw (RiskEx ("人工審核 [無JCIC資料]", 101));
