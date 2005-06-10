@@ -2027,6 +2027,7 @@ char *SQLCommands[] = {
 "        when pd is null and flag in (0,1,2,3,4,5,6,8) then 97"
 "        when pd is null and flag in (7) then 99"
 "        when pd is null and flag = 9 then 98"
+"        when pd is null and flag in (10,11,12) then 99"
 "        when pd <= 0.0011 and flag = 11 then 1"
 "        when pd <= 0.0011 and flag = 10 then 2"
 "        when pd <= 0.0011 and flag = 12 then 3"
