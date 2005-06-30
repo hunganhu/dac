@@ -1,0 +1,530 @@
+USE TF_KHJ
+GO
+
+/*----TF_KHJ----*/
+/*----FS033----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS033---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS033 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS034----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS034---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(DISTINCT Bank_Code2), NULL, NULL
+FROM BAM085_200403
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS034 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS035----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS035---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE (loan_amt = 0) AND
+              (pass_due_amt = 0) AND
+              Account_Code != 'Y'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS035 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS036----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS036---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE ((account_code2 in ('S', 'W', 'M')) OR
+                (Account_Code = 'K')) 
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS036 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS037----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS037---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code in ('W','C','D','E') AND
+      account_code2 in ('S', 'W', 'M')
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS037 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS038----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS038---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code in ('H','S') AND
+      account_code2 in ('S', 'W', 'M')
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS038 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS039----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS039---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code in ('I','T') AND
+      account_code2 in ('S', 'W', 'M')
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS039 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS040----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS040---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE (((Account_code2 is null) OR (Account_code2 = '') OR (Account_code2 = 'N')) AND
+       Account_Code != 'K')
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS040 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+/*----FS041----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS041---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code in ('W','C', 'D', 'E') AND
+      (((account_code2 = '') or (account_code2 is null) or (account_code = 'N')))
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS041 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS042----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS042---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code in ('H','S') AND
+      (((account_code2 = '') or (account_code2 is null) or (account_code = 'N')))
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS042 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS043----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS043---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code in ('I','T') AND
+      (((account_code2 = '') or (account_code2 is null) or (account_code = 'N')))
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS043 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS044----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS044---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE Pass_Due_Amt > 0
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS044 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS045----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS045---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code = 'A'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS045 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS046----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS046---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code = 'B'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS046 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS047----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS047---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code2 in ('V','W')
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS047 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS048----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS048---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE purpose_code = '1'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS048 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS049----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS049---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE purpose_code = '2'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS049 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS050----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS050---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE purpose_code = '3'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS050 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS051----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS051---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE purpose_code = '4'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS051 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS052----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS052---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code='Z' AND
+      ((Account_code2 is null) OR (Account_code2 = '') OR (Account_code2 = 'N')) AND
+      purpose_code = '4'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS052 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS053----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS053---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code='K' AND
+      ((Account_code2 is null) OR (Account_code2 = '') OR (Account_code2 = 'N')) AND
+      purpose_code = '4'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS053 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS054----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS054---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE account_code IN ('C','E','H') AND
+      ((Account_code2 is null) OR (Account_code2 = '') OR (Account_code2 = 'N')) AND
+      purpose_code = '4'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS054 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+
+/*----FS055----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS055---*/
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE Co_Loan = 'Y'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS055 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+
+/*----FS068----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+DELETE FROM FS_TMP2
+
+/*---Start making FS068---*/
+INSERT INTO FS_TMP2
+SELECT IDN, BANK_CODE2, NULL, NULL
+FROM BAM085_200403
+WHERE PURPOSE_CODE = '1' AND
+      account_code2 in ('S', 'W', 'M')
+
+INSERT INTO FS_TMP
+SELECT IDN, NULL, COUNT(*), NULL, NULL
+FROM BAM085_200403
+WHERE NOT EXISTS
+(SELECT * FROM FS_TMP2
+ WHERE BAM085_200403.IDN = FS_TMP2.IDN AND
+       BAM085_200403.BANK_CODE2 = FS_TMP2.ISSUER) AND
+      PURPOSE_CODE = '1' AND
+      ((Account_code2 is null) OR (Account_code2 = '') OR (Account_code2 = 'N')) AND
+      ACCOUNT_CODE != 'K'
+GROUP BY IDN  
+ 
+UPDATE FS_200403
+SET
+FS068 = V1
+FROM FS_TMP AS A
+WHERE A.IDN = FS_200403.IDN
+GO
+
+/*----FS069----*/
+UPDATE FS_200403
+SET
+FS069 = FS040 - FS068
+GO
+
+/*----FS070----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS070---*/
+INSERT INTO FS_TMP1
+SELECT IDN, NULL, COUNT(*)
+FROM BAM085_200403
+WHERE PURPOSE_CODE = '1' AND
+      account_code2 in ('S', 'W', 'M')
+GROUP BY IDN
+
+UPDATE FS_200403
+SET
+FS070 = V1
+FROM FS_TMP1 AS A
+WHERE A.IDN = FS_200403.IDN
+GO
+
+/*----FS071----*/
+/*---Init temp table----*/
+DELETE FROM FS_TMP
+DELETE FROM FS_TMP1
+
+/*---Start making FS071---*/
+INSERT INTO FS_TMP1
+SELECT IDN, NULL, COUNT(*)
+FROM BAM085_200403
+WHERE PURPOSE_CODE != '1' AND
+      account_code2 in ('S', 'W', 'M')
+GROUP BY IDN
+
+UPDATE FS_200403
+SET
+FS071 = V1
+FROM FS_TMP1 AS A
+WHERE A.IDN = FS_200403.IDN
+GO
