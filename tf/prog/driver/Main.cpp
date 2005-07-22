@@ -1,0 +1,345 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "Main.h"
+//#include "dac_ploan.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+using namespace std;
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+TForm1 *Form1;
+//---------------------------------------------------------------------------
+__fastcall TForm1::TForm1(TComponent* Owner)
+        : TForm(Owner)
+{
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
+{
+/*  TADOConnection *ADOConnection1 = TaipeiBank->ADOConnection1;
+
+  try {
+     //Disconnect to local databases
+     ADOConnection1->Connected=false;
+  }
+  catch(Exception &E) {
+     ShowMessage(AnsiString(E.ClassName())+ E.Message);
+  }*/
+}
+//---------------------------------------------------------------------------
+
+
+void __fastcall TForm1::ValidateClick(TObject *Sender)
+{
+  TADOQuery *Query = ADOQuery1;
+  TADOQuery *QueryW = ADOQuery2;
+  TADOHandler *dbhandle;             // pass connection object to function
+
+  AnsiString sql_stmt, sql_stmt2;
+  AnsiString idn, app_sn;
+  int dac_sn;
+  char idn_ptr[12], app_sn_ptr[13], errMsg[257];
+  char ole_str[256];
+  AnsiString oledbString;
+  int status = -1;
+  char * CurrDateTime ();
+
+  CoInitialize(NULL);
+  ADOConnection1->ConnectionTimeout = 30; // 30 seconds
+  ADOConnection1->CommandTimeout = 300;  //5 minutes; 20 minutes for AnShin
+
+  // Connect to Local DB
+  try {
+    if (ADOConnection1->Connected == false)
+      ADOConnection1->Open();
+  }
+  catch (Exception &E) {
+     ShowMessage(AnsiString(E.ClassName())+ E.Message);
+  }
+
+  Start_time->Caption = CurrDateTime();
+
+  // Empty Validation Result table
+  sql_stmt = "delete from test_out;";
+  Query->Close();
+  Query->SQL->Clear();
+  Query->SQL->Add(sql_stmt);
+  Query->ExecSQL();
+
+  // get data from input table, call validation function,
+  // and write result to validation_result table.
+  oledbString = Edit1->Text;
+  strcpy(ole_str, oledbString.c_str());
+    dbhandle = new TADOHandler();     // pass connection object to function
+    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
+  sql_stmt = "select app_sn from test_in order by app_sn";
+  Query->Close();
+  Query->SQL->Clear();
+  Query->SQL->Add(sql_stmt);
+  Query->Open();
+  Query->First();
+  int seq = 0;
+  while (!Query->Eof) {
+//     idn = Query->FieldValues["idn"];
+     app_sn = Query->FieldValues["app_sn"];
+//     dac_sn = Query->FieldValues["dac_sn"];
+
+//     Label2->Caption = idn;
+     Label3->Caption = app_sn;
+//     Label4->Caption = dac_sn;
+     count->Caption = ++seq;
+     Form1->Refresh();
+
+//     strcpy(idn_ptr, idn.c_str());
+     strcpy(app_sn_ptr, app_sn.c_str());
+//     strcpy(ole_str, oledbString.c_str());
+     *errMsg = '\0';
+     // call the validation function
+     status = prescreen_gx_conn(app_sn_ptr, "", "", ole_str, errMsg, dbhandle);
+
+        if (status < 0) {
+           sql_stmt2 = "insert into test_out (idn, return_msg) values ";
+           sql_stmt2 += "(:app_sn, :errMsg); ";
+           QueryW->Close();
+           QueryW->SQL->Clear();
+           QueryW->SQL->Add(sql_stmt2);
+           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+ //          QueryW->Parameters->ParamValues["idn"] = idn;
+ //          QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
+           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+           QueryW->ExecSQL();
+        }
+
+     Query->Next();
+  }
+  End_time->Caption = CurrDateTime();
+
+  dbhandle->CloseDatabase();    // pass connection object to function
+  delete  dbhandle;             // pass connection object to function
+  CoUninitialize();
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
+{
+  TADOQuery *Query = ADOQuery1;
+  TADOQuery *QueryW = ADOQuery2;
+//  TADOHandler *dbhandle;             // pass connection object to function
+
+  AnsiString sql_stmt, sql_stmt2;
+  AnsiString idn, app_sn;
+  int dac_sn;
+  char idn_ptr[12], app_sn_ptr[13], errMsg[257];
+  char ole_str[256];
+  AnsiString oledbString;
+  int status = -1;
+  char * CurrDateTime ();
+
+  CoInitialize(NULL);
+  ADOConnection1->ConnectionTimeout = 30; // 30 seconds
+  ADOConnection1->CommandTimeout = 300;  //5 minutes; 20 minutes for AnShin
+
+  // Connect to Local DB
+  try {
+    if (ADOConnection1->Connected == false)
+      ADOConnection1->Open();
+  }
+  catch (Exception &E) {
+     ShowMessage(AnsiString(E.ClassName())+ E.Message);
+  }
+
+  Start_time->Caption = CurrDateTime();
+
+  // Empty Validation Result table
+  sql_stmt = "delete from test_out;";
+  Query->Close();
+  Query->SQL->Clear();
+  Query->SQL->Add(sql_stmt);
+  Query->ExecSQL();
+
+  // get data from input table, call validation function,
+  // and write result to validation_result table.
+  oledbString = Edit1->Text;
+  strcpy(ole_str, oledbString.c_str());
+//    dbhandle = new TADOHandler();     // pass connection object to function
+//    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
+//  sql_stmt = "select idn, app_sn, dac_sn from test_in order by idn";
+  sql_stmt = "select app_sn from test_in order by app_sn";
+  Query->Close();
+  Query->SQL->Clear();
+  Query->SQL->Add(sql_stmt);
+  Query->Open();
+  Query->First();
+  int seq = 0;
+  while (!Query->Eof) {
+//     idn = Query->FieldValues["idn"];
+     app_sn = Query->FieldValues["app_sn"];
+//     dac_sn = Query->FieldValues["dac_sn"];
+
+//     Label2->Caption = idn;
+     Label3->Caption = app_sn;
+//     Label4->Caption = dac_sn;
+     count->Caption = ++seq;
+     Form1->Refresh();
+
+//     strcpy(idn_ptr, idn.c_str());
+     strcpy(app_sn_ptr, app_sn.c_str());
+//     strcpy(ole_str, oledbString.c_str());
+     *errMsg = '\0';
+     // call the validation function
+     status = prescreen_gx(app_sn_ptr, "", "", ole_str, errMsg);
+//     status = dac_ploan_ev(app_sn_ptr, idn_ptr, dac_sn, ole_str, errMsg);
+
+        if (status < 0) {
+           sql_stmt2 = "insert into test_out (idn, return_msg) values ";
+           sql_stmt2 += "(:app_sn, :errMsg); ";
+           QueryW->Close();
+           QueryW->SQL->Clear();
+           QueryW->SQL->Add(sql_stmt2);
+           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+ //          QueryW->Parameters->ParamValues["idn"] = idn;
+ //          QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
+           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+           QueryW->ExecSQL();
+        }
+
+     Query->Next();
+  }
+  End_time->Caption = CurrDateTime();
+
+//  dbhandle->CloseDatabase();    // pass connection object to function
+//  delete  dbhandle;             // pass connection object to function
+  CoUninitialize();
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::CheckBox1Click(TObject *Sender)
+{
+  ADOConnection1->ConnectionTimeout = 30; // 30 seconds
+  ADOConnection1->CommandTimeout = 300;  //5 minutes; 20 minutes for AnShin
+
+  if (CheckBox1->Checked){
+     try {
+        //Connect to local databases
+        ADOConnection1->Connected=true;
+     }
+     catch(Exception &E) {
+        ShowMessage(AnsiString(E.ClassName())+ E.Message);
+     }
+   }
+   else {
+     try {
+        //DisConnect to local databases
+        ADOConnection1->Connected=false;
+     }
+     catch(Exception &E) {
+        ShowMessage(AnsiString(E.ClassName())+ E.Message);
+     }
+    }
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::UnitTestClick(TObject *Sender)
+{
+  TADOQuery *QueryW = ADOQuery2;
+//  TADOHandler *dbhandle;
+
+  AnsiString sql_stmt, sql_stmt2;
+  AnsiString idn, app_sn;
+  int dac_sn=1;
+  char idn_ptr[12], app_sn_ptr[12], errMsg[255];
+  char ole_str[255];
+  AnsiString oledbString;
+  int status;
+
+  CoInitialize(NULL);
+  ADOConnection1->ConnectionTimeout = 30; // 30 seconds
+  ADOConnection1->CommandTimeout = 300;  //5 minutes
+
+  // Connect to Local DB
+  // get data from input table, call validation function,
+  // and write result to validation_result table.
+  oledbString = Edit1->Text;
+  idn = Edit2->Text;
+  app_sn = Edit3->Text;
+  dac_sn = Edit4->Text.ToInt();
+  *errMsg = '\0';
+
+   strcpy(idn_ptr, idn.c_str());
+   strcpy(app_sn_ptr, app_sn.c_str());
+   strcpy(ole_str, oledbString.c_str());
+
+//    dbhandle = new TADOHandler();
+//    dbhandle->OpenDatabase(ole_str);
+     status = prescreen_gx(app_sn_ptr, "", "", ole_str, errMsg);
+//   status = dac_ploan_ev(app_sn.c_str(), idn.c_str(), dac_sn, oledbString.c_str(), errMsg);
+//     status = dac_ploan_ev_conn(app_sn.c_str(), idn.c_str(), dac_sn, oledbString.c_str(), errMsg, dbhandle);
+
+  Label2->Caption = Edit2->Text;
+  Label3->Caption = Edit3->Text;
+  Label4->Caption = Edit4->Text;
+  Form1->Refresh();
+
+        if (status < 0) {
+           sql_stmt2 = "insert into test_out (idn, return_msg) values ";
+           sql_stmt2 += "(:app_sn, :errMsg); ";
+           QueryW->Close();
+           QueryW->SQL->Clear();
+           QueryW->SQL->Add(sql_stmt2);
+           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+ //          QueryW->Parameters->ParamValues["idn"] = idn;
+ //          QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
+           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+           QueryW->ExecSQL();
+        }
+/*
+  if (status < 0) {
+           sql_stmt2 = "insert into test_out values ";
+           sql_stmt2 += "(:app_sn, :idn, :dac_sn, :errMsg); ";
+           QueryW->Close();
+           QueryW->SQL->Clear();
+           QueryW->SQL->Add(sql_stmt2);
+           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+           QueryW->Parameters->ParamValues["idn"] = idn;
+           QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
+           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+           QueryW->ExecSQL();
+            //write errMsg to table
+  }
+*/
+//  dbhandle->CloseDatabase();
+//  delete  dbhandle;
+  CoUninitialize();
+
+}
+//---------------------------------------------------------------------------
+char * CurrDateTime ()
+{
+ time_t timer;
+ struct tm *tblock;
+ static char buf[20];
+
+ timer = time(NULL);
+ tblock = localtime(&timer);
+ sprintf (buf, "%04d/%02d/%02d %02d:%02d:%02d", tblock->tm_year+1900, tblock->tm_mon+1,
+          tblock->tm_mday, tblock->tm_hour, tblock->tm_min, tblock->tm_sec);
+ return (buf);
+}
+void __fastcall TForm1::Button1Click(TObject *Sender)
+{
+ Application->Terminate();
+}
+//---------------------------------------------------------------------------
+
+
+
