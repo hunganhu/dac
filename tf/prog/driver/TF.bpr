@@ -31,7 +31,7 @@
     <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
     <MAINSOURCE value="TF.cpp"/>
     <INCLUDEPATH value="dll;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;C:\dac\tpb;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="dll;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;C:\dac\fuhwa\PLoan\prog\dll\dac_ploan_ev.dll;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <LIBPATH value="c:\tmp\tf\prog\dll;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
@@ -100,11 +100,12 @@ Item0=dll;C:\Program Files\Borland\CBuilder6\Projects;C:\dac\tpb;$(BCB)\include;
 Item1=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\tpb;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=4
-Item0=dll;C:\Program Files\Borland\CBuilder6\Projects;C:\dac\fuhwa\PLoan\prog\dll\dac_ploan_ev.dll;$(BCB)\lib\obj;$(BCB)\lib
-Item1=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\fuhwa\PLoan\prog\dll\dac_ploan_ev.dll;$(BCB)\lib\obj;$(BCB)\lib
-Item2=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\fuhwa\ploan\prog\dll;$(BCB)\lib\obj;$(BCB)\lib
-Item3=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\tpb;$(BCB)\lib\obj;$(BCB)\lib
+Count=5
+Item0=c:\tmp\tf\prog\dll;C:\Program Files\Borland\CBuilder6\Projects;$(BCB)\lib\obj;$(BCB)\lib
+Item1=dll;C:\Program Files\Borland\CBuilder6\Projects;C:\dac\fuhwa\PLoan\prog\dll\dac_ploan_ev.dll;$(BCB)\lib\obj;$(BCB)\lib
+Item2=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\fuhwa\PLoan\prog\dll\dac_ploan_ev.dll;$(BCB)\lib\obj;$(BCB)\lib
+Item3=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\fuhwa\ploan\prog\dll;$(BCB)\lib\obj;$(BCB)\lib
+Item4=C:\Program Files\Borland\CBuilder6\Projects;C:\dac\tpb;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1
