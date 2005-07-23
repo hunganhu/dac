@@ -248,7 +248,7 @@ go
 
 insert into maintenance
   (cof, roe, ts_tax_rate, tf_tax_rate, info_porcessing_cost, operation_cost, hr_cost, commission)
-values (0.03, 0.18, 0.03, 0.03, 1000, 100, 300, 500);
+values (0.0372, 0.10, 0.0225, 0.0476, 15, 17, 120, 5000);
 go
 
 create table maintenance_history (
