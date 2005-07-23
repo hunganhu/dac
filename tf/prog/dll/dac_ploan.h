@@ -6,17 +6,25 @@
 #include "AdoHandle.h"
 //---------------------------------------------------------------------------
 extern "C" __declspec(dllexport)
- int prescreen_gx(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                  char *ole_db, char *return_msg);
+ int prescreen(char *app_sn, char *ts_data_date, char *jcic_data_date,
+               char *ole_db, char *error_msg);
+extern "C" __declspec(dllexport)
+ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                 char *app_data_time, int tsn, char *ole_db, char *error_msg);
+extern "C" __declspec(dllexport)
+ int designated_cal(char *app_sn, int tsn, char *ole_db, char *error_msg);
+extern "C" __declspec(dllexport)
+ int conversion_cal(char *app_sn, int tsn, char *ole_db, char *error_msg);
+
 extern "C" __declspec(dllexport)
  int prescreen_gx_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                  char *ole_db, char *return_msg, TADOHandler *dbhandle);
+                  char *ole_db, char *error_msg, TADOHandler *dbhandle);
 /*
 extern "C" __declspec(dllexport)
  int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *error_msg);
 
 extern "C" __declspec(dllexport)
  int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
-                 char *return_msg, TADOHandler *dbhandle);
+                 char *error_msg, TADOHandler *dbhandle);
 */
 #endif

@@ -19,14 +19,13 @@ const double YearDays = 365.0;
 
 #pragma package(smart_init)
 
-Loan::Loan (char * caseNo, char* pid, int seq, TADOHandler *handler):
-    case_sn(caseNo), idn(pid), dac_sn(seq), application_date_ind(0),
-    product_code_ind(0), project_source_ind(0), case_source_ind(0),
-    recommender_ind(0), guarantor_ind(0), principal_ind(0),
-    repayment_ind(0), periods_ind(0), grace_period_ind(0),
-    num_int_period_ind(0), appropriation_ind(0), zip_ind(0),
-    segment_ind(0), application_fee_ind(0), risk_mgmt_fee_ind(0),
-    acct_mgmt_fee_ind(0), bt_fee_ind(0), inquiry_date_ind(0), early_closing_period_ind(0)
+Loan::Loan (char * appSN, char* appDate, TADOHandler *handler):
+    app_sn(appSN), app_date(appDate), product_type_ind(0),
+    gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
+    principal_ind(0), int_rate_ind(0), teaser_rate_ind(0), periods_ind(0),
+    teaser_period_ind(0), grace_period_ind(0), application_fee_ind(0),
+    credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
+    sales_channel_ind(0), risk_level_ind(0)
 {
 
 // Variant hostVars[5];
@@ -151,6 +150,7 @@ Loan::Loan (char * caseNo, char* pid, int seq, TADOHandler *handler):
 
 void Loan::validate()
 {
+/*
   int sum_periods = 0;
   int dist;
   bool success = true;
@@ -281,6 +281,7 @@ void Loan::validate()
   }
 
   if (!success ) throw DataEx(Message);
+*/  
 }
 
 Loan::~Loan ()
@@ -293,10 +294,12 @@ String Loan::error ()
 {
  return Message;
 }
+/*
 String Loan::get_application_date ()
 {
  return application_date;
 }
+*/
 double Loan::get_rscore ()
 {
  return rscore;
@@ -313,9 +316,80 @@ double Loan::get_principal ()
 {
  return principal;
 }
+/*
 String Loan::get_segment ()
 {
  return segment;
+}
+*/
+void Loan::prescreen(TADOHandler *handler)
+{
+ Variant hostVars[5];
+ avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
+ try {
+    handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+    hostVars[0] = app_sn;
+    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 0);
+
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
+    handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_prepare_jcic_data]);
+    hostVars[0] = app_sn;
+    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 0);
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
+
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
+    handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
+    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_loan_prescreen]);
+    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
+
+//    handler->ExecSQLCmd(SQLCommands[Update_Base]);
+//    handler->ExecSQLCmd(SQLCommands[Update_Inquiry_Date]);
+
+    hostVars[0] = app_sn;
+    handler->ExecSQLQry(SQLCommands[Get_Filter_Result], hostVars, 0, ds);
+    ds->First();
+    if (!ds->Eof) {
+//       avail_flag = ds->FieldValues["avail_flag"];
+       jas002_defect = ds->FieldValues["jas002_defect"];
+       krm001_hit = ds->FieldValues["krm001_hit"];
+       krm023_hit = ds->FieldValues["krm023_hit"];
+       bam085_hit = ds->FieldValues["krm023_hit"];
+       app_max_bucket = ds->FieldValues["app_max_bucket"];
+       fs044 = ds->FieldValues["fs044"];
+       delinquent_months = ds->FieldValues["fs334"];
+       cash_max_bucket = ds->FieldValues["fs302"];
+       ind001 = ds->FieldValues["ind001"];
+       ms080 = ds->FieldValues["ms080"];
+    }
+    handler->ExecSQLCmd(SQLCommands[Update_Prescreen_Output]);
+/*
+    if (jas002_defect > 0)
+       throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
+    else if (app_max_bucket > 3)
+       throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
+    else if (fs044 > 0)
+       throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
+    else if (cash_max_bucket > 0)
+       throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
+    else if (delinquent_months > 3)
+       throw (RiskEx ("拒絕 [貸款有90天以上遲繳記錄]", 107));
+*/
+//    handler->ExecSQLCmd(SQLCommands[Insert_Intermediate_Table]);
+#ifdef _WRFLOW
+    handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
+    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
+/*
+    handler->ExecSQLQry(SQLCommands[Get_PD], ds);
+    ds->First();
+    if (!ds->Eof) {
+       rscore = ds->FieldValues["rscore"];
+       pd = ds->FieldValues["pd"];
+    }
+*/
+ } catch (Exception &E) {
+     throw;
+   }
 }
 
 void Loan::calculate_pd(TADOHandler *handler)
@@ -330,12 +404,12 @@ void Loan::calculate_pd(TADOHandler *handler)
  avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
     handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
-    hostVars[0] = case_sn;
+    hostVars[0] = app_sn;
     handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 0);
 
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_prepare_jcic_data]);
-    hostVars[0] = case_sn;
+    hostVars[0] = app_sn;
     handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 0);
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
 
@@ -347,7 +421,7 @@ void Loan::calculate_pd(TADOHandler *handler)
 //    handler->ExecSQLCmd(SQLCommands[Update_Base]);
 //    handler->ExecSQLCmd(SQLCommands[Update_Inquiry_Date]);
 
-    hostVars[0] = case_sn;
+    hostVars[0] = app_sn;
     handler->ExecSQLQry(SQLCommands[Get_Filter_Result], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
@@ -422,6 +496,7 @@ void Loan::postFilter()
 
 void Loan::calculate_npv()
 {
+/*
   double revenue, cost, wc;
   double Interest_Revenue, Late_Fee, Early_Closing_Fee, Application_Fee;
   double Other_Fee, Interest_Cost, Acct_Mgmt_Cost, PreCollection_Cost;
@@ -452,7 +527,6 @@ void Loan::calculate_npv()
               - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost
                + Collection_Cost + Commission)         // Cost
               + (Working_Capital + Credit_Loss);       // Working Capital
-
 #ifdef _WRFLOW
      fstream outf;
      outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
@@ -504,6 +578,7 @@ void Loan::calculate_npv()
               << endl;
      }
 #endif
+*/
 }
 
 
@@ -654,6 +729,7 @@ double Loan::set_late_fee()
   return (NetPresentValue(roe / 12.0, late_fee + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
 }
+/*
 double Loan::set_early_closing_fee()
 {
   for (int i = 1; i <= periods; i++)
@@ -666,6 +742,7 @@ double Loan::set_early_closing_fee()
   return (NetPresentValue(roe / 12.0, early_closing_fee + 1, periods, ptEndOfPeriod)
           + early_closing_fee[0]);
 }
+*/
 // Cost
 // Interest Cost:
 double Loan::set_interest_cost()

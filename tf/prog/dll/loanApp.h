@@ -34,54 +34,50 @@ class Rate {
 class Loan {
   private:
     /* application information */
-    String case_sn;                 // 案件編號
-    String idn;                     // 身份證號
-    int dac_sn;                     // 序號
-    int record_count;               // number of records read
-    String application_date;        // 申請日期YYYYMMDD
-    String inquiry_date;            // JCIC 查詢日期 YYYYMMDD
-    String product_code;            // 性質別
-    String project_source;          // 專案代碼
-    String case_source;             // 案件來源
-    String recommender;             // 引薦人(0: 無引薦人; 1: 有引薦人)
-    String guarantor;               // 保人(0: 無保人; 1: 有保人)
-    double principal;               // 貸款金額(新台幣元)
-    String repayment;               // 還款方式(1; 一般法;2:本息法;3:本金法)
-    int periods;                    // 貸款期數(月數)
-    int grace_period;               // 寬限期(月數)
-    int num_int_period;             // 利率時段個數，必須是1, 2 或3
-    String appropriation;           // 撥款方式(1: 一次撥貸; 3: 分次撥貸; 4: 循環)，本次專案不包含3 和 4
+    String app_sn;                  // 案件編號
+    String app_date;                // 申請日期YYYYMMDDHHmm
+    int product_type;               // 產品代號(1 為國民信貸; 2 為卡好借)
+    int gender;                     // 0為女性; 1為男性
     String zip;                     // 三位郵遞區號
-    String segment;                 // 客層 "01"~"09", "99"
-    int application_fee;            // 手續費+查詢費(新台幣元)
-    int risk_mgmt_fee;              // 風險管理費(新台幣元)
-    int acct_mgmt_fee;              // 帳戶管理費 (新台幣元)
-    int bt_fee;                     // 代償費(新台幣元)
-    int early_closing_period;       // 提早還款期間
-    double max_apr;                 // max. of apr among each interest preiod
+    int secretive;                  // 0為否; 1為是，是否密家人，被家人是否知悉此筆貸款
+    int edu;                        // 教育程度 ，1 為研究所(含)以上 ; 2 為大學; 3 為專科;
+                                    // 4  為高中(職); 5 為國中以下; 6 為其他
+    int marriage_status;            // 婚姻狀況,1 為已婚; 2 為未婚; 3 為離婚; 4 為其他
+    int record_count;               // number of records read
+    /* loan information */
+    double principal;               // 貸款金額(新台幣元)
+    double int_rate;                // 年利率 (e.g. 18% 為 0.18)
+    double teaser_rate;             // 優惠年利率 (e.g. 18% 為 0.18)
+    int periods;                    // 貸款期數(月數)
+    int teaser_period;              // 優惠期 (月數)
+    int grace_period;               // 寬限期(月數)
+    int application_fee;            // 開辦費 (新台幣元)
+    int credit_checking_fee;        // 徵信查詢費(新台幣元)
+    int risk_mgmt_fee;              // 每期風險管理費用(新台幣元)
+    int risk_mgmt_fee_terms;        // 風險管理費用收取期數
+    String sales_channel;           // 銷售管道
+    int risk_level;                 // TF風險分級
     TADODataSet *ds;
+    double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
 
     /* Null indicator for each application feature */
-    int application_date_ind;
-    int inquiry_date_ind;
-    int product_code_ind;
-    int project_source_ind;
-    int case_source_ind;
-    int recommender_ind;
-    int guarantor_ind;
-    int principal_ind;
-    int repayment_ind;
-    int periods_ind;
-    int grace_period_ind;
-    int num_int_period_ind;
-    int appropriation_ind;
+    int product_type_ind;
+    int gender_ind;
     int zip_ind;
-    int segment_ind;
+    int secretive_ind;
+    int edu_ind;
+    int principal_ind;
+    int int_rate_ind;
+    int teaser_rate_ind;
+    int periods_ind;
+    int teaser_period_ind;
+    int grace_period_ind;
     int application_fee_ind;
+    int credit_checking_fee_ind;
     int risk_mgmt_fee_ind;
-    int acct_mgmt_fee_ind;
-    int bt_fee_ind;
-    int early_closing_period_ind;       // 提早還款期間 NULL indicator
+    int risk_mgmt_fee_terms_ind;
+    int sales_channel_ind;
+    int risk_level_ind;
 
     /* Prefilter and postfilter variables */
     int avail_flag;
@@ -195,11 +191,12 @@ class Loan {
              message = msg;
           }
     };
-    Loan (char * caseNo, char* pid, int seq, TADOHandler *handler);
+    Loan (char * appNo, char* appDate, TADOHandler *handler);
     ~Loan ();
     void validate();
     String error();
     String get_application_date();
+    void prescreen(TADOHandler *handler);
     void calculate_pd(TADOHandler *handler);
     void calculate_npv();
     double get_rscore ();
