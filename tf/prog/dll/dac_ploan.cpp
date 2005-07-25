@@ -13,25 +13,30 @@
 
 #pragma package(smart_init)
 
-int prescreen(char *app_sn, char *ts_data_date, char *jcic_data_date,
+int prescreen(char *app_sn, char *app_data_date, char *jcic_data_date,
               char *ole_db, char *error_msg)
 {
  TADOHandler *dbhandle;
  Loan *ptrLoan;
  Variant hostVars[10];
- char  sqlCommand[256];
- String Message;
 
  try {
     dbhandle = new TADOHandler();
     dbhandle->OpenDatabase(ole_db);
-    ptrLoan = new Loan(app_sn, ts_data_date, dbhandle);
-//    ptrLoan->validate();
-//    ptrLoan->Init_Maintenance(dbhandle);
-    ptrLoan->calculate_pd(dbhandle);
-//    ptrLoan->get_pd(idn, dbhandle);
-//    ptrLoan->calculate_npv();
-//    ptrLoan->postFilter();
+    ptrLoan = new Loan(app_sn, app_data_date, dbhandle);
+    ptrLoan->app_info_validate(app_sn, app_data_date, dbhandle);
+    dbhandler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
+    /*Write_Prescreen_Result*/
+    hostVars[0] = app_sn;
+    hostVars[1] = app_data_date;
+    hostVars[2] = jcic_data_date;
+    hostVars[3] = ptrLoan->get_product_type();
+    hostVars[4] = ptrLoan->get_code();
+    hostVars[5] = ptrLoan->error();
+    handler->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
+    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
+
  } catch (Loan::DataEx &DE){
      strcpy (error_msg, DE.message.c_str());
      delete ptrLoan;
@@ -40,10 +45,6 @@ int prescreen(char *app_sn, char *ts_data_date, char *jcic_data_date,
      return (-1);
  } catch (Loan::RiskEx &RE){
      strcpy (error_msg, RE.message.c_str());
-
-#ifdef _WRFLOW
-     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
-#endif
      /* Drop all temporary tables before closing a connection to avoid connection creep problem.
         Without droping temp tables will not release system resource after connection is closed.
      */
@@ -51,7 +52,7 @@ int prescreen(char *app_sn, char *ts_data_date, char *jcic_data_date,
      delete ptrLoan;
      dbhandle->CloseDatabase();
      delete dbhandle;
-     return (-RE.pb);
+     return (-1);
  } catch (Exception &E) {
      strcpy (error_msg, E.Message.c_str());
      delete ptrLoan;
@@ -59,7 +60,7 @@ int prescreen(char *app_sn, char *ts_data_date, char *jcic_data_date,
      delete dbhandle;
      return (-1);
  }
- strcpy (error_msg, Message.c_str());
+ strcpy (error_msg, "");      // return empty string if stop normally.
  delete ptrLoan;
  dbhandle->CloseDatabase();
  delete dbhandle;

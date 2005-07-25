@@ -254,9 +254,14 @@ String Loan::error ()
  return Message;
 }
 //---------------------------------------------------------------------------
-double Loan::get_rscore ()
+double Loan::get_product_type ()
 {
- return rscore;
+ return product_type;
+}
+//---------------------------------------------------------------------------
+double Loan::get_code ()
+{
+ return code;
 }
 //---------------------------------------------------------------------------
 double Loan::get_pd ()
@@ -274,34 +279,31 @@ double Loan::get_principal ()
  return principal;
 }
 //---------------------------------------------------------------------------
-void Loan::prescreen(TADOHandler *handler)
+void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 {
  Variant hostVars[5];
+
+ jcic_date = inquiry_date;
  avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
-    handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     hostVars[0] = app_sn;
-    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 0);
+    hostVars[1] = app_date;
+    hostVars[2] = jcic_date;
+    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 2);
 
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_prepare_jcic_data]);
     hostVars[0] = app_sn;
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 0);
+    hostVars[1] = jcic_date;
+    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 1);
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
 
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_loan_prescreen]);
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
-
-//    handler->ExecSQLCmd(SQLCommands[Update_Base]);
-//    handler->ExecSQLCmd(SQLCommands[Update_Inquiry_Date]);
 
     hostVars[0] = app_sn;
-    handler->ExecSQLQry(SQLCommands[Get_Filter_Result], hostVars, 0, ds);
+    handler->ExecSQLQry(SQLCommands[Get_Prescreen_Result], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
-//       avail_flag = ds->FieldValues["avail_flag"];
        jas002_defect = ds->FieldValues["jas002_defect"];
        krm001_hit = ds->FieldValues["krm001_hit"];
        krm023_hit = ds->FieldValues["krm023_hit"];
@@ -313,32 +315,18 @@ void Loan::prescreen(TADOHandler *handler)
        ind001 = ds->FieldValues["ind001"];
        ms080 = ds->FieldValues["ms080"];
     }
-    handler->ExecSQLCmd(SQLCommands[Update_Prescreen_Output]);
-/*
-    if (jas002_defect > 0)
-       throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
-    else if (app_max_bucket > 3)
-       throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
-    else if (fs044 > 0)
-       throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
-    else if (cash_max_bucket > 0)
-       throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
-    else if (delinquent_months > 3)
-       throw (RiskEx ("拒絕 [貸款有90天以上遲繳記錄]", 107));
-*/
-//    handler->ExecSQLCmd(SQLCommands[Insert_Intermediate_Table]);
-#ifdef _WRFLOW
-    handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
-#endif
-    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-/*
-    handler->ExecSQLQry(SQLCommands[Get_PD], ds);
-    ds->First();
-    if (!ds->Eof) {
-       rscore = ds->FieldValues["rscore"];
-       pd = ds->FieldValues["pd"];
+
+    if (jas002_defect > 0) {
+       Message = "拒絕 [有退票強停拒往授信異常等記錄]"; code = 103;
+    } else if (app_max_bucket > 3)
+       Message = "拒絕 [信用卡有90天以上遲繳記錄]"; code = 104;
+    } else if (fs044 > 0)
+       Message = "拒絕 [貸款有遲繳記錄]"; code = 105));
+    } else if (cash_max_bucket > 0)
+       Message = "拒絕 [現金卡前期有遲繳記錄]"; code = 106;
+    } else if (delinquent_months > 3)
+       Message = "拒絕 [貸款有90天以上遲繳記錄]"; code = 107;
     }
-*/
  } catch (Exception &E) {
      throw;
    }
@@ -348,12 +336,6 @@ void Loan::prescreen(TADOHandler *handler)
 void Loan::calculate_pd(TADOHandler *handler)
 {
  Variant hostVars[5];
-// int avail_flag, jas002_defect, krm021_hit, krm023_hit, fs044;
-// int max_bucket, cash_max_bucket, cash_utilization, ind001;
-// int now;
- // bool success = true;
-// ds->EnableBCD = false;  // Decimal fields are mapped to float.
-// now = yrmon_to_mon(inquiry_date, false, expire_date);
  avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
     handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
@@ -366,19 +348,15 @@ void Loan::calculate_pd(TADOHandler *handler)
     handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 0);
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
 
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
+//    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_loan_prescreen]);
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
-
-//    handler->ExecSQLCmd(SQLCommands[Update_Base]);
-//    handler->ExecSQLCmd(SQLCommands[Update_Inquiry_Date]);
+//    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_loan_prescreen]);
+//    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
 
     hostVars[0] = app_sn;
     handler->ExecSQLQry(SQLCommands[Get_Filter_Result], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
-//       avail_flag = ds->FieldValues["avail_flag"];
        jas002_defect = ds->FieldValues["jas002_defect"];
        krm001_hit = ds->FieldValues["krm001_hit"];
        krm023_hit = ds->FieldValues["krm023_hit"];
@@ -966,6 +944,7 @@ void Loan::Init_Maintenance(TADOHandler *handler)
  }
 }
 //---------------------------------------------------------------------------
+/*
 double Loan::get_pd(char *idn, TADOHandler *handler)
 {
  Variant hostVars[5];
@@ -1001,4 +980,6 @@ double Loan::get_pd(char *idn, TADOHandler *handler)
  } catch (Exception &E) {
     throw;
  }
- return (pb);}
+ return (pb);
+}
+*/

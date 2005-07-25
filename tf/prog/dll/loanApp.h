@@ -36,6 +36,7 @@ class Loan {
     /* application information */
     String app_sn;                  // 案件編號
     String app_date;                // 申請日期YYYYMMDDHHmm
+    String jcic_date;               // JCIC 查詢日期YYYYMMDD
     int product_type;               // 產品代號(1 為國民信貸; 2 為卡好借)
     int gender;                     // 0為女性; 1為男性
     String zip;                     // 三位郵遞區號
@@ -45,6 +46,7 @@ class Loan {
     int marriage_status;            // 婚姻狀況,1 為已婚; 2 為未婚; 3 為離婚; 4 為其他
     int record_count;               // number of app_info records read
     int trial_count;                // number of Loan records read
+    int code;                       // prescreen code
     /* loan information */
     double principal;               // 貸款金額(新台幣元)
     double int_rate;                // 年利率 (e.g. 18% 為 0.18)
@@ -198,7 +200,7 @@ class Loan {
     void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
     void loan_validate(char * appNo, int tsn, TADOHandler *handler);
     String error();
-    void prescreen(TADOHandler *handler);
+    void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_pd(TADOHandler *handler);
     void calculate_npv();
     double get_rscore ();
@@ -206,7 +208,7 @@ class Loan {
     double get_npv ();
     double get_principal ();
     void Init_Maintenance(TADOHandler *handler);
-    double get_pd(char *idn, TADOHandler *handler);
+//    double get_pd(char *idn, TADOHandler *handler);
     void postFilter();
 };
 
