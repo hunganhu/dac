@@ -9,11 +9,11 @@ alter PROCEDURE TF_prepare_jcic_data_all
     from krm001
     where app_sn = @app_sn and data_time = @data_time
     group by app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, limit_type, usage_type, secure;
- insert into #krm023_dedup (app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment,/* payment2,*/ cash, pay_code, cnt)
-    select app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, /* payment2,*/ cash, pay_code, count(*)
+ insert into #krm023_dedup (app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
+    select app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment,  cash, pay_code, count(*)
     from krm023
     where app_sn = @app_sn and data_time = @data_time
-    group by app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, /* payment2,*/ cash, pay_code;
+    group by app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
  insert into #stm001_dedup (app_sn, data_time, bank_code, bank_name, query_date, item_list, cnt)
     select app_sn, data_time, bank_code, bank_name, query_date, item_list, count(*)
     from stm001
@@ -21,7 +21,7 @@ alter PROCEDURE TF_prepare_jcic_data_all
     group by app_sn, data_time, bank_code, bank_name, query_date, item_list;
  insert into #bam085_dedup (app_sn, data_time, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
     select app_sn, data_time, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, count(*)
-    from bam085
+    from bam082
     where app_sn = @app_sn and data_time = @data_time
     group by app_sn, data_time, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
  insert into #jas002_t (app_sn, data_time, reason, date_happen)
@@ -58,6 +58,14 @@ alter PROCEDURE TF_prepare_jcic_data_all
      		   else stop_date 
     		  end);
  update #krm001_dedup
+    set now = (case when substring(data_time, 7, 2) > '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2))
+              	    when substring(data_time, 7, 2) <= '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2)) - 1
+               	end)
+ update #krm001_dedup
     set start_mon_since = (case
     			when left(start_date,1) = '*' then null
     			else left(start_date, 3) * 12 + right(left(start_date, 5), 2)
@@ -77,6 +85,14 @@ alter PROCEDURE TF_prepare_jcic_data_all
     set mon_since = (case when left(ltrim(date_happen),1) = '*' then null
        		          else left(ltrim(date_happen), 3) * 12 + right(left(rtrim(date_happen), 5), 2)
      		     end);
+ update #jas002_t_dedup
+    set now = (case when substring(data_time, 7, 2) > '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2))
+              	    when substring(data_time, 7, 2) <= '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2)) - 1
+               	end)
  update #krm023_dedup
     set yrmon = (case when left(yrmon,1) not in ('1', '0', '*') then '0' + (yrmon)
     	              else yrmon 
@@ -85,6 +101,14 @@ alter PROCEDURE TF_prepare_jcic_data_all
     set mon_since = (case when left(yrmon,1) = '*' then null
    		          else left(yrmon, 3) * 12 + right(left(yrmon, 5), 2)
  		     end);
+ update #krm023_dedup
+    set now = (case when substring(data_time, 7, 2) > '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2))
+              	    when substring(data_time, 7, 2) <= '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2)) - 1
+               	end)
  update #stm001_dedup
     set query_date = (case when left(query_date,1) not in ('1', '0', '*') then '0' + (query_date)
  		           else query_date 
@@ -93,6 +117,14 @@ alter PROCEDURE TF_prepare_jcic_data_all
     set query_mon_since = (case	when left(query_date,1) = '*' then null
  			        else left(query_date, 3) * 12 + right(left(query_date, 5), 2)
  		           end);
+ update #stm001_dedup
+    set now = (case when substring(data_time, 7, 2) > '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2))
+              	    when substring(data_time, 7, 2) <= '15' then
+     				(convert (int, substring(data_time, 1, 4)) - 1911) * 12
+               			+ convert (int, substring(data_time, 5, 2)) - 1
+               	end)
  update #krm023_dedup
     set payment = (case when right(left(payment,2),1) in ('H', 'M', 'L') then '0' + (left(payment,2))
                         else payment end);
@@ -164,19 +196,23 @@ go
 
 /* Pre-screen*/
 /* JCIC tables Hits */
+/*
 alter PROCEDURE TF_loan_prescreen
  AS
  SET NOCOUNT ON
- create table #base_tmp (
- 	app_sn char (11),
- 	avail_flag int
- );
  create table #tmp (
   app_sn char(11),
   mon int,
   v1 decimal (16, 8),
   v2 decimal (16, 8),
   v3 decimal (16, 8));
+*/
+ if exists (select * from dbo.sysobjects where id = object_id(N'#base_tmp') and objectproperty(id, N'isusertable') = 1)
+    drop table #base_tmp;
+ create table #base_tmp (
+ 	app_sn char (11),
+ 	avail_flag int
+ );
  insert into #base_tmp(app_sn, avail_flag)
     select distinct app_sn, 0 
     from #tf_ploan_cal;
@@ -217,11 +253,10 @@ alter PROCEDURE TF_loan_prescreen
 /* jas002_defect  = 1 */
  delete from #tmp;
  insert into #tmp (app_sn, v1)
-    select a.app_sn, count(*)
-    from #jas002_t_dedup a, #tf_ploan_cal b
-    where a.app_sn = b.app_sn
-      and b.now - a.mon_since <= 36
-    group by a.app_sn;
+    select app_sn, count(*)
+    from #jas002_t_dedup
+    where now - mon_since <= 36
+    group by app_sn;
  update #tf_ploan_cal
     set jas002_defect = 1
     from #tmp as a
@@ -281,7 +316,6 @@ alter PROCEDURE TF_loan_prescreen
     from #tmp as a
     where a.app_sn = #tf_ploan_cal.app_sn
       and (#tf_ploan_cal.now - a.mon) between 1 and 7;
-
 /* MS080 貸款已繳款總金額 */
  delete from #tmp
  insert into #tmp(app_sn, v1)
@@ -302,6 +336,7 @@ go
     and demographic.*/
     
  /* Demographic model (No KRM001, KRM023 and BAM085)*/
+/*
 alter PROCEDURE TF_demographic_model
  AS
  SET NOCOUNT ON
@@ -311,20 +346,21 @@ alter PROCEDURE TF_demographic_model
   v1 decimal (16, 8),
   v2 decimal (16, 8),
   v3 decimal (16, 8));
+*/
  /* initialize variables */
     update #tf_ploan_cal
        set fs029 = 0
  /*****************************************************************************************/
- /* FS029  JCIC查詢次數 (Credit Card) in 12 month  Item_List in ('K')                     */
+ /* FS029  JCIC查詢次數 (Credit Card) in 3 month  Item_List in ('K')                     */
  /*****************************************************************************************/
  insert into #tmp (app_sn, v1)
-    select a.app_sn, count(*)
-    from #stm001_dedup a, #tf_ploan_cal b
-    where a.item_list is not null
-      and a.item_list like '%K%'
-      and b.now - a.query_mon_since <= 12
-      and a.app_sn = b.app_sn
-    group by a.app_sn
+    select app_sn, count(*)
+    from #stm001_dedup
+    where item_list is not null
+      and item_list like '%K%'
+      and now - query_mon_since <= 3
+      and app_sn = b.app_sn
+    group by app_sn
  update #tf_ploan_cal
     set fs029 = v1
     from #tmp as a
@@ -334,16 +370,14 @@ alter PROCEDURE TF_demographic_model
     set fs029_tran0 =(case when fs029 < 1 then 1
 			    when fs029 > 5 then 5
 			    else fs029 end),
-        secret_tran0 = (case when is_secretive = '是' then 1
-			     else 0 end),
-        single_0 = (case when martial_status = 2 then 1
+        single_0 = (case when marriage_status = 2 then 1
 			    else 0 end),
 	education_tran0 = (case when edu < 4 then 1 /* 專科以上 */
 				else 0 end);
     
  update #tf_ploan_cal
     set demo_score =  0.05401	      +       
-		      secret_tran0    * -0.08681 +
+		      secretive	      * -0.08681 +
 		      gender	      *  0.07774 +       
 		      education_tran0 * -0.10880 +
      		      single_0        *  0.07549 +
@@ -365,10 +399,11 @@ alter PROCEDURE TF_demographic_model
                               else 20 end),
         score_card = 'C';
 go
-
+/*
 alter PROCEDURE TF_BAM_no_payment
  AS
  SET NOCOUNT ON
+
  create table #tmp (
   app_sn char(11),
   mon int,
@@ -379,6 +414,7 @@ alter PROCEDURE TF_BAM_no_payment
   app_sn char(11),
   mon int,
   v1 decimal (16, 8));
+*/
  /* initialize variables */
  update #tf_ploan_cal
     set fs031 = 0
@@ -393,13 +429,12 @@ alter PROCEDURE TF_BAM_no_payment
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp (app_sn, v1)
-    select a.app_sn, count(*)
-    from #stm001_dedup a, #tf_ploan_cal b
-    where a.item_list is not null
-      and a.item_list <> ''
-      and b.now - a.query_mon_since <= 3
-      and a.app_sn = b.app_sn
-    group by a.app_sn
+    select app_sn, count(*)
+    from #stm001_dedup
+    where item_list is not null
+      and item_list <> ''
+      and now - query_mon_since <= 3
+    group by app_sn
  update #tf_ploan_cal
     set fs031 = v1
     from #tmp as a
@@ -416,14 +451,14 @@ alter PROCEDURE TF_BAM_no_payment
       and (account_code2 ='' or account_code2 is null)
     group by app_sn, (mon_since - cycle + 1)
  insert into #tmp1 (app_sn, mon, v1)
-    select a.app_sn, 3, sum(v1)
+    select app_sn, 3, sum(v1)
     from #tmp a, #tf_ploan_cal b
-    where mon < b.now
-      and mon >= b.now - 3
+    where a.mon < b.now
+      and a.mon >= b.now - 3
       and a.app_sn = b.app_sn
-    group by a.app_sn
+    group by app_sn
  update #tf_ploan_cal
-    set fs536_3m = v1
+    set fs536_3m = a.v1
     from #tmp1 as a
     where a.app_sn = #tf_ploan_cal.app_sn
       and a.mon = 3
@@ -468,8 +503,8 @@ alter PROCEDURE TF_BAM_no_payment
     where a.app_sn = #tf_ploan_cal.app_sn;
  update #tf_ploan_cal
     set amortization_rate = (case when apr = 0 then 1/periods
-                                  else power ((1 + (apr / 12 / 100)), periods) * (apr / 12 / 100)
-                                       / (power ((1 + (apr / 12 / 100)), periods) - 1) end);
+                                  else power ((1 + (apr / 12)), periods) * (apr / 12)
+                                       / (power ((1 + (apr / 12)), periods) - 1) end);
  update #tf_ploan_cal
     set monthly_payment = principal * amortization_rate;
  update #tf_ploan_cal
@@ -477,14 +512,6 @@ alter PROCEDURE TF_BAM_no_payment
  /* BAM085_2 score card  ms080 <= 0*/
  update #tf_ploan_cal
     set fs031_r =power ((case when fs031 < 0 then null else fs031 end), 0.5),
-        gender_tran1 = (case when gender = '男' then 1
-			     when gender = '女' then 0 end),
- 	education = (case when edu = '研究所(含)以上' then 1
-     			  when edu = '大學'           then 2
-     		   	  when edu = '專科'           then 3
-	     		  when edu = '高中(職)'       then 4
-	     		  when edu = '國中以下'       then 5
-	     		  else 6 end),
  	mp_r1 =power ((case when mp < 0 then null else mp end), 0.5);
  update #tf_ploan_cal
     set fs031_r_tran1 =(case when fs031_r is null then 0
@@ -494,14 +521,14 @@ alter PROCEDURE TF_BAM_no_payment
 			      else 0 end),
  	fs314_tran1 =(case when fs314 > 2 then 2
 			   else fs314 end),
- 	education_tran1 = (case when education < 4 then 1 /* 專科以上 */
+ 	education_tran1 = (case when edu < 4 then 1 /* 專科以上 */
 				else 0 end);  
  update #tf_ploan_cal
     set brmp_score = 0.03931 +
                      fs314_tran1      * 0.10852  +
                      fs031_r_tran1    * 0.0459   +
                      fs536_3m_tran1   * 0.10714  +
-                     gender_tran1     * 0.08149  +
+                     gender	      * 0.08149  +
                      education_tran1  * -0.11864 +
                      mp_r1            * 0.00066177;
  update #tf_ploan_cal
@@ -529,10 +556,11 @@ alter PROCEDURE TF_BAM_no_payment
         score_card = 'B2';
 
  go   
-
+/*
 alter PROCEDURE TF_BAM_with_payment
  AS
  SET NOCOUNT ON
+ 
  create table #tmp (
   app_sn char(11),
   mon int,
@@ -543,10 +571,10 @@ alter PROCEDURE TF_BAM_with_payment
   app_sn char(11),
   mon int,
   v1 decimal (16, 8));
+*/
  /* initialize variables */
  update #tf_ploan_cal
     set fs031 = 0
-
  update  #tf_ploan_cal
     set fs536_3m = 0.0,
         fs313 = 0.0,
@@ -559,18 +587,17 @@ alter PROCEDURE TF_BAM_with_payment
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp (app_sn, v1)
-    select a.app_sn, count(*)
-    from #stm001_dedup a, #tf_ploan_cal b
-    where a.item_list is not null
-      and a.item_list <> ''
-      and b.now - a.query_mon_since <= 3
-      and a.app_sn = b.app_sn
-    group by a.app_sn
+    select app_sn, count(*)
+    from #stm001_dedup
+    where item_list is not null
+      and item_list <> ''
+      and now - query_mon_since <= 3
+    group by app_sn
  update #tf_ploan_cal
     set fs031 = v1
     from #tmp as a
     where a.app_sn = #tf_ploan_cal.app_sn
- /*****************************************************************************************/
+  /*****************************************************************************************/
  /* FS536_3M 繳款紀錄在X月內的無擔保貸款總筆數 - 短期 4 account_code2 is NULL account_code in ('W','C','D','E') */
  /*****************************************************************************************/
  delete from #tmp
@@ -582,14 +609,14 @@ alter PROCEDURE TF_BAM_with_payment
       and (account_code2 ='' or account_code2 is null)
     group by app_sn, (mon_since - cycle + 1)
  insert into #tmp1 (app_sn, mon, v1)
-    select a.app_sn, 3, sum(v1)
+    select app_sn, 3, sum(v1)
     from #tmp a, #tf_ploan_cal b
-    where mon < b.now
-      and mon >= b.now - 3
+    where a.mon < b.now
+      and a.mon >= b.now - 3
       and a.app_sn = b.app_sn
-    group by a.app_sn
+    group by app_sn
  update #tf_ploan_cal
-    set fs536_3m = v1
+    set fs536_3m = a.v1
     from #tmp1 as a
     where a.app_sn = #tf_ploan_cal.app_sn
       and a.mon = 3
@@ -618,7 +645,6 @@ alter PROCEDURE TF_BAM_with_payment
        else 0 end),
  fs313_tran2 =(case when fs313 > 0 then 1
        else 0 end);
-    
  update #tf_ploan_cal
     set br80_score = 0.06407 +
                      fs031_r_tran2  * 0.08924 +
@@ -649,7 +675,7 @@ alter PROCEDURE TF_BAM_with_payment
 
  go  
  
-
+/*
 alter PROCEDURE TF_ploan_model
  AS
  SET NOCOUNT ON
@@ -664,20 +690,29 @@ alter PROCEDURE TF_ploan_model
     app_sn char(11),
     mon int,
     v1 decimal (16, 8));
+*/    
+ if exists (select * from dbo.sysobjects where id = object_id(N'#open_card') and objectproperty(id, N'isusertable') = 1)
+   drop table #open_card;
  create table #open_card (
     app_sn varchar(14),
     issue char(3),
     mon int);
+ if exists (select * from dbo.sysobjects where id = object_id(N'#open_line') and objectproperty(id, N'isusertable') = 1)
+   drop table #open_line;
  create table #open_line (
     app_sn varchar(14),
     issue char(3),
     mon int,
     cards int,
     bucket int);
+ if exists (select * from dbo.sysobjects where id = object_id(N'#latest_stmt_mon') and objectproperty(id, N'isusertable') = 1)
+   drop table #latest_stmt_mon;
  create table #latest_stmt_mon (
     app_sn varchar(14),
     issue char(3),
     mon int);
+ if exists (select * from dbo.sysobjects where id = object_id(N'#latest_line') and objectproperty(id, N'isusertable') = 1)
+   drop table #latest_line;
  create table #latest_line (
     app_sn varchar(14),
     issue char(3),
@@ -690,7 +725,6 @@ alter PROCEDURE TF_ploan_model
     set fs310 = 0.0
     from #bam085_dedup a
     where a.app_sn = #tf_ploan_cal.app_sn
-
  update #tf_ploan_cal
     set fs059_3m_1k = 0.0,
         app_last_month_bucket = 0.0,
@@ -703,7 +737,7 @@ alter PROCEDURE TF_ploan_model
  update #tf_ploan_cal
     set fs203_12m_1k = 0
     from #krm001_dedup as a, #krm023_dedup as b
-    where a.app_sn = b.app_sn
+    where app_sn = b.app_sn
       and a.app_sn = #tf_ploan_cal.app_sn
       and ((a.issue = b.issue) 
            or ((a.issue = '021' and a.card_brand = 'V') and (b.issue = 'CTV')) 
@@ -718,13 +752,12 @@ alter PROCEDURE TF_ploan_model
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp (app_sn, v1)
-    select a.app_sn, count(*)
-    from #stm001_dedup a, #tf_ploan_cal b
-    where a.item_list is not null
-      and a.item_list <> ''
-      and b.now - a.query_mon_since <= 3
-      and a.app_sn = b.app_sn
-    group by a.app_sn
+    select app_sn, count(*)
+    from #stm001_dedup
+    where item_list is not null
+      and item_list <> ''
+      and now - query_mon_since <= 3
+    group by app_sn
  update #tf_ploan_cal
     set fs031 = v1
     from #tmp as a
@@ -735,13 +768,12 @@ alter PROCEDURE TF_ploan_model
  delete from #tmp
  set @i = 3
  insert into #tmp (app_sn, mon, v1)
-    select a.app_sn, 3, count(distinct issue)
-    from #krm023_dedup a, #tf_ploan_cal b
-    where a.bucket_ef_1k >= 1
-      and a.mon_since >= b.now - 3
-      and a.mon_since <= b.now
-      and a.app_sn = b.app_sn
-    group by a.app_sn;
+    select app_sn, 3, count(distinct issue)
+    from #krm023_dedup
+    where bucket_ef_1k >= 1
+      and mon_since >= now - 3
+      and mon_since <= now
+    group by app_sn;
  update #tf_ploan_cal
     set fs059_3m_1k = v1
     from #tmp as a
@@ -752,12 +784,11 @@ alter PROCEDURE TF_ploan_model
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp (app_sn, v1)
-    select a.app_sn, max(bucket_ef_1k)
-    from #krm023_dedup a, #tf_ploan_cal b
-    where a.mon_since >= b.now - 1  /*max bucket for last 2 months, no "15 day" rule*/
-      and a.mon_since <= b.now
-      and a.app_sn = b.app_sn
-    group by a.app_sn;
+    select app_sn, max(bucket_ef_1k)
+    from #krm023_dedup
+    where mon_since >= now - 1  /*max bucket for last 2 months, no "15 day" rule*/
+      and mon_since <= now
+    group by app_sn;
  update #tf_ploan_cal
     set app_last_month_bucket = v1
     from #tmp a
@@ -768,13 +799,12 @@ alter PROCEDURE TF_ploan_model
  /*****************************************************************************************/
  delete from #tmp;
  insert into #tmp (app_sn, mon, v1)
-    select a.app_sn, 3, avg(convert(decimal (16, 8),(case when limit='' then NULL else limit end)))
-    from #krm023_dedup a, #tf_ploan_cal b
-    where a.mon_since >= b.now - 3
-      and a.mon_since <= b.now       /* no "15 day" rule */   
+    select app_sn, 3, avg(convert(decimal (16, 8),(case when limit='' then NULL else limit end)))
+    from #krm023_dedup
+    where mon_since >= now - 3
+      and mon_since <= now       /* no "15 day" rule */   
       and convert(decimal (16, 8), (case when limit='' then NULL else limit end)) > 0
-      and a.app_sn  = b.app_sn
-    group by a.app_sn;
+    group by app_sn;
  update #tf_ploan_cal
     set ms024_3m = v1
     from #tmp as a
@@ -789,15 +819,14 @@ alter PROCEDURE TF_ploan_model
  while @i <= 13
     begin
        insert into #open_card (app_sn, issue, mon)
-          select a.app_sn,
+          select app_sn,
                  (case when card_brand = 'A' and issue = 'A82' then 'AEA'
-                       else issue end),  -- for American Express
-                 (b.now - @i)
-          from #krm001_dedup a, #tf_ploan_cal b
-          where (end_mon_since > (b.now - @i))
-            and (start_mon_since <= (b.now - @i))  -- add .eq.
+                       else issue end),  /*for American Express*/
+                 (now - @i)
+          from #krm001_dedup
+          where (end_mon_since > (now - @i))
+            and (start_mon_since <= (now - @i))  /*add .eq.*/
             and issue != '021'
-            and a.app_sn = b.app_sn
        set @i = @i + 1
     end;
  insert into #open_line (app_sn, issue, mon, cards)
@@ -808,14 +837,13 @@ alter PROCEDURE TF_ploan_model
  while @i <= 13
     begin
        insert into #open_line (app_sn, issue, mon, cards)
-          select a.app_sn, (case when card_brand = 'M' then 'CTM'
+          select app_sn, (case when card_brand = 'M' then 'CTM'
                             when card_brand = 'V' then 'CTV'
-                            when card_brand = 'D' then 'CTD' end), (b.now - @i), 1
-          from #krm001_dedup a, #tf_ploan_cal b
-          where (end_mon_since > (b.now - @i))
-            and (start_mon_since <= (b.now - @i))  /* add .eq.*/
+                            when card_brand = 'D' then 'CTD' end), (now - @i), 1
+          from #krm001_dedup
+          where (end_mon_since > (now - @i))
+            and (start_mon_since <= (now - @i))  /* add .eq.*/
             and issue = '021'
-            and a.app_sn = b.app_sn
        set @i = @i + 1
     end;
  update #open_line
@@ -824,28 +852,28 @@ alter PROCEDURE TF_ploan_model
     set bucket = 100
     from #tf_ploan_cal a
     where mon = (a.now - 13)
-      and a.app_sn = #open_line.app_sn;
+      and app_sn = #open_line.app_sn;
  set @i = 13;
  while @i > 0
     begin
        update #open_line
           set bucket = a.bucket + 1
           from #open_line, #open_line as a, #tf_ploan_cal as b
-          where a.app_sn = #open_line.app_sn
+          where app_sn = #open_line.app_sn
             and a.issue = #open_line.issue
             and a.mon = (#open_line.mon - 1)
             and a.app_sn = b.app_sn
-            and (b.now - a.mon) = @i
+            and (now - a.mon) = @i
        set @i = @i - 1
     end;
  insert into #latest_stmt_mon (app_sn, issue, mon)
-    select a.app_sn, issue, max(mon)
+    select app_sn, issue, max(mon)
     from #open_line a, #tf_ploan_cal b
-    where mon <= b.now  /* add .eq. */
+    where a.mon <= b.now  /* add .eq. */
       and a.app_sn = b.app_sn
     group by a.app_sn, a.issue;
  insert into #latest_line (app_sn, issue, mon, mob)
-    select a.app_sn, a.issue, a.mon, a.bucket
+    select app_sn, a.issue, a.mon, a.bucket
     from #open_line as a inner join #latest_stmt_mon as b
       on a.app_sn = b.app_sn
      and a.issue = b.issue
@@ -854,15 +882,14 @@ alter PROCEDURE TF_ploan_model
  delete from #tmp;
  set @i = 12;      
  insert into #tmp (app_sn, mon, v1)
-    select a.app_sn, 12, count(*)
-    from #krm023_dedup as a, #tf_ploan_cal b
+    select app_sn, 12, count(*)
+    from #krm023_dedup as a
     where issue in (select issue from #latest_line
            where mob <= 12 and app_sn = a.app_sn)
       and bucket_def_1k != 0
-      and mon_since >= (b.now - 12)
-      and mon_since <= b.now                  /*no "15 day" rule*/
-      and a.app_sn = b.app_sn   
-    group by a.app_sn
+      and mon_since >= (now - 12)
+      and mon_since <= now                  /*no "15 day" rule*/
+    group by app_sn
  update #tf_ploan_cal
     set fs203_12m_1k = v1
     from #tmp as a
@@ -881,10 +908,10 @@ alter PROCEDURE TF_ploan_model
       and bucket_def_1k >= 1
     group by app_sn, mon_since;
  insert into #tmp1 (app_sn, mon, v1)
-    select a.app_sn, 6, max(v1)
+    select app_sn, 6, max(v1)
     from #tmp a, #tf_ploan_cal b
-    where mon >= (b.now - 6)
-      and mon <= b.now  /*no "15 day" rule*/
+    where a.mon >= (b.now - 6)
+      and a.mon <= b.now  /*no "15 day" rule*/
       and a.app_sn = b.app_sn
     group by a.app_sn;  
  update #tf_ploan_cal
@@ -896,13 +923,12 @@ alter PROCEDURE TF_ploan_model
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp (app_sn, mon, v1)
-    select a.app_sn, 12, count(distinct issue)
-    from #krm023_dedup a, #tf_ploan_cal b
-    where mon_since >= (b.now - 12)
-      and mon_since <= b.now    /*no "15 day" rule*/
+    select app_sn, 12, count(distinct issue)
+    from #krm023_dedup
+    where mon_since >= (now - 12)
+      and mon_since <= now    /*no "15 day" rule*/
       and pay_code in ('A', 'B')
-      and a.app_sn = b.app_sn
-    group by a.app_sn;
+    group by app_sn;
  update #tf_ploan_cal
     set fs014_12m = v1
     from #tmp as a
@@ -952,11 +978,10 @@ alter PROCEDURE TF_ploan_model
  /* WI001_12M  WI001 每月持有之信用額度數 (All opened)                                 */
  /*****************************************************************************************/
  insert into #tmp (app_sn, v1)
-    select a.app_sn, count(*)
-    from #krm023_dedup a, #tf_ploan_cal b
-    where b.now - mon_since = 12
-      and a.app_sn = b.app_sn
-    group by a.app_sn
+    select app_sn, count(*)
+    from #krm023_dedup
+    where now - mon_since = 12
+    group by app_sn
  update #tf_ploan_cal
     set wi001_12m = a.v1
     from #tmp as a
@@ -966,16 +991,17 @@ alter PROCEDURE TF_ploan_model
  /*****************************************************************************************/
  update #tf_ploan_cal
     set amortization_rate = (case when apr = 0 then (1 / periods)
-                                  else power ((1 + (apr / 12 / 100)), periods) * (apr / 12 / 100)
-                                       / (power ((1 + (apr / 12 / 100)), periods) - 1) end);
+                                  else power ((1 + (apr / 12 )), periods) * (apr / 12 )
+                                       / (power ((1 + (apr / 12 )), periods) - 1) end);
  update #tf_ploan_cal
     set monthly_payment = principal * amortization_rate;
  update #tf_ploan_cal
     set LN001_12M = (monthly_payment + ms082 * 1000.0) / 
                     (case when WI001_12M = 0 then null else WI001_12M end);
  /*****************************************************************************************/
- /* loan_del_number_6m  */
+ /* loan_del_number_6m : it is calculated when initialized.                                                                   */
  /*****************************************************************************************/
+ /*
  delete from #tmp
  insert into #tmp(app_sn, v1)
     select idn,
@@ -985,16 +1011,15 @@ alter PROCEDURE TF_ploan_model
      + isnull(loan1_interest_payment3,0) + isnull(loan2_interest_payment3,0) + isnull(loan3_interest_payment3,0)
      + isnull(loan1_interest_payment2,0) + isnull(loan2_interest_payment2,0) + isnull(loan3_interest_payment2,0)
      + isnull(loan1_interest_payment1,0) + isnull(loan2_interest_payment1,0) + isnull(loan3_interest_payment1,0)
-    from application
+    from ts
  update #tf_ploan_cal
     set loan_del_number_6m = v1
     from #tmp as a
     where a.app_sn = #tf_ploan_cal.app_sn
+ */
  update #tf_ploan_cal
     set LN001_12m_r =power ((case when LN001_12m < 0 then null else LN001_12m end), 0.5),
         ms056_6m_1k_r =power ((case when ms056_6m_1k < 0 then null else ms056_6m_1k end), 0.5),
-        gender_tran3 = (case when gender = '男' then 1
-			     when gender = '女' then 0 end),
         ms024_3m_r =power ((case when ms024_3m < 0 then null else ms024_3m end), 0.5);       
  update #tf_ploan_cal
     set fs031_tran3 =(case when fs031 is null then -1
@@ -1030,7 +1055,7 @@ alter PROCEDURE TF_ploan_model
     set full_score = 	0.10695 +
 			fs031_tran3		 * 0.01955	 +
 			loan_del_number_6m_tran3 * 0.00542	 +
-			gender_tran3		 * 0.05442	 +
+			gender    		 * 0.05442	 +
 			LN001_12m_r_tran3	 * 0.00040341	 +
 			fs310_tran3		 * 0.03331	 +
 			fs059_3m_1k_tran3	 * 0.04101	 +
@@ -1061,6 +1086,10 @@ alter PROCEDURE TF_ploan_model
                               when full_score <= 0.4896   then 19
                               else 20 end),
         score_card = 'A2';
+ drop table #open_card;
+ drop table #open_line;
+ drop table #latest_stmt_mon;
+ drop table #latest_line;,
 go
 
 
@@ -1076,213 +1105,224 @@ go
 
 /******** main program */
 /* create working tables */
-if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_dedup') and objectproperty(id, N'isusertable') = 1)
-   drop table #bam085_dedup;
-create table #bam085_dedup (
-   app_sn char(11),
-   data_time char(8),
-   data_yyy char(3),
-   data_mm char(2),
-   bank_code char(7),
-   bank_name char(40),
-   account_code char(1),
-   account_code2 char(1),
-   purpose_code char(1),
-   contract_amt decimal (10),
-   loan_amt decimal (10),
-   pass_due_amt decimal (10),
-   pay_code_12 char(12),
-   co_loan char(1),
-   bank_code2 char(3),
-   mon_since int,
-   cycle int,
-   cnt int
-);
-if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_bucket') and objectproperty(id, N'isusertable') = 1)
-   drop table #bam085_bucket;
- create table #bam085_bucket (
+ if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_dedup') and objectproperty(id, N'isusertable') = 1)
+    drop table #bam085_dedup;
+ create table #bam085_dedup (
     app_sn char(11),
     data_time char(8),
+    data_yyy char(3),
+    data_mm char(2),
     bank_code char(7),
-    mon_since int,
-    account_code char (1),
-    account_code2 char (1),
-    purpose_code char (1),
+    bank_name char(40),
+    account_code char(1),
+    account_code2 char(1),
+    purpose_code char(1),
     contract_amt decimal (10),
     loan_amt decimal (10),
     pass_due_amt decimal (10),
-    co_loan char (1),
-    bucket    float
- )
-if exists (select * from dbo.sysobjects where id = object_id(N'#krm001_dedup') and objectproperty(id, N'isusertable') = 1)
-   drop table #krm001_dedup;
-create table #krm001_dedup (
-   app_sn char(11),
-   data_time char(8),
-   card_brand char(1),
-   card_type char(1),
-   issue char(3),
-   issue_name char(40),
-   start_date char(7),
-   stop_date char(7),
-   stop_code char(1),
-   ab_code char(1),
-   m_s char(1),
-   limit char(6),
-   limit_type char(1),
-   usage_type char(1),
-   secure char(1),
-   start_mon_since int,
-   end_mon_since int,
-   cnt int
-);
-if exists (select * from dbo.sysobjects where id = object_id(N'#krm023_dedup') and objectproperty(id, N'isusertable') = 1)
-   drop table #krm023_dedup;
-create table #krm023_dedup (
-   app_sn char(11),
-   data_time char(8),
-   yrmon char(5),
-   issue char(3),
-   issue_name char(40),
-   kr_code char(7),
-   limit char(6),
-   payment char(3),
-   cash char(1),
-   pay_code char(1),
-   mon_since int,
-   payment_amt float,
-   bucket_def_1k int default 0,
-   bucket_ef_1k int default 0,
-   bucket_f_1k int default 0,
-   cnt int
-);
-if exists (select * from dbo.sysobjects where id = object_id(N'#stm001_dedup') and objectproperty(id, N'isusertable') = 1)
-   drop table #stm001_dedup;
-create table #stm001_dedup (
-   app_sn char(11),
-   data_time char(8),
-   query_date char(7),
-   bank_code char(7),
-   bank_name char(40),
-   item_list char(10),
-   query_mon_since int,
-   cnt int
-);
-if exists (select * from dbo.sysobjects where id = object_id(N'#jas002_t') and objectproperty(id, N'isusertable') = 1)
-   drop table #jas002_t;
-create table #jas002_t (
-   app_sn char(11),
-   data_time char(8),
-   reason char(1),
-   date_happen char(7),
-   mon_since int
-);
-if exists (select * from dbo.sysobjects where id = object_id(N'#jas002_t_dedup') and objectproperty(id, N'isusertable') = 1)
-   drop table #jas002_t_dedup;
-create table #jas002_t_dedup (
-   app_sn char(11),
-   data_time char(8),
-   reason char(1),
-   date_happen char(7),
-   mon_since int,
-   cnt int 
-);
-if exists (select * from dbo.sysobjects where id = object_id(N'#tf_ploan_cal') and objectproperty(id, N'isusertable') = 1)
-   drop table #tf_ploan_cal
- create table #tf_ploan_cal (
-    app_sn char (11),
-    ts_date char(8),
-    jcic_date char(8),
-    now int,
-    avail_flag int,
-    ind001 int default 0,
-    krm001_hit int default 0,
-    krm023_hit int default 0,
-    bam085_hit int default 0,
-    jas002_defect int default 0,
-    app_max_bucket int default 0,
-    fs044 int default 0,
-    fs334 int default 0,
-    fs302 int default 0,
-    ms080 int,
-    apr decimal(16,8),
-    periods int,
-    principal int,
-    /*demographic variables*/
-    edu int,
-    education_tran0 int,
-    gender char(3),
-    gender_tran0 int,
-    secretive int,
-    secret_tran0 int,
-    mariage_status int,
-    single_0 int,
-    fs029 decimal(16,8),
-    fs029_tran0 decimal(16,8),
-    demo_score decimal(16,8),
-    demo_twentile decimal(16,8),
-    /*BAM085 variables*/
-    fs031 decimal(16,8),
-    fs031_r decimal(16,8),
-    fs536_3m decimal(16,8),
-    fs313 decimal(16,8),
-    fs031_r_tran2 decimal(16,8),
-    fs536_3m_tran2 decimal(16,8),
-    fs313_tran2 decimal(16,8),
-    fs314 decimal(16,8),
-    ms082 decimal(16,8),
-    amortization_rate decimal(16,8),
-    monthly_payment decimal(16,8),
-    mp decimal(16,8),
-    fs314_tran1 decimal(16,8),
-    fs031_r_tran1 decimal(16,8),
-    fs536_3m_tran1 decimal(16,8),
-    mp_r1 decimal(16,8),
-    education_tran1 int,
-    gender_tran1 int,
-    br80_score decimal(16,8),
-    brmp_score decimal(16,8),
-    br80_twentile int,
-    brmp_twentile int,
-    /*TF ploan model*/
-    fs031_tran3 decimal(16,8),
-    loan_del_number_6m decimal(16,8),
-    loan_del_number_6m_tran3 decimal(16,8),
-    WI001_12m decimal(16,8),
-    LN001_12m decimal(16,8),
-    LN001_12m_r decimal(16,8),
-    LN001_12m_r_tran3 decimal(16,8),
-    gender_tran3 int,
-    fs310 decimal(16,8),
-    fs310_tran3 decimal(16,8),
-    fs059_3m_1k decimal(16,8),
-    fs059_3m_1k_tran3 decimal(16,8),
-    app_last_month_bucket decimal(16,8),
-    app_last_month_bucket_tran3 decimal(16,8),
-    fs203_12m_1k decimal(16,8),
-    fs203_12m_1k_tran3 decimal(16,8),
-    fs014_12m decimal(16,8),
-    fs014_12m_tran3 decimal(16,8),
-    ms056_6m_1k decimal(16,8),
-    ms056_6m_1k_r decimal(16,8),
-    ms056_6m_1k_r_tran3 decimal(16,8),
-    ms024_3m decimal(16,8),
-    ms024_3m_r decimal(16,8),
-    ms024_3m_r_tran3 decimal(16,8),
-    full_score decimal(16,8),
-    full_twentile int,
-    score_card char(4),
-    return_msg varchar(64)
+    pay_code_12 char(12),
+    co_loan char(1),
+    bank_code2 char(3),
+    mon_since int,
+    cycle int,
+    cnt int
  );
-
+ if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_bucket') and objectproperty(id, N'isusertable') = 1)
+    drop table #bam085_bucket;
+  create table #bam085_bucket (
+     app_sn char(11),
+     data_time char(8),
+     bank_code char(7),
+     mon_since int,
+     account_code char (1),
+     account_code2 char (1),
+     purpose_code char (1),
+     contract_amt decimal (10),
+     loan_amt decimal (10),
+     pass_due_amt decimal (10),
+     co_loan char (1),
+     bucket    float
+  )
+ if exists (select * from dbo.sysobjects where id = object_id(N'#krm001_dedup') and objectproperty(id, N'isusertable') = 1)
+    drop table #krm001_dedup;
+ create table #krm001_dedup (
+    app_sn char(11),
+    data_time char(8),
+    card_brand char(1),
+    card_type char(1),
+    issue char(3),
+    issue_name char(40),
+    start_date char(7),
+    stop_date char(7),
+    stop_code char(1),
+    ab_code char(1),
+    m_s char(1),
+    limit char(6),
+    limit_type char(1),
+    usage_type char(1),
+    secure char(1),
+    start_mon_since int,
+    end_mon_since int,
+    cnt int
+ );
+ if exists (select * from dbo.sysobjects where id = object_id(N'#krm023_dedup') and objectproperty(id, N'isusertable') = 1)
+    drop table #krm023_dedup;
+ create table #krm023_dedup (
+    app_sn char(11),
+    data_time char(8),
+    yrmon char(5),
+    issue char(3),
+    issue_name char(40),
+    kr_code char(7),
+    limit char(6),
+    payment char(3),
+    cash char(1),
+    pay_code char(1),
+    mon_since int,
+    payment_amt float,
+    bucket_def_1k int default 0,
+    bucket_ef_1k int default 0,
+    bucket_f_1k int default 0,
+    cnt int
+ );
+ if exists (select * from dbo.sysobjects where id = object_id(N'#stm001_dedup') and objectproperty(id, N'isusertable') = 1)
+    drop table #stm001_dedup;
+ create table #stm001_dedup (
+    app_sn char(11),
+    data_time char(8),
+    query_date char(7),
+    bank_code char(7),
+    bank_name char(40),
+    item_list char(10),
+    query_mon_since int,
+    cnt int
+ );
+ if exists (select * from dbo.sysobjects where id = object_id(N'#jas002_t') and objectproperty(id, N'isusertable') = 1)
+    drop table #jas002_t;
+ create table #jas002_t (
+    app_sn char(11),
+    data_time char(8),
+    reason char(1),
+    date_happen char(7),
+    mon_since int
+ );
+ if exists (select * from dbo.sysobjects where id = object_id(N'#jas002_t_dedup') and objectproperty(id, N'isusertable') = 1)
+    drop table #jas002_t_dedup;
+ create table #jas002_t_dedup (
+    app_sn char(11),
+    data_time char(8),
+    reason char(1),
+    date_happen char(7),
+    mon_since int,
+    cnt int 
+ );
+ if exists (select * from dbo.sysobjects where id = object_id(N'#tf_ploan_cal') and objectproperty(id, N'isusertable') = 1)
+    drop table #tf_ploan_cal
+  create table #tf_ploan_cal (
+     app_sn char (11),
+     app_date char(8),
+     ts_date char(8),
+     jcic_date char(8),
+     now int,
+     avail_flag int,
+     ind001 int default 0,
+     krm001_hit int default 0,
+     krm023_hit int default 0,
+     bam085_hit int default 0,
+     jas002_defect int default 0,
+     app_max_bucket int default 0,
+     fs044 int default 0,
+     fs334 int default 0,
+     fs302 int default 0,
+     ms080 int,
+     apr decimal(16,8),
+     periods int,
+     principal int,
+     /*demographic variables*/
+     edu int,
+     education_tran0 int,
+     gender char(3),
+     secretive int,
+     marriage_status int,
+     single_0 int,
+     fs029 decimal(16,8),
+     fs029_tran0 decimal(16,8),
+     demo_score decimal(16,8),
+     demo_twentile decimal(16,8),
+     /*BAM085 variables*/
+     fs031 decimal(16,8),
+     fs031_r decimal(16,8),
+     fs536_3m decimal(16,8),
+     fs313 decimal(16,8),
+     fs031_r_tran2 decimal(16,8),
+     fs536_3m_tran2 decimal(16,8),
+     fs313_tran2 decimal(16,8),
+     fs314 decimal(16,8),
+     ms082 decimal(16,8),
+     amortization_rate decimal(16,8),
+     monthly_payment decimal(16,8),
+     mp decimal(16,8),
+     fs314_tran1 decimal(16,8),
+     fs031_r_tran1 decimal(16,8),
+     fs536_3m_tran1 decimal(16,8),
+     mp_r1 decimal(16,8),
+     education_tran1 int,
+     br80_score decimal(16,8),
+     brmp_score decimal(16,8),
+     br80_twentile int,
+     brmp_twentile int,
+     /*TF ploan model*/
+     fs031_tran3 decimal(16,8),
+     loan_del_number_6m decimal(16,8),
+     loan_del_number_6m_tran3 decimal(16,8),
+     WI001_12m decimal(16,8),
+     LN001_12m decimal(16,8),
+     LN001_12m_r decimal(16,8),
+     LN001_12m_r_tran3 decimal(16,8),
+     fs310 decimal(16,8),
+     fs310_tran3 decimal(16,8),
+     fs059_3m_1k decimal(16,8),
+     fs059_3m_1k_tran3 decimal(16,8),
+     app_last_month_bucket decimal(16,8),
+     app_last_month_bucket_tran3 decimal(16,8),
+     fs203_12m_1k decimal(16,8),
+     fs203_12m_1k_tran3 decimal(16,8),
+     fs014_12m decimal(16,8),
+     fs014_12m_tran3 decimal(16,8),
+     ms056_6m_1k decimal(16,8),
+     ms056_6m_1k_r decimal(16,8),
+     ms056_6m_1k_r_tran3 decimal(16,8),
+     ms024_3m decimal(16,8),
+     ms024_3m_r decimal(16,8),
+     ms024_3m_r_tran3 decimal(16,8),
+     full_score decimal(16,8),
+     full_twentile int,
+     score_card char(4),
+     pb decimal(16,8),
+     return_msg varchar(64)
+  );
+ if exists (select * from dbo.sysobjects where id = object_id(N'#tmp') and objectproperty(id, N'isusertable') = 1)
+    drop table #tmp
+  create table #tmp (
+   app_sn char(11),
+   mon int,
+   v1 decimal (16, 8),
+   v2 decimal (16, 8),
+   v3 decimal (16, 8));
+ if exists (select * from dbo.sysobjects where id = object_id(N'#tmp1') and objectproperty(id, N'isusertable') = 1)
+    drop table #tmp1
+  create table #tmp1 (
+   app_sn char(11),
+   mon int,
+   v1 decimal (16, 8));
 
 /* load application data */
-  insert into #tf_ploan_cal (app_sn, edu, gender, is_secretive, martial_status, apr, periods, principal, inquiry_date)
-     select idn, edu, gender, is_secretive, martial_status, interest_rate, periods, actual_amount, inquiry_date
-     from application
-  update #tf_ploan_cal
-     set now = (convert (int, substring(inquiry_date, 1, 4)) - 1911) * 12
-               + convert (int, substring(inquiry_date, 5, 2))
+/*
+  insert into #tf_ploan_cal (app_sn, data_time, edu, gender, secretive, marriage_status, inquiry_date)
+     select app_sn, data_time, edu, gender, secretive, marriage_status, :v2
+     from app_info
+     where app_sn = :v0 and data_time = :v1
+*/
 /* prepare jcic data */
    exec tf_prepare_jcic_data_all '', ''    /* @now 93/02 */
 
@@ -1364,11 +1404,12 @@ if exists (select * from dbo.sysobjects where id = object_id(N'#tf_ploan_cal') a
  exec TF_BAM_no_payment
  exec TF_BAM_with_payment
  exec TF_demographic_model
-
+/*
   insert into #tf_ploan_cal (app_sn, data_time, edu, gender, secretive, marriage_status, inquiry_date)
      select app_sn, data_time, edu, gender, secretive, marriage_status, :v2
      from app_info
      where app_sn = :v0 and data_time = :v1
+*/
   update #tf_ploan_cal
      set now = (case when substring(inquiry_date, 7, 2) > '15' then
      				(convert (int, substring(inquiry_date, 1, 4)) - 1911) * 12
@@ -1386,7 +1427,7 @@ if exists (select * from dbo.sysobjects where id = object_id(N'#tf_ploan_cal') a
      + isnull(a.loan1_interest_payment2,0) + isnull(a.loan2_interest_payment2,0) + isnull(a.loan3_interest_payment2,0)
      + isnull(a.loan1_interest_payment1,0) + isnull(a.loan2_interest_payment1,0) + isnull(a.loan3_interest_payment1,0)
     from ts a
-    where #tf_ploan_cal.app_sn = a.app_sn
+    where #tf_ploan_cal.app_sn = app_sn
       and #tf_ploan_cal.data_time = a.data_time
   update #tf_ploan_cal
      set apr = a.apr,
@@ -1395,30 +1436,122 @@ if exists (select * from dbo.sysobjects where id = object_id(N'#tf_ploan_cal') a
      from loan_condition a
      where #tf_ploan_cal.app_sn = a.app_sn
 
-insert into dac_audit(app_sn, avail_flag, ind001, krm001_hit, krm023_hit, bam085_hit, 
-       jas002_defect, app_max_bucket, fs044, fs334, fs302, ms080, apr, periods, principal,
-       edu, education, education_tran0, gender, gender_tran0, is_secretive, secret_tran0,
-       martial_status, single_0, fs029, fs029_tran0, demo_score, demo_twentile, fs031, fs031_r,
+
+/*Write_Prescreen_Result*/
+ insert into prescreen(app_sn, app_date, jcic_date, product_type, code, reason)
+  values (:v0, :v1, :v2, :v3, :v4, :v5);
+
+
+
+ if exists (select * from dbo.sysobjects where id = object_id(N'dac_audit') and objectproperty(id, N'isusertable') = 1)
+    drop table dac_audit
+  create table dac_audit (
+     app_sn char (11),
+     app_date char(8),
+     ts_date char(8),
+     jcic_date char(8),
+     now int,
+     avail_flag int,
+     ind001 int default 0,
+     krm001_hit int default 0,
+     krm023_hit int default 0,
+     bam085_hit int default 0,
+     jas002_defect int default 0,
+     app_max_bucket int default 0,
+     fs044 int default 0,
+     fs334 int default 0,
+     fs302 int default 0,
+     ms080 int,
+     apr decimal(16,8),
+     periods int,
+     principal int,
+     /*demographic variables*/
+     edu int,
+     education_tran0 int,
+     gender char(3),
+     secretive int,
+     marriage_status int,
+     single_0 int,
+     fs029 decimal(16,8),
+     fs029_tran0 decimal(16,8),
+     demo_score decimal(16,8),
+     demo_twentile decimal(16,8),
+     /*BAM085 variables*/
+     fs031 decimal(16,8),
+     fs031_r decimal(16,8),
+     fs536_3m decimal(16,8),
+     fs313 decimal(16,8),
+     fs031_r_tran2 decimal(16,8),
+     fs536_3m_tran2 decimal(16,8),
+     fs313_tran2 decimal(16,8),
+     fs314 decimal(16,8),
+     ms082 decimal(16,8),
+     amortization_rate decimal(16,8),
+     monthly_payment decimal(16,8),
+     mp decimal(16,8),
+     fs314_tran1 decimal(16,8),
+     fs031_r_tran1 decimal(16,8),
+     fs536_3m_tran1 decimal(16,8),
+     mp_r1 decimal(16,8),
+     education_tran1 int,
+     br80_score decimal(16,8),
+     brmp_score decimal(16,8),
+     br80_twentile int,
+     brmp_twentile int,
+     /*TF ploan model*/
+     fs031_tran3 decimal(16,8),
+     loan_del_number_6m decimal(16,8),
+     loan_del_number_6m_tran3 decimal(16,8),
+     WI001_12m decimal(16,8),
+     LN001_12m decimal(16,8),
+     LN001_12m_r decimal(16,8),
+     LN001_12m_r_tran3 decimal(16,8),
+     fs310 decimal(16,8),
+     fs310_tran3 decimal(16,8),
+     fs059_3m_1k decimal(16,8),
+     fs059_3m_1k_tran3 decimal(16,8),
+     app_last_month_bucket decimal(16,8),
+     app_last_month_bucket_tran3 decimal(16,8),
+     fs203_12m_1k decimal(16,8),
+     fs203_12m_1k_tran3 decimal(16,8),
+     fs014_12m decimal(16,8),
+     fs014_12m_tran3 decimal(16,8),
+     ms056_6m_1k decimal(16,8),
+     ms056_6m_1k_r decimal(16,8),
+     ms056_6m_1k_r_tran3 decimal(16,8),
+     ms024_3m decimal(16,8),
+     ms024_3m_r decimal(16,8),
+     ms024_3m_r_tran3 decimal(16,8),
+     full_score decimal(16,8),
+     full_twentile int,
+     score_card char(4),
+     pb decimal(16,8),
+     return_msg varchar(64)
+  );
+ insert into dac_audit(app_sn, app_date, ts_date, jcic_date, now, avail_flag, ind001, krm001_hit,
+       krm023_hit, bam085_hit, jas002_defect, app_max_bucket, fs044, fs334, fs302, ms080, apr, 
+       periods, principal,edu, education_tran0, gender, secretive,
+       marriage_status, single_0, fs029, fs029_tran0, demo_score, demo_twentile, fs031, fs031_r,
        fs536_3m, fs313, fs031_r_tran2, fs536_3m_tran2, fs313_tran2, fs314, ms082,
        amortization_rate, monthly_payment, mp, fs314_tran1, fs031_r_tran1, fs536_3m_tran1, mp_r1,
-       education_tran1, gender_tran1, br80_score, brmp_score, br80_twentile, brmp_twentile,
+       education_tran1, br80_score, brmp_score, br80_twentile, brmp_twentile,
        fs031_tran3, a.loan_del_number_6m, a.loan_del_number_6m_tran3, WI001_12m, LN001_12m, 
-       LN001_12m_r, LN001_12m_r_tran3, gender_tran3, fs310, fs310_tran3, fs059_3m_1k, 
+       LN001_12m_r, LN001_12m_r_tran3, fs310, fs310_tran3, fs059_3m_1k, 
        fs059_3m_1k_tran3, app_last_month_bucket, app_last_month_bucket_tran3, fs203_12m_1k, 
        fs203_12m_1k_tran3, fs014_12m, fs014_12m_tran3, ms056_6m_1k, ms056_6m_1k_r, 
        ms056_6m_1k_r_tran3, ms024_3m, ms024_3m_r, ms024_3m_r_tran3, full_score, full_twentile, 
-       score_card, return_msg)
-   select app_sn, avail_flag, ind001, krm001_hit, krm023_hit, bam085_hit,
-       jas002_defect, app_max_bucket, fs044, fs334, fs302, ms080, apr, periods, principal,
-       edu, education, education_tran0, gender, gender_tran0, is_secretive, secret_tran0,
-       martial_status, single_0, fs029, fs029_tran0, demo_score, demo_twentile, fs031, fs031_r,
+       score_card, pb, return_msg)
+   select app_sn, app_date, ts_date, jcic_date, now, avail_flag, ind001, krm001_hit,
+       krm023_hit, bam085_hit, jas002_defect, app_max_bucket, fs044, fs334, fs302, ms080, apr, 
+       periods, principal,edu, education_tran0, gender, secretive,
+       marriage_status, single_0, fs029, fs029_tran0, demo_score, demo_twentile, fs031, fs031_r,
        fs536_3m, fs313, fs031_r_tran2, fs536_3m_tran2, fs313_tran2, fs314, ms082,
        amortization_rate, monthly_payment, mp, fs314_tran1, fs031_r_tran1, fs536_3m_tran1, mp_r1,
-       education_tran1, gender_tran1, br80_score, brmp_score, br80_twentile, brmp_twentile,
-       fs031_tran3, a.loan_del_number_6m, a.loan_del_number_6m_tran3, WI001_12m, LN001_12m,
-       LN001_12m_r, LN001_12m_r_tran3, gender_tran3, fs310, fs310_tran3, fs059_3m_1k, 
+       education_tran1, br80_score, brmp_score, br80_twentile, brmp_twentile,
+       fs031_tran3, a.loan_del_number_6m, a.loan_del_number_6m_tran3, WI001_12m, LN001_12m, 
+       LN001_12m_r, LN001_12m_r_tran3, fs310, fs310_tran3, fs059_3m_1k, 
        fs059_3m_1k_tran3, app_last_month_bucket, app_last_month_bucket_tran3, fs203_12m_1k, 
        fs203_12m_1k_tran3, fs014_12m, fs014_12m_tran3, ms056_6m_1k, ms056_6m_1k_r, 
        ms056_6m_1k_r_tran3, ms024_3m, ms024_3m_r, ms024_3m_r_tran3, full_score, full_twentile, 
-       score_card, return_msg
-   from #tf_pa.loan_cal
+       score_card, pb, return_msg
+   from #tf_ploan_cal
