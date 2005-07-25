@@ -9,17 +9,16 @@
 
 char *SQLCommands[] = {
 /* Get_AppInfo_Record */
-" select case_sn, idn, dac_sn, ltrim(rtrim(application_date)) as application_date, "
-"  ltrim(rtrim(inquiry_date)) as inquiry_date, product_code, project_source, case_source, recommender,"
-"  guarantor, principal, repayment, periods, grace_period, num_int_period, appropriation, zip, ltrim(rtrim(segment)) as segment,"
-"  application_fee, risk_mgmt_fee, acct_mgmt_fee, bt_fee, early_close_period"
+" select app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status "
 " from app_info"
-" where case_sn = :v0 and idn = :v1 and dac_sn = :v2;",
+" where app_sn = :v0 and data_time = :v1;",
 
-/* Get_AppI_Record */
-" select case_sn, idn, dac_sn, seq, apr, periods"
-"  from app_i"
-" where case_sn = :v0 and idn = :v1 and dac_sn = :v2 order by seq;",
+/* Get_Loan_Record */
+" select app_sn, tsn, loan_amount, apr, terms, application_fee, credit_checking_fee,"
+"        risk_mgmt_fee, risk_mgmt_fee_terms, terser_rate, terser_period, grace_period,"
+"        sales_channel, risk_level"
+" from loan_condition"
+" where case_sn = :v0 and tsn = :v1;",
 
 /* Get_Maintenance_Record*/
 " select cof, roe, query_fee, leverage_ratio, commission_ratio, m1_recovery_ratio,"

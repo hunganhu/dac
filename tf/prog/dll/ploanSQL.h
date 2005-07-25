@@ -4,7 +4,7 @@
 #define ploanSQLH
 //---------------------------------------------------------------------------
 enum SQLCodes { Get_AppInfo_Record,
-		Get_AppI_Record,
+		Get_Loan_Record,
                 Get_Maintenance_Record,
 		Get_Filter_Result,
 		Write_PreFilter_Result,

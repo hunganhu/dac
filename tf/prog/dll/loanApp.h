@@ -43,7 +43,8 @@ class Loan {
     int edu;                        // 教育程度 ，1 為研究所(含)以上 ; 2 為大學; 3 為專科;
                                     // 4  為高中(職); 5 為國中以下; 6 為其他
     int marriage_status;            // 婚姻狀況,1 為已婚; 2 為未婚; 3 為離婚; 4 為其他
-    int record_count;               // number of records read
+    int record_count;               // number of app_info records read
+    int trial_count;                // number of Loan records read
     /* loan information */
     double principal;               // 貸款金額(新台幣元)
     double int_rate;                // 年利率 (e.g. 18% 為 0.18)
@@ -66,6 +67,7 @@ class Loan {
     int zip_ind;
     int secretive_ind;
     int edu_ind;
+    int marriage_status_ind;
     int principal_ind;
     int int_rate_ind;
     int teaser_rate_ind;
@@ -193,9 +195,9 @@ class Loan {
     };
     Loan (char * appNo, char* appDate, TADOHandler *handler);
     ~Loan ();
-    void validate();
+    void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
+    void loan_validate(char * appNo, int tsn, TADOHandler *handler);
     String error();
-    String get_application_date();
     void prescreen(TADOHandler *handler);
     void calculate_pd(TADOHandler *handler);
     void calculate_npv();
@@ -203,7 +205,6 @@ class Loan {
     double get_pd ();
     double get_npv ();
     double get_principal ();
-    String get_segment ();
     void Init_Maintenance(TADOHandler *handler);
     double get_pd(char *idn, TADOHandler *handler);
     void postFilter();

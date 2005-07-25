@@ -27,43 +27,108 @@ Loan::Loan (char * appSN, char* appDate, TADOHandler *handler):
     credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
     sales_channel_ind(0), risk_level_ind(0)
 {
-
-// Variant hostVars[5];
  ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
-/*
+}
+//---------------------------------------------------------------------------
+void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
+{
+ Variant hostVars[5];
+ bool success = true;
  try {
-    hostVars[0] = case_sn;
-    hostVars[1] = idn;
-    hostVars[2] = dac_sn;
-    handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 2, ds);
+    hostVars[0] = appNo;
+    hostVars[1] = appDate;
+    handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 1, ds);
     record_count = ds->RecordCount;
 
     ds->First();
     if (!ds->Eof) {
-       if (! ds->FieldValues["application_date"].IsNull())
-          application_date = ds->FieldValues["application_date"];
+       if (! ds->FieldValues["product_type"].IsNull())
+          product_type = ds->FieldValues["product_type"];
        else
-          application_date_ind = -1;
+          product_type_ind = -1;
 
-       if (! ds->FieldValues["inquiry_date"].IsNull())
-          inquiry_date = ds->FieldValues["inquiry_date"];
+       if (! ds->FieldValues["gender"].IsNull())
+          gender = ds->FieldValues["gender"];
        else
-          inquiry_date_ind = -1;
-       if (! ds->FieldValues["guarantor"].IsNull())
-          guarantor = ds->FieldValues["guarantor"];
+          gender_ind = -1;
+       if (! ds->FieldValues["zip"].IsNull())
+          zip = ds->FieldValues["zip"];
        else
-          guarantor_ind = -1;
+          zip_ind = -1;
 
-       if (! ds->FieldValues["principal"].IsNull())
-          principal = ds->FieldValues["principal"];
+       if (! ds->FieldValues["secretive"].IsNull())
+          secretive = ds->FieldValues["secretive"];
+       else
+          secretive_ind = -1;
+
+       if (! ds->FieldValues["edu"].IsNull())
+          edu = ds->FieldValues["edu"];
+       else
+          edu_ind = -1;
+
+       if (! ds->FieldValues["marriage_status"].IsNull())
+          marriage_status = ds->FieldValues["marriage_status"];
+       else
+          marriage_status_ind = -1;
+    }
+
+  if (record_count == 0) {
+     throw DataEx("無申請件資料。");
+  }
+
+  if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
+     Message += "產品代號錯誤，必須是1(國民信貸), 2(卡好借)。";
+     success = false;
+  }
+
+  if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
+     Message += "性別錯誤，必須是0(女性), 1(男性)。";
+     success = false;
+  }
+
+  if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
+     Message += "密家人錯誤，必須是0(否), 1(是)。";
+     success = false;
+  }
+
+  if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
+     Message += "教育程度錯誤，必須是1(研究所(含)以上), 2(大學), 3(專科), 4(高中(職)), 5(國中以下), 6(其他)。";
+     success = false;
+  }
+
+  if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
+     Message += "婚姻狀況錯誤，必須是1(已婚), 2(未婚), 3(離婚), 4(其他)。";
+     success = false;
+  }
+
+  if (!success ) throw DataEx(Message);
+ } catch (Exception &E) {
+    throw;
+ }
+}
+//---------------------------------------------------------------------------
+void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
+{
+ Variant hostVars[5];
+ bool success = true;
+ try {
+    hostVars[0] = appNo;
+    hostVars[1] = tsn;
+    handler->ExecSQLQry(SQLCommands[Get_Loan_Record], hostVars, 1, ds);
+    trial_count = ds->RecordCount;
+
+    ds->First();
+    if (!ds->Eof) {
+       if (! ds->FieldValues["loan_amount"].IsNull())
+          principal = ds->FieldValues["loan_amount"];
        else
           principal_ind = -1;
 
-       if (! ds->FieldValues["repayment"].IsNull())
-          repayment = ds->FieldValues["repayment"];
+       if (! ds->FieldValues["int_rate"].IsNull())
+          int_rate = ds->FieldValues["int_rate"];
        else
-          repayment_ind = -1;
+          int_rate_ind = -1;
 
        if (! ds->FieldValues["periods"].IsNull())
           periods = ds->FieldValues["periods"];
@@ -75,100 +140,58 @@ Loan::Loan (char * appSN, char* appDate, TADOHandler *handler):
        else
           grace_period_ind = -1;
 
-       if (! ds->FieldValues["num_int_period"].IsNull())
-          num_int_period = ds->FieldValues["num_int_period"];
+       if (! ds->FieldValues["teaser_rate"].IsNull())
+          teaser_rate = ds->FieldValues["teaser_rate"];
        else
-          num_int_period_ind = -1;
+          teaser_rate_ind = -1;
 
-       if (! ds->FieldValues["appropriation"].IsNull())
-          appropriation = ds->FieldValues["appropriation"];
+       if (! ds->FieldValues["teaser_period"].IsNull())
+          teaser_period = ds->FieldValues["teaser_period"];
        else
-          appropriation_ind = -1;
-
-       if (! ds->FieldValues["zip"].IsNull())
-          zip = ds->FieldValues["zip"];
-       else
-          zip_ind = -1;
-
-       if (! ds->FieldValues["segment"].IsNull())
-          segment = ds->FieldValues["segment"];
-       else
-          segment_ind = -1;
+          teaser_period_ind = -1;
 
        if (! ds->FieldValues["application_fee"].IsNull())
           application_fee = ds->FieldValues["application_fee"];
        else
           application_fee_ind = -1;
 
+       if (! ds->FieldValues["credit_checking_fee"].IsNull())
+          credit_checking_fee = ds->FieldValues["credit_checking_fee"];
+       else
+          credit_checking_fee_ind = -1;
+
        if (! ds->FieldValues["risk_mgmt_fee"].IsNull())
           risk_mgmt_fee = ds->FieldValues["risk_mgmt_fee"];
        else
           risk_mgmt_fee_ind = -1;
 
-       if (! ds->FieldValues["acct_mgmt_fee"].IsNull())
-          acct_mgmt_fee = ds->FieldValues["acct_mgmt_fee"];
+       if (! ds->FieldValues["risk_mgmt_fee_terms"].IsNull())
+          risk_mgmt_fee_terms = ds->FieldValues["risk_mgmt_fee_terms"];
        else
-          acct_mgmt_fee_ind = -1;
+          risk_mgmt_fee_terms_ind = -1;
 
-       if (!ds->FieldValues["bt_fee"].IsNull())
-          bt_fee = ds->FieldValues["bt_fee"];
+       if (! ds->FieldValues["sales_channel"].IsNull())
+          sales_channel = ds->FieldValues["sales_channel"];
        else
-          bt_fee_ind = -1;
+          sales_channel_ind = -1;
 
-       if (! ds->FieldValues["early_close_period"].IsNull())
-          early_closing_period = ds->FieldByName("early_close_period")->AsInteger;
+       if (!ds->FieldValues["risk_level"].IsNull())
+          risk_level = ds->FieldValues["risk_level"];
        else
-          early_closing_period_ind = -1;
+          risk_level_ind = -1;
     }
-
-    handler->ExecSQLQry(SQLCommands[Get_AppI_Record], hostVars, 2, ds);
-
-    ds->First();
-    int seg;
-    while (!ds->Eof) {
-       double apr = 0.0;
-       int period = 0, apr_ind = 0, period_ind = 0;
-
-       if (!ds->FieldValues["apr"].IsNull())
-          apr = ds->FieldValues["apr"];
-       else
-          apr_ind = -1;
-       seg = ds->FieldValues["seq"];
-       if (!ds->FieldValues["periods"].IsNull())
-          period = ds->FieldValues["periods"];
-       else
-          period_ind = -1;
-
-       rateList.push_back(Rate(apr / 100.0, period, seg, apr_ind, period_ind));
-       ds->Next();
-    }
- } catch (Exception &E) {
-    throw;
- }
- */
- }
-
-void Loan::validate()
-{
-/*
-  int sum_periods = 0;
-  int dist;
-  bool success = true;
-
-  if (record_count == 0) {
-     throw DataEx("無申請件資料。");
-  }
-  if ((application_date_ind == -1) || !validate_date(application_date)) {
-     Message += "申請日期格式錯誤。";
-     success = false;
-  }
-  if ((inquiry_date_ind == -1) || !validate_date(inquiry_date)) {
-     Message += "JCIC查詢日期格式錯誤。";
-     success = false;
+  if (trial_count == 0) {
+     throw DataEx("無貸款資料。");
   }
   if ((principal_ind == -1) || (principal < 10000.0) || (principal > 9000000.0)) {
      Message += "申貸金額必須介於10,000和9,000,000（元）。";
      success = false;
+  }
+
+  if ((int_rate_ind == -1) || (int_rate < 0.0)
+        ||(int_rate > 0.20)) {
+       Message += "貸款利率錯誤，必須介於0和20(%)。";
+       success = false;
   }
 
   if ((periods_ind == -1) || (periods < 1) || (periods > 120)) {
@@ -176,8 +199,34 @@ void Loan::validate()
      success = false;
   }
 
-  if ((repayment_ind == -1) || (repayment < "1") || (repayment > "3")) {
-     Message += "還款方式錯誤，必須是1(一般法)，2(本息法) 或3(本金法)。";
+  if ((application_fee_ind == -1) || (application_fee < 0) || (application_fee > 100000)) {
+     Message += "開辦費必須介於0和100000（元）。";
+     success = false;
+  }
+
+  if ((credit_checking_fee_ind == -1) || (credit_checking_fee < 0) || (credit_checking_fee > 100000)) {
+     Message += "徵信查詢費必須介於0和100000（元）。";
+     success = false;
+  }
+
+  if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0) || (risk_mgmt_fee > 100000)) {
+     Message += "每期風險管理費必須介於0和100000（元）。";
+     success = false;
+  }
+
+  if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
+     Message += "風險管理費用收取期數錯誤，必須介於0和貸款期數。";
+     success = false;
+  }
+
+  if ((teaser_rate_ind == -1) || (teaser_rate < 0.0)
+        ||(teaser_rate > int_rate)) {
+       Message += "優惠年利率錯誤，必須介於0和貸款利率。";
+       success = false;
+  }
+
+  if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period > periods)) {
+     Message += "優惠期錯誤，必須介於0和貸款期數。";
      success = false;
   }
 
@@ -186,142 +235,45 @@ void Loan::validate()
      success = false;
   }
 
-  if ((early_closing_period_ind == -1) || (early_closing_period < 0) || (early_closing_period > periods)) {
-     Message += "閉鎖期錯誤，必須介於0和貸款期數。";
-     success = false;
-  }
-
-  if ((repayment == "1") && (periods != grace_period)) {
-     Message += "錯誤:還款方式為1(一般法)時，寬限期必須等於貸款期數。";
-     success = false;
-  }
-
-  if ((guarantor_ind == -1) || (guarantor != "1") && (guarantor != "0")) {
-     Message += "保人錯誤，必須是0(無保人) 或1(有保人)。";
-     success = false;
-  }
-  if ((segment_ind == -1) || ((segment != "99") && ((segment < "00") ||(segment > "08")))) {
-     Message += "客層錯誤，必須是01 ~ 08 或99。";
-     success = false;
-  }
-
-  if ((application_fee_ind == -1) || (application_fee < 0) || (application_fee > 100000)) {
-     Message += "手續費必須介於0和100000（元）。";
-     success = false;
-  }
-
-  if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0) || (risk_mgmt_fee > 100000)) {
-     Message += "風險管理費必須介於0和100000（元）。";
-     success = false;
-  }
-
-  if ((acct_mgmt_fee_ind == -1) || (acct_mgmt_fee < 0) || (acct_mgmt_fee > 100000)) {
-     Message += "帳戶管理費必須介於0和100000（元）。";
-     success = false;
-  }
-
-  if ((bt_fee_ind == -1) || (bt_fee < 0) || (bt_fee > 100000)) {
-     Message += "代償費必須介於0和100000（元）。";
-     success = false;
-  }
-
-  if ((appropriation_ind == -1) || appropriation != "1") {
-     Message += "撥款方式錯誤, 必須是1(一次撥貸)。";
-     success = false;
-  }
-
-  if ((num_int_period_ind == -1) || ((num_int_period < 1) || (num_int_period > 3))) {
-     Message += "利率時段個數錯誤，必須是1, 2, 或 3。";
-     success = false;
-  }
-  if (static_cast <int> (rateList.size()) != num_int_period) {
-     Message += "貸款利率表時段個數錯誤。";
-     success = false;
-  }
-  max_apr = 0.0;
-  int seq = 0;
-  for (iter1 = rateList.begin(); iter1 != rateList.end(); ++iter1) {
-    if (++seq != (*iter1).get_segment()) {
-       Message = Message + "第" + seq + "期貸款利率表時段錯誤。";
-       success = false;
-    }
-    if (((*iter1).get_rate_ind() == -1) || ((*iter1).get_rate() < 0.0)
-        ||((*iter1).get_rate() > 0.20)) {
-       Message = Message + "第" + seq + "期貸款利率錯誤，必須介於0和20(%)。";
-       success = false;
-    }
-    else {
-       if ((*iter1).get_rate() > max_apr) max_apr = (*iter1).get_rate();
-    }
-    if (((*iter1).get_period_ind() == -1) || ((*iter1).get_period() < 0)
-        || ((*iter1).get_period() > periods)) {
-       Message = Message + "第" + seq + "期貸款利率表期數錯誤。";
-       success = false;
-    }
-    sum_periods += (*iter1).get_period();
-//    if (! success) break;
-  }
-
-  if (sum_periods != periods) {
-     Message += "貸款利率表總期數錯誤。";
-     success = false;
-  }
-
-  if ((dist = validZIP(zip.c_str())) == 0) {
-     Message += "郵遞區號錯誤。";
-     success = false;
-  }
-  else {
-     if (dist >= 1 && dist <= 3)         // 1: North, the 1st digit of zip code
-        district = 1;                    //    is 1, 2, or 3.
-     else if (dist >= 4 && dist<= 6)     // 2: Central, the 1st digit of zip code
-        district = 2;                    //    is 4, 5, or 6.
-     else if (dist >= 7 && dist<= 9)     // 3: South, the 1st digit of zip code
-        district = 3;                    //    is 7, 8, or 9.
-  }
-
   if (!success ) throw DataEx(Message);
-*/  
+ } catch (Exception &E) {
+    throw;
+ }
 }
 
+//---------------------------------------------------------------------------
 Loan::~Loan ()
 {
  ds->Close();
  delete ds;
 }
 
+//---------------------------------------------------------------------------
 String Loan::error ()
 {
  return Message;
 }
-/*
-String Loan::get_application_date ()
-{
- return application_date;
-}
-*/
+//---------------------------------------------------------------------------
 double Loan::get_rscore ()
 {
  return rscore;
 }
+//---------------------------------------------------------------------------
 double Loan::get_pd ()
 {
  return pd;
 }
+//---------------------------------------------------------------------------
 double Loan::get_npv ()
 {
  return total_npv;
 }
+//---------------------------------------------------------------------------
 double Loan::get_principal ()
 {
  return principal;
 }
-/*
-String Loan::get_segment ()
-{
- return segment;
-}
-*/
+//---------------------------------------------------------------------------
 void Loan::prescreen(TADOHandler *handler)
 {
  Variant hostVars[5];
@@ -392,6 +344,7 @@ void Loan::prescreen(TADOHandler *handler)
    }
 }
 
+//---------------------------------------------------------------------------
 void Loan::calculate_pd(TADOHandler *handler)
 {
  Variant hostVars[5];
@@ -480,6 +433,7 @@ void Loan::calculate_pd(TADOHandler *handler)
      throw;
    }
 }
+//---------------------------------------------------------------------------
 void Loan::postFilter()
 {
  if (jas002_defect > 0)
@@ -494,6 +448,7 @@ void Loan::postFilter()
     throw (RiskEx ("拒絕 [貸款有90 天以上遲繳記錄]", 107));
 }
 
+//---------------------------------------------------------------------------
 void Loan::calculate_npv()
 {
 /*
@@ -580,8 +535,7 @@ void Loan::calculate_npv()
 #endif
 */
 }
-
-
+//---------------------------------------------------------------------------
 void Loan::npv_init()
 {
   for (int i = 0; i < TERM + 4; i ++) {
@@ -606,6 +560,7 @@ void Loan::npv_init()
   }
 }
 
+//---------------------------------------------------------------------------
 void Loan::set_apr()
 {
   int j = 0;
@@ -616,6 +571,7 @@ void Loan::set_apr()
   }
 }
 
+//---------------------------------------------------------------------------
 void Loan::set_attrition()
 {
   double monthly_pd = pd / 12.0;
@@ -660,6 +616,7 @@ void Loan::set_attrition()
   }
 }
 
+//---------------------------------------------------------------------------
 void Loan::set_amortize()
 {
   os_principal [0] = principal;
@@ -680,6 +637,7 @@ void Loan::set_amortize()
   }
 }
 
+//---------------------------------------------------------------------------
 void Loan::set_annuity()
 {
   int Grace_Period = ((grace_period == periods)? grace_period - 1: grace_period);
@@ -711,6 +669,7 @@ void Loan::set_annuity()
   }
 }
 
+//---------------------------------------------------------------------------
 double Loan::set_interest_revenue()
 {
   for (int i = 1; i <= periods; i++)
@@ -719,6 +678,7 @@ double Loan::set_interest_revenue()
   return (NetPresentValue(roe / 12.0, interest_revenue + 1, periods, ptEndOfPeriod)
           + interest_revenue[0]);
 }
+//---------------------------------------------------------------------------
 double Loan::set_late_fee()
 {
   for (int i = 1; i <= periods; i++)
@@ -743,6 +703,7 @@ double Loan::set_early_closing_fee()
           + early_closing_fee[0]);
 }
 */
+//---------------------------------------------------------------------------
 // Cost
 // Interest Cost:
 double Loan::set_interest_cost()
@@ -768,6 +729,7 @@ double Loan::set_account_management_cost()
    30 days late will call to customer.
    30 days late is 2 payments behind.
 */
+//---------------------------------------------------------------------------
 double Loan::set_precollection_cost()
 {
   double monthly_pd = pd / YearMonths;
@@ -793,6 +755,7 @@ double Loan::set_precollection_cost()
   return (NetPresentValue(roe / 12.0, precollection_cost + 1, periods+1, ptEndOfPeriod)
           + precollection_cost[0]);
 }
+//---------------------------------------------------------------------------
 // Collection Cost (legal)
 /* 90+ days delinquent will tirgger legal action to collect outstanding principal
    90+ days delinquent is 4 payments behind
@@ -839,6 +802,7 @@ double Loan::set_collection_cost()
                            (os_principal[i-1]* open_attrition[i-1] * leverage_ratio -
                            os_principal[i] * open_attrition[i] * leverage_ratio)
 */
+//---------------------------------------------------------------------------
 double Loan::set_working_capital()
 {
  working_capital [0] = -os_principal[0] * (1 - leverage_ratio);
@@ -851,6 +815,7 @@ double Loan::set_working_capital()
           + working_capital[0]);
 }
 
+//---------------------------------------------------------------------------
 // Credit loss:
 double Loan::set_credit_loss()
 {
@@ -864,6 +829,7 @@ double Loan::set_credit_loss()
           + credit_loss[0]);
 }
 
+//---------------------------------------------------------------------------
 void Loan::Init_Maintenance(TADOHandler *handler)
 {
  try {
@@ -999,8 +965,7 @@ void Loan::Init_Maintenance(TADOHandler *handler)
     throw;
  }
 }
-
-
+//---------------------------------------------------------------------------
 double Loan::get_pd(char *idn, TADOHandler *handler)
 {
  Variant hostVars[5];
@@ -1036,11 +1001,4 @@ double Loan::get_pd(char *idn, TADOHandler *handler)
  } catch (Exception &E) {
     throw;
  }
- return (pb);
-
-/*
- pd = 0.01;
- rscore = 0.02;
- return (pd);
-*/
-}
+ return (pb);}
