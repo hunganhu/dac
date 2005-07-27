@@ -163,7 +163,7 @@ create table app_info (
 	tf_tax_rate	decimal(5,4) not null,
 	info_porcessing_cost	int not null,
 	operation_cost	int not null,
-	hr_ocst		int not null,
+	hr_cost		int not null,
 	commission	int not null
 );
 alter table app_info add constraint p_app_info primary key(app_sn, data_time); 

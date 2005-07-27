@@ -252,3 +252,61 @@ where bam085_hit = 1 and ms080>0 and (krm001_hit is null or krm023_hit is null o
 select demo_score, demo_twentile,bam085_hit, ms080, brmp_score, brmp_twentile, br80_score, br80_twentile, krm001_hit, krm023_hit, ind001, full_score, full_twentile
 from daco_v41_cal
 where (krm001_hit is null or krm023_hit is null or ind001 =1) and bam085_hit is null
+
+
+
+-------test env setup---------------------------------------------------------------------------------------------
+insert into app_info (app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status, cof, roe, ts_tax_rate, tf_tax_rate, info_porcessing_cost, operation_cost, hr_cost, commission)
+select idn,'0', 1, gender_tran,'100', secret_tran, education_tran2, marriage, 0.0372, 0.10, 0.0225, 0.0476, 15, 17, 120, 0
+from model_master
+
+insert into loan_condition (app_sn, tsn, loan_amount, apr, terms, application_fee, credit_checking_fee, risk_mgmt_fee, risk_mgmt_fee_terms, teaser_rate, teaser_period, grace_period, sales_channel)
+select idn, 1, actual_amount, interest_rate, periods, 0, 0, 0, 0, 0.0, 0, 0, '1'
+from model_master
+
+insert into ts(app_sn, data_time, loan1_payment1, loan1_payment2, loan1_payment3, loan1_payment4, loan1_payment5, loan1_payment6, loan2_payment1, loan2_payment2, loan2_payment3, loan2_payment4, loan2_payment5, loan2_payment6, loan3_payment1, loan3_payment2, loan3_payment3, loan3_payment4, loan3_payment5, loan3_payment6)
+select IDN, '0', loan1_interest_payment1, loan1_interest_payment2, loan1_interest_payment3, loan1_interest_payment4, loan1_interest_payment5, loan1_interest_payment6, loan2_interest_payment1, loan2_interest_payment2, loan2_interest_payment3, loan2_interest_payment4, loan2_interest_payment5, loan2_interest_payment6, loan3_interest_payment1, loan3_interest_payment2, loan3_interest_payment3, loan3_interest_payment4, loan3_interest_payment5, loan3_interest_payment6
+from application
+
+
+ update app_info
+    set edu = (case when a.edu = '研究所(含)以上' then 1
+			  when a.edu = '大學'           then 2
+			  when a.edu = '專科'           then 3
+			  when a.edu = '高中(職)'       then 4
+			  when a.edu = '國中以下'       then 5
+			  else 6 end)
+   from risk_model_application a
+   where a.idn = app_info.app_sn
+
+
+ update app_info
+    set data_time = isnull((((convert(int, application_yyy)+ 1911)*100 + application_mm) * 100 + application_dd), '0')
+   from application a
+   where a.idn = app_info.app_sn
+
+
+ update ts
+    set data_time = isnull((((convert(int, application_yyy)+ 1911)*100 + application_mm) * 100 + application_dd), '0')
+   from application a
+   where a.idn = ts.app_sn
+
+create table risk_model_driving (
+	app_sn char(12),
+	app_date char(12),
+	ts_date  char(8),
+	jcic_date char(8)
+)
+
+insert into risk_model_driving (app_sn, app_date, ts_date)
+select app_sn, data_time, data_time
+from app_info
+
+update risk_model_driving
+  set jcic_date = a.data_time
+  from jas002 a
+  where risk_model_driving.app_sn = a.app_sn
+
+update risk_model_driving
+set jcic_date = '20040106'
+where jcic_date is null

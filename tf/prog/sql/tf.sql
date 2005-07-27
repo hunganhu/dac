@@ -1420,15 +1420,15 @@ go
                	end)
   update #tf_ploan_cal
      set loan_del_number_6m = 
-       isnull(a.loan1_interest_payment6,0) + isnull(a.loan2_interest_payment6,0) + isnull(a.loan3_interest_payment6,0)
+     (select isnull(a.loan1_interest_payment6,0) + isnull(a.loan2_interest_payment6,0) + isnull(a.loan3_interest_payment6,0)
      + isnull(a.loan1_interest_payment5,0) + isnull(a.loan2_interest_payment5,0) + isnull(a.loan3_interest_payment5,0)
      + isnull(a.loan1_interest_payment4,0) + isnull(a.loan2_interest_payment4,0) + isnull(a.loan3_interest_payment4,0)
      + isnull(a.loan1_interest_payment3,0) + isnull(a.loan2_interest_payment3,0) + isnull(a.loan3_interest_payment3,0)
      + isnull(a.loan1_interest_payment2,0) + isnull(a.loan2_interest_payment2,0) + isnull(a.loan3_interest_payment2,0)
      + isnull(a.loan1_interest_payment1,0) + isnull(a.loan2_interest_payment1,0) + isnull(a.loan3_interest_payment1,0)
     from ts a
-    where #tf_ploan_cal.app_sn = app_sn
-      and #tf_ploan_cal.data_time = a.data_time
+    where app_sn = :v0
+      and data_time = :v1)
   update #tf_ploan_cal
      set apr = a.apr,
          periods = a.terms,

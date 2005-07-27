@@ -42,9 +42,8 @@ void __fastcall TForm1::ValidateClick(TObject *Sender)
   TADOHandler *dbhandle;             // pass connection object to function
 
   AnsiString sql_stmt, sql_stmt2;
-  AnsiString idn, app_sn;
-  int dac_sn;
-  char idn_ptr[12], app_sn_ptr[13], errMsg[257];
+  AnsiString app_sn, app_date, ts_date, jcic_date;
+  char errMsg[257];
   char ole_str[256];
   AnsiString oledbString;
   int status = -1;
@@ -58,73 +57,68 @@ void __fastcall TForm1::ValidateClick(TObject *Sender)
   try {
     if (ADOConnection1->Connected == false)
       ADOConnection1->Open();
+
+    Start_time->Caption = CurrDateTime();
+    // Empty Validation Result table
+    sql_stmt = "delete from test_out;";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->ExecSQL();
+
+    // get data from input table, call validation function,
+    // and write result to validation_result table.
+    oledbString = Edit1->Text;
+    strcpy(ole_str, oledbString.c_str());
+    dbhandle = new TADOHandler();     // pass connection object to function
+    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
+    sql_stmt = "select app_sn, app_date, ts_date, jcic_date from test_in order by app_sn";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->Open();
+    Query->First();
+    int seq = 0;
+    while (!Query->Eof) {
+       app_sn = Query->FieldValues["app_sn"];
+       app_date = Query->FieldValues["app_date"];
+       ts_date = Query->FieldValues["ts_date"];
+       jcic_date = Query->FieldValues["jcic_date"];
+
+       Label2->Caption = app_sn;
+       Label3->Caption = app_date;
+       Label4->Caption = jcic_date;
+       count->Caption = ++seq;
+       Form1->Refresh();
+
+       *errMsg = '\0';
+       // call the validation function
+       status = optimal_cal_conn(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                            ole_str, errMsg, dbhandle);
+
+          if (status < 0) {
+             sql_stmt2 = "insert into test_out (idn, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :errMsg); ";
+             QueryW->Close();
+             QueryW->SQL->Clear();
+             QueryW->SQL->Add(sql_stmt2);
+             QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+             QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+             QueryW->ExecSQL();
+          }
+
+       Query->Next();
+    }
+    End_time->Caption = CurrDateTime();
   }
   catch (Exception &E) {
      ShowMessage(AnsiString(E.ClassName())+ E.Message);
   }
 
-  Start_time->Caption = CurrDateTime();
-
-  // Empty Validation Result table
-  sql_stmt = "delete from test_out;";
-  Query->Close();
-  Query->SQL->Clear();
-  Query->SQL->Add(sql_stmt);
-  Query->ExecSQL();
-
-  // get data from input table, call validation function,
-  // and write result to validation_result table.
-  oledbString = Edit1->Text;
-  strcpy(ole_str, oledbString.c_str());
-    dbhandle = new TADOHandler();     // pass connection object to function
-    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
-
-  sql_stmt = "select app_sn from test_in order by app_sn";
-  Query->Close();
-  Query->SQL->Clear();
-  Query->SQL->Add(sql_stmt);
-  Query->Open();
-  Query->First();
-  int seq = 0;
-  while (!Query->Eof) {
-//     idn = Query->FieldValues["idn"];
-     app_sn = Query->FieldValues["app_sn"];
-//     dac_sn = Query->FieldValues["dac_sn"];
-
-//     Label2->Caption = idn;
-     Label3->Caption = app_sn;
-//     Label4->Caption = dac_sn;
-     count->Caption = ++seq;
-     Form1->Refresh();
-
-//     strcpy(idn_ptr, idn.c_str());
-     strcpy(app_sn_ptr, app_sn.c_str());
-//     strcpy(ole_str, oledbString.c_str());
-     *errMsg = '\0';
-     // call the validation function
-     status = prescreen_gx_conn(app_sn_ptr, "", "", ole_str, errMsg, dbhandle);
-
-        if (status < 0) {
-           sql_stmt2 = "insert into test_out (idn, return_msg) values ";
-           sql_stmt2 += "(:app_sn, :errMsg); ";
-           QueryW->Close();
-           QueryW->SQL->Clear();
-           QueryW->SQL->Add(sql_stmt2);
-           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
- //          QueryW->Parameters->ParamValues["idn"] = idn;
- //          QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
-           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
-           QueryW->ExecSQL();
-        }
-
-     Query->Next();
-  }
-  End_time->Caption = CurrDateTime();
-
   dbhandle->CloseDatabase();    // pass connection object to function
   delete  dbhandle;             // pass connection object to function
   CoUninitialize();
-
 }
 //---------------------------------------------------------------------------
 
@@ -134,16 +128,15 @@ void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
   TADOQuery *QueryW = ADOQuery2;
 //  TADOHandler *dbhandle;             // pass connection object to function
 
+  CoInitialize(NULL);
   AnsiString sql_stmt, sql_stmt2;
-  AnsiString idn, app_sn;
-  int dac_sn;
-  char idn_ptr[12], app_sn_ptr[13], errMsg[257];
+  AnsiString app_sn, app_date, ts_date, jcic_date;
+  char errMsg[257];
   char ole_str[256];
   AnsiString oledbString;
   int status = -1;
   char * CurrDateTime ();
 
-  CoInitialize(NULL);
   ADOConnection1->ConnectionTimeout = 30; // 30 seconds
   ADOConnection1->CommandTimeout = 300;  //5 minutes; 20 minutes for AnShin
 
@@ -151,75 +144,68 @@ void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
   try {
     if (ADOConnection1->Connected == false)
       ADOConnection1->Open();
+
+    Start_time->Caption = CurrDateTime();
+    // Empty Validation Result table
+    sql_stmt = "delete from test_out;";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->ExecSQL();
+
+    // get data from input table, call validation function,
+    // and write result to validation_result table.
+    oledbString = Edit1->Text;
+    strcpy(ole_str, oledbString.c_str());
+//    dbhandle = new TADOHandler();     // pass connection object to function
+//    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
+    sql_stmt = "select app_sn, app_date, ts_date, jcic_date from test_in order by app_sn";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->Open();
+    Query->First();
+    int seq = 0;
+    while (!Query->Eof) {
+       app_sn = Query->FieldValues["app_sn"];
+       app_date = Query->FieldValues["app_date"];
+       ts_date = Query->FieldValues["ts_date"];
+       jcic_date = Query->FieldValues["jcic_date"];
+
+       Label2->Caption = app_sn;
+       Label3->Caption = app_date;
+       Label4->Caption = jcic_date;
+       count->Caption = ++seq;
+       Form1->Refresh();
+
+       *errMsg = '\0';
+       // call the validation function
+       status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                            ole_str, errMsg);
+
+          if (status < 0) {
+             sql_stmt2 = "insert into test_out (idn, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :errMsg); ";
+             QueryW->Close();
+             QueryW->SQL->Clear();
+             QueryW->SQL->Add(sql_stmt2);
+             QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+             QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+             QueryW->ExecSQL();
+          }
+
+       Query->Next();
+    }
+    End_time->Caption = CurrDateTime();
   }
   catch (Exception &E) {
      ShowMessage(AnsiString(E.ClassName())+ E.Message);
   }
 
-  Start_time->Caption = CurrDateTime();
-
-  // Empty Validation Result table
-  sql_stmt = "delete from test_out;";
-  Query->Close();
-  Query->SQL->Clear();
-  Query->SQL->Add(sql_stmt);
-  Query->ExecSQL();
-
-  // get data from input table, call validation function,
-  // and write result to validation_result table.
-  oledbString = Edit1->Text;
-  strcpy(ole_str, oledbString.c_str());
-//    dbhandle = new TADOHandler();     // pass connection object to function
-//    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
-
-//  sql_stmt = "select idn, app_sn, dac_sn from test_in order by idn";
-  sql_stmt = "select app_sn from test_in order by app_sn";
-  Query->Close();
-  Query->SQL->Clear();
-  Query->SQL->Add(sql_stmt);
-  Query->Open();
-  Query->First();
-  int seq = 0;
-  while (!Query->Eof) {
-//     idn = Query->FieldValues["idn"];
-     app_sn = Query->FieldValues["app_sn"];
-//     dac_sn = Query->FieldValues["dac_sn"];
-
-//     Label2->Caption = idn;
-     Label3->Caption = app_sn;
-//     Label4->Caption = dac_sn;
-     count->Caption = ++seq;
-     Form1->Refresh();
-
-//     strcpy(idn_ptr, idn.c_str());
-     strcpy(app_sn_ptr, app_sn.c_str());
-//     strcpy(ole_str, oledbString.c_str());
-     *errMsg = '\0';
-     // call the validation function
-     status = prescreen_gx(app_sn_ptr, "", "", ole_str, errMsg);
-//     status = dac_ploan_ev(app_sn_ptr, idn_ptr, dac_sn, ole_str, errMsg);
-
-        if (status < 0) {
-           sql_stmt2 = "insert into test_out (idn, return_msg) values ";
-           sql_stmt2 += "(:app_sn, :errMsg); ";
-           QueryW->Close();
-           QueryW->SQL->Clear();
-           QueryW->SQL->Add(sql_stmt2);
-           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
- //          QueryW->Parameters->ParamValues["idn"] = idn;
- //          QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
-           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
-           QueryW->ExecSQL();
-        }
-
-     Query->Next();
-  }
-  End_time->Caption = CurrDateTime();
-
 //  dbhandle->CloseDatabase();    // pass connection object to function
 //  delete  dbhandle;             // pass connection object to function
   CoUninitialize();
-
 }
 //---------------------------------------------------------------------------
 
@@ -281,9 +267,9 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
 
 //    dbhandle = new TADOHandler();
 //    dbhandle->OpenDatabase(ole_str);
-     status = prescreen_gx(app_sn_ptr, "", "", ole_str, errMsg);
-//   status = dac_ploan_ev(app_sn.c_str(), idn.c_str(), dac_sn, oledbString.c_str(), errMsg);
-//     status = dac_ploan_ev_conn(app_sn.c_str(), idn.c_str(), dac_sn, oledbString.c_str(), errMsg, dbhandle);
+//     status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+//                            ole_str, errMsg);
+//     status = prescreen_gx(app_sn_ptr, "", "", ole_str, errMsg);
 
   Label2->Caption = Edit2->Text;
   Label3->Caption = Edit3->Text;
