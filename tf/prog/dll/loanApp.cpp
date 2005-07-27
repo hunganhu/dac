@@ -9,7 +9,7 @@
 #include "ploanSQL.h"
 #include "functions.h"
 #include "attrition.h"
-#include "commission.h"
+#include "economic.h"
 // Constants used in the program.
 const char *expire_date = "21001231";
 const double m1_to_m7_ratio = 5.0;
@@ -30,8 +30,8 @@ Loan::Loan (char * appSN, char* appDate, TADOHandler *handler):
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
 }
 //---------------------------------------------------------------------------
-Loan::Loan (char * appSN, char* appDate, char* tsDate, TADOHandler *handler):
-    app_sn(appSN), app_date(appDate), ts_date(tsDate), product_type_ind(0),
+Loan::Loan (char * appSN, char* appDate, char* tsDate, char *jcicDate, int tsn, TADOHandler *handler):
+    app_sn(appSN), app_date(appDate), ts_date(tsDate), jcic_date(jcicDate),tsn(tsn),product_type_ind(0),
     gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
     principal_ind(0), int_rate_ind(0), teaser_rate_ind(0), periods_ind(0),
     teaser_period_ind(0), grace_period_ind(0), application_fee_ind(0),
@@ -113,7 +113,7 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
      success = false;
   }
 
-  if (!success ) throw DataEx(Message);
+  if (!success) throw DataEx(Message);
  } catch (Exception &E) {
     throw;
  }
@@ -136,13 +136,13 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
        else
           principal_ind = -1;
 
-       if (! ds->FieldValues["int_rate"].IsNull())
-          int_rate = ds->FieldValues["int_rate"];
+       if (! ds->FieldValues["apr"].IsNull())
+          int_rate = ds->FieldValues["apr"];
        else
           int_rate_ind = -1;
 
-       if (! ds->FieldValues["periods"].IsNull())
-          periods = ds->FieldValues["periods"];
+       if (! ds->FieldValues["terms"].IsNull())
+          periods = ds->FieldValues["terms"];
        else
           periods_ind = -1;
 
@@ -185,11 +185,12 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
           sales_channel = ds->FieldValues["sales_channel"];
        else
           sales_channel_ind = -1;
-
+/*
        if (!ds->FieldValues["risk_level"].IsNull())
           risk_level = ds->FieldValues["risk_level"];
        else
           risk_level_ind = -1;
+*/
     }
   if (trial_count == 0) {
      throw DataEx("無貸款資料。");
@@ -246,7 +247,7 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
      success = false;
   }
 
-  if (!success ) throw DataEx(Message);
+//  if (!success) throw DataEx(Message);
  } catch (Exception &E) {
     throw;
  }
@@ -299,8 +300,10 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
  try {
     hostVars[0] = app_sn;
     hostVars[1] = app_date;
-    hostVars[2] = jcic_date;
-    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 2);
+    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 1);
+
+    hostVars[0] = jcic_date;
+    handler->ExecSQLCmd(SQLCommands[Update_Inquiry_Date], hostVars, 0);
 
     handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_prepare_jcic_data]);
@@ -329,13 +332,17 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 
     if (jas002_defect > 0) {
        Message = "拒絕 [有退票強停拒往授信異常等記錄]"; code = 103;
-    } else if (app_max_bucket > 3) {
+    }
+    if (app_max_bucket > 3) {
        Message = "拒絕 [信用卡有90天以上遲繳記錄]"; code = 104;
-    } else if (fs044 > 0) {
+    }
+    if (fs044 > 0) {
        Message = "拒絕 [貸款有遲繳記錄]"; code = 105;
-    } else if (cash_max_bucket > 0) {
+    }
+    if (cash_max_bucket > 0) {
        Message = "拒絕 [現金卡前期有遲繳記錄]"; code = 106;
-    } else if (delinquent_months > 3) {
+    }
+    if (delinquent_months > 3) {
        Message = "拒絕 [貸款有90天以上遲繳記錄]"; code = 107;
     }
  } catch (Exception &E) {
@@ -344,10 +351,14 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 }
 
 //---------------------------------------------------------------------------
-void Loan::calculate_pd(char *ts_data_date, TADOHandler *handler)
+void Loan::calculate_rscore(TADOHandler *handler)
 {
+ Variant hostVars[5];
  try {
-    handler->ExecSQLCmd(SQLCommands[Update_Loan_Del_Number]);
+    hostVars[0] = app_sn;
+    hostVars[1] = ts_date;
+    handler->ExecSQLCmd(SQLCommands[Calculate_Loan_Del_Number], hostVars, 1);
+//    handler->ExecSQLCmd(SQLCommands[Update_Loan_Del_Number]);
     if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0)
        handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_ploan_model]);
     else if (bam085_hit == 1 && ms080 <= 0)
@@ -363,6 +374,29 @@ void Loan::calculate_pd(char *ts_data_date, TADOHandler *handler)
  } catch (Exception &E) {
      throw;
    }
+}
+//---------------------------------------------------------------------------
+void Loan::calculate_pd(TADOHandler *handler)
+{
+/*
+ Variant hostVars[5];
+ try {
+    hostVars[0] = app_sn;
+    hostVars[1] = ts_date;
+    handler->ExecSQLCmd(SQLCommands[Update_Loan_Del_Number], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Calculate_Loan_Del_Number]);
+    if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0)
+       handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_ploan_model]);
+    else if (bam085_hit == 1 && ms080 <= 0)
+             handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_no_payment]);
+         else if (bam085_hit == 1 && ms080 > 0)
+                 handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_with_payment]);
+              else
+                 handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_demographic_model]);
+ } catch (Exception &E) {
+     throw;
+   }
+   */
 }
 //---------------------------------------------------------------------------
 void Loan::postFilter()

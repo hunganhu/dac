@@ -84,7 +84,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan->loan_validate(app_sn, tsn, dbhandle);
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
-    ptrLoan->calculate_pd(ts_data_date, dbhandle);
+    ptrLoan->calculate_rscore(dbhandle);
 //    ptrLoan->get_pd(idn, dbhandle);
 //    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
@@ -136,15 +136,16 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
  try {
 //    dbhandle = new TADOHandler();
 //    dbhandle->OpenDatabase(ole_db);
-    ptrLoan = new Loan(app_sn, app_data_time, dbhandle);
-//    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    ptrLoan = new Loan(app_sn, app_data_time, ts_data_date, jcic_data_date, tsn, dbhandle);
+    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
     ptrLoan->loan_validate(app_sn, tsn, dbhandle);
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
-    ptrLoan->calculate_pd(ts_data_date, dbhandle);
+    ptrLoan->calculate_rscore(dbhandle);
 //    ptrLoan->get_pd(idn, dbhandle);
 //    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
+    dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
  } catch (Loan::DataEx &DE){
      strcpy (error_msg, DE.message.c_str());
      delete ptrLoan;

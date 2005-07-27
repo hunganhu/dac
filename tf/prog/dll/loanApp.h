@@ -19,6 +19,7 @@ class Loan {
     String app_date;                // 申請日期YYYYMMDDHHmm
     String jcic_date;               // JCIC 查詢日期YYYYMMDD
     String ts_date;                 // Taishin internal credit data date YYYYMMDD
+    int tsn;                        // trial seq #
     int product_type;               // 產品代號(1 為國民信貸; 2 為卡好借)
     int gender;                     // 0為女性; 1為男性
     String zip;                     // 三位郵遞區號
@@ -177,14 +178,14 @@ class Loan {
           }
     };
     Loan (char * appSN, char* appDate, TADOHandler *handler);
-    Loan (char * appSN, char* appDate, char* tsDate, TADOHandler *handler);
-
+    Loan (char * appSN, char* appDate, char* tsDate, char *jcicDate, int tsn, TADOHandler *handler);
     ~Loan ();
     void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
     void loan_validate(char * appNo, int tsn, TADOHandler *handler);
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
-    void calculate_pd(char *ts_data_date, TADOHandler *handler);
+    void calculate_rscore(TADOHandler *handler);
+    void calculate_pd(TADOHandler *handler);
     void calculate_npv();
     int  get_product_type();
     int  get_code();
