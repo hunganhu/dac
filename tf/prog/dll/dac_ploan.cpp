@@ -25,7 +25,7 @@ int prescreen(char *app_sn, char *app_data_date, char *jcic_data_date,
     dbhandle->OpenDatabase(ole_db);
     ptrLoan = new Loan(app_sn, app_data_date, dbhandle);
     ptrLoan->app_info_validate(app_sn, app_data_date, dbhandle);
-    dbhandler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+    dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     /*Write_Prescreen_Result*/
     hostVars[0] = app_sn;
@@ -34,8 +34,8 @@ int prescreen(char *app_sn, char *app_data_date, char *jcic_data_date,
     hostVars[3] = ptrLoan->get_product_type();
     hostVars[4] = ptrLoan->get_code();
     hostVars[5] = ptrLoan->error();
-    handler->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
-    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
+    dbhandle->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
+    dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
 
  } catch (Loan::DataEx &DE){
      strcpy (error_msg, DE.message.c_str());
@@ -67,7 +67,7 @@ int prescreen(char *app_sn, char *app_data_date, char *jcic_data_date,
  return (0);
 }
 //---------------------------------------------------------------------------
-int optimal_cal(char *app_sn, char *app_data_date, char *jcic_data_date,
+int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                 char *app_data_time, int tsn, char *ole_db, char *error_msg)
 {
  TADOHandler *dbhandle;
@@ -79,10 +79,12 @@ int optimal_cal(char *app_sn, char *app_data_date, char *jcic_data_date,
  try {
     dbhandle = new TADOHandler();
     dbhandle->OpenDatabase(ole_db);
-    ptrLoan = new Loan(app_sn, app_data_date, dbhandle);
-//    ptrLoan->validate();
-//    ptrLoan->Init_Maintenance(dbhandle);
-    ptrLoan->calculate_pd(dbhandle);
+    ptrLoan = new Loan(app_sn, app_data_time, dbhandle);
+    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+    dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
+    ptrLoan->calculate_pd(ts_data_date, dbhandle);
 //    ptrLoan->get_pd(idn, dbhandle);
 //    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
@@ -121,21 +123,9 @@ int optimal_cal(char *app_sn, char *app_data_date, char *jcic_data_date,
 }
 
 //---------------------------------------------------------------------------
-int designated_cal(char *app_sn, int tsn, char *ole_db, char *error_msg)
-{
- return(0);
-
-}
-//---------------------------------------------------------------------------
-int conversion_cal(char *app_sn, int tsn, char *ole_db, char *error_msg)
-{
- return(0);
-
-}
-
-//---------------------------------------------------------------------------
-int prescreen_gx_conn(char *app_sn, char *app_data_date, char *jcic_data_date,
-                 char *ole_db, char *error_msg, TADOHandler *dbhandle)
+int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, int tsn, char *ole_db, char *error_msg,
+                TADOHandler *dbhandle)
 {
 // TADOHandler *dbhandle;
  Loan *ptrLoan;
@@ -146,18 +136,20 @@ int prescreen_gx_conn(char *app_sn, char *app_data_date, char *jcic_data_date,
  try {
 //    dbhandle = new TADOHandler();
 //    dbhandle->OpenDatabase(ole_db);
-    ptrLoan = new Loan(app_sn, app_data_date, dbhandle);
-//    ptrLoan->validate();
-//    ptrLoan->Init_Maintenance(dbhandle);
-    ptrLoan->calculate_pd(dbhandle);
+    ptrLoan = new Loan(app_sn, app_data_time, dbhandle);
+//    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+    dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
+    ptrLoan->calculate_pd(ts_data_date, dbhandle);
 //    ptrLoan->get_pd(idn, dbhandle);
 //    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
  } catch (Loan::DataEx &DE){
      strcpy (error_msg, DE.message.c_str());
      delete ptrLoan;
-     dbhandle->CloseDatabase();
-     delete dbhandle;
+//     dbhandle->CloseDatabase();
+//     delete dbhandle;
      return (-1);
  } catch (Loan::RiskEx &RE){
      strcpy (error_msg, RE.message.c_str());
@@ -170,22 +162,38 @@ int prescreen_gx_conn(char *app_sn, char *app_data_date, char *jcic_data_date,
      */
      dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
      delete ptrLoan;
-     dbhandle->CloseDatabase();
-     delete dbhandle;
+//     dbhandle->CloseDatabase();
+//     delete dbhandle;
      return (-RE.pb);
  } catch (Exception &E) {
      strcpy (error_msg, E.Message.c_str());
      delete ptrLoan;
-     dbhandle->CloseDatabase();
-     delete dbhandle;
+//     dbhandle->CloseDatabase();
+//     delete dbhandle;
      return (-1);
  }
  strcpy (error_msg, Message.c_str());
  delete ptrLoan;
 // dbhandle->CloseDatabase();
 // delete dbhandle;
- return (0);
+ return(0);
 }
+
+//---------------------------------------------------------------------------
+int designated_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, int tsn, char *ole_db, char *error_msg)
+{
+ return(0);
+
+}
+//---------------------------------------------------------------------------
+int conversion_cal(char *app_sn, int tsn, char *ole_db, char *error_msg)
+{
+ return(0);
+
+}
+
+//---------------------------------------------------------------------------
 /*
 int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *error_msg)
 {

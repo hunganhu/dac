@@ -42,6 +42,19 @@ char *SQLCommands[] = {
 " insert into prescreen(app_sn, app_date, jcic_date, product_type, code, reason)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5);",
 
+/* Update_Loan_Del_Number*/
+"  update #tf_ploan_cal"
+"     set loan_del_number_6m ="
+"     (select isnull(a.loan1_interest_payment6,0) + isnull(a.loan2_interest_payment6,0) + isnull(a.loan3_interest_payment6,0)"
+"     + isnull(a.loan1_interest_payment5,0) + isnull(a.loan2_interest_payment5,0) + isnull(a.loan3_interest_payment5,0)"
+"     + isnull(a.loan1_interest_payment4,0) + isnull(a.loan2_interest_payment4,0) + isnull(a.loan3_interest_payment4,0)"
+"     + isnull(a.loan1_interest_payment3,0) + isnull(a.loan2_interest_payment3,0) + isnull(a.loan3_interest_payment3,0)"
+"     + isnull(a.loan1_interest_payment2,0) + isnull(a.loan2_interest_payment2,0) + isnull(a.loan3_interest_payment2,0)"
+"     + isnull(a.loan1_interest_payment1,0) + isnull(a.loan2_interest_payment1,0) + isnull(a.loan3_interest_payment1,0)"
+"     from ts a"
+"     where app_sn = :v0"
+"       and data_time = :v1)",
+
 /*Write_PLoan_Result*/
 " insert into ploan_result(case_sn, idn, dac_sn, application_date,  return_msg, ev, pb, checksum1, checksum2)"
 "  values (:v0, :v1, :v2, :v3, :v4, %16.2f, %10.6f, %10.6f, %10.6f);",

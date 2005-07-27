@@ -9,11 +9,10 @@
 #include "ploanSQL.h"
 #include "functions.h"
 #include "attrition.h"
+#include "commission.h"
 // Constants used in the program.
 const char *expire_date = "21001231";
 const double m1_to_m7_ratio = 5.0;
-const double YearMonths = 12.0;
-const double YearDays = 365.0;
 
 //---------------------------------------------------------------------------
 
@@ -21,6 +20,18 @@ const double YearDays = 365.0;
 
 Loan::Loan (char * appSN, char* appDate, TADOHandler *handler):
     app_sn(appSN), app_date(appDate), product_type_ind(0),
+    gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
+    principal_ind(0), int_rate_ind(0), teaser_rate_ind(0), periods_ind(0),
+    teaser_period_ind(0), grace_period_ind(0), application_fee_ind(0),
+    credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
+    sales_channel_ind(0), risk_level_ind(0)
+{
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+}
+//---------------------------------------------------------------------------
+Loan::Loan (char * appSN, char* appDate, char* tsDate, TADOHandler *handler):
+    app_sn(appSN), app_date(appDate), ts_date(tsDate), product_type_ind(0),
     gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
     principal_ind(0), int_rate_ind(0), teaser_rate_ind(0), periods_ind(0),
     teaser_period_ind(0), grace_period_ind(0), application_fee_ind(0),
@@ -254,12 +265,12 @@ String Loan::error ()
  return Message;
 }
 //---------------------------------------------------------------------------
-double Loan::get_product_type ()
+int Loan::get_product_type ()
 {
  return product_type;
 }
 //---------------------------------------------------------------------------
-double Loan::get_code ()
+int Loan::get_code ()
 {
  return code;
 }
@@ -318,13 +329,13 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 
     if (jas002_defect > 0) {
        Message = "拒絕 [有退票強停拒往授信異常等記錄]"; code = 103;
-    } else if (app_max_bucket > 3)
+    } else if (app_max_bucket > 3) {
        Message = "拒絕 [信用卡有90天以上遲繳記錄]"; code = 104;
-    } else if (fs044 > 0)
-       Message = "拒絕 [貸款有遲繳記錄]"; code = 105));
-    } else if (cash_max_bucket > 0)
+    } else if (fs044 > 0) {
+       Message = "拒絕 [貸款有遲繳記錄]"; code = 105;
+    } else if (cash_max_bucket > 0) {
        Message = "拒絕 [現金卡前期有遲繳記錄]"; code = 106;
-    } else if (delinquent_months > 3)
+    } else if (delinquent_months > 3) {
        Message = "拒絕 [貸款有90天以上遲繳記錄]"; code = 107;
     }
  } catch (Exception &E) {
@@ -333,80 +344,22 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 }
 
 //---------------------------------------------------------------------------
-void Loan::calculate_pd(TADOHandler *handler)
+void Loan::calculate_pd(char *ts_data_date, TADOHandler *handler)
 {
- Variant hostVars[5];
- avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
-    handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
-    hostVars[0] = app_sn;
-    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 0);
-
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
-    handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_prepare_jcic_data]);
-    hostVars[0] = app_sn;
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 0);
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
-
-//    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
-    handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
-//    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_loan_prescreen]);
-//    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_loan_prescreen]);
-
-    hostVars[0] = app_sn;
-    handler->ExecSQLQry(SQLCommands[Get_Filter_Result], hostVars, 0, ds);
-    ds->First();
-    if (!ds->Eof) {
-       jas002_defect = ds->FieldValues["jas002_defect"];
-       krm001_hit = ds->FieldValues["krm001_hit"];
-       krm023_hit = ds->FieldValues["krm023_hit"];
-       bam085_hit = ds->FieldValues["krm023_hit"];
-       app_max_bucket = ds->FieldValues["app_max_bucket"];
-       fs044 = ds->FieldValues["fs044"];
-       delinquent_months = ds->FieldValues["fs334"];
-       cash_max_bucket = ds->FieldValues["fs302"];
-       ind001 = ds->FieldValues["ind001"];
-       ms080 = ds->FieldValues["ms080"];
-    }
-
-    if (krm023_hit == 1 && krm001_hit == 1 && ind001 == 0) {
+    handler->ExecSQLCmd(SQLCommands[Update_Loan_Del_Number]);
+    if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0)
        handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_ploan_model]);
-    }
-    else if (bam085_hit == 1 && ms080 <=0) {
-       handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_no_payment]);
-    }
-    else if (bam085_hit == 1 && ms080 >0) {
-       handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_with_payment]);
-    }
-    else {
-       handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_demographic_model]);
-    }
-    handler->ExecSQLCmd(SQLCommands[Update_Prescreen_Output]);
-/*
-    if (jas002_defect > 0)
-       throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
-    else if (app_max_bucket > 3)
-       throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
-    else if (fs044 > 0)
-       throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
-    else if (cash_max_bucket > 0)
-       throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
-    else if (delinquent_months > 3)
-       throw (RiskEx ("拒絕 [貸款有90天以上遲繳記錄]", 107));
-*/
-//    handler->ExecSQLCmd(SQLCommands[Insert_Intermediate_Table]);
+    else if (bam085_hit == 1 && ms080 <= 0)
+             handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_no_payment]);
+         else if (bam085_hit == 1 && ms080 > 0)
+                 handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_with_payment]);
+              else
+                 handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_demographic_model]);
+
 #ifdef _WRFLOW
     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
-    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-/*
-    handler->ExecSQLQry(SQLCommands[Get_PD], ds);
-    ds->First();
-    if (!ds->Eof) {
-       rscore = ds->FieldValues["rscore"];
-       pd = ds->FieldValues["pd"];
-    }
-*/
  } catch (Exception &E) {
      throw;
    }
@@ -541,11 +494,12 @@ void Loan::npv_init()
 //---------------------------------------------------------------------------
 void Loan::set_apr()
 {
-  int j = 0;
   apr[0] = 0.0;
-  for (iter1 = rateList.begin(); iter1 != rateList.end(); ++iter1) {
-      for (int i = 0; i < (*iter1).get_period(); i++)
-          apr[++j] = (*iter1).get_rate() / 12.0;           // convert APR to monthly rate.
+  for (int i = 1; i <= periods; i++) {
+      if (i > teaser_period)
+          apr[i] = int_rate / 12.0;
+      else
+          apr[i] = teaser_rate / 12.0;  // convert APR to monthly rate
   }
 }
 
@@ -660,7 +614,7 @@ double Loan::set_interest_revenue()
 double Loan::set_late_fee()
 {
   for (int i = 1; i <= periods; i++)
-     late_fee[i] = os_principal[i-1] * apr[i] * YearMonths / YearDays *
+     late_fee[i] = os_principal[i-1] * apr[i] * 12.0 / 365.0 *
                   (m1_attrition[i] * m1_recovery_ratio * m1_avg_late_days * m1_penalty_rate +
                    involuntary_attrition[i] * m6_recovery_ratio * m6_avg_late_days * m6_penalty_rate);
 
@@ -687,12 +641,19 @@ double Loan::set_early_closing_fee()
 double Loan::set_interest_cost()
 {
   for (int i = 1; i <= periods; i++)
-     interest_cost[i] = os_principal[i-1] * open_attrition[i-1] * leverage_ratio * cof / YearMonths;
+     interest_cost[i] = os_principal[i-1] * open_attrition[i-1] * leverage_ratio * cof / 12.0;
   return (NetPresentValue(roe / 12.0, interest_cost + 1, periods, ptEndOfPeriod)
           + interest_cost[0]);
 }
 
 // Commission:
+double Loan::calculate_commission()
+{
+  for (int i = 1; i <= periods; i++)
+     account_management_cost[i] = acct_mgmt_cost * open_attrition[i-1];
+  return (NetPresentValue(roe / 12.0, account_management_cost + 1, periods, ptEndOfPeriod)
+          + account_management_cost[0]);
+}
 // Account Management Cost
 double Loan::set_account_management_cost()
 {
@@ -710,7 +671,7 @@ double Loan::set_account_management_cost()
 //---------------------------------------------------------------------------
 double Loan::set_precollection_cost()
 {
-  double monthly_pd = pd / YearMonths;
+  double monthly_pd = pd / 12.0;
   double m1Open = monthly_pd * m1_to_m7_ratio;
   double d4Open = m1Open * m1_to_m7_ratio;
   double phone_expense;
@@ -740,7 +701,7 @@ double Loan::set_precollection_cost()
 */
 double Loan::set_collection_cost()
 {
-  double monthly_pd = pd / YearMonths;
+  double monthly_pd = pd / 12.0;
   double legal_expense;
   double legal_detain_ratio;
 
@@ -797,7 +758,7 @@ double Loan::set_working_capital()
 // Credit loss:
 double Loan::set_credit_loss()
 {
- double discount_rate = 1 / pow((1 + roe / YearMonths),legal_action_period);
+ double discount_rate = 1 / pow((1 + roe / 12.0),legal_action_period);
  credit_loss [0] = 0.0;
  for (int i = 1; i <= periods; i++) {
     credit_loss [i] = -os_principal[i-1]* involuntary_attrition[i] *

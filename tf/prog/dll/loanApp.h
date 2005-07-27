@@ -1,5 +1,4 @@
 //---------------------------------------------------------------------------
-
 #ifndef loanAppH
 #define loanAppH
 
@@ -13,30 +12,13 @@ using namespace std;
 const int TERM = 120;
 
 //---------------------------------------------------------------------------
-class Rate {
-  private:
-    double int_rate;
-    int    period;
-    int    segment;
-    int    int_rate_ind;
-    int    period_ind;
-  public:
-    Rate (double interest, int month, int seg, int rate_ind, int month_ind):
-     int_rate(interest), period(month), segment(seg), int_rate_ind(rate_ind), period_ind(month_ind) {}
-    ~Rate() {};
-    double get_rate() {return int_rate;}
-    int    get_period() {return period;}
-    int    get_segment() {return segment;}
-    int    get_rate_ind() {return int_rate_ind;}
-    int    get_period_ind() {return period_ind;}
-};
-//---------------------------------------------------------------------------
 class Loan {
   private:
     /* application information */
     String app_sn;                  // 案件編號
     String app_date;                // 申請日期YYYYMMDDHHmm
     String jcic_date;               // JCIC 查詢日期YYYYMMDD
+    String ts_date;                 // Taishin internal credit data date YYYYMMDD
     int product_type;               // 產品代號(1 為國民信貸; 2 為卡好借)
     int gender;                     // 0為女性; 1為男性
     String zip;                     // 三位郵遞區號
@@ -98,8 +80,6 @@ class Loan {
 
     /* cash flow arrays to calculate NPV */
     String Message;
-    list<Rate> rateList;
-    list<Rate>::iterator iter1;
     int district;
     double pd;
     double rscore;
@@ -172,6 +152,7 @@ class Loan {
     double set_late_fee();
     double set_early_closing_fee();
     double set_interest_cost();
+    double calculate_commission();
     double set_account_management_cost();
     double set_precollection_cost();
     double set_collection_cost();
@@ -195,14 +176,18 @@ class Loan {
              message = msg;
           }
     };
-    Loan (char * appNo, char* appDate, TADOHandler *handler);
+    Loan (char * appSN, char* appDate, TADOHandler *handler);
+    Loan (char * appSN, char* appDate, char* tsDate, TADOHandler *handler);
+
     ~Loan ();
     void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
     void loan_validate(char * appNo, int tsn, TADOHandler *handler);
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
-    void calculate_pd(TADOHandler *handler);
+    void calculate_pd(char *ts_data_date, TADOHandler *handler);
     void calculate_npv();
+    int  get_product_type();
+    int  get_code();
     double get_rscore ();
     double get_pd ();
     double get_npv ();
