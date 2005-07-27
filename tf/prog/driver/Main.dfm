@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 248
-  Top = 236
+  Left = 191
+  Top = 565
   Width = 696
   Height = 401
   Caption = 'TF Approval Module'
