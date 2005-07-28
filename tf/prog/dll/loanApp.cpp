@@ -368,9 +368,6 @@ void Loan::calculate_rscore(TADOHandler *handler)
               else
                  handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_demographic_model]);
 
-#ifdef _WRFLOW
-    handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
-#endif
  } catch (Exception &E) {
      throw;
    }
@@ -378,25 +375,142 @@ void Loan::calculate_rscore(TADOHandler *handler)
 //---------------------------------------------------------------------------
 void Loan::calculate_pd(TADOHandler *handler)
 {
-/*
  Variant hostVars[5];
+ double mp_r, amortization_rate, ln001;
+ int    ms082, score_card, index, jindex;
  try {
     hostVars[0] = app_sn;
-    hostVars[1] = ts_date;
-    handler->ExecSQLCmd(SQLCommands[Update_Loan_Del_Number], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Calculate_Loan_Del_Number]);
-    if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0)
-       handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_ploan_model]);
-    else if (bam085_hit == 1 && ms080 <= 0)
-             handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_no_payment]);
-         else if (bam085_hit == 1 && ms080 > 0)
-                 handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_with_payment]);
-              else
-                 handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_demographic_model]);
+    handler->ExecSQLQry(SQLCommands[Get_PB_Input], hostVars, 0, ds);
+    ds->First();
+    if (!ds->Eof) {
+       score_card = ds->FieldValues["score_card"];
+       switch (score_card) {
+          case 0: // screen out
+                 pd = 0.9;
+                 break;
+          case 1: // A2, full JCIC
+                 index = ds->FieldValues["twentile"];
+                 ms082 = ds->FieldValues["ms082"];
+                 ln001 = ds->FieldValues["LN001_12m_r_tran3"];
+                 if (ln001 <= 0)            jindex = 0;
+                 else if (ln001 <= 15.61)   jindex = 1;
+                 else if (ln001 <= 31.497)  jindex = 2;
+                 else if (ln001 <= 38.199)  jindex = 3;
+                 else if (ln001 <= 43.051)  jindex = 4;
+                 else if (ln001 <= 47.65)   jindex = 5;
+                 else if (ln001 <= 51.463)  jindex = 6;
+                 else if (ln001 <= 55.759)  jindex = 7;
+                 else if (ln001 <= 59.639)  jindex = 8;
+                 else if (ln001 <= 63.923)  jindex = 9;
+                 else if (ln001 <= 68.975)  jindex = 10;
+                 else if (ln001 <= 74.229)  jindex = 11;
+                 else if (ln001 <= 79.992)  jindex = 12;
+                 else if (ln001 <= 86.552)  jindex = 13;
+                 else if (ln001 <= 96.399)  jindex = 14;
+                 else if (ln001 <= 110.635) jindex = 15;
+                 else if (ln001 <= 133.281) jindex = 16;
+                 else                       jindex = 17;
+                 pd =  a2_PB[index][jindex];
+                 break;
+          case 2: // B1 ms080 > 0
+                 index = ds->FieldValues["twentile"];
+                 pd =  b1_PB[index];
+                 break;
+          case 3: // B2 ms080 <= 0
+                 index = ds->FieldValues["twentile"];
+                 ms082 = ds->FieldValues["ms082"];
+                 amortization_rate = ds->FieldValues["amoritization_rate"];
+                 mp_r = pow((principal * amortization_rate + ms082 * 1000.0), 0.5);
+                 if (mp_r <= 0)            jindex = 0;
+                 else if (mp_r <= 34.986)  jindex = 1;
+                 else if (mp_r <= 56.385)  jindex = 2;
+                 else if (mp_r <= 62.896)  jindex = 3;
+                 else if (mp_r <= 63.04)   jindex = 4;
+                 else if (mp_r <= 69.507)  jindex = 5;
+                 else if (mp_r <= 72.327)  jindex = 6;
+                 else if (mp_r <= 74.065)  jindex = 7;
+                 else if (mp_r <= 74.663)  jindex = 8;
+                 else if (mp_r <= 81.244)  jindex = 9;
+                 else if (mp_r <= 83.254)  jindex = 10;
+                 else if (mp_r <= 87.461)  jindex = 11;
+                 else if (mp_r <= 101.572) jindex = 12;
+                 else                      jindex = 13;
+                 pd =  b2_PB[index][jindex];
+                 break;
+          case 4: // Demographic
+                 index = ds->FieldValues["twentile"];
+                 pd =  demo_PB[index];
+                 break;
+       }
+    hostVars[0] = pd;
+    hostVars[1] = app_sn;
+    handler->ExecSQLCmd(SQLCommands[Write_PB_Result], hostVars, 1);
+    }
  } catch (Exception &E) {
      throw;
-   }
-   */
+ }
+}
+//---------------------------------------------------------------------------
+double Loan::calculate_pb(int line, int index, double amortization_rate, int ms082, int score_card)
+{
+ double mp_r, pb;
+ int    jindex;
+ try {
+       switch (score_card) {
+          case 0: // screen out
+                 pb = 0.9;
+                 break;
+          case 1: // A2, full JCIC
+                 mp_r = pow((line * amortization_rate + ms082 * 1000.0), 0.5);
+                 if (mp_r <= 0)            jindex = 0;
+                 else if (mp_r <= 15.61)   jindex = 1;
+                 else if (mp_r <= 31.497)  jindex = 2;
+                 else if (mp_r <= 38.199)  jindex = 3;
+                 else if (mp_r <= 43.051)  jindex = 4;
+                 else if (mp_r <= 47.65)   jindex = 5;
+                 else if (mp_r <= 51.463)  jindex = 6;
+                 else if (mp_r <= 55.759)  jindex = 7;
+                 else if (mp_r <= 59.639)  jindex = 8;
+                 else if (mp_r <= 63.923)  jindex = 9;
+                 else if (mp_r <= 68.975)  jindex = 10;
+                 else if (mp_r <= 74.229)  jindex = 11;
+                 else if (mp_r <= 79.992)  jindex = 12;
+                 else if (mp_r <= 86.552)  jindex = 13;
+                 else if (mp_r <= 96.399)  jindex = 14;
+                 else if (mp_r <= 110.635) jindex = 15;
+                 else if (mp_r <= 133.281) jindex = 16;
+                 else                      jindex = 17;
+                 pb =  a2_PB[index][jindex];
+                 break;
+          case 2: // B1 ms080 > 0
+                 pb =  b1_PB[index];
+                 break;
+          case 3: // B2 ms080 <= 0
+                 mp_r = pow((line * amortization_rate + ms082 * 1000.0), 0.5);
+                 if (mp_r <= 0)            jindex = 0;
+                 else if (mp_r <= 34.986)  jindex = 1;
+                 else if (mp_r <= 56.385)  jindex = 2;
+                 else if (mp_r <= 62.896)  jindex = 3;
+                 else if (mp_r <= 63.04)   jindex = 4;
+                 else if (mp_r <= 69.507)  jindex = 5;
+                 else if (mp_r <= 72.327)  jindex = 6;
+                 else if (mp_r <= 74.065)  jindex = 7;
+                 else if (mp_r <= 74.663)  jindex = 8;
+                 else if (mp_r <= 81.244)  jindex = 9;
+                 else if (mp_r <= 83.254)  jindex = 10;
+                 else if (mp_r <= 87.461)  jindex = 11;
+                 else if (mp_r <= 101.572) jindex = 12;
+                 else                      jindex = 13;
+                 pb =  b2_PB[index][jindex];
+                 break;
+          case 4: // Demographic
+                 pb =  demo_PB[index];
+                 break;
+       }
+ } catch (Exception &E) {
+     throw;
+ }
+ return (pb);
 }
 //---------------------------------------------------------------------------
 void Loan::postFilter()

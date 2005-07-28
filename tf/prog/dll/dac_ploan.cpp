@@ -85,7 +85,10 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     ptrLoan->calculate_rscore(dbhandle);
-//    ptrLoan->get_pd(idn, dbhandle);
+//    ptrLoan->calculate_pd(dbhandle);
+#ifdef _WRFLOW
+     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
 //    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
  } catch (Loan::DataEx &DE){
@@ -142,9 +145,12 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     ptrLoan->calculate_rscore(dbhandle);
-//    ptrLoan->get_pd(idn, dbhandle);
+//    ptrLoan->calculate_pd(dbhandle);
 //    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
+#ifdef _WRFLOW
+     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
  } catch (Loan::DataEx &DE){
      strcpy (error_msg, DE.message.c_str());
@@ -167,7 +173,11 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
 //     delete dbhandle;
      return (-RE.pb);
  } catch (Exception &E) {
+#ifdef _WRFLOW
+     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
      strcpy (error_msg, E.Message.c_str());
+     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
      delete ptrLoan;
 //     dbhandle->CloseDatabase();
 //     delete dbhandle;

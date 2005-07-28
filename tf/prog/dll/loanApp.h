@@ -159,6 +159,8 @@ class Loan {
     double set_collection_cost();
     double set_working_capital();
     double set_credit_loss();
+    double calculate_pb(int line, int index, double amortization_rate,
+                        int ms082, int score_card);
 
   public:
     class RiskEx {
