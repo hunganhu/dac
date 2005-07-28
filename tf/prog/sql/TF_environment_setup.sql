@@ -4,6 +4,7 @@
 USE master
 GO
 CREATE DATABASE TESTDACDB
+/*
 ON 
 ( NAME = TESTDACDB_dat,
    FILENAME = 'c:\program files\microsoft sql server\mssql\data\testdacdbdat.mdf',
@@ -14,6 +15,7 @@ LOG ON
    FILENAME = 'c:\program files\microsoft sql server\mssql\data\testdacdblog.ldf',
    SIZE = 100MB,
    FILEGROWTH = 10MB )
+*/
 GO
 
 /*
@@ -25,7 +27,7 @@ go
 
 /* create JCIC tables */  
 create table krm023 (
-	app_sn		char(12) not null,
+	app_sn		nvarchar(10) not null,
 	data_time	char(8) not null,
 	yrmon 		char (5),
 	issue 		char (3),
@@ -40,7 +42,7 @@ create index i_krm023 on krm023(app_sn, data_time);
 go
 
 create table krm001 (
-	app_sn		char(12) not null,
+	app_sn		nvarchar(10) not null,
 	data_time	char(8) not null,
 	card_brand 	char (1),
 	card_type 	char (1),
@@ -57,7 +59,7 @@ create index i_krm001 on krm001(app_sn, data_time);
 go
 
 create table bam082 (
-	app_sn		char(12) not null,
+	app_sn		nvarchar(10) not null,
 	data_time	char(8) not null,
 	data_yyy 	char (5),
 	data_mm 	char (2),
@@ -76,8 +78,8 @@ create index i_bam082 on bam082(app_sn, data_time);
 go
 
 create table bam101 (
-	app_sn		char(11),
-	data_time	char(8),
+	app_sn		nvarchar(10) not null,
+	data_time	char(8) not null,
 	data_yyy	char(3),
 	data_mm		char(2),
 	wecdj_amt	int,
@@ -96,8 +98,8 @@ create index i_bam101 on bam101(app_sn, data_time);
 go
 
 create table jas002 (
-	app_sn		char(12),
-	data_time	char(8),
+	app_sn		nvarchar(10) not null,
+	data_time	char(8) not null,
 	ever_delinquent	char(1),
 	delinquent_date	char(7),
 	ever_bad_check	char(1),
@@ -112,7 +114,7 @@ create index i_jas002 on jas002(app_sn, data_time);
 go
 
 create table stm001 (
-	app_sn		char(12) not null,
+	app_sn		nvarchar(10) not null,
 	data_time	char(8) not null,
 	query_date 	char (7),
 	bank_code 	char (7),
@@ -124,7 +126,7 @@ go
 
 /* create INPUT tables */  
 create table ts (
-	app_sn		char(12) not null,
+	app_sn		nvarchar(10) not null,
 	data_time	char(8) not null,
 	loan1_payment1	int,
 	loan1_payment2	int,
@@ -149,14 +151,14 @@ alter table ts add constraint p_ts primary key (app_sn, data_time);
 go
 
 create table app_info (
-	app_sn		char(12) not null,
-	data_time	char(8) not null,
-	product_type	int not null,
-	gender		int not null,
+	app_sn		nvarchar(10) not null,
+	data_time	char(12) not null,
+	product_type	int not null check (product_type in (1, 2)),
+	gender		int not null check (gender in (0, 1)),
 	zip		char(3) not null,
-	secretive	int not null,
-	edu		int not null,
-	marriage_status	int not null,
+	secretive	int not null check (secretive in (0, 1)),
+	edu		int not null check (edu in (1, 2, 3, 4, 5, 6)),
+	marriage_status	int not null check (marriage_status in (1, 2, 3, 4)),
 	cof		decimal(5,4) not null,
 	roe		decimal(5,4) not null,
 	ts_tax_rate	decimal(5,4) not null,
@@ -164,14 +166,16 @@ create table app_info (
 	info_porcessing_cost	int not null,
 	operation_cost	int not null,
 	hr_cost		int not null,
-	commission	int not null
+	risk_level	int not null check (risk_level in (1, 2)),
+	sales_channel	char(3) not null,
+	commission	int not null default 0
 );
 alter table app_info add constraint p_app_info primary key(app_sn, data_time); 
 go
 
 create table loan_condition (
-	app_sn		char(12) not null,
-	tsn		int not null,
+	app_sn		nvarchar(10) not null,
+	tsn		char(12) not null,
 	loan_amount	int not null,
 	apr		float not null,
 	terms		int not null,
@@ -181,56 +185,59 @@ create table loan_condition (
 	risk_mgmt_fee_terms	int not null,
 	teaser_rate	decimal(5,4) not null,
 	teaser_period	int not null,
-	grace_period	int not null,
-	sales_channel	char(3) not null
+	grace_period	int not null
 );
 alter table loan_condition add constraint p_loan_condition primary key (app_sn, tsn); 
 go
 
 /* create OUTPUT tables */
 create table prescreen (
-	app_sn		char(12) not null,
-	ts_date		char(8) not null,
+	app_sn		nvarchar(10) not null,
 	jcic_date	char(8) not null,
 	product_type	int not null,
 	code		int not null,
 	reason		char(256) not null
 );
-alter table prescreen add constraint p_prescreen primary key (app_sn, ts_date, jcic_date); 
+alter table prescreen add constraint p_prescreen primary key (app_sn, jcic_date); 
 go
 
 create table approval_cal (
-	app_sn		char(12) not null,
-	tsn		int not null,
+	app_sn		nvarchar(10) not null,
+	tsn		char(12) not null,
 	ts_date		char(8) not null,
 	jcic_date	char(8) not null,
-	product_type	int not null,
+	app_data_time	char(12) not null,
+	product_type	int not null check (product_type in (1, 2)),
 	optimal_amount	int not null,
 	pb		float not null,
 	npv		int not null,
 	optimal		int not null
 );
-alter table approval_cal add constraint p_approval_cal primary key (app_sn, tsn, ts_date, jcic_date); 
+alter table approval_cal add constraint p_approval primary key (app_sn, tsn, ts_date, jcic_date, app_data_time); 
 go
 
-create table conversion_cal (
-	app_sn		char(12) not null,
-	apr		float not null,
-	loan_amount	int not null,
-	terms		int not null,
-	product_type	int not null,
+create table decision_cal (
+	app_sn		nvarchar(10) not null,
+	tsn		char(12) not null,
+	ts_date		char(8) not null,
+	jcic_date	char(8) not null,
+	app_data_time	char(12) not null,
+	product_type	int not null check (product_type in (1, 2)),
+	decision	int not null check (decision in (0, 1)),
+	execution_time	char(12) not null,
 	pb		float not null,
 	npv		int not null
 );
-alter table conversion_cal add constraint p_conversion_cal primary key (app_sn); 
+alter table decision_cal add constraint p_decision primary key (app_sn, execution_time); 
 go
 create table app_r (
-	app_sn		char(12) not null,
-	product_type	int not null,
-	app_result	int not null,
-	system_date	char(8) not null
+	app_sn		nvarchar(10) not null,
+	product_type	int not null check (product_type in (1, 2)),
+	app_result	int not null check (app_result in (0, 1)),
+	taken_down	int not null check (taken_down in (0, 1)),
+	decision_date	char(8) not null
 );
-alter table app_r  add constraint p_app_r  primary key (app_sn); 
+alter table app_r add constraint p_app_r primary key (app_sn, decision_date); 
 go
 
 /* create MAINTENANCE tables*/
@@ -338,7 +345,7 @@ grant select, update on jas002 to dacusr1;
 grant select, update on stm001 to dacusr1;
 grant select, insert, delete, update on prescreen to dacusr1;
 grant select, insert, delete, update on approval_cal to dacusr1;
-grant select, insert, delete, update on conversion_cal to dacusr1;
+grant select, insert, delete, update on decision_cal to dacusr1;
 grant select, insert, delete, update on maintenance to dacusr1;
 grant select, insert, delete, update on maintenance_history to dacusr1;
 go
@@ -356,7 +363,7 @@ grant select, insert, delete, update on jas002 to csusr1;
 grant select, insert, delete, update on stm001 to csusr1;
 grant select on prescreen to csusr1;
 grant select on approval_cal to csusr1;
-grant select on conversion_cal to csusr1;
+grant select on decision_cal to csusr1;
 grant select, insert, delete, update on app_r to csusr1;
 go
 
@@ -373,7 +380,7 @@ grant select on jas002 to dacusr2;
 grant select on stm001 to dacusr2;
 grant select on prescreen to dacusr2;
 grant select on approval_cal to dacusr2;
-grant select on conversion_cal to dacusr2;
+grant select on decision_cal to dacusr2;
 grant select on app_r to dacusr2;
 go
  
