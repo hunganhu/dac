@@ -238,13 +238,11 @@ void __fastcall TForm1::CheckBox1Click(TObject *Sender)
 void __fastcall TForm1::UnitTestClick(TObject *Sender)
 {
   TADOQuery *QueryW = ADOQuery2;
-//  TADOHandler *dbhandle;
-
   AnsiString sql_stmt, sql_stmt2;
-  AnsiString idn, app_sn;
-  int dac_sn=1;
-  char idn_ptr[12], app_sn_ptr[12], errMsg[255];
-  char ole_str[255];
+  AnsiString app_sn, app_date, ts_date, jcic_date;
+  int tsn=1;
+  char errMsg[257];
+  char ole_str[256];
   AnsiString oledbString;
   int status;
 
@@ -255,56 +253,41 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
   // Connect to Local DB
   // get data from input table, call validation function,
   // and write result to validation_result table.
-  oledbString = Edit1->Text;
-  idn = Edit2->Text;
-  app_sn = Edit3->Text;
-  dac_sn = Edit4->Text.ToInt();
-  *errMsg = '\0';
+  try {
+    if (ADOConnection1->Connected == false)
+      ADOConnection1->Open();
 
-   strcpy(idn_ptr, idn.c_str());
-   strcpy(app_sn_ptr, app_sn.c_str());
-   strcpy(ole_str, oledbString.c_str());
+    oledbString = Edit1->Text;
+    strcpy(ole_str, oledbString.c_str());
+    app_sn = Edit2->Text;
+    app_date = Edit3->Text;
+    jcic_date = Edit4->Text;
+    ts_date = app_date;
+    *errMsg = '\0';
 
-//    dbhandle = new TADOHandler();
-//    dbhandle->OpenDatabase(ole_str);
-//     status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-//                            ole_str, errMsg);
-//     status = prescreen_gx(app_sn_ptr, "", "", ole_str, errMsg);
+    status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                          tsn, ole_str, errMsg);
 
-  Label2->Caption = Edit2->Text;
-  Label3->Caption = Edit3->Text;
-  Label4->Caption = Edit4->Text;
-  Form1->Refresh();
+    Label2->Caption = Edit2->Text;
+    Label3->Caption = Edit3->Text;
+    Label4->Caption = Edit4->Text;
+    Form1->Refresh();
 
-        if (status < 0) {
-           sql_stmt2 = "insert into test_out (idn, return_msg) values ";
-           sql_stmt2 += "(:app_sn, :errMsg); ";
-           QueryW->Close();
-           QueryW->SQL->Clear();
-           QueryW->SQL->Add(sql_stmt2);
-           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
- //          QueryW->Parameters->ParamValues["idn"] = idn;
- //          QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
-           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
-           QueryW->ExecSQL();
-        }
-/*
-  if (status < 0) {
-           sql_stmt2 = "insert into test_out values ";
-           sql_stmt2 += "(:app_sn, :idn, :dac_sn, :errMsg); ";
-           QueryW->Close();
-           QueryW->SQL->Clear();
-           QueryW->SQL->Add(sql_stmt2);
-           QueryW->Parameters->ParamValues["app_sn"] = app_sn;
-           QueryW->Parameters->ParamValues["idn"] = idn;
-           QueryW->Parameters->ParamValues["dac_sn"] = dac_sn;
-           QueryW->Parameters->ParamValues["errMsg"] = errMsg;
-           QueryW->ExecSQL();
-            //write errMsg to table
+    if (status < 0) {
+       sql_stmt2 = "insert into test_out (idn, return_msg) values ";
+       sql_stmt2 += "(:app_sn, :errMsg); ";
+       QueryW->Close();
+       QueryW->SQL->Clear();
+       QueryW->SQL->Add(sql_stmt2);
+       QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+       QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+       QueryW->ExecSQL();
+    }
+    ADOConnection1->Connected=false;
   }
-*/
-//  dbhandle->CloseDatabase();
-//  delete  dbhandle;
+  catch (Exception &E) {
+     ShowMessage(AnsiString(E.ClassName())+ E.Message);
+  }
   CoUninitialize();
 
 }
@@ -326,6 +309,7 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
  Application->Terminate();
 }
 //---------------------------------------------------------------------------
+
 
 
 

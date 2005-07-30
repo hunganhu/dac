@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 191
-  Top = 565
-  Width = 696
-  Height = 401
+  Left = 1
+  Top = 392
+  Width = 683
+  Height = 351
   Caption = 'TF Approval Module'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,30 +29,30 @@ object Form1: TForm1
   object Label2: TLabel
     Left = 120
     Top = 264
-    Width = 14
+    Width = 41
     Height = 13
-    Caption = 'idn'
+    Caption = 'appDate'
   end
   object Label3: TLabel
     Left = 120
     Top = 248
-    Width = 41
+    Width = 33
     Height = 13
-    Caption = 'case_no'
+    Caption = 'appSN'
   end
   object Label4: TLabel
     Left = 120
     Top = 280
-    Width = 35
+    Width = 39
     Height = 13
-    Caption = 'dac_sn'
+    Caption = 'jcicDate'
   end
   object Label5: TLabel
     Left = 40
     Top = 88
-    Width = 37
+    Width = 55
     Height = 20
-    Caption = 'IDN:'
+    Caption = 'appSN'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
@@ -61,11 +61,11 @@ object Form1: TForm1
     ParentFont = False
   end
   object Label6: TLabel
-    Left = 192
+    Left = 208
     Top = 88
-    Width = 77
+    Width = 70
     Height = 20
-    Caption = 'Case NO:'
+    Caption = 'appDate'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
@@ -74,11 +74,11 @@ object Form1: TForm1
     ParentFont = False
   end
   object Label7: TLabel
-    Left = 376
+    Left = 368
     Top = 88
-    Width = 67
+    Width = 66
     Height = 20
-    Caption = 'Dac SN:'
+    Caption = 'jcicDate'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
@@ -123,9 +123,9 @@ object Form1: TForm1
   object Label9: TLabel
     Left = 48
     Top = 248
-    Width = 53
+    Width = 49
     Height = 16
-    Caption = 'Case #:'
+    Caption = 'appSN'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -136,9 +136,9 @@ object Form1: TForm1
   object Label10: TLabel
     Left = 48
     Top = 264
-    Width = 31
+    Width = 61
     Height = 16
-    Caption = 'IDN:'
+    Caption = 'appDate'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -151,7 +151,7 @@ object Form1: TForm1
     Top = 280
     Width = 58
     Height = 16
-    Caption = 'Dac SN:'
+    Caption = 'jcicDate'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -213,9 +213,8 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 1
     Text = 
-      'Provider=SQLOLEDB.1;OLE DB Services = -2;Password=Emily1013;Pers' +
-      'ist Security Info=True;User ID=sa;Initial Catalog=TF_TEST;Data S' +
-      'ource=OLIVER\DAISY'
+      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
+      'e;User ID=sa;Initial Catalog=TF_TEST;Data Source=OLIVER\DAISY'
   end
   object CheckBox1: TCheckBox
     Left = 40
@@ -227,7 +226,7 @@ object Form1: TForm1
     OnClick = CheckBox1Click
   end
   object Edit2: TEdit
-    Left = 80
+    Left = 96
     Top = 88
     Width = 105
     Height = 21
@@ -256,9 +255,9 @@ object Form1: TForm1
     OnClick = UnitTestClick
   end
   object Edit4: TEdit
-    Left = 448
+    Left = 432
     Top = 88
-    Width = 65
+    Width = 73
     Height = 21
     TabOrder = 6
     Text = '1'
@@ -295,9 +294,8 @@ object Form1: TForm1
   end
   object ADOConnection1: TADOConnection
     ConnectionString = 
-      'Provider=SQLOLEDB.1;OLE DB Services = -2;Password=Emily1013;Pers' +
-      'ist Security Info=True;User ID=sa;Initial Catalog=TF_TEST;Data S' +
-      'ource=OLIVER\DAISY'
+      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
+      'e;User ID=sa;Initial Catalog=TF_TEST;Data Source=OLIVER\DAISY'
     Provider = 'SQLOLEDB.1'
     Left = 416
     Top = 272
