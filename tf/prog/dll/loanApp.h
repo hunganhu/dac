@@ -67,7 +67,7 @@ class Loan {
     int risk_level_ind;
 
     /* Prefilter and postfilter variables */
-    int avail_flag;
+/*
     int jas002_defect;
     int krm001_hit;
     int krm023_hit;
@@ -78,7 +78,7 @@ class Loan {
     int delinquent_months;
     int ind001;
     int ms080;
-
+*/
     /* cash flow arrays to calculate NPV */
     String Message;
     int district;

@@ -294,9 +294,10 @@ double Loan::get_principal ()
 void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 {
  Variant hostVars[5];
+ int jas002_defect, fs044, app_max_bucket, cash_max_bucket, delinquent_months;
 
  jcic_date = inquiry_date;
- avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
+// avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
     hostVars[0] = app_sn;
     hostVars[1] = app_date;
@@ -315,19 +316,15 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
 
     hostVars[0] = app_sn;
-    handler->ExecSQLQry(SQLCommands[Get_Prescreen_Result], hostVars, 0, ds);
+    handler->ExecSQLQry("select jas002_defect, app_max_bucket, fs044, fs334, fs302 from tf_ploan_cal",
+                        ds);
     ds->First();
     if (!ds->Eof) {
        jas002_defect = ds->FieldValues["jas002_defect"];
-       krm001_hit = ds->FieldValues["krm001_hit"];
-       krm023_hit = ds->FieldValues["krm023_hit"];
-       bam085_hit = ds->FieldValues["krm023_hit"];
        app_max_bucket = ds->FieldValues["app_max_bucket"];
        fs044 = ds->FieldValues["fs044"];
        delinquent_months = ds->FieldValues["fs334"];
        cash_max_bucket = ds->FieldValues["fs302"];
-       ind001 = ds->FieldValues["ind001"];
-       ms080 = ds->FieldValues["ms080"];
     }
 
     if (jas002_defect > 0) {
@@ -354,11 +351,23 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 void Loan::calculate_rscore(TADOHandler *handler)
 {
  Variant hostVars[5];
+ float krm001_hit, krm023_hit, bam085_hit, ind001, ms080;
+
  try {
     hostVars[0] = app_sn;
     hostVars[1] = ts_date;
     handler->ExecSQLCmd(SQLCommands[Calculate_Loan_Del_Number], hostVars, 1);
-//    handler->ExecSQLCmd(SQLCommands[Update_Loan_Del_Number]);
+
+    hostVars[0] = app_sn;
+    handler->ExecSQLQry(SQLCommands[Get_Branch_Ind], hostVars, 0, ds);
+    ds->First();
+    if (!ds->Eof) {
+       ind001 = ds->FieldValues["ind001"];
+       krm001_hit = ds->FieldValues["krm001_hit"];
+       krm023_hit = ds->FieldValues["krm023_hit"];
+       bam085_hit = ds->FieldValues["krm023_hit"];
+       ms080 = ds->FieldValues["ms080"];
+    }
     if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0)
        handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_ploan_model]);
     else if (bam085_hit == 1 && ms080 <= 0)
@@ -513,6 +522,7 @@ double Loan::calculate_pb(int line, int index, double amortization_rate, int ms0
  return (pb);
 }
 //---------------------------------------------------------------------------
+/*
 void Loan::postFilter()
 {
  if (jas002_defect > 0)
@@ -526,7 +536,7 @@ void Loan::postFilter()
  else if (delinquent_months > 3)
     throw (RiskEx ("拒絕 [貸款有90 天以上遲繳記錄]", 107));
 }
-
+*/
 //---------------------------------------------------------------------------
 void Loan::calculate_npv()
 {
