@@ -1,6 +1,14 @@
 #ifndef economicH
 #define economicH
 //---------------------------------------------------------------------------
+//Economic model constants
+const double leverage_ratio = 1.00; //舉債比率（％）
+const double recovery_ratio = 0.011;// Net recovery ratio (M6 之後四個月),壞帳回收百分比, (資金損失 % (EAD) )
+const double D1_WRITEOFF = 14.259238730; //D1 to W/O ratio
+const double D1_FIX_COST = 337.36; //D1 Fixed cost
+const double LATE_PENALTY_RATIO = 0.1; //Late penalty ratio on unpaid interest
+const double LATE_30D_RATIO = 0.203896985; // tatio of 30 days late / original
+
 // GX product information
 const double GX_APP_FEE_RECEIVABLE = 4000.0;
 const double GX_TRANSFER_BONUS = 3000.0;

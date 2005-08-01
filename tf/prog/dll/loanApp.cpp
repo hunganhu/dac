@@ -82,6 +82,41 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
           marriage_status = ds->FieldValues["marriage_status"];
        else
           marriage_status_ind = -1;
+
+       if (! ds->FieldValues["cof"].IsNull())
+          cof = ds->FieldValues["cof"];
+       else
+          cof_ind = -1;
+
+       if (! ds->FieldValues["roe"].IsNull())
+          roe = ds->FieldValues["roe"];
+       else
+          roe_ind = -1;
+
+       if (! ds->FieldValues["ts_tax_rate"].IsNull())
+          ts_tax_rate = ds->FieldValues["ts_tax_rate"];
+       else
+          ts_tax_rate_ind = -1;
+
+       if (! ds->FieldValues["tf_tax_rate"].IsNull())
+          tf_tax_rate = ds->FieldValues["tf_tax_rate"];
+       else
+          tf_tax_rate_ind = -1;
+
+       if (! ds->FieldValues["info_processing_cost"].IsNull())
+          info_processing_cost = ds->FieldValues["info_processing_cost"];
+       else
+          info_processing_cost_ind = -1;
+
+       if (! ds->FieldValues["operation_cost"].IsNull())
+          operation_cost = ds->FieldValues["operation_cost"];
+       else
+          operation_cost_ind = -1;
+
+       if (! ds->FieldValues["hr_cost"].IsNull())
+          hr_cost = ds->FieldValues["hr_cost"];
+       else
+          hr_cost_ind = -1;
     }
 
   if (record_count == 0) {
@@ -113,6 +148,15 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
      success = false;
   }
 
+  if ((cof_ind == -1) || (cof < 0.0) || (cof > 1.0)) {
+     Message += "資金成本必須介於 0% 和 100%。";
+     success = false;
+  }
+
+  if ((roe_ind == -1) || (roe < 0.0) || (roe > 1.0)) {
+     Message += "股東權益報酬必須介於 0% 和 100%。";
+     success = false;
+  }
   if (!success) throw DataEx(Message);
  } catch (Exception &E) {
     throw;
@@ -540,89 +584,90 @@ void Loan::postFilter()
 //---------------------------------------------------------------------------
 void Loan::calculate_npv()
 {
-/*
   double revenue, cost, wc;
-  double Interest_Revenue, Late_Fee, Early_Closing_Fee, Application_Fee;
-  double Other_Fee, Interest_Cost, Acct_Mgmt_Cost, PreCollection_Cost;
+  double Interest_Revenue, Late_Fee, Open_Credit_Fee, Risk_Management_Fee;
+  double Interest_Cost, Acct_Mgmt_Cost, Taishin_Corp_Tax, TF_Corp_Tax;
   double Collection_Cost, Commission, Working_Capital, Credit_Loss;
 
   npv_init();
   set_apr();
   set_attrition();
-  if ((repayment == '1') || (repayment == '3'))    //(1:一般法;2:本息法;3:本金法)
-     set_amortize();
-  else
-     set_annuity();
-  Application_Fee = application_fee - query_fee;
-  Commission =  Application_Fee * commission_ratio;
+  set_annuity();  // 本息法
+  Commission =  calculate_commission();
   if (Commission < 0) Commission = 0;
+  // Revenue
   Interest_Revenue = set_interest_revenue();
   Late_Fee = set_late_fee();
-  Early_Closing_Fee = set_early_closing_fee();
-  Other_Fee = risk_mgmt_fee + acct_mgmt_fee + bt_fee;
+  Open_Credit_Fee = set_open_credit_revenue();
+  Risk_Management_Fee = set_risk_mgmt_revenue();
+
+  // Cost
   Interest_Cost = set_interest_cost();
   Acct_Mgmt_Cost = set_account_management_cost();
-  PreCollection_Cost = set_precollection_cost();
+  Taishin_Corp_Tax  = set_taishin_tax();
+  TF_Corp_Tax = set_tf_tax();
+//  PreCollection_Cost = set_precollection_cost();
   Collection_Cost = set_collection_cost();
-  Working_Capital = set_working_capital();
+//  Working_Capital = set_working_capital();
   Credit_Loss = set_credit_loss();
-  total_npv = (Interest_Revenue + Late_Fee + Early_Closing_Fee + Application_Fee
-               + Other_Fee)                            // Revenue
-              - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost
-               + Collection_Cost + Commission)         // Cost
-              + (Working_Capital + Credit_Loss);       // Working Capital
+  total_npv = (Interest_Revenue + Late_Fee + Open_Credit_Fee
+               + Risk_Management_Fee)                            // Revenue
+               - (Interest_Cost + Acct_Mgmt_Cost + Taishin_Corp_Tax + TF_Corp_Tax
+                  + Collection_Cost + Commission + Credit_Loss);         // Cost
+
 #ifdef _WRFLOW
      fstream outf;
      outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
 
-     outf << "Case SN: " << case_sn.c_str() << "   IDN: " << idn.c_str()
-          << "   Dac SN : " << dac_sn << endl;
-     outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr    M1_Atr  Base_Atr        "
-          << "OsPrinL        P_Repay        I_Repay         IntRev          LateF         "
-          << "EarlyF        IntCost       AcctCost         PreCol        Collect             "
-          << "WC        CreLoss" << endl;
-     outf << "========================================================================================================="
+     outf << "Case SN: " << app_sn.c_str() << "   appDate: " << app_date.c_str()
+          << "   jcicDate: " << jcic_date.c_str() << "   Commission: " << Commission << endl;
+     outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr  bad/open"
+          << "        OsPrinL        P_Repay        I_Repay         IntRev          LateF"
+          << " O_R_Fee  RiskF        IntCost       AcctCost     TaishinTax          TFTax"
+          << "        Collect     CreditLoss"  << endl;
+     outf << "==============================================================================================="
           << "======================================================================"
           << "======================================================================" << endl;
      outf <<  showpoint
-              << setw(79) << setprecision(8) << Application_Fee
-              << setw(15) << setprecision(8) << Other_Fee
-              << setw(15) << setprecision(8) << Commission
+              << setw(99) << setprecision(8) << "  "
               << setw(15) << setprecision(8) << Interest_Revenue
               << setw(15) << setprecision(8) << Late_Fee
-              << setw(15) << setprecision(8) << Early_Closing_Fee
+              << setw(7)  << setprecision(6) << Open_Credit_Fee
+              << setw(8)  << setprecision(7) << Risk_Management_Fee
               << setw(15) << setprecision(8) << Interest_Cost
               << setw(15) << setprecision(8) << Acct_Mgmt_Cost
-              << setw(15) << setprecision(8) << PreCollection_Cost
+              << setw(15) << setprecision(8) << Acct_Mgmt_Cost
+              << setw(15) << setprecision(8) << Taishin_Corp_Tax
+              << setw(15) << setprecision(8) << TF_Corp_Tax
               << setw(15) << setprecision(8) << Collection_Cost
-              << setw(15) << setprecision(8) << Working_Capital
               << setw(15) << setprecision(8) << Credit_Loss
               << endl;
-     for (int i = 0; i < periods + 4; i++) {
+     for (int i = 0; i < periods; i++) {
          outf << setprecision(8) << showpoint
               << setw(4)  << i
               << setw(10) << setprecision(4) << apr[i]
               << setw(10) << setprecision(4) << open_attrition[i]
               << setw(10) << setprecision(4) << voluntary_attrition[i]
               << setw(10) << setprecision(4) << involuntary_attrition[i]
-              << setw(10) << setprecision(4) << m1_attrition[i]
-              << setw(10) << setprecision(4) << base_attrition[i]
+              << setw(10) << setprecision(4) << bad_per_open[i]
               << setw(15) << setprecision(8) << os_principal[i]
               << setw(15) << setprecision(8) << principal_repayment[i]
               << setw(15) << setprecision(8) << interest_repayment[i]
               << setw(15) << setprecision(8) << interest_revenue[i]
               << setw(15) << setprecision(8) << late_fee[i]
-              << setw(15) << setprecision(8) << early_closing_fee[i]
+              << setw(7)  << setprecision(6) << open_credit_fee[i]
+              << setw(8)  << setprecision(7) << risk_mgmt_revenue[i]
               << setw(15) << setprecision(8) << interest_cost[i]
               << setw(15) << setprecision(8) << account_management_cost[i]
-              << setw(15) << setprecision(8) << precollection_cost[i]
+              << setw(15) << setprecision(8) << taishin_tax[i]
+              << setw(15) << setprecision(8) << tf_tax[i]
               << setw(15) << setprecision(8) << collection_cost[i]
-              << setw(15) << setprecision(8) << working_capital[i]
               << setw(15) << setprecision(8) << credit_loss[i]
               << endl;
      }
+
 #endif
-*/
+
 }
 //---------------------------------------------------------------------------
 void Loan::npv_init()
@@ -632,19 +677,21 @@ void Loan::npv_init()
      open_attrition[i] = 0.0;
      voluntary_attrition[i] = 0.0;
      involuntary_attrition[i] = 0.0;
-//     m1_attrition[i] = 0.0;
-//     base_attrition[i] = 0.0;
+     open_credit_fee[i] = 0.0;
+     risk_mgmt_revenue[i] = 0.0;
      os_principal[i] = 0.0;
      principal_repayment[i] = 0.0;
      interest_repayment[i] = 0.0;
      interest_revenue[i] = 0.0;
      late_fee[i] = 0.0;
-     early_closing_fee[i] = 0.0;
+     open_credit_fee[i] = 0.0;
+     risk_mgmt_revenue[i] = 0.0;
+     taishin_tax[i] = 0.0;
+     tf_tax[i] = 0.0;
      interest_cost[i] = 0.0;
      account_management_cost[i] = 0.0;
-     precollection_cost[i] = 0.0;
      collection_cost[i] = 0.0;
-     working_capital[i] = 0.0;
+//     working_capital[i] = 0.0;
      credit_loss[i] = 0.0;
   }
 }
@@ -695,13 +742,13 @@ void Loan::set_attrition()
               break;
      case KHJ: adjustment = get_KHJ_adjustment(pd);
   };
-  
+
   for (int i = 0; i <= periods; i++) {
       if (i >= 8)
          bad_per_open[i] = monthly_pd * adjustment;
       else
-         bad_per_open[i] = monthly_pd * adjustment * i / 8.0;   
-  }    
+         bad_per_open[i] = monthly_pd * adjustment * i / 8.0;
+  }
 
   open_attrition[0] = 1.0;
   voluntary_attrition[0] = involuntary_attrition[0] = 0.0;
@@ -775,32 +822,61 @@ double Loan::set_interest_revenue()
           + interest_revenue[0]);
 }
 //---------------------------------------------------------------------------
-/*
+double Loan::set_open_credit_revenue()
+{
+ open_credit_fee[0] = application_fee + credit_checking_fee;
+ return (open_credit_fee[0]);
+}
+//---------------------------------------------------------------------------
+double Loan::set_risk_mgmt_revenue()
+{
+  if (risk_mgmt_fee_terms == 0)
+     risk_mgmt_revenue[0] = risk_mgmt_fee;
+  else
+     for (int i = 1; i <= risk_mgmt_fee_terms; i++)
+         risk_mgmt_revenue[i] = risk_mgmt_fee;
+
+  return (NetPresentValue(roe / 12.0, risk_mgmt_revenue + 1, risk_mgmt_fee_terms, ptEndOfPeriod)
+          + risk_mgmt_revenue[0]);
+}
+//---------------------------------------------------------------------------
+double Loan::set_taishin_tax()
+{
+  for (int i = 0; i <= periods; i++)
+     taishin_tax[i] = (interest_revenue[i] + open_credit_fee[i] + risk_mgmt_revenue[i]
+                       + late_fee[i]) * ts_tax_rate;
+
+  return (NetPresentValue(roe / 12.0, taishin_tax + 1, periods, ptEndOfPeriod)
+          + taishin_tax[0]);
+}
+//---------------------------------------------------------------------------
+double Loan::set_tf_tax()
+{
+  for (int i = 0; i <= periods; i++)
+     tf_tax[i] = (interest_revenue[i] + open_credit_fee[i] + risk_mgmt_revenue[i]
+              + late_fee[i] - interest_cost[i] - account_management_cost[i]
+              - taishin_tax[i]) * tf_tax_rate;
+
+  return (NetPresentValue(roe / 12.0, tf_tax + 1, periods, ptEndOfPeriod)
+          + tf_tax[0]);
+}
+//---------------------------------------------------------------------------
+
 double Loan::set_late_fee()
 {
+  double monthly_pd = pd / 12.0;
+
   for (int i = 1; i <= periods; i++)
-     late_fee[i] = os_principal[i-1] * apr[i] * 12.0 / 365.0 *
-                  (m1_attrition[i] * m1_recovery_ratio * m1_avg_late_days * m1_penalty_rate +
-                   involuntary_attrition[i] * m6_recovery_ratio * m6_avg_late_days * m6_penalty_rate);
+     if (i < 2)
+        late_fee[i] = 0.0;
+     else
+        late_fee[i] = interest_revenue[i-1] * open_attrition[i] *  monthly_pd
+                      * LATE_30D_RATIO * LATE_PENALTY_RATIO;
 
   return (NetPresentValue(roe / 12.0, late_fee + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
 }
-*/
-/*
-double Loan::set_early_closing_fee()
-{
-  for (int i = 1; i <= periods; i++)
-     if (i > early_closing_period)
-        early_closing_fee [i] = 0.0;
-     else
-        early_closing_fee [i] = os_principal[i-1] * voluntary_attrition[i] * early_closing_fee_pct
-        		        * early_closing_fee_collectable_ratio;
 
-  return (NetPresentValue(roe / 12.0, early_closing_fee + 1, periods, ptEndOfPeriod)
-          + early_closing_fee[0]);
-}
-*/
 //---------------------------------------------------------------------------
 // Cost
 // Interest Cost:
@@ -823,7 +899,7 @@ double Loan::calculate_commission()
  double out_source_bonus; //委外銷售獎金
  double head_bonus;       //主管手續獎金
  double sales_bonus;      //業務手續獎金
- 
+
  if (int_rate <= 0.15) apr_group = 10;
  else if (int_rate <= 0.155) apr_group = 9;
  else if (int_rate <= 0.16)  apr_group = 8;
@@ -906,7 +982,6 @@ double Loan::calculate_commission()
              break;
  }
 
-
   return (point_cost + transfer_bonus + out_source_fee + out_source_bonus
           + head_bonus + sales_bonus);
 }
@@ -914,78 +989,22 @@ double Loan::calculate_commission()
 double Loan::set_account_management_cost()
 {
   for (int i = 1; i <= periods; i++)
-     account_management_cost[i] = acct_mgmt_cost * open_attrition[i-1];
+     account_management_cost[i] = (info_processing_cost + operation_cost + hr_cost)
+                                  * open_attrition[i-1];
   return (NetPresentValue(roe / 12.0, account_management_cost + 1, periods, ptEndOfPeriod)
           + account_management_cost[0]);
 }
 
-// Pre-collection Cost
-/* 4 days late will send message to customer.
-   30 days late will call to customer.
-   30 days late is 2 payments behind.
-*/
-//---------------------------------------------------------------------------
-double Loan::set_precollection_cost()
-{
-  double monthly_pd = pd / 12.0;
-  double m1Open = monthly_pd * m1_to_m7_ratio;
-  double d4Open = m1Open * m1_to_m7_ratio;
-  double phone_expense;
-
-  switch (district) {
-    case 1: phone_expense =  phone_expense_north;  break;
-    case 2: phone_expense =  phone_expense_central;  break;
-    case 3: phone_expense =  phone_expense_south;  break;
-  }
-  for (int i = 1; i <= periods + 1; i++)
-     if (i < 2)
-        precollection_cost[i] = 0.0;
-     else {
-       if (os_principal[i-2] > 0)
-          precollection_cost[i] = short_message_expense * open_attrition[i-2] * d4Open +
-                             phone_expense * open_attrition[i-2] * m1Open;
-       else
-          precollection_cost[i] = 0.0;
-     }
-  return (NetPresentValue(roe / 12.0, precollection_cost + 1, periods+1, ptEndOfPeriod)
-          + precollection_cost[0]);
-}
 //---------------------------------------------------------------------------
 // Collection Cost (legal)
-/* 90+ days delinquent will tirgger legal action to collect outstanding principal
-   90+ days delinquent is 4 payments behind
-*/
 double Loan::set_collection_cost()
 {
   double monthly_pd = pd / 12.0;
-  double legal_expense;
-  double legal_detain_ratio;
 
-  switch (district) {
-    case 1: legal_expense = legal_exec_north + legal_query_north
-                            + legal_auction_north + legal_staff_north;
-            legal_detain_ratio = legal_detain_ratio_north;
-            break;
-    case 2: legal_expense =  legal_exec_central + legal_query_central
-                            + legal_auction_central + legal_staff_central;
-            legal_detain_ratio = legal_detain_ratio_central;
-            break;
-    case 3: legal_expense =  legal_exec_south + legal_query_south
-                            + legal_auction_south + legal_staff_south;
-            legal_detain_ratio = legal_detain_ratio_south;
-            break;
-  }
-  for (int i = 1; i <= periods + 3 ; i++)
-     if (i < 4)
-        collection_cost [i] = 0.0;
-     else {
-       if (os_principal[i-4] > 0)
-          collection_cost[i] = open_attrition[i-4] * monthly_pd *
-                       (legal_expense + os_principal[i-4] * legal_detain_ratio);
-       else
-          collection_cost[i] = 0.0;
-     }
-  return (NetPresentValue(roe / 12.0, collection_cost + 1, periods+3, ptEndOfPeriod)
+  for (int i = 1; i <= periods; i++)
+      collection_cost[i] = D1_FIX_COST * open_attrition[i] * monthly_pd *
+                           D1_WRITEOFF;
+  return (NetPresentValue(roe / 12.0, collection_cost + 1, periods, ptEndOfPeriod)
           + collection_cost[0]);
 }
 
@@ -998,6 +1017,7 @@ double Loan::set_collection_cost()
                            os_principal[i] * open_attrition[i] * leverage_ratio)
 */
 //---------------------------------------------------------------------------
+/*
 double Loan::set_working_capital()
 {
  working_capital [0] = -os_principal[0] * (1 - leverage_ratio);
@@ -1009,15 +1029,15 @@ double Loan::set_working_capital()
   return (NetPresentValue(roe / 12.0, working_capital + 1, periods, ptEndOfPeriod)
           + working_capital[0]);
 }
-
+*/
 //---------------------------------------------------------------------------
 // Credit loss:
 double Loan::set_credit_loss()
 {
- double discount_rate = 1 / pow((1 + roe / 12.0),legal_action_period);
+ double discount_rate = 1.0 / pow((1 + roe / 12.0), 10);
  credit_loss [0] = 0.0;
  for (int i = 1; i <= periods; i++) {
-    credit_loss [i] = -os_principal[i-1]* involuntary_attrition[i] *
+    credit_loss [i] = (os_principal[i-1]+ interest_revenue[i-1] * 3)* involuntary_attrition[i] *
                       (1 - recovery_ratio * discount_rate);
  }
   return (NetPresentValue(roe / 12.0, credit_loss + 1, periods, ptEndOfPeriod)
@@ -1071,10 +1091,10 @@ void Loan::Init_Maintenance(TADOHandler *handler)
        if (! ds->FieldValues["early_closing_fee_collectable_ratio"].IsNull())
           early_closing_fee_collectable_ratio =
             ds->FieldByName("early_closing_fee_collectable_ratio")->AsFloat / 100.0;
-
+/*
        if (! ds->FieldValues["leverage_ratio"].IsNull())
           leverage_ratio = ds->FieldByName("leverage_ratio")->AsFloat / 100.0;
-
+*/
        if (! ds->FieldValues["cof"].IsNull())
           cof = ds->FieldByName("cof")->AsFloat / 100.0;
 
@@ -1089,10 +1109,10 @@ void Loan::Init_Maintenance(TADOHandler *handler)
 
        if (! ds->FieldValues["acquisition_data_cost"].IsNull())
           acquisition_data_cost = ds->FieldByName("acquisition_data_cost")->AsFloat;
-
+/*
        if (! ds->FieldValues["acct_mgmt_cost"].IsNull())
           acct_mgmt_cost = ds->FieldByName("acct_mgmt_cost")->AsFloat;
-
+*/
        if (! ds->FieldValues["short_message_expense"].IsNull())
           short_message_expense = ds->FieldByName("short_message_expense")->AsFloat;
 
@@ -1149,10 +1169,10 @@ void Loan::Init_Maintenance(TADOHandler *handler)
 
        if (!ds->FieldValues["legal_detain_ratio_central"].IsNull())
           legal_detain_ratio_central = ds->FieldByName("legal_detain_ratio_central")->AsFloat / 100.0;
-
+/*
        if (! ds->FieldValues["recovery_ratio"].IsNull())
           recovery_ratio = ds->FieldByName("recovery_ratio")->AsFloat / 100.0;
-
+*/
        if (!ds->FieldValues["legal_action_period"].IsNull())
           legal_action_period = ds->FieldByName("legal_action_period")->AsFloat;
     }

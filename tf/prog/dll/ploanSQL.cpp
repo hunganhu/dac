@@ -9,7 +9,8 @@
 
 char *SQLCommands[] = {
 /* Get_AppInfo_Record */
-" select app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status "
+" select app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status, "
+"        cof, coe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost "
 " from app_info"
 " where app_sn = :v0 and data_time = :v1;",
 
@@ -461,7 +462,7 @@ char *SQLCommands[] = {
 "            and a.issue = #krm023_dedup.issue"
 "            and a.mon_since = (#krm023_dedup.mon_since - 1)"
 "            and a.app_sn = b.app_sn"
-"            and (b.now - a.mon_since) = @i"
+"            and (b.now - krm023_dedup.mon_since) = @i"
 "       set @i = @i - 1"
 "    end;"
 "  update #bam085_dedup"
@@ -472,7 +473,7 @@ char *SQLCommands[] = {
 "         account_code2 = (case when account_code2 is null then '' else account_code2 end),"
 "         purpose_code = (case when purpose_code is null then '' else purpose_code end),"
 "         co_loan = (case when co_loan is null then '' else co_loan end)"
-" "
+""
 " set @i = 1"
 " while @i <= 12"
 "    begin"
@@ -487,7 +488,8 @@ char *SQLCommands[] = {
 "          from #bam085_dedup"
 "          where cycle >= @i"
 "       set @i = @i + 1"
-"    end",
+"    end"
+,
 /* -- end of procedure prepare_jcic_data_all --*/
 
 /* Create_Procedure_TF_loan_prescreen */
@@ -1269,7 +1271,8 @@ char *SQLCommands[] = {
 "                              when demo_score <= 0.25228 then 12"
 "                              when demo_score <= 0.29324 then 13"
 "                              else 14 end),"
-"        score_card = 4;",
+"        score_card = 4;"
+,
 
 /* Create_Procedure_TF_BAM_no_payment */
 " /* initialize variables */"
@@ -1416,9 +1419,11 @@ char *SQLCommands[] = {
 "                            when b2_score <= 0.498278135 then 26"
 "                            when b2_score <= 0.54115	 then 27"
 "                            else 28 end),"
-"        score_card = 3;",
+"        score_card = 3;"
+,
 
 /* Create_Procedure_TF_BAM_with_payment */
+" /* initialize variables */"
 " /* initialize variables */"
 " update tf_ploan_cal"
 "    set fs031 = 0"
@@ -1518,7 +1523,8 @@ char *SQLCommands[] = {
 "                            when b1_score <= 0.4627  then 16"
 "                            when b1_score <= 0.50292 then 17"
 "                            else 18 end),"
-"        score_card = 2;",
+"        score_card = 2;"
+,
 
 /*Drop_Working_Tables*/
 " drop table #bam085_dedup;"
