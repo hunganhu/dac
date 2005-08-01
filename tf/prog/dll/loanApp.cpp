@@ -26,8 +26,8 @@ Loan::Loan (char * appSN, char* appDate, TADOHandler *handler):
     credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
     sales_channel_ind(0), risk_level_ind(0)
 {
- ds = new TADODataSet(NULL);
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
+// ds = new TADODataSet(NULL);
+// ds->EnableBCD = false;  // Decimal fields are mapped to float.
 }
 //---------------------------------------------------------------------------
 Loan::Loan (char * appSN, char* appDate, char* tsDate, char *jcicDate, int tsn, TADOHandler *handler):
@@ -38,14 +38,17 @@ Loan::Loan (char * appSN, char* appDate, char* tsDate, char *jcicDate, int tsn, 
     credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
     sales_channel_ind(0), risk_level_ind(0)
 {
- ds = new TADODataSet(NULL);
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
+// ds = new TADODataSet(NULL);
+// ds->EnableBCD = false;  // Decimal fields are mapped to float.
 }
 //---------------------------------------------------------------------------
 void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 {
  Variant hostVars[5];
  bool success = true;
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
     hostVars[0] = appNo;
     hostVars[1] = appDate;
@@ -117,6 +120,11 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
           hr_cost = ds->FieldValues["hr_cost"];
        else
           hr_cost_ind = -1;
+
+       if (!ds->FieldValues["risk_level"].IsNull())
+          risk_level = ds->FieldValues["risk_level"];
+       else
+          risk_level_ind = -1;
     }
 
   if (record_count == 0) {
@@ -157,6 +165,7 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
      Message += "股東權益報酬必須介於 0% 和 100%。";
      success = false;
   }
+  delete ds;
   if (!success) throw DataEx(Message);
  } catch (Exception &E) {
     throw;
@@ -167,6 +176,9 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
 {
  Variant hostVars[5];
  bool success = true;
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
     hostVars[0] = appNo;
     hostVars[1] = tsn;
@@ -229,12 +241,6 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
           sales_channel = ds->FieldValues["sales_channel"];
        else
           sales_channel_ind = -1;
-
-       if (!ds->FieldValues["risk_level"].IsNull())
-          risk_level = ds->FieldValues["risk_level"];
-       else
-          risk_level_ind = -1;
-
     }
   if (trial_count == 0) {
      throw DataEx("無貸款資料。");
@@ -291,6 +297,7 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
      success = false;
   }
 
+  delete ds;
 //  if (!success) throw DataEx(Message);
  } catch (Exception &E) {
     throw;
@@ -300,8 +307,8 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
 //---------------------------------------------------------------------------
 Loan::~Loan ()
 {
- ds->Close();
- delete ds;
+// ds->Close();
+// delete ds;
 }
 
 //---------------------------------------------------------------------------
@@ -339,6 +346,9 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 {
  Variant hostVars[5];
  int jas002_defect, fs044, app_max_bucket, cash_max_bucket, delinquent_months;
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
 
  jcic_date = inquiry_date;
 // avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
@@ -386,6 +396,7 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
     if (delinquent_months > 3) {
        Message = "拒絕 [貸款有90天以上遲繳記錄]"; code = 107;
     }
+    delete ds;
  } catch (Exception &E) {
      throw;
    }
@@ -396,6 +407,9 @@ void Loan::calculate_rscore(TADOHandler *handler)
 {
  Variant hostVars[5];
  float krm001_hit, krm023_hit, bam085_hit, ind001, ms080;
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
 
  try {
     hostVars[0] = app_sn;
@@ -431,6 +445,9 @@ void Loan::calculate_pd(TADOHandler *handler)
  Variant hostVars[5];
  double mp_r, amortization_rate, ln001;
  int    ms082, score_card, index, jindex;
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
     hostVars[0] = app_sn;
     handler->ExecSQLQry(SQLCommands[Get_PB_Input], hostVars, 0, ds);
@@ -499,6 +516,7 @@ void Loan::calculate_pd(TADOHandler *handler)
     hostVars[1] = app_sn;
     handler->ExecSQLCmd(SQLCommands[Write_PB_Result], hostVars, 1);
     }
+  delete ds;
  } catch (Exception &E) {
      throw;
  }
@@ -508,6 +526,9 @@ double Loan::calculate_pb(int line, int index, double amortization_rate, int ms0
 {
  double mp_r, pb;
  int    jindex;
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
        switch (score_card) {
           case 0: // screen out
@@ -560,6 +581,7 @@ double Loan::calculate_pb(int line, int index, double amortization_rate, int ms0
                  pb =  demo_PB[index];
                  break;
        }
+  delete ds;
  } catch (Exception &E) {
      throw;
  }
@@ -1047,6 +1069,9 @@ double Loan::set_credit_loss()
 //---------------------------------------------------------------------------
 void Loan::Init_Maintenance(TADOHandler *handler)
 {
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
     handler->ExecSQLQry(SQLCommands[Get_Maintenance_Record], ds);
     record_count = ds->RecordCount;
@@ -1176,6 +1201,7 @@ void Loan::Init_Maintenance(TADOHandler *handler)
        if (!ds->FieldValues["legal_action_period"].IsNull())
           legal_action_period = ds->FieldByName("legal_action_period")->AsFloat;
     }
+    delete ds;
  } catch (Exception &E) {
     throw;
  }

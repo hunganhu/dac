@@ -10,14 +10,14 @@
 char *SQLCommands[] = {
 /* Get_AppInfo_Record */
 " select app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status, "
-"        cof, coe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost "
+"        cof, roe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, risk_level, hr_cost "
 " from app_info"
 " where app_sn = :v0 and data_time = :v1;",
 
 /* Get_Loan_Record */
 " select app_sn, tsn, loan_amount, apr, terms, application_fee, credit_checking_fee,"
 "        risk_mgmt_fee, risk_mgmt_fee_terms, teaser_rate, teaser_period, grace_period,"
-"        sales_channel/*, risk_level*/"
+"        sales_channel"
 " from loan_condition"
 " where app_sn = :v0 and tsn = :v1;",
 
@@ -462,7 +462,7 @@ char *SQLCommands[] = {
 "            and a.issue = #krm023_dedup.issue"
 "            and a.mon_since = (#krm023_dedup.mon_since - 1)"
 "            and a.app_sn = b.app_sn"
-"            and (b.now - krm023_dedup.mon_since) = @i"
+"            and (b.now - #krm023_dedup.mon_since) = @i"
 "       set @i = @i - 1"
 "    end;"
 "  update #bam085_dedup"

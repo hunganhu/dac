@@ -51,7 +51,7 @@ class Loan {
     int risk_mgmt_fee_terms;        // 風險管理費用收取期數
     String sales_channel;           // 銷售管道
     int risk_level;                 // TF風險分級 (1:低 2:高)
-    TADODataSet *ds;
+//    TADODataSet *ds;
     double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
 
     /* Null indicator for each application feature */
