@@ -185,12 +185,12 @@ void Loan::loan_validate(char * appNo, int tsn, TADOHandler *handler)
           sales_channel = ds->FieldValues["sales_channel"];
        else
           sales_channel_ind = -1;
-/*
+
        if (!ds->FieldValues["risk_level"].IsNull())
           risk_level = ds->FieldValues["risk_level"];
        else
           risk_level_ind = -1;
-*/
+
     }
   if (trial_count == 0) {
      throw DataEx("無貸款資料。");
@@ -632,8 +632,8 @@ void Loan::npv_init()
      open_attrition[i] = 0.0;
      voluntary_attrition[i] = 0.0;
      involuntary_attrition[i] = 0.0;
-     m1_attrition[i] = 0.0;
-     base_attrition[i] = 0.0;
+//     m1_attrition[i] = 0.0;
+//     base_attrition[i] = 0.0;
      os_principal[i] = 0.0;
      principal_repayment[i] = 0.0;
      interest_repayment[i] = 0.0;
@@ -662,47 +662,53 @@ void Loan::set_apr()
 }
 
 //---------------------------------------------------------------------------
+double Loan::get_GX_adjustment(double annual_pb)
+{
+  return ( 17.901 * pow(annual_pb, 6) +
+	  -29.601 * pow(annual_pb, 5) +
+	   19.651 * pow(annual_pb, 4) +
+	  -5.4726 * pow(annual_pb, 3) +
+	   1.3014 * pow(annual_pb, 2) +
+	    0.701 * annual_pb + 1.5354);
+}
+
+//---------------------------------------------------------------------------
+double Loan::get_KHJ_adjustment(double annual_pb)
+{
+  return (-24.366 * pow(annual_pb, 6) +
+	   44.271 * pow(annual_pb, 5) +
+	   -29.34 * pow(annual_pb, 4) +
+	   9.6136 * pow(annual_pb, 3) +
+	  -0.9023 * pow(annual_pb, 2) +
+	   0.7614 * annual_pb + 1.4702);
+
+}
+//---------------------------------------------------------------------------
 void Loan::set_attrition()
 {
   double monthly_pd = pd / 12.0;
-  int cat, term;
+  double adjustment;
 
-  if (periods < 48) { // 3 year (4 * 12 month)
-     if (max_apr <= 0.05)
-        cat = 0;
-     else if (max_apr > 0.05 && max_apr <= 0.09)
-        cat = 1;
-     else
-        cat = 2;
-     term = 36; // month
-  } else if (periods >= 48 && periods < 72 ) { // 5 year (4*12 - 6*12 month)
-     if (max_apr <= 0.05)
-        cat = 3;
-     else if (max_apr > 0.05 && max_apr <= 0.09)
-        cat = 4;
-     else
-        cat = 5;
-     term = 60; // month
-  } else { //  7 year
-     if (max_apr <= 0.05)
-        cat = 6;
-     else if (max_apr > 0.05 && max_apr <= 0.09)
-        cat = 7;
-     else
-        cat = 8;
-     term = 120; // month
-  }
-
-  for (int i = 0; i < term; i++)
-      base_attrition[i] = Attrition_Table[cat][i];
+  // product_type: 1 for GX, 2 for KHJ
+  switch (product_type - 1) {
+     case GX: adjustment = get_GX_adjustment(pd);
+              break;
+     case KHJ: adjustment = get_KHJ_adjustment(pd);
+  };
+  
+  for (int i = 0; i <= periods; i++) {
+      if (i >= 8)
+         bad_per_open[i] = monthly_pd * adjustment;
+      else
+         bad_per_open[i] = monthly_pd * adjustment * i / 8.0;   
+  }    
 
   open_attrition[0] = 1.0;
-  voluntary_attrition[0] = involuntary_attrition[0] = m1_attrition[0] = 0.0;
+  voluntary_attrition[0] = involuntary_attrition[0] = 0.0;
   for (int i = 1; i <= periods; i++) {
-      voluntary_attrition[i] = open_attrition[i-1] * base_attrition[i-1];
-      involuntary_attrition[i] = open_attrition[i-1] * monthly_pd;
+      voluntary_attrition[i] = open_attrition[i-1] * vol_attrition_open[product_type - 1][i];
+      involuntary_attrition[i] = open_attrition[i-1] * bad_per_open[i];
       open_attrition[i] = open_attrition[i-1] - voluntary_attrition[i] - involuntary_attrition[i];
-      m1_attrition[i] = involuntary_attrition[i] * m1_to_m7_ratio;
   }
 }
 
@@ -769,6 +775,7 @@ double Loan::set_interest_revenue()
           + interest_revenue[0]);
 }
 //---------------------------------------------------------------------------
+/*
 double Loan::set_late_fee()
 {
   for (int i = 1; i <= periods; i++)
@@ -779,6 +786,7 @@ double Loan::set_late_fee()
   return (NetPresentValue(roe / 12.0, late_fee + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
 }
+*/
 /*
 double Loan::set_early_closing_fee()
 {
@@ -807,10 +815,100 @@ double Loan::set_interest_cost()
 // Commission:
 double Loan::calculate_commission()
 {
-  for (int i = 1; i <= periods; i++)
-     account_management_cost[i] = acct_mgmt_cost * open_attrition[i-1];
-  return (NetPresentValue(roe / 12.0, account_management_cost + 1, periods, ptEndOfPeriod)
-          + account_management_cost[0]);
+ int channel = sales_channel.ToInt();
+ int apr_group, line_grp;
+ double point_cost;       //記點成本
+ double transfer_bonus;   //轉介獎金
+ double out_source_fee;   //委外佣金
+ double out_source_bonus; //委外銷售獎金
+ double head_bonus;       //主管手續獎金
+ double sales_bonus;      //業務手續獎金
+ 
+ if (int_rate <= 0.15) apr_group = 10;
+ else if (int_rate <= 0.155) apr_group = 9;
+ else if (int_rate <= 0.16)  apr_group = 8;
+ else if (int_rate <= 0.165) apr_group = 7;
+ else if (int_rate <= 0.17)  apr_group = 6;
+ else if (int_rate <= 0.175) apr_group = 5;
+ else if (int_rate <= 0.18)  apr_group = 4;
+ else if (int_rate <= 0.185) apr_group = 3;
+ else if (int_rate <= 0.19)  apr_group = 2;
+ else if (int_rate <= 0.195) apr_group = 1;
+ else apr_group = 0;
+
+ switch (product_type - 1) {
+    case GX: if (principal <= 150000) line_grp = 0;
+             else if (principal <= 200000) line_grp = 1;
+             else if (principal <= 250000) line_grp = 2;
+             else if (principal <= 300000) line_grp = 3;
+             else if (principal <= 350000) line_grp = 4;
+             else if (principal <= 400000) line_grp = 5;
+             else if (principal <= 450000) line_grp = 6;
+             else if (principal <= 500000) line_grp = 7;
+             else if (principal <= 550000) line_grp = 8;
+             else line_grp = 9;
+             point_cost = VariableCommission[GX][channel][apr_group] //記點成本
+                          * risk_mgmt_fee
+                          / GX_RiskMgmtFee[line_grp][risk_level - 1]
+                          * SalesPointCost[GX][channel];
+             if (channel == 3 || channel == 4 || channel == 5) // 轉介獎金
+                transfer_bonus = GX_TRANSFER_BONUS;
+             else
+                transfer_bonus = 0.0;
+
+             if (channel == 9 ) {
+                out_source_fee = principal * GX_OUT_SOURCE_RATE; // 委外佣金
+                out_source_bonus = GX_OUT_SOURCE_BONUS; //委外銷售獎金
+             }
+             else
+                out_source_fee = out_source_bonus = 0.0;
+
+             if (HeadBonusDiscount [GX][channel] == 1)       // 主管手續獎金
+                head_bonus = application_fee / GX_APP_FEE_RECEIVABLE
+                             * HeadFeeBonus [GX][channel];
+             else head_bonus = 0.0;
+
+             if (SalesBonusDiscount [GX][channel] == 1)      // 業務手續獎金
+                sales_bonus = application_fee / GX_APP_FEE_RECEIVABLE
+                             * SalesFeeBonus [GX][channel];
+             else sales_bonus = 0.0;
+
+             break;
+    case KHJ:if (principal <= 100000) line_grp = 0;
+             else if (principal <= 120000) line_grp = 1;
+             else line_grp = 2;
+             point_cost = VariableCommission[KHJ][channel][apr_group] //記點成本
+                          * risk_mgmt_fee
+                          / KHJ_RiskMgmtFee[line_grp]
+                          * SalesPointCost[KHJ][channel];
+             if (channel == 3 || channel == 4 || channel == 5) // 轉介獎金
+                transfer_bonus = KHJ_TRANSFER_BONUS;
+             else
+                transfer_bonus = 0.0;
+
+             if (channel == 9 ) {
+                out_source_fee = principal * KHJ_OUT_SOURCE_RATE; // 委外佣金
+                out_source_bonus = KHJ_OUT_SOURCE_BONUS; //委外銷售獎金
+             }
+             else
+                out_source_fee = out_source_bonus = 0.0;
+
+             if (HeadBonusDiscount [KHJ][channel] == 1)       // 主管手續獎金
+                head_bonus = application_fee / KHJ_APP_FEE_RECEIVABLE
+                             * HeadFeeBonus [KHJ][channel];
+             else head_bonus = 0.0;
+
+             if (SalesBonusDiscount [KHJ][channel] == 1)      // 業務手續獎金
+                sales_bonus = application_fee / KHJ_APP_FEE_RECEIVABLE
+                             * SalesFeeBonus [KHJ][channel];
+             else sales_bonus = 0.0;
+
+             break;
+ }
+
+
+  return (point_cost + transfer_bonus + out_source_fee + out_source_bonus
+          + head_bonus + sales_bonus);
 }
 // Account Management Cost
 double Loan::set_account_management_cost()

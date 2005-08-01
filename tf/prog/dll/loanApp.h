@@ -9,7 +9,7 @@
 using namespace std;
 #pragma package(smart_init)
 // Constants used in the program.
-const int TERM = 120;
+const int TERM = 60;
 
 //---------------------------------------------------------------------------
 class Loan {
@@ -89,8 +89,9 @@ class Loan {
     double open_attrition[TERM+4];
     double voluntary_attrition[TERM+4];
     double involuntary_attrition[TERM+4];
-    double m1_attrition[TERM+4];
-    double base_attrition[TERM+4];
+    double bad_per_open[TERM+4];
+//    double m1_attrition[TERM+4];
+//    double base_attrition[TERM+4];
     double os_principal[TERM+4];
     double principal_repayment[TERM+4];
     double interest_repayment[TERM+4];
@@ -111,7 +112,6 @@ class Loan {
     double m6_recovery_ratio;            // Late fee recovery ratio - 180+ days
     int    m6_avg_late_days;             // Average late days - 180+ days
     double m6_penalty_rate;              // 違約率 - 180+ days
-//    int    early_closing_period;         // 提早還款期間 -- move to app_info
     double early_closing_fee_pct;        // 提早還款費率
     double early_closing_fee_collectable_ratio; //  提早還款費可徵收之比率
     double leverage_ratio;               //舉債比率（％）
@@ -159,6 +159,8 @@ class Loan {
     double set_collection_cost();
     double set_working_capital();
     double set_credit_loss();
+    double get_GX_adjustment(double annual_pb);
+    double get_KHJ_adjustment(double annual_pb);
     double calculate_pb(int line, int index, double amortization_rate,
                         int ms082, int score_card);
 
