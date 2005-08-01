@@ -163,7 +163,7 @@ create table app_info (
 	roe		decimal(5,4) not null,
 	ts_tax_rate	decimal(5,4) not null,
 	tf_tax_rate	decimal(5,4) not null,
-	info_porcessing_cost	int not null,
+	info_processing_cost	int not null,
 	operation_cost	int not null,
 	hr_cost		int not null,
 	risk_level	int not null check (risk_level in (1, 2)),

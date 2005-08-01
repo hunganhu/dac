@@ -161,7 +161,7 @@ alter PROCEDURE TF_prepare_jcic_data_all
             and a.issue = #krm023_dedup.issue
             and a.mon_since = (#krm023_dedup.mon_since - 1)
             and a.app_sn = b.app_sn
-            and (b.now - krm023_dedup.mon_since) = @i
+            and (b.now - #krm023_dedup.mon_since) = @i
        set @i = @i - 1
     end;
   update #bam085_dedup
