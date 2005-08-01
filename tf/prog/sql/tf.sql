@@ -161,7 +161,7 @@ alter PROCEDURE TF_prepare_jcic_data_all
             and a.issue = #krm023_dedup.issue
             and a.mon_since = (#krm023_dedup.mon_since - 1)
             and a.app_sn = b.app_sn
-            and (b.now - a.mon_since) = @i
+            and (b.now - krm023_dedup.mon_since) = @i
        set @i = @i - 1
     end;
   update #bam085_dedup
@@ -352,16 +352,14 @@ alter PROCEDURE TF_demographic_model
  /*****************************************************************************************/
  /* FS029  JCIC琩高Ω计 (Credit Card) in 3 month  Item_List in ('K')                     */
  /*****************************************************************************************/
- insert into #tmp (app_sn, v1)
-    select app_sn, count(*)
-    from #stm001_dedup
-    where item_list is not null
-      and item_list like '%K%'
-      and now - query_mon_since <= 3
-    group by app_sn
  update #tf_ploan_cal
     set fs029 = v1
-    from #tmp as a
+    from (select app_sn, count(*) as v1
+          from #stm001_dedup
+          where item_list is not null
+            and item_list like '%K%'
+            and now - query_mon_since <= 3
+          group by app_sn) as a
     where a.app_sn = #tf_ploan_cal.app_sn
  /* Transformation */
  update #tf_ploan_cal
@@ -464,17 +462,14 @@ alter PROCEDURE TF_BAM_no_payment
  /*****************************************************************************************/
  /* FS314 笆ノゑㄒ禬筁100%掸计                                                            */
  /*****************************************************************************************/
- delete from #tmp
- insert into #tmp(app_sn, v1)
-    select app_sn, count(*)
-    from #bam085_dedup
-    where account_code = 'Y' and
-          ((convert(float, isnull(loan_amt, 0)) + convert(float, isnull(pass_due_amt, 0))) /
-           (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 1.00
-    group by app_sn
  update #tf_ploan_cal
     set fs314 = v1
-    from #tmp as a
+    from (select app_sn, count(*) as v1
+          from #bam085_dedup
+          where account_code = 'Y' and
+                ((convert(float, isnull(loan_amt, 0)) + convert(float, isnull(pass_due_amt, 0))) /
+                 (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 1.00
+          group by app_sn) as a
     where a.app_sn = #tf_ploan_cal.app_sn
  /*****************************************************************************************/
  /* MS082 禪蹿る    穝戈磕,  contract_amount 膀非                             */
@@ -885,7 +880,6 @@ CREATE PROCEDURE TF_ploan_model
      and a.mon = b.mon;
  /* Making FS203_12M_1k */
  delete from #tmp;
- set @i = 12;
  insert into #tmp (app_sn, mon, v1)
     select a.app_sn, 12, count(*)
     from #krm023_dedup as a
@@ -921,7 +915,7 @@ CREATE PROCEDURE TF_ploan_model
     group by a.app_sn;
  update #tf_ploan_cal
     set ms056_6m_1k = v1
-    from #tmp as a
+    from #tmp1 as a
     where a.app_sn = #tf_ploan_cal.app_sn and mon=6;
  /*****************************************************************************************/
  /* FS014_12M 睲肂计(lines) (Paycode A,B)                                       */
@@ -981,16 +975,26 @@ CREATE PROCEDURE TF_ploan_model
     from #tmp as a
     where a.app_sn = #tf_ploan_cal.app_sn;
  /*****************************************************************************************/
- /* WI001_12M  WI001 –るΤぇ獺ノ肂计 (All opened)                                 */
+ /* WI001_12M  WI001 –るΤぇキА獺ノ肂计 (All opened)                                 */
  /*****************************************************************************************/
- insert into #tmp (app_sn, v1)
-    select app_sn, count(*)
-    from #krm023_dedup
-    where now - mon_since = 12
-    group by app_sn
+ delete from #tmp
+ delete from #tmp1
+ insert into #tmp(app_sn, mon, v1)
+    select app_sn, mon_since, count(*)
+    from krm023_dedup
+    group by app_sn, mon_since
+
+ insert into #tmp1 (app_sn, v1)
+    select a.app_sn, avg(v1)
+    from #tmp a, #tf_ploan_cal b
+    where a.mon >= (b.now - 12)
+      and a.mon < b.now
+      and a.app_sn = b.app_sn
+    group by a.app_sn;
+
  update #tf_ploan_cal
     set wi001_12m = a.v1
-    from #tmp as a
+    from #tmp1 as a
     where a.app_sn = #tf_ploan_cal.app_sn
  /*****************************************************************************************/
  /* LN001_12M  = (monthly_payment + ms082 * 1000) / wi001_12m  */
@@ -1459,8 +1463,7 @@ go
 
 
 
- if exists (select * from dbo.sysobjects where id = object_id(N'dac_audit') and objectproperty(id, N'isusertable') = 1)
-    drop table dac_audit
+ if not exists (select * from dbo.sysobjects where id = object_id(N'dac_audit') and objectproperty(id, N'isusertable') = 1)
   create table dac_audit (
      app_sn char (11),
      app_date char(8),
