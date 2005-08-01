@@ -146,6 +146,9 @@ bool TADOHandler::ExecSQLCmd (char * CmdString, const Variant *Parameters,
 bool TADOHandler::ExecSQLQry (char * CmdString, TADODataSet * dataset)
 {
  try {
+    // Close the dataset first then reopen it to get new result.
+    if(dataset->Active == true) dataset->Close();
+    dataset->Open();
     ADOCommand->CommandText = CmdString;
     ADOCommand->CommandTimeout = 300;    // 300 seconds
     ADOCommand->CommandType = cmdText;
@@ -198,6 +201,9 @@ bool TADOHandler::ExecSQLQry (char * CmdString, const Variant *Parameters,
                               const int index, TADODataSet * dataset)
 {
  try {
+    // Close the dataset first then reopen it to get new result.
+    if(dataset->Active == true) dataset->Close();
+    dataset->Open();
     ADOCommand->CommandText = CmdString;
     ADOCommand->CommandTimeout = 300;    // 300 seconds
     ADOCommand->CommandType = cmdText;
