@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 1
-  Top = 392
+  Left = 207
+  Top = 161
   Width = 683
   Height = 351
   Caption = 'TF Approval Module'
@@ -28,17 +28,17 @@ object Form1: TForm1
   end
   object Label2: TLabel
     Left = 120
-    Top = 264
-    Width = 41
-    Height = 13
-    Caption = 'appDate'
-  end
-  object Label3: TLabel
-    Left = 120
     Top = 248
     Width = 33
     Height = 13
     Caption = 'appSN'
+  end
+  object Label3: TLabel
+    Left = 120
+    Top = 264
+    Width = 41
+    Height = 13
+    Caption = 'appDate'
   end
   object Label4: TLabel
     Left = 120
