@@ -43,7 +43,7 @@ go
 
 create table krm001 (
 	app_sn		nvarchar(10) not null,
-	data_time	char(8) not null,
+	data_time	char (8) not null,
 	card_brand 	char (1),
 	card_type 	char (1),
 	issue 		char (3),
@@ -60,7 +60,7 @@ go
 
 create table bam082 (
 	app_sn		nvarchar(10) not null,
-	data_time	char(8) not null,
+	data_time	char (8) not null,
 	data_yyy 	char (5),
 	data_mm 	char (2),
 	bank_code 	char (7),
@@ -159,6 +159,9 @@ create table app_info (
 	secretive	int not null check (secretive in (0, 1)),
 	edu		int not null check (edu in (1, 2, 3, 4, 5, 6)),
 	marriage_status	int not null check (marriage_status in (1, 2, 3, 4)),
+	alien		int not null check (alien in (0, 1)),
+	age_over_limit	int not null check (age_over_limit in (0, 1)),
+	ts_cashcard_restricted	int not null check (ts_cashcard_restricted in (0, 1)),
 	cof		decimal(5,4) not null,
 	roe		decimal(5,4) not null,
 	ts_tax_rate	decimal(5,4) not null,
@@ -211,7 +214,9 @@ create table approval_cal (
 	optimal_amount	int not null,
 	pb		float not null,
 	npv		int not null,
-	optimal		int not null
+	optimal		int not null,
+	code		int not null,
+	reason		char(256) not null
 );
 alter table approval_cal add constraint p_approval primary key (app_sn, tsn, ts_date, jcic_date, app_data_time); 
 go
@@ -226,7 +231,9 @@ create table decision_cal (
 	decision	int not null check (decision in (0, 1)),
 	execution_time	char(12) not null,
 	pb		float not null,
-	npv		int not null
+	npv		int not null,
+	code		int not null,
+	reason		char(256) not null
 );
 alter table decision_cal add constraint p_decision primary key (app_sn, execution_time); 
 go
@@ -235,6 +242,7 @@ create table app_r (
 	product_type	int not null check (product_type in (1, 2)),
 	app_result	int not null check (app_result in (0, 1)),
 	taken_down	int not null check (taken_down in (0, 1)),
+        decline_reason_code nvarchar(10),
 	decision_date	char(8) not null
 );
 alter table app_r add constraint p_app_r primary key (app_sn, decision_date); 
@@ -246,7 +254,7 @@ create table maintenance (
 	roe		decimal(5,4) not null,
 	ts_tax_rate	decimal(5,4) not null,
 	tf_tax_rate	decimal(5,4) not null,
-	info_porcessing_cost	int not null,
+	info_processing_cost	int not null,
 	operation_cost	int not null,
 	hr_cost		int not null,
 	commission	int not null
@@ -265,7 +273,7 @@ create table maintenance_history (
 	roe		decimal(5,4) not null,
 	ts_tax_rate	decimal(5,4) not null,
 	tf_tax_rate	decimal(5,4) not null,
-	info_porcessing_cost	int not null,
+	info_processing_cost	int not null,
 	operation_cost	int not null,
 	hr_cost		int not null,
 	commission	int not null
@@ -293,8 +301,8 @@ create trigger trigger_maintenance_update
   after update
 as 
   insert into maintenance_history 
-	 (system_time, [user_id], cof, roe, ts_tax_rate, tf_tax_rate, info_porcessing_cost, operation_cost, hr_cost, commission)
-  select  getdate(), user_name(), cof, roe, ts_tax_rate, tf_tax_rate, info_porcessing_cost, operation_cost, hr_cost, commission
+	 (system_time, [user_id], cof, roe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost, commission)
+  select  getdate(), user_name(), cof, roe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost, commission
   from deleted
 go
 

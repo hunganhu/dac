@@ -4,11 +4,12 @@ alter PROCEDURE TF_prepare_jcic_data_all
  (@app_sn char(11), @data_time char(8))
  AS
  SET NOCOUNT ON
- insert into #krm001_dedup (app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, limit_type, usage_type, secure, cnt)
-    select app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, limit_type, usage_type, secure, count(*)
+ declare @i int
+ insert into #krm001_dedup (app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, cnt)
+    select app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, count(*)
     from krm001
     where app_sn = @app_sn and data_time = @data_time
-    group by app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, limit_type, usage_type, secure;
+    group by app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
  insert into #krm023_dedup (app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
     select app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment,  cash, pay_code, count(*)
     from krm023
@@ -138,7 +139,6 @@ alter PROCEDURE TF_prepare_jcic_data_all
                              else 0 end),
         bucket_f_1k = (case when pay_code = 'F' and payment_amt > 1 then 1
                             else 0 end);
- declare @i int
  set @i=12
  while @i > 0
     begin
@@ -156,12 +156,12 @@ alter PROCEDURE TF_prepare_jcic_data_all
                                      #krm023_dedup.payment_amt > 1
                                then a.bucket_f_1k + 1
                                else 0 end)
-          from #krm023_dedup, #krm023_dedup as a, #tf_ploan_cal as b
+          from #krm023_dedup as a, #krm023_dedup, tf_ploan_cal as b
           where a.app_sn = #krm023_dedup.app_sn
             and a.issue = #krm023_dedup.issue
             and a.mon_since = (#krm023_dedup.mon_since - 1)
             and a.app_sn = b.app_sn
-            and (b.now - #krm023_dedup.mon_since) = @i
+            and (b.now - a.mon_since) = @i
        set @i = @i - 1
     end;
   update #bam085_dedup
@@ -207,6 +207,8 @@ alter PROCEDURE TF_loan_prescreen
   v2 decimal (16, 8),
   v3 decimal (16, 8));
 */
+ if exists (select * from dbo.sysobjects where id = object_id(N'#base_tmp') and objectproperty(id, N'isusertable') = 1)
+    drop table #base_tmp;
  create table #base_tmp (
  	app_sn char (11),
  	avail_flag int
@@ -370,31 +372,52 @@ alter PROCEDURE TF_demographic_model
 			    else 0 end),
 	education_tran0 = (case when edu < 4 then 1 /* 專科以上 */
 				else 0 end);
-
  update #tf_ploan_cal
-    set demo_score =  0.04053	+
-		      secretive		* -0.08229 +
-		      gender		* 0.07798  +
-		      education_tran0	* -0.11059 +
-		      single_0		* 0.07357  +
-		      fs029_tran0	* 0.04235
+    set demo_score =  0.07161	+
+		      secretive		* -0.08112 +
+		      gender		*  0.08204 +
+		      education_tran0	* -0.10635 +
+		      single_0		*  0.0716  +
+		      fs029_tran0	*  0.0257;
+		              
  update #tf_ploan_cal
-    set twentile = (case when demo_score <= 0.07416 then 0
-                              when demo_score <= 0.07857 then 1
-                              when demo_score <= 0.08288 then 2
-                              when demo_score <= 0.08390 then 3
-                              when demo_score <= 0.14303 then 4
-                              when demo_score <= 0.15214 then 5
-                              when demo_score <= 0.15886 then 6
-                              when demo_score <= 0.16086 then 7
-                              when demo_score <= 0.16327 then 8
-                              when demo_score <= 0.19880 then 9
-                              when demo_score <= 0.21967 then 10
-                              when demo_score <= 0.23443 then 11
-                              when demo_score <= 0.25228 then 12
-                              when demo_score <= 0.29324 then 13
-                              else 14 end),
-        score_card = 4;
+    set twentile = (case when demo_score <= 0.073   then  0
+                         when demo_score <= 0.09468 then  1
+                         when demo_score <= 0.09731 then  2
+                         when demo_score <= 0.09823 then  3
+                         when demo_score <= 0.14058 then  4
+                         when demo_score <= 0.16891 then  5
+                         when demo_score <= 0.16983 then  6
+                         when demo_score <= 0.1758  then  7
+                         when demo_score <= 0.17935 then  10
+                         when demo_score <= 0.20505 then  14
+                         when demo_score <= 0.2474  then  15
+                         when demo_score <= 0.25095 then  17
+                         when demo_score <= 0.25645 then  18
+                         else 19 end),                                                 
+        score_card = 4
+    where product_type = 1; /*For GX*/    
+    
+ update #tf_ploan_cal
+    set twentile = (case when demo_score <= 0.00059 then 0
+                         when demo_score <= 0.05027 then 1
+                         when demo_score <= 0.07857 then 2
+                         when demo_score <= 0.08288 then 3
+                         when demo_score <= 0.12384 then 4
+                         when demo_score <= 0.15214 then 5
+                         when demo_score <= 0.15645 then 6
+                         when demo_score <= 0.16086 then 7
+                         when demo_score <= 0.16758 then 8
+                         when demo_score <= 0.20993 then 9
+                         when demo_score <= 0.23443 then 10
+                         when demo_score <= 0.24356 then 11
+                         when demo_score <= 0.27678 then 12
+                         when demo_score <= 0.32585 then 13
+                         when demo_score <= 0.36148 then 14
+                         else 15 end),
+        score_card = 4
+    where product_type = 2; /*For KHJ*/
+     
 go
 /*
 alter PROCEDURE TF_BAM_no_payment
@@ -502,7 +525,7 @@ alter PROCEDURE TF_BAM_no_payment
  update #tf_ploan_cal
     set monthly_payment = principal * amortization_rate;
  update #tf_ploan_cal
-    set mp = monthly_payment + ms082 * 1000.0;
+    set mp = isnull(monthly_payment, 0) + ms082 * 1000.0;
  /* BAM085_2 score card  ms080 <= 0*/
  update #tf_ploan_cal
     set fs031_r =power ((case when fs031 < 0 then null else fs031 end), 0.5),
@@ -519,44 +542,36 @@ alter PROCEDURE TF_BAM_no_payment
 				else 0 end);
 
  update #tf_ploan_cal
-    set b2_score = 0.0768 +
-                   fs314_tran1     * 0.11638 +
-                   fs031_r_tran1   * 0.05612 +
-                   fs536_3m_tran1  * 0.0715  +
-                   gender	   * 0.06323 +
-                   education_tran1 * -0.08445;
+    set b2_score = 0.09272	+
+		fs314_tran1	*  0.07957 +
+		fs031_r_tran1	*  0.03617 +
+		fs536_3m_tran1	*  0.16637 +
+		gender		*  0.08372 +
+		education_tran1	* -0.05433;
 
  update #tf_ploan_cal
-    set twentile = (case when b2_score <= 0.134945665 then 0
-                            when b2_score <= 0.14003	 then 1
-                            when b2_score <= 0.18904	 then 2
-                            when b2_score <= 0.19615	 then 3
-                            when b2_score <= 0.219395665 then 4
-                            when b2_score <= 0.237232691 then 5
-                            when b2_score <= 0.25227	 then 6
-                            when b2_score <= 0.25641	 then 7
-                            when b2_score <= 0.273788135 then 8
-                            when b2_score <= 0.277495364 then 9
-                            when b2_score <= 0.288509564 then 10
-                            when b2_score <= 0.297448135 then 11
-                            when b2_score <= 0.30703133  then 12
-                            when b2_score <= 0.308732691 then 13
-                            when b2_score <= 0.31666	 then 14
-                            when b2_score <= 0.32377	 then 15
-                            when b2_score <= 0.335775665 then 16
-                            when b2_score <= 0.353612691 then 17
-                            when b2_score <= 0.36154	 then 18
-                            when b2_score <= 0.37026133	 then 19
-                            when b2_score <= 0.381898135 then 20
-                            when b2_score <= 0.393875364 then 21
-                            when b2_score <= 0.41514133	 then 22
-                            when b2_score <= 0.42891	 then 23
-                            when b2_score <= 0.453398135 then 24
-                            when b2_score <= 0.476389564 then 25
-                            when b2_score <= 0.498278135 then 26
-                            when b2_score <= 0.54115	 then 27
-                            else 28 end),
+    set twentile = (case when b2_score <= 0.12699 then 0
+                         when b2_score <= 0.17326 then 1
+                         when b2_score <= 0.17644 then 2
+                         when b2_score <= 0.19445 then 3
+                         when b2_score <= 0.22441 then 4
+                         when b2_score <= 0.22759 then 5
+                         when b2_score <= 0.23062 then 6
+                         when b2_score <= 0.24878 then 7
+                         when b2_score <= 0.26504 then 8
+                         when b2_score <= 0.27874 then 9
+                         when b2_score <= 0.28495 then 10
+                         when b2_score <= 0.3324  then 11
+                         when b2_score <= 0.34046 then 12
+                         when b2_score <= 0.36985 then 13
+                         when b2_score <= 0.38976 then 14
+                         when b2_score <= 0.40792 then 15
+                         when b2_score <= 0.42418 then 16
+                         when b2_score <= 0.43788 then 17
+                         when b2_score <= 0.44409 then 18
+                         else 19 end),			
         score_card = 3;
+    where product_type = 1; /*For GX*/
         
 
  go
@@ -582,7 +597,6 @@ alter PROCEDURE TF_BAM_with_payment
  update  #tf_ploan_cal
     set fs536_3m = 0.0,
         fs313 = 0.0,
-        fs314 = 0.0,
         ms082 = 0.0
     from #bam085_dedup a
     where a.app_sn = #tf_ploan_cal.app_sn
@@ -650,32 +664,53 @@ alter PROCEDURE TF_BAM_with_payment
  fs313_tran2 =(case when fs313 > 0 then 1
        else 0 end);
  update #tf_ploan_cal
-    set b1_score = 0.05601	+
-                     fs031_r_tran2  * 0.09654 +
-                     fs536_3M_tran2 * 0.15127 +
-                     fs313_tran2    * 0.05917
-
+    set b1_score = 0.12288	+
+		fs031_r_tran2	* 0.05595 +
+		fs536_3M_tran2	* 0.11614 +
+		fs313_tran2	* 0.08463;
  update #tf_ploan_cal
-    set twentile = (case when b1_score <= 0.05601 then 0
-                            when b1_score <= 0.11518 then 1
-                            when b1_score <= 0.15255 then 2
-                            when b1_score <= 0.19254 then 3
-                            when b1_score <= 0.21172 then 4
-                            when b1_score <= 0.22322 then 5
-                            when b1_score <= 0.25171 then 6
-                            when b1_score <= 0.27188 then 7
-                            when b1_score <= 0.29248 then 8
-                            when b1_score <= 0.30826 then 9
-                            when b1_score <= 0.33105 then 10
-                            when b1_score <= 0.34563 then 11
-                            when b1_score <= 0.3706  then 12
-                            when b1_score <= 0.38824 then 13
-                            when b1_score <= 0.4048  then 14
-                            when b1_score <= 0.43366 then 15
-                            when b1_score <= 0.4627  then 16
-                            when b1_score <= 0.50292 then 17
-                            else 18 end),
-        score_card = 2;
+    set twentile = (case when b1_score <= 0.12288 then 1
+                         when b1_score <= 0.20201 then 4
+                         when b1_score <= 0.20751 then 5
+                         when b1_score <= 0.23478 then 6
+                         when b1_score <= 0.23902 then 7
+                         when b1_score <= 0.28113 then 8
+                         when b1_score <= 0.28664 then 9
+                         when b1_score <= 0.31815 then 10
+                         when b1_score <= 0.31941 then 11
+                         when b1_score <= 0.34456 then 12
+                         when b1_score <= 0.36576 then 13
+                         when b1_score <= 0.37536 then 14
+                         when b1_score <= 0.37607 then 15
+                         when b1_score <= 0.40278 then 16
+                         when b1_score <= 0.40687 then 17
+                         when b1_score <= 0.4819  then 18
+                         else 19 end),                                                     
+        score_card = 2
+    where product_type = 1; /*For GX*/
+ update #tf_ploan_cal
+    set twentile = (case when b1_score <= 0.11518     then 0
+                         when b1_score <= 0.192538177 then 1
+                         when b1_score <= 0.21172     then 2
+                         when b1_score <= 0.24909     then 3
+                         when b1_score <= 0.271880003 then 4
+                         when b1_score <= 0.29248374  then 5
+                         when b1_score <= 0.30826     then 6
+                         when b1_score <= 0.329066355 then 7
+                         when b1_score <= 0.343808177 then 8
+                         when b1_score <= 0.35165374  then 9
+                         when b1_score <= 0.370600832 then 10
+                         when b1_score <= 0.388236355 then 11
+                         when b1_score <= 0.402978177 then 12
+                         when b1_score <= 0.423150003 then 13
+                         when b1_score <= 0.44375374  then 14
+                         when b1_score <= 0.462700832 then 15
+                         when b1_score <= 0.482320003 then 16
+                         when b1_score <= 0.50292374  then 17
+                         when b1_score <= 0.539506355 then 18
+                         else 19 end),
+        score_card = 2
+    where product_type = 2; /*For KHJ*/
  go
 
 
@@ -824,8 +859,8 @@ CREATE PROCEDURE TF_ploan_model
                        else issue end),  /*for American Express*/
                  (now - @i)
           from #krm001_dedup
-          where (end_mon_since > (now - @i))
-            and (start_mon_since <= (now - @i))  /*add .eq.*/
+          where (end_mon_since >= (now - @i))
+            and (start_mon_since < (now - @i))  /*add .eq.*/
             and issue != '021'
        set @i = @i + 1
     end;
@@ -841,8 +876,8 @@ CREATE PROCEDURE TF_ploan_model
                             when card_brand = 'V' then 'CTV'
                             when card_brand = 'D' then 'CTD' end), (now - @i), 1
           from #krm001_dedup
-          where (end_mon_since > (now - @i))
-            and (start_mon_since <= (now - @i))  /* add .eq.*/
+          where (end_mon_since >= (now - @i))
+            and (start_mon_since < (now - @i))  /* add .eq.*/
             and issue = '021'
        set @i = @i + 1
     end;
@@ -858,12 +893,12 @@ CREATE PROCEDURE TF_ploan_model
     begin
        update #open_line
           set bucket = a.bucket + 1
-          from #open_line, #open_line as a, #tf_ploan_cal as b
+          from #open_line as a, #open_line, #tf_ploan_cal as b
           where a.app_sn = #open_line.app_sn
             and a.issue = #open_line.issue
             and a.mon = (#open_line.mon - 1)
             and a.app_sn = b.app_sn
-            and (now - a.mon) = @i
+            and (b.now - a.mon) = @i
        set @i = @i - 1
     end;
  insert into #latest_stmt_mon (app_sn, issue, mon)
@@ -985,7 +1020,7 @@ CREATE PROCEDURE TF_ploan_model
     group by app_sn, mon_since
 
  insert into #tmp1 (app_sn, v1)
-    select a.app_sn, avg(v1)
+    select a.app_sn, sum(v1) / 12.0
     from #tmp a, #tf_ploan_cal b
     where a.mon >= (b.now - 12)
       and a.mon < b.now
@@ -1006,7 +1041,7 @@ CREATE PROCEDURE TF_ploan_model
  update #tf_ploan_cal
     set monthly_payment = principal * amortization_rate;
  update #tf_ploan_cal
-    set LN001_12M = (monthly_payment + ms082 * 1000.0) /
+    set LN001_12M = (isnull(monthly_payment, 0) + ms082 * 1000.0) /
                     (case when WI001_12M = 0 then null else WI001_12M end);
  /*****************************************************************************************/
  /* loan_del_number_6m- it is calculated when initialized.                               */
@@ -1026,7 +1061,7 @@ CREATE PROCEDURE TF_ploan_model
 		          	 when LN001_12m_r > 150 then 150
            		  	 else LN001_12m_r end),
  	fs310_tran3 =(case when fs310 is null then -1
-                   	   when fs310 >= 3 then 4
+                   	   when fs310 > 3 then 3
      			   else fs310 end),
  	fs059_3m_1k_tran3 =(case when fs059_3m_1k is null then 0
            			 when fs059_3m_1k > 3 then 3
@@ -1039,57 +1074,50 @@ CREATE PROCEDURE TF_ploan_model
  	fs014_12m_tran3 =(case when fs014_12m is null then 4
 		    	       when fs014_12m > 4 then 4
          		       else fs014_12m end),
- 	ms056_6m_1k_r_tran3 =(case when ms056_6m_1k_r < 2 then 2
+ 	ms056_6m_1k_r_tran3 =(case when ms056_6m_1k_r is null then 2
+             			   when ms056_6m_1k_r < 2 then 2
              			   when ms056_6m_1k_r > 20 then 20
              			   else ms056_6m_1k_r end),
- 	ms024_3m_r_tran3 =(case when ms024_3m_r < 6.4 then 6.4
+ 	ms024_3m_r_tran3 =(case when ms024_3m_r is null then 6.4
+        	                when ms024_3m_r < 6.4 then 6.4
         	                when ms024_3m_r > 13.5 then 13.5
           			else ms024_3m_r end);
-
  update #tf_ploan_cal
- set full_score	=	0.13374	+
-			fs031_tran3		*	0.01772	+
-			loan_del_number_6m_tran3*	0.00495	+
-			gender			*	0.05291	+
-			fs310_tran3		*	0.03686	+
-			fs059_3m_1k_tran3	*	0.03615	+
-			app_last_month_bucket_tran3 *	0.10909	+
-			fs203_12m_1k_tran3	*	0.04512	+
-			fs014_12m_tran3		*	-0.0239	+
-			ms056_6m_1k_r_tran3	*	0.0058	+
-			ms024_3m_r_tran3	*	-0.01134;
- update #tf_ploan_cal
-    set twentile = (case when full_score <= 0.02011206 then 0
-                              when full_score <= 0.05520196 then 1
-                              when full_score <= 0.08033074 then 2
-                              when full_score <= 0.09826838 then 3
-                              when full_score <= 0.11218400 then 4
-                              when full_score <= 0.12812786 then 5
-                              when full_score <= 0.14197400 then 6
-                              when full_score <= 0.15943044 then 7
-                              when full_score <= 0.17405000 then 8
-                              when full_score <= 0.18894409 then 9
-                              when full_score <= 0.19577737 then 10
-                              when full_score <= 0.20254707 then 11
-                              when full_score <= 0.20887239 then 12
-                              when full_score <= 0.21528074 then 13
-                              when full_score <= 0.22473963 then 14
-                              when full_score <= 0.23153444 then 15
-                              when full_score <= 0.23858196 then 16
-                              when full_score <= 0.24725523 then 17
-                              when full_score <= 0.25683384 then 18
-                              when full_score <= 0.26639872 then 19
-                              when full_score <= 0.27692074 then 20
-                              when full_score <= 0.28647995 then 21
-                              when full_score <= 0.30078965 then 22
-                              when full_score <= 0.31505116 then 23
-                              when full_score <= 0.33208415 then 24
-                              when full_score <= 0.35411400 then 25
-                              when full_score <= 0.37453632 then 26
-                              when full_score <= 0.40414400 then 27
-                              when full_score <= 0.46056293 then 28
-                              else 29 end),
-        score_card = 1;
+    set full_score  =	0.14624	+
+			fs031_tran3		*	0.01263	+
+			loan_del_number_6m_tran3*	0.00492	+
+			gender			*	0.05417	+
+			fs310_tran3		*	0.02756	+
+			fs059_3m_1k_tran3	*	0.03977	+
+			app_last_month_bucket_tran3 *	0.10649	+
+			fs203_12m_1k_tran3	*	0.03699	+
+			fs014_12m_tran3		*      -0.02399	+
+			ms056_6m_1k_r_tran3	*	0.00371	+
+			ms024_3m_r_tran3	*      -0.01112;
+ update #tf_ploan_cal      
+    set twentile = (case when full_score <= 0.01645 then 0
+			 when full_score <= 0.04826 then 1
+			 when full_score <= 0.0697  then 2
+			 when full_score <= 0.08866 then 3
+			 when full_score <= 0.10568 then 4
+			 when full_score <= 0.11913 then 5
+			 when full_score <= 0.13346 then 6
+			 when full_score <= 0.14745 then 7
+			 when full_score <= 0.16192 then 8
+			 when full_score <= 0.17972 then 9
+			 when full_score <= 0.19665 then 10
+			 when full_score <= 0.214   then 11
+			 when full_score <= 0.23213 then 12
+			 when full_score <= 0.25151 then 13
+			 when full_score <= 0.27276 then 14
+			 when full_score <= 0.29869 then 15
+			 when full_score <= 0.33027 then 16
+			 when full_score <= 0.3709  then 17
+			 when full_score <= 0.44799 then 18
+			 else 19 end),
+        score_card = 1
+    where product_type = 1; /*For GX*/
+        
  drop table #open_card;
  drop table #open_line;
  drop table #latest_stmt_mon;
@@ -1238,12 +1266,12 @@ go
      krm001_hit int default 0,
      krm023_hit int default 0,
      bam085_hit int default 0,
-     jas002_defect int default 0,
-     app_max_bucket int default 0,
-     fs044 int default 0,
-     fs334 int default 0,
-     fs302 int default 0,
-     ms080 int,
+     jas002_defect float default 0.0,
+     app_max_bucket float default 0.0,
+     fs044 float default 0.0,
+     fs334 float default 0.0,
+     fs302 float default 0.0,
+     ms080 float,
      apr decimal(16,9),
      periods int,
      principal int,
@@ -1256,7 +1284,7 @@ go
      single_0 int,
      fs029 decimal(16,9),
      fs029_tran0 decimal(16,9),
-     demo_score decimal(16,9),
+     demo_score float,
      /*BAM085 variables*/
      fs031 decimal(16,9),
      fs031_r decimal(16,9),
@@ -1275,8 +1303,8 @@ go
      fs536_3m_tran1 decimal(16,9),
      mp_r1 decimal(16,9),
      education_tran1 int,
-     b1_score decimal(16,9),
-     b2_score decimal(16,9),
+     b1_score float,
+     b2_score float,
      /*TF ploan model*/
      fs031_tran3 decimal(16,9),
      loan_del_number_6m decimal(16,9),
@@ -1301,10 +1329,10 @@ go
      ms024_3m decimal(16,9),
      ms024_3m_r decimal(16,9),
      ms024_3m_r_tran3 decimal(16,9),
-     full_score decimal(16,9),
+     full_score float,
      twentile int,
      score_card int,
-     pb decimal(16,9),
+     pb float,
      return_msg varchar(64)
   );
  if exists (select * from dbo.sysobjects where id = object_id(N'#tmp') and objectproperty(id, N'isusertable') = 1)
@@ -1423,7 +1451,7 @@ go
          tsn = :v2;
   update #tf_ploan_cal
      set now = (case when substring(jcic_date, 7, 2) > '15' then
-     			(convert (int, substring(jcic_date, 1, 4)) - 1911) * 12
+      		(convert (int, substring(jcic_date, 1, 4)) - 1911) * 12
                		+ convert (int, substring(jcic_date, 5, 2))
                	     when substring(jcic_date, 7, 2) <= '15' then
      			(convert (int, substring(jcic_date, 1, 4)) - 1911) * 12
@@ -1475,12 +1503,12 @@ go
      krm001_hit int default 0,
      krm023_hit int default 0,
      bam085_hit int default 0,
-     jas002_defect int default 0,
-     app_max_bucket int default 0,
-     fs044 int default 0,
-     fs334 int default 0,
-     fs302 int default 0,
-     ms080 int,
+     jas002_defect float default 0.0,
+     app_max_bucket float default 0.0,
+     fs044 float default 0.0,
+     fs334 float default 0.0,
+     fs302 float default 0.0,
+     ms080 float,
      apr decimal(16,9),
      periods int,
      principal int,
@@ -1493,7 +1521,7 @@ go
      single_0 int,
      fs029 decimal(16,9),
      fs029_tran0 decimal(16,9),
-     demo_score decimal(16,9),
+     demo_score float,
      /*BAM085 variables*/
      fs031 decimal(16,9),
      fs031_r decimal(16,9),
@@ -1512,8 +1540,8 @@ go
      fs536_3m_tran1 decimal(16,9),
      mp_r1 decimal(16,9),
      education_tran1 int,
-     b1_score decimal(16,9),
-     b2_score decimal(16,9),
+     b1_score float,
+     b2_score float,
      /*TF ploan model*/
      fs031_tran3 decimal(16,9),
      loan_del_number_6m decimal(16,9),
@@ -1538,10 +1566,10 @@ go
      ms024_3m decimal(16,9),
      ms024_3m_r decimal(16,9),
      ms024_3m_r_tran3 decimal(16,9),
-     full_score decimal(16,9),
+     full_score float,
      twentile int,
      score_card int,
-     pb decimal(16,9),
+     pb float,
      return_msg varchar(64)
   );
  insert into dac_audit(app_sn, app_date, ts_date, jcic_date, now, avail_flag, ind001, krm001_hit,
