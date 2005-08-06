@@ -68,7 +68,7 @@ int prescreen(char *app_sn, char *app_data_date, char *jcic_data_date,
 }
 //---------------------------------------------------------------------------
 int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, int tsn, char *ole_db, char *error_msg)
+                char *app_data_time, char *tsn, char *ole_db, char *error_msg)
 {
  TADOHandler *dbhandle;
  Loan *ptrLoan;
@@ -85,11 +85,11 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     ptrLoan->calculate_rscore(dbhandle);
-//    ptrLoan->calculate_pd(dbhandle);
+    ptrLoan->calculate_pd(dbhandle);
+    ptrLoan->calculate_npv();
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
-//    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
  } catch (Loan::DataEx &DE){
      strcpy (error_msg, DE.message.c_str());
@@ -127,7 +127,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
 
 //---------------------------------------------------------------------------
 int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, int tsn, char *ole_db, char *error_msg,
+                char *app_data_time, char *tsn, char *ole_db, char *error_msg,
                 TADOHandler *dbhandle)
 {
 // TADOHandler *dbhandle;
@@ -145,8 +145,8 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     ptrLoan->calculate_rscore(dbhandle);
-//    ptrLoan->calculate_pd(dbhandle);
-//    ptrLoan->calculate_npv();
+    ptrLoan->calculate_pd(dbhandle);
+    ptrLoan->calculate_npv();
 //    ptrLoan->postFilter();
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
@@ -192,13 +192,13 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
 
 //---------------------------------------------------------------------------
 int designated_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, int tsn, char *ole_db, char *error_msg)
+                char *app_data_time, char *tsn, char *ole_db, char *error_msg)
 {
  return(0);
 
 }
 //---------------------------------------------------------------------------
-int conversion_cal(char *app_sn, int tsn, char *ole_db, char *error_msg)
+int conversion_cal(char *app_sn, char *tsn, char *ole_db, char *error_msg)
 {
  return(0);
 

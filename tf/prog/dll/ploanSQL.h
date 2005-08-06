@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------
 enum SQLCodes { Get_AppInfo_Record,
 		Get_Loan_Record,
-                Get_Maintenance_Record,
 		Get_Prescreen_Result,
                 Get_Branch_Ind,
 		Write_Prescreen_Result,

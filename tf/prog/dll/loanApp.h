@@ -19,7 +19,7 @@ class Loan {
     String app_date;                // 申請日期YYYYMMDDHHmm
     String jcic_date;               // JCIC 查詢日期YYYYMMDD
     String ts_date;                 // Taishin internal credit data date YYYYMMDD
-    int tsn;                        // trial seq #
+    String tsn;                     // trial seq #
     int product_type;               // 產品代號(1 為國民信貸; 2 為卡好借)
     int gender;                     // 0為女性; 1為男性
     String zip;                     // 三位郵遞區號
@@ -27,13 +27,16 @@ class Loan {
     int edu;                        // 教育程度 ，1 為研究所(含)以上 ; 2 為大學; 3 為專科;
                                     // 4  為高中(職); 5 為國中以下; 6 為其他
     int marriage_status;            // 婚姻狀況,1 為已婚; 2 為未婚; 3 為離婚; 4 為其他
-    double cof;                     //資金成本
-    double roe;                     //股東權益報酬
-    double ts_tax_rate;             //資金成本
-    double tf_tax_rate;             //股東權益報酬
-    int info_processing_cost;       //每戶每月分攤台新銀行資訊室費用 (新台幣元)
-    int operation_cost;             //每戶每月分攤台新銀行分行作業及客服費用 (新台幣元)
-    int hr_cost;                    //每戶每月人事成本費用 (新台幣元)
+    int alien;                      // 是否為外國人 (0 為否; 1為是)
+    int age;                        // 年齡是否大於56歲 (0為否; 1為是)
+    int cashcard_lock;              // 是否為台新現金卡額度被鎖 (0為否; 1為是)
+    double cof;                     // 資金成本
+    double roe;                     // 股東權益報酬
+    double ts_tax_rate;             // 資金成本
+    double tf_tax_rate;             // 股東權益報酬
+    int info_processing_cost;       // 每戶每月分攤台新銀行資訊室費用 (新台幣元)
+    int operation_cost;             // 每戶每月分攤台新銀行分行作業及客服費用 (新台幣元)
+    int hr_cost;                    // 每戶每月人事成本費用 (新台幣元)
 
     int record_count;               // number of app_info records read
     int trial_count;                // number of Loan records read
@@ -61,6 +64,9 @@ class Loan {
     int secretive_ind;
     int edu_ind;
     int marriage_status_ind;
+    int alien_ind;
+    int age_ind;
+    int cashcard_lock_ind;
     int cof_ind;
     int roe_ind;
     int ts_tax_rate_ind;
@@ -68,6 +74,8 @@ class Loan {
     int info_processing_cost_ind;
     int operation_cost_ind;
     int hr_cost_ind;
+    int sales_channel_ind;
+    int risk_level_ind;
 
     int principal_ind;
     int int_rate_ind;
@@ -79,8 +87,6 @@ class Loan {
     int credit_checking_fee_ind;
     int risk_mgmt_fee_ind;
     int risk_mgmt_fee_terms_ind;
-    int sales_channel_ind;
-    int risk_level_ind;
 
     /* Prefilter and postfilter variables */
 /*
@@ -186,7 +192,7 @@ class Loan {
     double get_GX_adjustment(double annual_pb);
     double get_KHJ_adjustment(double annual_pb);
     double calculate_pb(int line, int index, double amortization_rate,
-                        int ms082, int score_card);
+                        int ms082, double ln001, int score_card);
 
   public:
     class RiskEx {
@@ -205,11 +211,11 @@ class Loan {
              message = msg;
           }
     };
-    Loan (char * appSN, char* appDate, TADOHandler *handler);
-    Loan (char * appSN, char* appDate, char* tsDate, char *jcicDate, int tsn, TADOHandler *handler);
+    Loan (char *appSN, char *appDate, TADOHandler *handler);
+    Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn, TADOHandler *handler);
     ~Loan ();
     void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
-    void loan_validate(char * appNo, int tsn, TADOHandler *handler);
+    void loan_validate(char * appNo, char *tsn, TADOHandler *handler);
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
