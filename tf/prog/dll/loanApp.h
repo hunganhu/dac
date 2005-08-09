@@ -220,7 +220,7 @@ class Loan {
     void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
     void calculate_pd(TADOHandler *handler);
-    void calculate_npv();
+    void calculate_npv(TADOHandler *handler);
     int  get_product_type();
     int  get_code();
     double get_rscore ();

@@ -86,7 +86,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     ptrLoan->calculate_rscore(dbhandle);
     ptrLoan->calculate_pd(dbhandle);
-    ptrLoan->calculate_npv();
+    ptrLoan->calculate_npv(dbhandle);
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
@@ -146,7 +146,7 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     ptrLoan->calculate_rscore(dbhandle);
     ptrLoan->calculate_pd(dbhandle);
-    ptrLoan->calculate_npv();
+    ptrLoan->calculate_npv(dbhandle);
 //    ptrLoan->postFilter();
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
@@ -173,9 +173,6 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
 //     delete dbhandle;
      return (-RE.pb);
  } catch (Exception &E) {
-#ifdef _WRFLOW
-     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
-#endif
      strcpy (error_msg, E.Message.c_str());
      dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
      delete ptrLoan;

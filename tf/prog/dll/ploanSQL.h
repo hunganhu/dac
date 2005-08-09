@@ -12,6 +12,7 @@ enum SQLCodes { Get_AppInfo_Record,
                 Calculate_Loan_Del_Number,
                 Get_PB_Input,
                 Write_PB_Result,
+                Write_NPV_Result,
                 Write_PLoan_Result,
 		Create_Working_Tables,
 

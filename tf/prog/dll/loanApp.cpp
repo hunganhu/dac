@@ -318,12 +318,7 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
           risk_mgmt_fee_terms = ds->FieldValues["risk_mgmt_fee_terms"];
        else
           risk_mgmt_fee_terms_ind = -1;
-
-       if (! ds->FieldValues["sales_channel"].IsNull())
-          sales_channel = ds->FieldValues["sales_channel"];
-       else
-          sales_channel_ind = -1;
-    }
+     }
   if (trial_count == 0) {
      throw DataEx("無貸款資料。");
   }
@@ -380,7 +375,7 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
   }
 
   delete ds;
-  if (!success) throw DataEx(Message);
+//  if (!success) throw DataEx(Message);
  } catch (Exception &E) {
     throw;
  }
@@ -450,8 +445,7 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
     handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
 
     hostVars[0] = app_sn;
-    handler->ExecSQLQry("select jas002_defect, app_max_bucket, fs044, fs334, fs302 from tf_ploan_cal",
-                        ds);
+    handler->ExecSQLQry(SQLCommands[Get_Prescreen_Result], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
        jas002_defect = ds->FieldValues["jas002_defect"];
@@ -461,6 +455,15 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
        cash_max_bucket = ds->FieldValues["fs302"];
     }
 
+    if (age == 1) {
+       Message = "拒絕 [申請人年齡大於55歲]"; code = 101;
+    }
+    if (alien == 1) {
+       Message = "拒絕 [申請人為外國人]"; code = 102;
+    }
+    if ((cashcard_lock == 1) && (product_type == 2)) {
+       Message = "拒絕 [申請人為本行現金卡額度被鎖 (僅適用於卡好借)]"; code = 103;
+    }
     if (jas002_defect > 0) {
        Message = "拒絕 [有退票強停拒往授信異常等記錄]"; code = 104;
     }
@@ -542,26 +545,33 @@ void Loan::calculate_pd(TADOHandler *handler)
                  index = ds->FieldValues["twentile"];
                  ms082 = ds->FieldValues["ms082"];
                  ln001 = ds->FieldValues["LN001_12m_r_tran3"];
-                 if (ln001 <= 0) jindex = 0;
-                 else if (ln001 <= 21.354)  jindex = 1;
-                 else if (ln001 <= 27.398)  jindex = 2;
-                 else if (ln001 <= 32.284)  jindex = 3;
-                 else if (ln001 <= 36.161)  jindex = 4;
-                 else if (ln001 <= 39.915)  jindex = 5;
-                 else if (ln001 <= 43.522)  jindex = 6;
-                 else if (ln001 <= 47.1)    jindex = 7;
-                 else if (ln001 <= 50.646)  jindex = 8;
-                 else if (ln001 <= 55.127)  jindex = 9;
-                 else if (ln001 <= 58.845)  jindex = 10;
-                 else if (ln001 <= 63.065)  jindex = 11;
-                 else if (ln001 <= 67.71)   jindex = 12;
-                 else if (ln001 <= 72.869)  jindex = 13;
-                 else if (ln001 <= 78.813)  jindex = 14;
-                 else if (ln001 <= 86.741)  jindex = 15;
-                 else if (ln001 <= 95.916)  jindex = 16;
-                 else if (ln001 <= 109.339) jindex = 17;
-                 else if (ln001 <= 134.547) jindex = 18;
-                 else jindex = 19;
+                 if (ln001 <= 0.0) jindex = 0;
+                 else if (ln001 <= 21.3540000000) jindex = 1;
+                 else if (ln001 <= 27.3980000000) jindex = 2;
+                 else if (ln001 <= 32.2840000000) jindex = 3;
+                 else if (ln001 <= 36.1610000000) jindex = 4;
+                 else if (ln001 <= 39.9150000000) jindex = 5;
+                 else if (ln001 <= 43.5220000000) jindex = 6;
+                 else if (ln001 <= 47.1000000000) jindex = 7;
+                 else if (ln001 <= 50.6460000000) jindex = 8;
+                 else if (ln001 <= 55.1270000000) jindex = 9;
+                 else if (ln001 <= 58.8450000000) jindex = 10;
+                 else if (ln001 <= 63.0650000000) jindex = 11;
+                 else if (ln001 <= 67.7100000000) jindex = 12;
+                 else if (ln001 <= 72.8690000000) jindex = 13;
+                 else if (ln001 <= 78.8130000000) jindex = 14;
+                 else if (ln001 <= 86.7410000000) jindex = 15;
+                 else if (ln001 <= 95.9160000000) jindex = 16;
+                 else if (ln001 <= 109.3390000000) jindex = 17;
+                 else if (ln001 <= 134.5470000000) jindex = 18;
+                 else if (ln001 <= 170.8902000000) jindex = 19;
+                 else if (ln001 <= 229.0276537120) jindex = 20;
+                 else if (ln001 <= 319.9872318933) jindex = 21;
+                 else if (ln001 <= 460.4174726738) jindex = 22;
+                 else if (ln001 <= 673.9418808429) jindex = 23;
+                 else if (ln001 <= 993.5307920375) jindex = 24;
+                 else if (ln001 <= 1464.5116054610) jindex = 25;
+                 else jindex = 26;
                  pd =  GXa2_PB[index][jindex];
                  break;
           case 2: // B1 ms080 > 0
@@ -573,22 +583,28 @@ void Loan::calculate_pd(TADOHandler *handler)
                  ms082 = ds->FieldValues["ms082"];
                  amortization_rate = ds->FieldValues["amoritization_rate"];
                  mp_r = pow((principal * amortization_rate + ms082 * 1000.0), 0.5);
-                 if (mp_r <= 0) jindex = 2;
-                 else if (mp_r <= 40.517) jindex = 5;
-                 else if (mp_r <= 44.789) jindex = 6;
-                 else if (mp_r <= 49.477) jindex = 7;
-                 else if (mp_r <= 50.075) jindex = 8;
-                 else if (mp_r <= 56.812) jindex = 9;
-                 else if (mp_r <= 57.822) jindex = 10;
-                 else if (mp_r <= 58.481) jindex = 11;
-                 else if (mp_r <= 64.647) jindex = 12;
-                 else if (mp_r <= 64.712) jindex = 13;
-                 else if (mp_r <= 73.973) jindex = 14;
-                 else if (mp_r <= 78.992) jindex = 15;
-                 else if (mp_r <= 86.741) jindex = 16;
-                 else if (mp_r <= 104.614) jindex = 17;
-                 else if (mp_r <= 131.054) jindex = 18;
-                 else jindex = 19;
+                 if (mp_r <= 0 ) jindex = 0;
+                 else if (mp_r <= 40.517 ) jindex = 1;
+                 else if (mp_r <= 44.789 ) jindex = 2;
+                 else if (mp_r <= 49.477 ) jindex = 3;
+                 else if (mp_r <= 50.075 ) jindex = 4;
+                 else if (mp_r <= 56.812 ) jindex = 5;
+                 else if (mp_r <= 57.822 ) jindex = 6;
+                 else if (mp_r <= 58.481 ) jindex = 7;
+                 else if (mp_r <= 64.647 ) jindex = 8;
+                 else if (mp_r <= 64.712 ) jindex = 9;
+                 else if (mp_r <= 73.973 ) jindex = 10;
+                 else if (mp_r <= 78.992 ) jindex = 11;
+                 else if (mp_r <= 86.741 ) jindex = 12;
+                 else if (mp_r <= 104.614 ) jindex = 13;
+                 else if (mp_r <= 131.054 ) jindex = 14;
+                 else if (mp_r <= 175.6339 ) jindex = 15;
+                 else if (mp_r <= 248.435144 ) jindex = 16;
+                 else if (mp_r <= 364.6396332 ) jindex = 17;
+                 else if (mp_r <= 545.8185649 ) jindex = 18;
+                 else if (mp_r <= 821.9282779 ) jindex = 19;
+                 else if (mp_r <= 1233.779339 ) jindex = 20;
+                 else jindex = 21;
                  pd =  GXb2_PB[index][jindex];
                  break;
           case 4: // Demographic
@@ -688,13 +704,15 @@ void Loan::postFilter()
 }
 */
 //---------------------------------------------------------------------------
-void Loan::calculate_npv()
+void Loan::calculate_npv(TADOHandler *handler)
 {
-  double revenue, cost, wc;
-  double Interest_Revenue, Late_Fee, Open_Credit_Fee, Risk_Management_Fee;
-  double Interest_Cost, Acct_Mgmt_Cost, Taishin_Corp_Tax, TF_Corp_Tax;
-  double Collection_Cost, Commission, Working_Capital, Credit_Loss;
+ Variant hostVars[5];
+ double revenue, cost, wc;
+ double Interest_Revenue, Late_Fee, Open_Credit_Fee, Risk_Management_Fee;
+ double Interest_Cost, Acct_Mgmt_Cost, Taishin_Corp_Tax, TF_Corp_Tax;
+ double Collection_Cost, Commission, Working_Capital, Credit_Loss;
 
+ try {
   npv_init();
   set_apr();
   set_attrition();
@@ -721,6 +739,12 @@ void Loan::calculate_npv()
                - (Interest_Cost + Acct_Mgmt_Cost + Taishin_Corp_Tax + TF_Corp_Tax
                   + Collection_Cost + Commission + Credit_Loss);         // Cost
 
+  hostVars[0] = total_npv;
+  hostVars[1] = app_sn;
+  handler->ExecSQLCmd(SQLCommands[Write_NPV_Result], hostVars, 1);
+ } catch (Exception &E) {
+     throw;
+ }
 #ifdef _WRFLOW
      fstream outf;
      outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
@@ -742,13 +766,12 @@ void Loan::calculate_npv()
               << setw(8)  << setprecision(7) << Risk_Management_Fee
               << setw(15) << setprecision(8) << Interest_Cost
               << setw(15) << setprecision(8) << Acct_Mgmt_Cost
-              << setw(15) << setprecision(8) << Acct_Mgmt_Cost
               << setw(15) << setprecision(8) << Taishin_Corp_Tax
               << setw(15) << setprecision(8) << TF_Corp_Tax
               << setw(15) << setprecision(8) << Collection_Cost
               << setw(15) << setprecision(8) << Credit_Loss
               << endl;
-     for (int i = 0; i < periods; i++) {
+     for (int i = 0; i <= periods; i++) {
          outf << setprecision(8) << showpoint
               << setw(4)  << i
               << setw(10) << setprecision(4) << apr[i]
@@ -977,7 +1000,7 @@ double Loan::set_late_fee()
         late_fee[i] = 0.0;
      else
         late_fee[i] = interest_revenue[i-1] * open_attrition[i] *  monthly_pd
-                      * LATE_30D_RATIO * LATE_PENALTY_RATIO;
+                      / LATE_30D_RATIO * LATE_PENALTY_RATIO;
 
   return (NetPresentValue(roe / 12.0, late_fee + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
@@ -1143,8 +1166,8 @@ double Loan::set_credit_loss()
  double discount_rate = 1.0 / pow((1 + roe / 12.0), 10);
  credit_loss [0] = 0.0;
  for (int i = 1; i <= periods; i++) {
-    credit_loss [i] = (os_principal[i-1]+ interest_revenue[i-1] * 3)* involuntary_attrition[i] *
-                      (1 - recovery_ratio * discount_rate);
+    credit_loss [i] = (os_principal[i-1]+ interest_revenue[i-1] * 3)* open_attrition[i-1] *
+                      involuntary_attrition[i] * (1 - recovery_ratio * discount_rate);
  }
   return (NetPresentValue(roe / 12.0, credit_loss + 1, periods, ptEndOfPeriod)
           + credit_loss[0]);
