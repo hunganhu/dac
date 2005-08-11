@@ -47,7 +47,8 @@ char *SQLCommands[] = {
 "    where app_sn = :v0"
 "      and data_time = :v1;"
 "  update #tf_ploan_cal"
-"     set loan_del_number_6m = a.v1"
+"     set loan_del_number_6m = a.v1,"
+"         ts_date = :v1"
 "     from #tmp1 as a"
 "     where #tf_ploan_cal.app_sn = a.app_sn"
 "  update #tf_ploan_cal"
@@ -61,17 +62,25 @@ char *SQLCommands[] = {
 /* Get_PB_Input*/
 "  select LN001_12m_r_tran3, amortization_rate, ms082, twentile, score_card "
 "  from #tf_ploan_cal"
-"  where app_sn = :v1",
+"  where app_sn = :v0",
 
-/* Write_PB_Result*/
-"  update #tf_ploan_cal"
-"     set pb = :v0"
-"     where app_sn = :v1",
+/* Get_PB_Parameters */
+"  select score_card, ms082, WI001_12m, twentile"
+"  from #tf_ploan_cal"
+"  where app_sn = :v0",
+
+/* Get_PB_test */
+"  select score_card, ms082, WI001_12m, rtwentile_a2, rtwentile_b1, rtwentile_c, brmp_twentile"
+"  from gx_test_case"
+"  where idn = :v0",
 
 /* Write_NPV_Result*/
 "  update #tf_ploan_cal"
-"     set npv = :v0"
-"     where app_sn = :v1",
+"     set pb = :v0,"
+"         npv = :v1,"
+"         pb_row = :v2,"
+"         pb_col = :v3"
+"  where app_sn = :v4",
 
 /*Write_PLoan_Result*/
 " insert into ploan_result(case_sn, idn, dac_sn, application_date,  return_msg, ev, pb, checksum1, checksum2)"
@@ -277,7 +286,9 @@ char *SQLCommands[] = {
 "     ms024_3m_r_tran3 decimal(16,9),"
 "     full_score float,"
 "     twentile int,"
-"     score_card int,"
+"     score_card int default 0,"
+"     pb_row int default 0,"
+"     pb_col int default 0,"
 "     pb float,"
 "     npv decimal(16, 2),"
 "     return_msg varchar(64)"
@@ -742,6 +753,8 @@ char *SQLCommands[] = {
 "     full_score float,"
 "     twentile int,"
 "     score_card int,"
+"     pb_row int,"
+"     pb_col int,"
 "     pb float,"
 "     npv decimal(16, 2),"
 "     return_msg varchar(64)"
@@ -759,7 +772,7 @@ char *SQLCommands[] = {
 "       fs059_3m_1k_tran3, app_last_month_bucket, app_last_month_bucket_tran3, fs203_12m_1k,"
 "       fs203_12m_1k_tran3, fs014_12m, fs014_12m_tran3, ms056_6m_1k, ms056_6m_1k_r,"
 "       ms056_6m_1k_r_tran3, ms024_3m, ms024_3m_r, ms024_3m_r_tran3, full_score, twentile,"
-"       score_card, pb, npv, return_msg)"
+"       score_card, pb_row, pb_col, pb, npv, return_msg)"
 "   select app_sn, app_date, ts_date, jcic_date, now, avail_flag, ind001, krm001_hit,"
 "       krm023_hit, bam085_hit, jas002_defect, app_max_bucket, fs044, fs334, fs302, ms080,"
 "       product_type, alien, age_over_limit, ts_cashcard_restricted, apr,"
@@ -773,7 +786,7 @@ char *SQLCommands[] = {
 "       fs059_3m_1k_tran3, app_last_month_bucket, app_last_month_bucket_tran3, fs203_12m_1k,"
 "       fs203_12m_1k_tran3, fs014_12m, fs014_12m_tran3, ms056_6m_1k, ms056_6m_1k_r,"
 "       ms056_6m_1k_r_tran3, ms024_3m, ms024_3m_r, ms024_3m_r_tran3, full_score, twentile,"
-"       score_card, pb, npv, return_msg"
+"       score_card, pb_row, pb_col, pb, npv, return_msg"
 "   from #tf_ploan_cal"
 ,
 
@@ -838,28 +851,28 @@ char *SQLCommands[] = {
 
 /* Create_Procedure_TF_ploan_model */
 " declare @i int"
-" if exists (select * from dbo.sysobjects where id = object_id(N'#open_card') and objectproperty(id, N'isusertable') = 1)"
-"   drop table #open_card;"
+//" if exists (select * from dbo.sysobjects where id = object_id(N'#open_card') and objectproperty(id, N'isusertable') = 1)"
+//"   drop table #open_card;"
 " create table #open_card ("
 "    app_sn varchar(14),"
 "    issue char(3),"
 "    mon int);"
-" if exists (select * from dbo.sysobjects where id = object_id(N'#open_line') and objectproperty(id, N'isusertable') = 1)"
-"   drop table #open_line;"
+//" if exists (select * from dbo.sysobjects where id = object_id(N'#open_line') and objectproperty(id, N'isusertable') = 1)"
+//"   drop table #open_line;"
 " create table #open_line ("
 "    app_sn varchar(14),"
 "    issue char(3),"
 "    mon int,"
 "    cards int,"
 "    bucket int);"
-" if exists (select * from dbo.sysobjects where id = object_id(N'#latest_stmt_mon') and objectproperty(id, N'isusertable') = 1)"
-"   drop table #latest_stmt_mon;"
+//" if exists (select * from dbo.sysobjects where id = object_id(N'#latest_stmt_mon') and objectproperty(id, N'isusertable') = 1)"
+//"   drop table #latest_stmt_mon;"
 " create table #latest_stmt_mon ("
 "    app_sn varchar(14),"
 "    issue char(3),"
 "    mon int);"
-" if exists (select * from dbo.sysobjects where id = object_id(N'#latest_line') and objectproperty(id, N'isusertable') = 1)"
-"   drop table #latest_line;"
+//" if exists (select * from dbo.sysobjects where id = object_id(N'#latest_line') and objectproperty(id, N'isusertable') = 1)"
+//"   drop table #latest_line;"
 " create table #latest_line ("
 "    app_sn varchar(14),"
 "    issue char(3),"
@@ -1125,7 +1138,7 @@ char *SQLCommands[] = {
 " delete from #tmp1"
 " insert into #tmp(app_sn, mon, v1)"
 "    select app_sn, mon_since, count(*)"
-"    from krm023_dedup"
+"    from #krm023_dedup"
 "    group by app_sn, mon_since"
 ""
 " insert into #tmp1 (app_sn, v1)"
@@ -1144,7 +1157,7 @@ char *SQLCommands[] = {
 " /* LN001_12M  = (monthly_payment + ms082 * 1000) / wi001_12m  */"
 " /*****************************************************************************************/"
 " update #tf_ploan_cal"
-"    set amortization_rate = (case when apr = 0 then (1 / periods)"
+"    set amortization_rate = (case when apr = 0 then (1.0 / periods)"
 "                                  else power ((1 + (apr / 12 )), periods) * (apr / 12 )"
 "                                       / (power ((1 + (apr / 12 )), periods) - 1) end);"
 " update #tf_ploan_cal"
@@ -1396,7 +1409,7 @@ char *SQLCommands[] = {
 "    from #tmp as a"
 "    where a.app_sn = #tf_ploan_cal.app_sn;"
 " update #tf_ploan_cal"
-"    set amortization_rate = (case when apr = 0 then 1/periods"
+"    set amortization_rate = (case when apr = 0 then 1.0 /periods"
 "                                  else power ((1 + (apr / 12)), periods) * (apr / 12)"
 "                                       / (power ((1 + (apr / 12)), periods) - 1) end);"
 " update #tf_ploan_cal"

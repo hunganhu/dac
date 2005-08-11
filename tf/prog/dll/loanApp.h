@@ -105,6 +105,7 @@ class Loan {
     String Message;
     int district;
     double pd;
+    double optimal_line;
     double rscore;
     double total_npv;
     double apr[TERM+4];
@@ -173,8 +174,8 @@ class Loan {
     void npv_init();
     void set_apr();
     void set_attrition();
-    void set_amortize();
-    void set_annuity();
+    void set_amortize(int line);
+    void set_annuity(int line);
     double set_interest_revenue();
     double set_open_credit_revenue();
     double set_risk_mgmt_revenue();
@@ -198,21 +199,23 @@ class Loan {
     class RiskEx {
        public:
           String message;
-          double pb;
-          RiskEx (String msg, double code) {
+          int code;
+          RiskEx (String msg, int err_code) {
              message = msg;
-             pb = code;
+             code = err_code;
           }
     };
     class DataEx {
        public:
           String message;
-          DataEx (String msg) {
+          int code;
+          DataEx (String msg, int err_code) {
              message = msg;
+             code = err_code;
           }
     };
-    Loan (char *appSN, char *appDate, TADOHandler *handler);
-    Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn, TADOHandler *handler);
+    Loan (char *appSN, char *appDate);
+    Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn);
     ~Loan ();
     void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
     void loan_validate(char * appNo, char *tsn, TADOHandler *handler);
@@ -220,7 +223,9 @@ class Loan {
     void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
     void calculate_pd(TADOHandler *handler);
-    void calculate_npv(TADOHandler *handler);
+    double calculate_npv(int line);
+    int  calculate_optimal_line(int start_amount, int end_amount, int increment,
+                                TADOHandler *handler);
     int  get_product_type();
     int  get_code();
     double get_rscore ();
