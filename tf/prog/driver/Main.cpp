@@ -95,7 +95,7 @@ void __fastcall TForm1::ValidateClick(TObject *Sender)
        *errMsg = '\0';
        // call the validation function
        status = optimal_cal_conn(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                            1, ole_str, errMsg, dbhandle);
+                            "1", ole_str, errMsg, dbhandle);
 
           if (status < 0) {
              sql_stmt2 = "insert into test_out (idn, return_msg) values ";
@@ -182,7 +182,7 @@ void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
        *errMsg = '\0';
        // call the validation function
        status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                            1, ole_str, errMsg);
+                            "1", ole_str, errMsg);
 
           if (status < 0) {
              sql_stmt2 = "insert into test_out (idn, return_msg) values ";
@@ -240,7 +240,7 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
   TADOQuery *QueryW = ADOQuery2;
   AnsiString sql_stmt, sql_stmt2;
   AnsiString app_sn, app_date, ts_date, jcic_date;
-  int tsn=1;
+  char *tsn="1";
   char errMsg[257];
   char ole_str[256];
   AnsiString oledbString;
