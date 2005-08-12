@@ -1,0 +1,59 @@
+Rscore_new =		0.10695	+
+FS031_T2	*	0.01955	+
+loan_del_number_6m_T2	*	0.00542	+
+GENDER_TRAN	*	0.05442	+
+LN001_12M_R_T	*	0.00040341	+
+fs310_t	*	0.03331	+
+FS059_3M_1k_T	*	0.04101	+
+APP_LAST_MONTH_BUCKET_T	*	0.1141	+
+FS203_12M_1k_t	*	0.04799	+
+FS014_12M_T	*	-0.02282	+
+MS056_6M_1K_R_T	*	0.00595	+
+MS024_3M_R_T	*	-0.01193	;
+
+if rscore_new <=	-0.00455	then rtwentile_new =	1	;
+else if rscore_new <=	0.03109	then rtwentile_new =	2	;
+else if rscore_new <=	0.05953	then rtwentile_new =	3	;
+else if rscore_new <=	0.08193	then rtwentile_new =	4	;
+else if rscore_new <=	0.09965	then rtwentile_new =	5	;
+else if rscore_new <=	0.11647	then rtwentile_new =	6	;
+else if rscore_new <=	0.13359	then rtwentile_new =	7	;
+else if rscore_new <=	0.15048	then rtwentile_new =	8	;
+else if rscore_new <=	0.16679	then rtwentile_new =	9	;
+else if rscore_new <=	0.18253	then rtwentile_new =	10	;
+else if rscore_new <=	0.19921	then rtwentile_new =	11	;
+else if rscore_new <=	0.21956	then rtwentile_new =	12	;
+else if rscore_new <=	0.24267	then rtwentile_new =	13	;
+else if rscore_new <=	0.26477	then rtwentile_new =	14	;
+else if rscore_new <=	0.29127	then rtwentile_new =	15	;
+else if rscore_new <=	0.3196	then rtwentile_new =	16	;
+else if rscore_new <=	0.3542	then rtwentile_new =	17	;
+else if rscore_new <=	0.40292	then rtwentile_new =	18	;
+else if rscore_new <=	0.4896	then rtwentile_new =	19	;
+		else rtwentile_new =	20	;
+run;
+
+
+
+
+RSCORE_D =		0.05401	+
+SECRET_TRAN	*	-0.08681	+
+GENDER_TRAN	*	0.07774	+
+EDUCATION_TRAN2	*	-0.1088	+
+single	*	0.07549	+
+fs029_t	*	0.03419	;
+
+if rscore_d <=		0.05714	then rtwentile_d =	1	;
+else if rscore_d <=		0.08001	then rtwentile_d =	2	;
+else if rscore_d <=		0.0882	then rtwentile_d =	4	;
+else if rscore_d <=		0.13815	then rtwentile_d =	5	;
+else if rscore_d <=		0.15462	then rtwentile_d =	6	;
+else if rscore_d <=		0.16369	then rtwentile_d =	7	;
+else if rscore_d <=		0.16594	then rtwentile_d =	11	;
+else if rscore_d <=		0.19788	then rtwentile_d =	14	;
+else if rscore_d <=		0.23207	then rtwentile_d =	15	;
+else if rscore_d <=		0.2352	then rtwentile_d =	16	;
+else if rscore_d <=		0.24143	then rtwentile_d =	17	;
+else if rscore_d <=		0.26626	then rtwentile_d =	18	;
+else if rscore_d <=		0.30045	then rtwentile_d =	19	;
+			else rtwentile_d =	20	;
