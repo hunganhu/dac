@@ -496,6 +496,10 @@ void Loan::calculate_rscore(TADOHandler *handler)
     hostVars[1] = ts_date;
     handler->ExecSQLCmd(SQLCommands[Calculate_Loan_Del_Number], hostVars, 1);
 
+    hostVars[0] = ts_date;
+    hostVars[1] = app_sn;
+    handler->ExecSQLCmd(SQLCommands[Update_TS_Date], hostVars, 1);
+
     hostVars[0] = app_sn;
     handler->ExecSQLQry(SQLCommands[Get_Branch_Ind], hostVars, 0, ds);
     ds->First();
