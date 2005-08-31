@@ -1409,6 +1409,8 @@ go
      full_score float,
      twentile int,
      score_card int,
+     pb_row int,
+     pb_col int,
      pb float,
      npv decimal(16, 2),
      return_msg varchar(64)
@@ -1655,6 +1657,8 @@ go
      full_score float,
      twentile int,
      score_card int,
+     pb_row int,
+     pb_col int,
      pb float,
      npv decimal(16, 2),
      return_msg varchar(64)
@@ -1672,7 +1676,7 @@ go
        fs059_3m_1k_tran3, app_last_month_bucket, app_last_month_bucket_tran3, fs203_12m_1k,
        fs203_12m_1k_tran3, fs014_12m, fs014_12m_tran3, ms056_6m_1k, ms056_6m_1k_r,
        ms056_6m_1k_r_tran3, ms024_3m, ms024_3m_r, ms024_3m_r_tran3, full_score, twentile,
-       score_card, pb, npv, return_msg)
+       score_card, pb_row, pb_col, pb, npv, return_msg)
    select app_sn, app_date, ts_date, jcic_date, now, avail_flag, ind001, krm001_hit,
        krm023_hit, bam085_hit, jas002_defect, app_max_bucket, fs044, fs334, fs302, ms080,
        product_type, alien, age_over_limit, ts_cashcard_restricted, apr,
@@ -1686,5 +1690,5 @@ go
        fs059_3m_1k_tran3, app_last_month_bucket, app_last_month_bucket_tran3, fs203_12m_1k,
        fs203_12m_1k_tran3, fs014_12m, fs014_12m_tran3, ms056_6m_1k, ms056_6m_1k_r,
        ms056_6m_1k_r_tran3, ms024_3m, ms024_3m_r, ms024_3m_r_tran3, full_score, twentile,
-       score_card, pb, npv, return_msg
+       score_card, pb_row, pb_col, pb, npv, return_msg
    from #tf_ploan_cal

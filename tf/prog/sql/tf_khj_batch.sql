@@ -379,12 +379,12 @@ alter PROCEDURE TF_demographic_model
 	education_tran0 = (case when edu < 4 then 1 /* 專科以上 */
 				else 0 end);
  update tf_ploan_cal
-    set demo_score =  0.07161	+
-		      secretive		* -0.08112 +
-		      gender		*  0.08204 +
-		      education_tran0	* -0.10635 +
-		      single_0		*  0.0716  +
-		      fs029_tran0	*  0.0257;
+    set demo_score =  0.07128	+
+                      secretive		*	-0.0812	+
+                      gender		*	0.07924	+
+                      education_tran0	*      -0.10814	+
+                      single_0		*	0.0711	+
+                      fs029_tran0	*	0.03408	;
  update tf_ploan_cal
     set twentile = (case when demo_score <= 0.06348 then 0
                          when demo_score <= 0.09329 then 1
@@ -548,12 +548,12 @@ alter PROCEDURE TF_BAM_no_payment
 				else 0 end);
 
  update tf_ploan_cal
-    set b2_score = 0.09272	+
-		fs314_tran1	*  0.07957 +
-		fs031_r_tran1	*  0.03617 +
-		fs536_3m_tran1	*  0.16637 +
-		gender		*  0.08372 +
-		education_tran1	* -0.05433;
+    set b2_score = 0.11593	+
+                   fs314_tran1		*	0.11662	+
+                   fs031_r_tran1	*	0.03305	+
+                   fs536_3M_tran1	*	0.1647	+
+                   gender		*	0.0821	+
+                   education_tran1	*      -0.06381;
 
  update tf_ploan_cal
     set twentile = (case when b2_score <= 0.1221100000 then 0
@@ -697,10 +697,10 @@ alter PROCEDURE TF_BAM_with_payment
  fs313_tran2 =(case when fs313 > 0 then 1
        else 0 end);
  update tf_ploan_cal
-    set b1_score = 0.12288	+
-		fs031_r_tran2	* 0.05595 +
-		fs536_3M_tran2	* 0.11614 +
-		fs313_tran2	* 0.08463;
+    set b1_score = 0.12497	+
+                   fs031_r_tran2	*	0.0756	+
+                   fs536_3M_tran2	*	0.10964	+
+                   fs313_tran2		*	0.07759	;
  update tf_ploan_cal
     set twentile = (case when b1_score <= 0.1228800000  then 0
                          when b1_score <= 0.2020052488  then 1
@@ -1110,17 +1110,17 @@ CREATE PROCEDURE TF_ploan_model
         	                when ms024_3m_r > 13.5 then 13.5
           			else ms024_3m_r end);
  update tf_ploan_cal
-    set full_score  =	0.14624	+
-			fs031_tran3		*	0.01263	+
-			loan_del_number_6m_tran3*	0.00492	+
-			gender			*	0.05417	+
-			fs310_tran3		*	0.02756	+
-			fs059_3m_1k_tran3	*	0.03977	+
-			app_last_month_bucket_tran3 *	0.10649	+
-			fs203_12m_1k_tran3	*	0.03699	+
-			fs014_12m_tran3		*      -0.02399	+
-			ms056_6m_1k_r_tran3	*	0.00371	+
-			ms024_3m_r_tran3	*      -0.01112;
+    set full_score =	0.1522	+
+                        fs031_tran3		*	0.01954	+
+                        loan_del_number_6m_tran3*	0.00484	+
+                        gender			*	0.05606	+
+                        fs310_tran3		*	0.03974	+
+                        fs059_3m_1k_tran3	*	0.03203	+
+                        app_last_month_bucket_tran3 *	0.11123	+
+                        fs203_12m_1k_tran3	*	0.04568	+
+                        fs014_12m_tran3		*      -0.02297	+
+                        ms056_6m_1k_r_tran3	*	0.00656	+
+                        ms024_3m_r_tran3	*      -0.01163	;
  update tf_ploan_cal
     set twentile = (case when full_score <= 0.0309420000 then 0
                          when full_score <= 0.0599095445 then 1
@@ -1453,7 +1453,7 @@ go
     where tf_ploan_cal.app_sn = a.app_sn
   
   update tf_ploan_cal
-  set jcic_date = '20041230'
+  set jcic_date = '20041231'
   where jcic_date is null
   
   update tf_ploan_cal
