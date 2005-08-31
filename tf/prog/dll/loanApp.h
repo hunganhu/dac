@@ -132,43 +132,7 @@ class Loan {
 //    double working_capital[TERM+4];
     double credit_loss[TERM+4];
 
-    /* maintenance variables*/
-    double m1_recovery_ratio;            // Late fee recovery ratio - 4 days
-    int    m1_avg_late_days;             // Average late days - 4 days
-    double m1_penalty_rate;              // 違約率 - 4 days
-    double m6_recovery_ratio;            // Late fee recovery ratio - 180+ days
-    int    m6_avg_late_days;             // Average late days - 180+ days
-    double m6_penalty_rate;              // 違約率 - 180+ days
-    double early_closing_fee_pct;        // 提早還款費率
-    double early_closing_fee_collectable_ratio; //  提早還款費可徵收之比率
-//    double leverage_ratio;               //舉債比率（％）
-//    double cof;                          //資金成本（％）
-//    double roe;                          //股東權益報酬（％）
-    double query_fee;                    //查詢費、文件費
-    double commission_ratio;             //25~50%of 手續費
-    double acquisition_data_cost;        //Cost of Jcic data acquisition  提早還款期間
-    double acct_mgmt_cost;               //臨櫃繳款
-    double short_message_expense;        //簡訊費用
-    double phone_expense_north;          //電話催收費用-北區
-    double phone_expense_south;          //電話催收費用-南區
-    double phone_expense_central;        //電話催收費用-中區
-    double legal_exec_north;             //法務費用-北區（執行名義）
-    double legal_query_north;            //法務費用-北區（查詢所得&財產）
-    double legal_auction_north;          //法務費用-北區（拍賣）
-    double legal_staff_north;            //法務費用-北區（法務人員）
-    double legal_exec_south;             //法務費用-南區（執行名義）
-    double legal_query_south;            //法務費用-南區（查詢所得&財產）
-    double legal_auction_south;          //法務費用-南區（拍賣）
-    double legal_staff_south;            //法務費用-南區（法務人員）
-    double legal_exec_central;           //法務費用-中區（執行名義）
-    double legal_query_central;          //法務費用-中區（查詢所得&財產）
-    double legal_auction_central;        //法務費用-中區（拍賣）
-    double legal_staff_central;          //法務費用-中區（法務人員）
-    double legal_detain_ratio_north;     //假扣押&強制執行-北區 (% of balance)
-    double legal_detain_ratio_south;     //假扣押&強制執行-南區 (% of balance)
-    double legal_detain_ratio_central;   //假扣押&強制執行-中區 (% of balance)
-//    double recovery_ratio;               //壞帳回收百分比, (資金損失 % (EAD) )
-    double legal_action_period;          // Legal action usually lasts 12 months before write-off
+    /*maintenance variables*/
 
     /* functions to calculate cash flows */
     void npv_init();
@@ -182,7 +146,6 @@ class Loan {
     double set_late_fee();
     double set_taishin_tax();
     double set_tf_tax();
-//    double set_early_closing_fee();
     double set_interest_cost();
     double calculate_commission();
     double set_account_management_cost();
@@ -192,8 +155,8 @@ class Loan {
     double set_credit_loss();
     double get_GX_adjustment(double annual_pb);
     double get_KHJ_adjustment(double annual_pb);
-    double calculate_pb(int line, int index, double amortization_rate,
-                        int ms082, double ln001, int score_card);
+    double cal_GXa2_pb(int lending_amt, double apr, int period, double risk_score,
+                    int ms082, double wi001_12m);
 
   public:
     class RiskEx {
@@ -229,7 +192,8 @@ class Loan {
     int  get_product_type();
     int  get_code();
     double get_rscore ();
-    double get_pd ();
+    double get_pd();
+    double get_test_PB(char *idn, TADOHandler *handler);
     double get_npv ();
     double get_principal ();
     void Init_Maintenance(TADOHandler *handler);

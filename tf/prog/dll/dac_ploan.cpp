@@ -84,15 +84,30 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     errCode = ptrLoan->get_code();
     if (errCode == 0) {
-       ptrLoan->calculate_rscore(dbhandle);
-//       ptrLoan->calculate_pd(dbhandle);
-//       ptrLoan->calculate_optimal_line(ptrLoan->get_principal(), ptrLoan->get_principal(), 1,
-//                                    dbhandle);
-//    ptrLoan->calculate_npv(get_principal());
+       ptrLoan->get_test_PB(app_sn, dbhandle);
+       ptrLoan->calculate_npv(ptrLoan->get_principal());
+       hostVars[0] = ptrLoan->get_pd();
+       hostVars[1] = ptrLoan->get_npv();
+       hostVars[2] = app_sn;
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Ploan_NPV], hostVars, 2);
     }
     else
        strcpy (error_msg, ptrLoan->error().c_str());
 
+/*
+    dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
+    errCode = ptrLoan->get_code();
+    if (errCode == 0) {
+       ptrLoan->calculate_rscore(dbhandle);
+       ptrLoan->calculate_pd(dbhandle);
+//       ptrLoan->calculate_optimal_line(ptrLoan->get_principal(), ptrLoan->get_principal(), 1,
+//                                    dbhandle);
+    ptrLoan->calculate_npv(get_principal());
+    }
+    else
+       strcpy (error_msg, ptrLoan->error().c_str());
+*/
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif

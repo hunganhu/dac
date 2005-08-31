@@ -430,7 +430,7 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
  TADODataSet *ds = new TADODataSet(NULL);
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
-
+ code = 0;
  jcic_date = inquiry_date;
 // avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
@@ -524,12 +524,31 @@ void Loan::calculate_rscore(TADOHandler *handler)
    }
 }
 //---------------------------------------------------------------------------
+double cal_GXa2_pb(int lending_amt, double apr, int period, double risk_score,
+                int ms082, double wi001_12m)
+{
+ double ln001_12m_r, ln001_12m_r_n, partial_score_n, pb;
+ ln001_12m_r = pow((Payment(apr / 12.0, period, -lending_amt, 0.0, ptEndOfPeriod)
+                    + ms082 * 1000.0)/ wi001_12m , 0.5);
+ ln001_12m_r_n = ((ln001_12m_r - MIN_LN001_12M_R) > 0.0? (ln001_12m_r - MIN_LN001_12M_R): 0.0)
+                 / LENGTH_LN001_12M_R + TRIVIAL_NUM;
+ partial_score_n = ((risk_score - MIN_PARTIAL_SCORE) > 0.0? (risk_score - MIN_PARTIAL_SCORE): 0.0)
+                   / LENGTH_PARTIAL_SCORE + TRIVIAL_NUM;
+ pb =  a[0] + a[1] * partial_score_n + a[2] * pow (partial_score_n, a[3])
+     + (b[0] + b[1] * partial_score_n + b[2] * pow (partial_score_n, b[3])) * ln001_12m_r_n
+     + (c[0] + c[1] * partial_score_n + c[2] * pow (partial_score_n, c[3]))
+     * pow(ln001_12m_r_n, (d[0] + d[1] * partial_score_n + d[2] * pow (partial_score_n, d[3])));
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
 void Loan::calculate_pd(TADOHandler *handler)
 {
  Variant hostVars[5];
- double mp_r, amortization_rate, ln001, npv;
- int    score_card, index, jindex;
- double ms082, wi001_12m;
+ int    score_card;
+ double ms082, wi001_12m, risk_score;
+ double pb_original, pb_original_1, pb_original_2, pb_original_3, pb_inf;
+ double pb_1, pb_2, pb_3;
  int    ms082_ind;
  TADODataSet *ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
@@ -545,170 +564,44 @@ void Loan::calculate_pd(TADOHandler *handler)
           case 0: // screen out
                  break;
           case 1: // A2, full JCIC
-                 index = ds->FieldValues["twentile_a2"];
+                 risk_score = ds->FieldValues["partial_rscore_new"];
                  if (! ds->FieldValues["ms082"].IsNull())
                     ms082 = ds->FieldValues["ms082"];
                  else
                     ms082 = 0.0;
                  wi001_12m = ds->FieldValues["WI001_12m"];
+                 pb_original = cal_GXa2_pb(principal, int_rate, periods, risk_score,
+                                        ms082, wi001_12m);
+                 pb_original_1 = cal_GXa2_pb(AMOUNT_1, int_rate, periods, risk_score,
+                                        ms082, wi001_12m);
+                 pb_original_2 = cal_GXa2_pb(AMOUNT_2, int_rate, periods, risk_score,
+                                        ms082, wi001_12m);
+                 pb_original_3 = cal_GXa2_pb(AMOUNT_3, int_rate, periods, risk_score,
+                                        ms082, wi001_12m);
+                 pb_1 = pb_original_1;
+                 pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
+                 pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
+                 if (principal > AMOUNT_3)
+                     pb_inf = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                 else if (principal > AMOUNT_2)
+                     pb_inf = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                 else if (principal > AMOUNT_1)
+                     pb_inf = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                 else
+                     pb_inf = pb_original;
                  break;
           case 2: // B1 ms080 > 0
-                 index = ds->FieldValues["twentile_b1"];
+                 risk_score = ds->FieldValues["rscore_new"];
                  break;
           case 3: // B2 ms080 <= 0
-                 index = ds->FieldValues["brmp_twentile"];
+                 risk_score = ds->FieldValues["brmp_score"];
                  break;
           case 4: // Demographic
+                 risk_score = ds->FieldValues["rscore_new"];
                  break;
        }
     }
-    if (int_rate == 0.0) amortization_rate = 1.0 / periods;
-    else amortization_rate =  pow ((1 + (int_rate / 12.0 )), periods) * (int_rate / 12.0 )
-                              / (pow ((1 + (int_rate / 12.0 )), periods) - 1);
-
-    int line = principal;
-    //    for (int line = start_amount; line <= end_amount; line += increment) {
-       switch (score_card) {
-          case 0: // screen out
-                 pd = 0.9;
-                 break;
-          case 1: // A2, full JCIC
-                 ln001 = pow ((line * amortization_rate + ms082 * 1000.0)
-                               / wi001_12m, 0.5);
-                 if (ln001 <= 0.0) jindex = 0;
-                 else if (ln001 <= 21.3540000000) jindex = 1;
-                 else if (ln001 <= 27.3980000000) jindex = 2;
-                 else if (ln001 <= 32.2840000000) jindex = 3;
-                 else if (ln001 <= 36.1610000000) jindex = 4;
-                 else if (ln001 <= 39.9150000000) jindex = 5;
-                 else if (ln001 <= 43.5220000000) jindex = 6;
-                 else if (ln001 <= 47.1000000000) jindex = 7;
-                 else if (ln001 <= 50.6460000000) jindex = 8;
-                 else if (ln001 <= 55.1270000000) jindex = 9;
-                 else if (ln001 <= 58.8450000000) jindex = 10;
-                 else if (ln001 <= 63.0650000000) jindex = 11;
-                 else if (ln001 <= 67.7100000000) jindex = 12;
-                 else if (ln001 <= 72.8690000000) jindex = 13;
-                 else if (ln001 <= 78.8130000000) jindex = 14;
-                 else if (ln001 <= 86.7410000000) jindex = 15;
-                 else if (ln001 <= 95.9160000000) jindex = 16;
-                 else if (ln001 <= 109.3390000000) jindex = 17;
-                 else if (ln001 <= 134.5470000000) jindex = 18;
-                 else if (ln001 <= 170.8902000000) jindex = 19;
-                 else if (ln001 <= 229.0276537120) jindex = 20;
-                 else if (ln001 <= 319.9872318933) jindex = 21;
-                 else if (ln001 <= 460.4174726738) jindex = 22;
-                 else if (ln001 <= 673.9418808429) jindex = 23;
-                 else if (ln001 <= 993.5307920375) jindex = 24;
-                 else if (ln001 <= 1464.5116054610) jindex = 25;
-                 else jindex = 26;
-                 pd =  GXa2_PB[index][jindex];
-                 break;
-          case 2: // B1 ms080 > 0
-                 pd =  GXb1_PB[index];
-                 break;
-          case 3: // B2 ms080 <= 0
-                 mp_r = pow((line * amortization_rate + ms082 * 1000.0), 0.5);
-
-                 if (mp_r <= 0 ) jindex = 0;
-                 else if (mp_r <= 40.517 ) jindex = 1;
-                 else if (mp_r <= 44.789 ) jindex = 2;
-                 else if (mp_r <= 49.477 ) jindex = 3;
-                 else if (mp_r <= 50.075 ) jindex = 4;
-                 else if (mp_r <= 56.812 ) jindex = 5;
-                 else if (mp_r <= 57.822 ) jindex = 6;
-                 else if (mp_r <= 58.481 ) jindex = 7;
-                 else if (mp_r <= 64.647 ) jindex = 8;
-                 else if (mp_r <= 64.712 ) jindex = 9;
-                 else if (mp_r <= 73.973 ) jindex = 10;
-                 else if (mp_r <= 78.992 ) jindex = 11;
-                 else if (mp_r <= 86.741 ) jindex = 12;
-                 else if (mp_r <= 104.614 ) jindex = 13;
-                 else if (mp_r <= 131.054 ) jindex = 14;
-                 else if (mp_r <= 175.6339 ) jindex = 15;
-                 else if (mp_r <= 248.435144 ) jindex = 16;
-                 else if (mp_r <= 364.6396332 ) jindex = 17;
-                 else if (mp_r <= 545.8185649 ) jindex = 18;
-                 else if (mp_r <= 821.9282779 ) jindex = 19;
-                 else if (mp_r <= 1233.779339 ) jindex = 20;
-                 else jindex = 21;
-                 pd =  GXb2_PB[index][jindex];
-                 break;
-          case 4: // Demographic
-                 pd =  GXdemo_PB[index];
-                 break;
-       }
-// KHJ
-       switch (score_card) {
-          case 0: // screen out
-                 pd = 0.9;
-                 break;
-          case 1: // A2, full JCIC
-                 ln001 = pow ((line * amortization_rate + ms082 * 1000.0)
-                               / wi001_12m, 0.5);
-                 if      (ln001 <= 0.0)            jindex = 0;
-                 else if (ln001 <= 21.3540000000)  jindex = 1;
-                 else if (ln001 <= 27.3980000000)  jindex = 2;
-                 else if (ln001 <= 32.2840000000)  jindex = 3;
-                 else if (ln001 <= 36.1610000000)  jindex = 4;
-                 else if (ln001 <= 39.9150000000)  jindex = 5;
-                 else if (ln001 <= 43.5220000000)  jindex = 6;
-                 else if (ln001 <= 47.1000000000)  jindex = 7;
-                 else if (ln001 <= 50.6460000000)  jindex = 8;
-                 else if (ln001 <= 55.1270000000)  jindex = 9;
-                 else if (ln001 <= 58.8450000000)  jindex = 10;
-                 else if (ln001 <= 63.0650000000)  jindex = 11;
-                 else if (ln001 <= 67.7100000000)  jindex = 12;
-                 else if (ln001 <= 72.8690000000)  jindex = 13;
-                 else if (ln001 <= 78.8130000000)  jindex = 14;
-                 else if (ln001 <= 86.7410000000)  jindex = 15;
-                 else if (ln001 <= 95.9160000000)  jindex = 16;
-                 else if (ln001 <= 109.3390000000) jindex = 17;
-                 else if (ln001 <= 134.5470000000) jindex = 18;
-                 else if (ln001 <= 170.8902000000) jindex = 19;
-                 else if (ln001 <= 229.0276537120) jindex = 20;
-                 else if (ln001 <= 319.9872318933) jindex = 21;
-                 else if (ln001 <= 460.4174726738) jindex = 22;
-                 else if (ln001 <= 673.9418808429) jindex = 23;
-                 else if (ln001 <= 993.5307920375) jindex = 24;
-                 else if (ln001 <= 1464.511605461) jindex = 25;
-                 else jindex = 26;
-                 pd =  KHJa2_PB[index][jindex];
-                 break;
-          case 2: // B1 ms080 > 0
-                 pd =  KHJb1_PB[index];
-                 break;
-          case 3: // B2 ms080 <= 0
-                 mp_r = pow((line * amortization_rate + ms082 * 1000.0), 0.5);
-
-                 if      (mp_r <= 0.0000000000   ) jindex = 0;
-                 else if (mp_r <= 40.5170000000  ) jindex = 1;
-                 else if (mp_r <= 44.7890000000  ) jindex = 2;
-                 else if (mp_r <= 49.4770000000  ) jindex = 3;
-                 else if (mp_r <= 50.0750000000  ) jindex = 4;
-                 else if (mp_r <= 56.8120000000  ) jindex = 5;
-                 else if (mp_r <= 57.8220000000  ) jindex = 6;
-                 else if (mp_r <= 58.4810000000  ) jindex = 7;
-                 else if (mp_r <= 64.6470000000  ) jindex = 8;
-                 else if (mp_r <= 64.7120000000  ) jindex = 9;
-                 else if (mp_r <= 73.9730000000  ) jindex = 10;
-                 else if (mp_r <= 78.9920000000  ) jindex = 11;
-                 else if (mp_r <= 86.7410000000  ) jindex = 12;
-                 else if (mp_r <= 104.6140000000 ) jindex = 13;
-                 else if (mp_r <= 131.0540000000 ) jindex = 14;
-                 else if (mp_r <= 175.6339000000 ) jindex = 15;
-                 else if (mp_r <= 248.4351439635 ) jindex = 16;
-                 else if (mp_r <= 364.6396331652 ) jindex = 17;
-                 else if (mp_r <= 545.8185648775 ) jindex = 18;
-                 else if (mp_r <= 821.9282779142 ) jindex = 19;
-                 else if (mp_r <= 1233.7793392206) jindex = 20;
-                 else jindex = 21;
-                 pd =  KHJb2_PB[index][jindex];
-                 break;
-          case 4: // Demographic
-                 pd =  KHJdemo_PB[index];
-                 break;
-       }
+    pd = pb_inf;
 //     hostVars[0] = pd;
 //     hostVars[1] = app_sn;
 //     handler->ExecSQLCmd(SQLCommands[Write_PB_Result], hostVars, 1);
@@ -1314,11 +1207,14 @@ double Loan::set_credit_loss()
 }
 
 //---------------------------------------------------------------------------
-/*
-double Loan::get_pd(char *idn, TADOHandler *handler)
+
+double Loan::get_test_PB(char *idn, TADOHandler *handler)
 {
  Variant hostVars[5];
+ TADODataSet *ds = new TADODataSet(NULL);
  double pb;
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
 
   try {
     hostVars[0] = idn;
@@ -1327,29 +1223,15 @@ double Loan::get_pd(char *idn, TADOHandler *handler)
 
     ds->First();
     if (!ds->Eof) {
-       if (! ds->FieldValues["pd"].IsNull())
-          pb = ds->FieldByName("pd")->AsFloat;
-       if (! ds->FieldValues["rscore"].IsNull())
-          rscore = ds->FieldByName("rscore")->AsFloat;
+       if (! ds->FieldValues["pb"].IsNull())
+          pb = ds->FieldByName("pb")->AsFloat;
+//       if (! ds->FieldValues["rscore"].IsNull())
+//          rscore = ds->FieldByName("rscore")->AsFloat;
     }
-    if (rscore == 101)
-        throw (RiskEx ("人工審核 [無JCIC資料]", 101));
-    else if (rscore == 103)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 103));
-    else if (rscore == 104)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 104));
-    else if (rscore == 105)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 105));
-    else if (rscore == 106)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 106));
-    else if (rscore == 107)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 107));
-    else if (rscore == 102)
-        throw (RiskEx ("人工審核 [JCIC資料不足]", 102));
     pd = pb;
  } catch (Exception &E) {
     throw;
  }
  return (pb);
 }
-*/
+

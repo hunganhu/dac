@@ -340,7 +340,28 @@ const double vol_attrition_open[2][61] = {
      0.01 , 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.0}  // KHJ Year 5 
 };
 
+//-------------------------------------------------------------------------------------------
+// Information to calculation PB
+// score card A2
+const double AMOUNT_3 = 300000;
+const double AMOUNT_2 = 200000;
+const double AMOUNT_1 = 100000;
+const double INFLAT_3 = 10;
+const double INFLAT_2 = 5;
+const double INFLAT_1 = 2;
 
+
+const double MIN_LN001_12M_R = 22.0969;
+const double MAX_LN001_12M_R = 556.1794;
+const double LENGTH_LN001_12M_R = MAX_LN001_12M_R - MIN_LN001_12M_R;
+const double MIN_PARTIAL_SCORE = -0.084903;
+const double MAX_PARTIAL_SCORE = 0.723525;
+const double LENGTH_PARTIAL_SCORE = MAX_PARTIAL_SCORE - MIN_PARTIAL_SCORE;
+const double TRIVIAL_NUM = 0.000001;
+const double a[4] = {0.0,    0.0,     0.39780, 1.31178};
+const double b[4] = {0.0,    0.60208, 0.0,     1.01566};
+const double c[4] = {0.0,    0.0,     0.00012, 9.42811};
+const double d[4] = {12.683, 1.00048, 2.33763, 1.0541};
 
 
 

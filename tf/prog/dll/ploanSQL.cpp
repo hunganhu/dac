@@ -63,6 +63,17 @@ char *SQLCommands[] = {
 "     set ts_date = :v0"
 "     where app_sn = :v1",
 
+/* Get_Ploan_PD*/
+"  select pb "
+"  from gx_test_case"
+"  where idn = :v0",
+
+/* Write_Ploan_NPV*/
+"  update #tf_ploan_cal"
+"     set pb = :v0,"
+"         npv = :v1"
+"  where app_sn = :v2",
+
 /* Get_PB_Input*/
 "  select LN001_12m_r_tran3, amortization_rate, ms082, twentile, score_card "
 "  from #tf_ploan_cal"
@@ -74,7 +85,7 @@ char *SQLCommands[] = {
 "  where app_sn = :v0",
 
 /* Get_PB_test */
-"  select score_card, ms082, WI001_12m, rtwentile_a2, rtwentile_b1, rtwentile_c, brmp_twentile"
+"  select score_card, ms082, WI001_12m, partial_rscore_new, rscore_new, brmp_score"
 "  from gx_test_case"
 "  where idn = :v0",
 
