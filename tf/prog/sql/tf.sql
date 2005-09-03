@@ -594,7 +594,7 @@ CREATE PROCEDURE TF_ploan_model
     where a.app_sn = #tf_ploan_cal.app_sn and mon=12;
  /*****************************************************************************************/
  /* FS310  現金卡utilization >= 98% 筆數 (Loan_amt + Pass_due_amt) / contract_amt >= 0.98,*/
- /* providing contract_amt <> 0                                                           */
+ /* providing contract_amt <> 0      20050903 98% to 95%                                  */
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp(app_sn, v1)
@@ -602,7 +602,7 @@ CREATE PROCEDURE TF_ploan_model
     from #bam085_dedup
     where account_code = 'Y'
       and ((convert(float, isnull(loan_amt, 0)) + convert(float, isnull(pass_due_amt, 0))) /
-           (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 0.98
+           (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 0.95
     group by app_sn
 
  update #tf_ploan_cal
@@ -855,7 +855,7 @@ alter PROCEDURE TF_BAM_with_payment
     where a.app_sn = #tf_ploan_cal.app_sn
       and a.mon = 3
  /*****************************************************************************************/
- /* FS313 動用比例超過96%筆數                                                             */
+ /* FS313 動用比例超過96%筆數      20050903  96% to 95%                                   */
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp(app_sn, v1)
@@ -863,7 +863,7 @@ alter PROCEDURE TF_BAM_with_payment
     from #bam085_dedup
     where account_code = 'Y' and
           ((convert(float, isnull(loan_amt, 0)) + convert(float, isnull(pass_due_amt, 0))) /
-           (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 0.96
+           (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 0.95
     group by app_sn
  update #tf_ploan_cal
     set fs313 = v1
@@ -991,7 +991,7 @@ alter PROCEDURE TF_BAM_no_payment
     where a.app_sn = #tf_ploan_cal.app_sn
       and a.mon = 3
  /*****************************************************************************************/
- /* FS314 動用比例超過100%筆數                                                            */
+ /* FS314 動用比例超過95%筆數    20050903- 100% to 95%                                    */
  /*****************************************************************************************/
  update #tf_ploan_cal
     set fs314 = v1
@@ -999,7 +999,7 @@ alter PROCEDURE TF_BAM_no_payment
           from #bam085_dedup
           where account_code = 'Y' and
                 ((convert(float, isnull(loan_amt, 0)) + convert(float, isnull(pass_due_amt, 0))) /
-                 (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 1.00
+                 (case when isnull(contract_amt, 0) = 0 then null else convert(float, contract_amt) end)) >= 0.95
           group by app_sn) as a
     where a.app_sn = #tf_ploan_cal.app_sn
  /*****************************************************************************************/
