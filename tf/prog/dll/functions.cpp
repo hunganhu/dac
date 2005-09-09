@@ -105,7 +105,7 @@ int yrmon_to_mon(String inquiry_month, bool time_lock, String lock)
      year = today->tm_year + 1900;
      month = today->tm_mon + 1;
      day = today->tm_mday;
-     current = year + month + day;
+     current = (year * 100 + month) * 100 + day;
 
      if (time_lock && (lock.Length()==8)) {
        if (current > lock)
@@ -146,3 +146,27 @@ bool validate_date(String date)
 
  return(true);
 }
+//---------------------------------------------------------------------------
+
+int check_expiration(int lock)
+{
+  int year;
+  int month;
+  int day;
+  String current;
+  tm *today;
+  time_t ltime;
+
+  ltime = time( NULL );
+  today = localtime( &ltime );
+  year = today->tm_year + 1900;
+  month = today->tm_mon + 1;
+  day = today->tm_mday;
+  current = (year * 100 + month) * 100 + day;
+
+  if (current > lock)
+     return (-1);
+  else
+     return (0);
+}
+

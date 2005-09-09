@@ -37,6 +37,7 @@ class Loan {
     int info_processing_cost;       // 每戶每月分攤台新銀行資訊室費用 (新台幣元)
     int operation_cost;             // 每戶每月分攤台新銀行分行作業及客服費用 (新台幣元)
     int hr_cost;                    // 每戶每月人事成本費用 (新台幣元)
+    double commission;              // 佣金 (新台幣元)
 
     int record_count;               // number of app_info records read
     int trial_count;                // number of Loan records read
@@ -76,6 +77,7 @@ class Loan {
     int hr_cost_ind;
     int sales_channel_ind;
     int risk_level_ind;
+    int commission_ind;
 
     int principal_ind;
     int int_rate_ind;

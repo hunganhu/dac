@@ -4,25 +4,32 @@
 #include "dac_ploan.h"
 #include "loanApp.h"
 #include "ploanSQL.h"
+#include "functions.h"
 #ifndef _WRFLOW    //In Project->Options->directories/conditionals, append ";_WRFLOW" to conditinals
  #define DEBUG 0
 #else
  #define DEBUG 1
 #endif
+const int EXPIRATION_DATE = 20101231; // expiration date of this module
+const char *EXPIRATION_MSG = "使用期限已過";      // expiration message
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
 
 int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
-              char *ole_db, char *error_msg)
+              char *ole_db, char *error_message)
 {
  TADOHandler *dbhandle;
  Loan *ptrLoan;
  Variant hostVars[10];
  int errCode = 0;
 
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
  try {
-    strcpy (error_msg, "");      // return empty string if stop normally.
+    strcpy (error_message, "");      // return empty string if stop normally.
     dbhandle = new TADOHandler();
     dbhandle->OpenDatabase(ole_db);
     ptrLoan = new Loan(app_sn, app_data_time);
@@ -44,10 +51,10 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
 
  } catch (Loan::DataEx &DE){
-     strcpy (error_msg, DE.message.c_str());
+     strcpy (error_message, DE.message.c_str());
      errCode = DE.code;
  } catch (Exception &E) {
-     strcpy (error_msg, E.Message.c_str());
+     strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
  delete ptrLoan;
@@ -57,14 +64,18 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
 }
 //---------------------------------------------------------------------------
 int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, char *tsn, char *ole_db, char *error_msg)
+                char *app_data_time, char *tsn, char *ole_db, char *error_message)
 {
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
  return(0);
 }
 
 //---------------------------------------------------------------------------
 int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, char *tsn, char *ole_db, char *error_msg,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message,
                 TADOHandler *dbhandle)
 {
 // TADOHandler *dbhandle;
@@ -74,6 +85,10 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
  String Message;
  int errCode = 0;
 
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
  try {
 //    dbhandle = new TADOHandler();
 //    dbhandle->OpenDatabase(ole_db);
@@ -92,7 +107,7 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
        dbhandle->ExecSQLCmd(SQLCommands[Write_Ploan_NPV], hostVars, 2);
     }
     else
-       strcpy (error_msg, ptrLoan->error().c_str());
+       strcpy (error_message, ptrLoan->error().c_str());
 
 /*
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
@@ -106,7 +121,7 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan->calculate_npv(get_principal());
     }
     else
-       strcpy (error_msg, ptrLoan->error().c_str());
+       strcpy (error_message, ptrLoan->error().c_str());
 */
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
@@ -116,10 +131,10 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
      */
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
  } catch (Loan::DataEx &DE){
-     strcpy (error_msg, DE.message.c_str());
+     strcpy (error_message, DE.message.c_str());
      errCode = DE.code;
  } catch (Exception &E) {
-     strcpy (error_msg, E.Message.c_str());
+     strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
  delete ptrLoan;
@@ -129,16 +144,27 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
 }
 
 //---------------------------------------------------------------------------
-int designated_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, char *tsn, char *ole_db, char *error_msg)
+int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message)
 {
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
  return(0);
 
 }
 //---------------------------------------------------------------------------
 int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, char *tsn, char *ole_db, char *error_msg)
+                 char *app_data_time, char *tsn, char *ole_db,
+                 char *audit_userno1, char *change_code, char *major_deviation,
+                 char *minor_deviation, char *decline_code, char *manual_code,
+                 char *error_message)
 {
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
  return(0);
 
 }

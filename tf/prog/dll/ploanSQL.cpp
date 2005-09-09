@@ -9,9 +9,9 @@
 
 char *SQLCommands[] = {
 /* Get_AppInfo_Record */
-" select app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status,"
+" select app_sn, data_time, product_type, gender, zip, secretive, education_level, marriage_status,"
 "        alien, age_over_limit, ts_cashcard_restricted, cof, roe, ts_tax_rate, tf_tax_rate,"
-"        info_processing_cost, operation_cost, hr_cost, risk_level, sales_channel"
+"        info_processing_cost, operation_cost, hr_cost, risk_level, sales_channel, commission"
 " from app_info"
 " where app_sn = :v0 and data_time = :v1;",
 
