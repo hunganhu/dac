@@ -96,7 +96,7 @@ Comments=
 DebugSourceDirs=$(BCB)\source\vcl
 
 [Parameters]
-RunParams=
+RunParams=-u jcic -p jcic -s giza -d fw_score
 Launcher=
 UseLauncher=0
 DebugCWD=

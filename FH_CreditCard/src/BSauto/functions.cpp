@@ -103,7 +103,7 @@ int ControlFile::get_control_info()
     get_filename(rec, name, count);     // get file name, line count of account
     accountCount = atoi(count);
  }
-
+/*
  sprintf (control_path, "%s\\%s", bs_data, statementFile);
  statement_read_count = get_linecount(control_path);
  if (statement_read_count == -1)
@@ -117,7 +117,7 @@ int ControlFile::get_control_info()
     return 3;    // account file does not exist
  else if (account_read_count != accountCount)
     return 5;    // #rec of account indicated in control file and actual #rec mismatch.
-
+ */
 
  return(0);
 }
@@ -184,10 +184,10 @@ int ControlFile::check_bulk_insert_status(TADOHandler *dbhandle)
     if (!ds->Eof)
        account_cycle_count = ds->FieldValues["load_count"];
 
-    if (statement_read_count != (statement_temp_count + 1))
+    if (statementCount != (statement_temp_count + 1))
        return 6;    // #rec of statement read and #rec in temp mismatch.
 
-    if (account_read_count != (account_temp_count + 1))
+    if (accountCount != (account_temp_count + 1))
        return 7;    // #rec of account read and  #rec in temp mismatch.
 
     if (account_cycle_count != (account_temp_count))
