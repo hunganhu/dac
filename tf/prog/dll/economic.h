@@ -349,21 +349,28 @@ const double AMOUNT_1 = 100000;
 const double INFLAT_3 = 10;
 const double INFLAT_2 = 5;
 const double INFLAT_1 = 2;
+const double TRIVIAL_NUM = 0.000001;
 
 
 const double MIN_LN001_12M_R = 22.0969;
 const double MAX_LN001_12M_R = 556.1794;
-const double LENGTH_LN001_12M_R = MAX_LN001_12M_R - MIN_LN001_12M_R;
 const double MIN_PARTIAL_SCORE = -0.084903;
 const double MAX_PARTIAL_SCORE = 0.723525;
-const double LENGTH_PARTIAL_SCORE = MAX_PARTIAL_SCORE - MIN_PARTIAL_SCORE;
-const double TRIVIAL_NUM = 0.000001;
-const double a[4] = {0.0,    0.0,     0.39780, 1.31178};
-const double b[4] = {0.0,    0.60208, 0.0,     1.01566};
-const double c[4] = {0.0,    0.0,     0.00012, 9.42811};
-const double d[4] = {12.683, 1.00048, 2.33763, 1.0541};
+const double a_a2[4] = {0.0,    0.0,     0.39780, 1.31178};
+const double b_a2[4] = {0.0,    0.60208, 0.0,     1.01566};
+const double c_a2[4] = {0.0,    0.0,     0.00012, 9.42811};
+const double d_a2[4] = {12.683, 1.00048, 2.33763, 1.0541};
 
 
+// score card B2
+const double MIN_MPR = 0.0;
+const double MAX_MPR = 282.02904106;
+const double MIN_BRMP_SCORE = 0.0381;
+const double MAX_BRMP_SCORE = 0.67827;
+const double a_b2[4] = { 0.0,       0.0, 0.077553, 0.159439};
+const double b_b2[4] = { 0.0,       0.0, 0.577976, 0.063206};
+const double c_b2[4] = { 0.0,       0.0, 0.0,     10.2859  };
+const double d_b2[4] = { 0.0081885, 0.0, 0.0,      9.362   };
 
 
 

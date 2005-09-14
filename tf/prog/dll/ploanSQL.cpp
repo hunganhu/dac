@@ -31,9 +31,19 @@ char *SQLCommands[] = {
 " from #tf_ploan_cal"
 " where app_sn = :v1",
 
+/*Get_Prescreen_Record*/
+" select app_sn, app_date, jcic_date from prescreen "
+"  where app_sn = :v0 and app_data_time = :v1 and jcic_data_date = :v2;",
+
 /*Write_Prescreen_Result*/
 " insert into prescreen(app_sn, app_date, jcic_date, product_type, code, reason)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5);",
+
+/* Write_Specific_Result */
+" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+"     product_type, specific_lending_amount, pb, npv, optimal, reason_code, reason_message, "
+"     ext_monthly_payment)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, 0, :v9, :v10, 0);",
 
 /* Calculate_Loan_Del_Number*/
 " insert into #tmp1(app_sn, v1)"
@@ -85,8 +95,8 @@ char *SQLCommands[] = {
 "  where app_sn = :v0",
 
 /* Get_PB_test */
-"  select score_card, ms082, WI001_12m, partial_rscore_new, rscore_new, brmp_score"
-"  from gx_test_case"
+"  select card, ms082, WI001_12m, partial_rscore_new, rscore_new, brmp_score"
+"  from tf_gx_score_0913_15day_testcase"
 "  where idn = :v0",
 
 /* Write_NPV_Result*/
@@ -100,7 +110,6 @@ char *SQLCommands[] = {
 /*Write_PLoan_Result*/
 " insert into ploan_result(case_sn, idn, dac_sn, application_date,  return_msg, ev, pb, checksum1, checksum2)"
 "  values (:v0, :v1, :v2, :v3, :v4, %16.2f, %10.6f, %10.6f, %10.6f);",
-
 /* jcic data preparation for a idn */
 /* Create_Working_Tables */
 //" if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_dedup') and objectproperty(id, N'isusertable') = 1)"

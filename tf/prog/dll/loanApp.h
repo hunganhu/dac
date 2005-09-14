@@ -105,7 +105,7 @@ class Loan {
 */
     /* cash flow arrays to calculate NPV */
     String Message;
-    int district;
+    int card;
     double pd;
     double optimal_line;
     double rscore;
@@ -139,7 +139,7 @@ class Loan {
     /* functions to calculate cash flows */
     void npv_init();
     void set_apr();
-    void set_attrition();
+    void set_attrition(double pb);
     void set_amortize(int line);
     void set_annuity(int line);
     double set_interest_revenue();
@@ -158,9 +158,18 @@ class Loan {
     double get_GX_adjustment(double annual_pb);
     double get_KHJ_adjustment(double annual_pb);
     double cal_GXa2_pb(int lending_amt, double apr, int period, double risk_score,
-                    int ms082, double wi001_12m);
+                    double ms082, double wi001_12m);
+    double cal_GXb1_pb(double risk_score);
+    double cal_GXb2_pb(int lending_amt, double apr, int period, double risk_score,
+                double ms082);
+    double cal_GXc_pb(double risk_score);
+    double cal_KHJa2_pb(double risk_score);
+    double cal_KHJb1_pb(double risk_score);
+    double cal_KHJb2_pb(double risk_score);
+    double cal_KHJc_pb(double risk_score);
 
   public:
+
     class RiskEx {
        public:
           String message;
@@ -179,7 +188,8 @@ class Loan {
              code = err_code;
           }
     };
-    Loan (char *appSN, char *appDate);
+   
+    Loan (char *appSN, char *appDate, char *jcicDate);
     Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn);
     ~Loan ();
     void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
@@ -187,20 +197,19 @@ class Loan {
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
-    void calculate_pd(TADOHandler *handler);
-    double calculate_npv(int line);
-    int  calculate_optimal_line(int start_amount, int end_amount, int increment,
-                                TADOHandler *handler);
+    double calculate_pd(int line, TADOHandler *handler);
+    double calculate_npv(int line, double pb);
+    int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     int  get_product_type();
     int  get_code();
     double get_rscore ();
     double get_pd();
-    double get_test_PB(char *idn, TADOHandler *handler);
+    int get_test_PB(char *idn, TADOHandler *handler);
     double get_npv ();
     double get_principal ();
     void Init_Maintenance(TADOHandler *handler);
 //    double get_pd(char *idn, TADOHandler *handler);
-    void postFilter();
+//    void postFilter();
 };
 
 #endif

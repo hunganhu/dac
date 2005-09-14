@@ -17,8 +17,8 @@ const double m1_to_m7_ratio = 5.0;
 
 #pragma package(smart_init)
 
-Loan::Loan (char *appSN, char *appDate):
-    app_sn(appSN), app_date(appDate), product_type_ind(0),
+Loan::Loan (char *appSN, char *appDate, char *jcicDate):
+    app_sn(appSN), app_date(appDate), jcic_date(jcicDate), product_type_ind(0),
     gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
     marriage_status_ind(0), alien_ind(0), age_ind(0), cashcard_lock_ind(0),
     cof_ind(0), roe_ind(0), ts_tax_rate_ind(0), tf_tax_rate_ind(0),
@@ -56,10 +56,11 @@ Loan::Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn)
 void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 {
  Variant hostVars[5];
- bool success = true;
  TADODataSet *ds = new TADODataSet(NULL);
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ code = 0;
+ Message = "";
  try {
     hostVars[0] = appNo;
     hostVars[1] = appDate;
@@ -164,109 +165,67 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
           commission_ind = -1;
     }
 
-  if (record_count == 0) {
-     throw DataEx("無申請件資料。", -1);
-  }
+  if (record_count == 0)
+     Message += "無申請件資料。";
 
   if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
-     Message += "301 - 無法辨識申請人是否為外國人。"; code = 301;
-     success = false;
-  }
+     Message += "301 - 無法辨識申請人是否為外國人。"; code = 301;}
 
   if ((age_ind == -1) || (age < 0) || (age > 1)) {
-     Message += "302 - 無法辨識申請人年紀是否超過55歲。"; code = 302;
-     success = false;
-  }
+     Message += "302 - 無法辨識申請人年紀是否超過55歲。"; code = 302;}
 
   if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
-     Message += "303 - 無法辨識是否申請人本行現金卡額度被鎖。"; code = 303;
-     success = false;
-  }
+     Message += "303 - 無法辨識是否申請人本行現金卡額度被鎖。"; code = 303;}
 
   if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
-     Message += "304 - 無法辨識申請人性別。"; code = 304;
-     success = false;
-  }
+     Message += "304 - 無法辨識申請人性別。"; code = 304;}
 
   if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
-     Message += "305 - 產品代號無法辨識。"; code = 305;
-     success = false;
-  }
+     Message += "305 - 產品代號無法辨識。"; code = 305;}
 
   if ( validZIP(zip.c_str()) == 0) {
-     Message += "306 - 三碼郵遞區號錯誤。";  code = 306;
-     success = false;
-  }
+     Message += "306 - 三碼郵遞區號錯誤。";  code = 306;}
 
   if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
-     Message += "307 - 無法辨識是否要密家人。"; code = 307;
-     success = false;
-  }
+     Message += "307 - 無法辨識是否要密家人。"; code = 307;}
 
   if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
-     Message += "308 - 無法辨識婚姻狀況。";  code = 308;
-     success = false;
-  }
+     Message += "308 - 無法辨識婚姻狀況。";  code = 308;}
 
   if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
-     Message += "309 - 教育程度無法辨識。"; code = 309;
-     success = false;
-  }
+     Message += "309 - 教育程度無法辨識。"; code = 309;}
 
   if ((commission_ind == -1) || (commission < 0)) {
-     Message += "310 - 佣金為負數。";
-     code = 310;
-     success = false;
-  }
+     Message += "310 - 佣金為負數。"; code = 310;}
 
   if ((sales_channel_ind == -1) || (sales_channel < "001") || (sales_channel > "009") ) {
-     Message += "311 - 銷售管道無法辨識。";
-     code = 311;
-     success = false;
-  }
+     Message += "311 - 銷售管道無法辨識。"; code = 311;}
 
   if ((risk_level_ind == -1) || (risk_level < 1) || (risk_level > 2) ) {
-     Message += "312 - 風險等級無法辨識。"; code = 312;
-     success = false;
-  }
+     Message += "312 - 風險等級無法辨識。"; code = 312;}
 
   if ((roe_ind == -1) || (roe <= 0.0)) {
-     Message += "321 - ROE小於或等於零。"; code = 321;
-     success = false;
-  }
+     Message += "321 - ROE小於或等於零。"; code = 321;}
 
   if ((cof_ind == -1) || (cof <= 0.0)) {
-     Message += "322 - 台新金控資金成本小於或等於零。"; code = 322;
-     success = false;
-  }
+     Message += "322 - 台新金控資金成本小於或等於零。"; code = 322;}
 
   if ((ts_tax_rate_ind == -1) || (ts_tax_rate <= 0.0)) {
-     Message += "323 - 台新銀行營業稅小於或等於零。"; code = 323;
-     success = false;
-  }
+     Message += "323 - 台新銀行營業稅小於或等於零。"; code = 323;}
 
   if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
-     Message += "324 - 台新資融營業稅小於或等於零。"; code = 324;
-     success = false;
-  }
+     Message += "324 - 台新資融營業稅小於或等於零。"; code = 324;}
 
   if ((info_processing_cost_ind == -1) || (info_processing_cost <= 0.0)) {
-     Message += "325 - 台新資訊室費用小於或等於零。"; code = 325;
-     success = false;
-  }
+     Message += "325 - 台新資訊室費用小於或等於零。"; code = 325;}
 
   if ((operation_cost_ind == -1) || (operation_cost <= 0.0)) {
-     Message += "326 - 台新作業與客服費用小於或等於零。"; code = 326;
-     success = false;
-  }
+     Message += "326 - 台新作業與客服費用小於或等於零。"; code = 326;}
 
   if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
-     Message += "327 - 人事成本小於或等於零。"; code = 327;
-     success = false;
-  }
+     Message += "327 - 人事成本小於或等於零。"; code = 327;}
 
   delete ds;
-  if (!success) throw DataEx(Message, code);
  } catch (Exception &E) {
     throw;
  }
@@ -275,7 +234,6 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
 {
  Variant hostVars[5];
- bool success = true;
  TADODataSet *ds = new TADODataSet(NULL);
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
@@ -338,70 +296,45 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
           risk_mgmt_fee_terms_ind = -1;
      }
   if (trial_count == 0) {
-     throw DataEx("無貸款資料。", -1);
+     Message += "無貸款資料。";
   }
   if ((principal_ind == -1) || (product_type == 1 && (principal < 100000.0 || principal > 600000.0))) {
-     Message += "331 - 國民信貸貸款金額大於600000或小於100000。"; code = 331;
-     success = false;
-  }
+     Message += "331 - 國民信貸貸款金額大於600000或小於100000。"; code = 331;}
   else if ((principal_ind == -1) || (product_type == 2 && (principal < 50000.0 || principal > 200000.0))){
-     Message += "331 - 卡好借貸款金額大於200000或小於50000。"; code = 331;
-     success = false;
-  }
+     Message += "331 - 卡好借貸款金額大於200000或小於50000。"; code = 331;}
 
   if ((int_rate_ind == -1) || (int_rate < 0.15 || int_rate > 0.2)
         ||(int_rate > 0.20)) {
-       Message += "332 - 年利率小於15%或大於20%。"; code = 332;
-       success = false;
-  }
+       Message += "332 - 年利率小於15%或大於20%。"; code = 332;}
 
   if ((periods_ind == -1) || (periods <= 0)) {
-     Message += "333 - 期數小於或等於零。";  code = 333;
-     success = false;
-  }
+     Message += "333 - 期數小於或等於零。";  code = 333;}
 
   if ((application_fee_ind == -1) || (application_fee < 0)) {
-     Message += "334 - 開辦費小於零。";  code = 334;
-     success = false;
-  }
+     Message += "334 - 開辦費小於零。";  code = 334;}
 
   if ((credit_checking_fee_ind == -1) || (credit_checking_fee < 0)) {
-     Message += "335 - 徵信查詢費小於零。";  code = 335;
-     success = false;
-  }
+     Message += "335 - 徵信查詢費小於零。";  code = 335;}
 
   if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0)) {
-     Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;
-     success = false;
-  }
+     Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;}
   else if (principal_ind == 0 && risk_mgmt_fee > 0.1 * principal) {
-          Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;
-          success = false;
-  }
+          Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;}
 
   if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
-     Message += "337 - 風險管理費用收取期數(月)小於零或大於期數";  code = 337;
-     success = false;
-  }
+     Message += "337 - 風險管理費用收取期數(月)小於零或大於期數";  code = 337;}
 
   if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period >= periods)) {
-     Message += "338 - 優惠期 (月) 小於零或大於等於期數。";   code = 338;
-     success = false;
-  }
+     Message += "338 - 優惠期 (月) 小於零或大於等於期數。";   code = 338;}
 
   if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
-     Message += "339 - 寬限期 (月) 小於零或大於等於期數。";  code = 339;
-     success = false;
-  }
+     Message += "339 - 寬限期 (月) 小於零或大於等於期數。";  code = 339;}
 
   if ((teaser_rate_ind == -1) || (teaser_rate < 0.0)
         ||(teaser_rate > int_rate)) {
-       Message += "340 - 優惠年利率必須介於0和貸款利率。";  code = 340;
-       success = false;
-  }
+       Message += "340 - 優惠年利率必須介於0和貸款利率。";  code = 340;}
 
   delete ds;
-//  if (!success) throw DataEx(Message, code);
  } catch (Exception &E) {
     throw;
  }
@@ -451,7 +384,7 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  code = 0;
- jcic_date = inquiry_date;
+// jcic_date = inquiry_date;
 // avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
  try {
     hostVars[0] = app_sn;
@@ -497,6 +430,24 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
     else if (delinquent_months > 3) {
        Message = "其他非信用卡貸款連續三期以上繳款異常"; code = 108; }
     delete ds;
+
+    /*Write_Prescreen_Result*/
+    hostVars[0] = app_sn;
+    hostVars[1] = app_date;
+    hostVars[2] = jcic_date;
+    handler->ExecSQLQry(SQLCommands[Get_Prescreen_Record], hostVars, 2, ds);
+    record_count = ds->RecordCount;
+    /* if PRESCREEN table has a record with the same key then skip writing*/
+    if (record_count == 0) {
+       hostVars[0] = app_sn;
+       hostVars[1] = app_date;
+       hostVars[2] = jcic_date;
+       hostVars[3] = product_type;
+       hostVars[4] = code;
+       hostVars[5] = Message;
+       handler->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
+    }
+
  } catch (Exception &E) {
      throw;
    }
@@ -530,42 +481,187 @@ void Loan::calculate_rscore(TADOHandler *handler)
        bam085_hit = ds->FieldValues["bam085_hit"];
        ms080 = ds->FieldValues["ms080"];
     }
-    if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0)
+    if (krm001_hit == 1 && krm023_hit == 1 && ind001 == 0) {
        handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_ploan_model]);
-    else if (bam085_hit == 1 && ms080 <= 0)
+       card = 1;
+    }
+    else if (bam085_hit == 1 && ms080 <= 0) {
              handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_no_payment]);
-         else if (bam085_hit == 1 && ms080 > 0)
+             card = 3;
+         }
+         else if (bam085_hit == 1 && ms080 > 0) {
                  handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_BAM_with_payment]);
-              else
+                 card = 2;
+              }
+              else {
                  handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_demographic_model]);
-
+                 card = 4;
+              }
  } catch (Exception &E) {
      throw;
    }
 }
 //---------------------------------------------------------------------------
-double cal_GXa2_pb(int lending_amt, double apr, int period, double risk_score,
-                int ms082, double wi001_12m)
+double Loan::cal_GXa2_pb(int lending_amt, double apr, int period, double risk_score,
+                double ms082, double wi001_12m)
 {
  double ln001_12m_r, ln001_12m_r_n, partial_score_n, pb;
  ln001_12m_r = pow((Payment(apr / 12.0, period, -lending_amt, 0.0, ptEndOfPeriod)
                     + ms082 * 1000.0)/ wi001_12m , 0.5);
  ln001_12m_r_n = ((ln001_12m_r - MIN_LN001_12M_R) > 0.0? (ln001_12m_r - MIN_LN001_12M_R): 0.0)
-                 / LENGTH_LN001_12M_R + TRIVIAL_NUM;
+                 / (MAX_LN001_12M_R - MIN_LN001_12M_R) + TRIVIAL_NUM;
  partial_score_n = ((risk_score - MIN_PARTIAL_SCORE) > 0.0? (risk_score - MIN_PARTIAL_SCORE): 0.0)
-                   / LENGTH_PARTIAL_SCORE + TRIVIAL_NUM;
- pb =  a[0] + a[1] * partial_score_n + a[2] * pow (partial_score_n, a[3])
-     + (b[0] + b[1] * partial_score_n + b[2] * pow (partial_score_n, b[3])) * ln001_12m_r_n
-     + (c[0] + c[1] * partial_score_n + c[2] * pow (partial_score_n, c[3]))
-     * pow(ln001_12m_r_n, (d[0] + d[1] * partial_score_n + d[2] * pow (partial_score_n, d[3])));
+                   / (MAX_PARTIAL_SCORE - MIN_PARTIAL_SCORE) + TRIVIAL_NUM;
+ pb =  a_a2[0] + a_a2[1] * partial_score_n + a_a2[2] * pow (partial_score_n, a_a2[3])
+     + (b_a2[0] + b_a2[1] * partial_score_n + b_a2[2] * pow (partial_score_n, b_a2[3])) * ln001_12m_r_n
+     + (c_a2[0] + c_a2[1] * partial_score_n + c_a2[2] * pow (partial_score_n, c_a2[3]))
+     * pow(ln001_12m_r_n, (d_a2[0] + d_a2[1] * partial_score_n + d_a2[2] * pow (partial_score_n, d_a2[3])));
+
+ return (pb);
+}
+
+//---------------------------------------------------------------------------
+double Loan::cal_GXb1_pb(double risk_score)
+{
+ double pb;
+
+ if      (risk_score <= 0.12288     ) pb =0.0953970176509232;
+ else if (risk_score <= 0.2020052488) pb =0.129325782436330;
+ else if (risk_score <= 0.20751     ) pb =0.143743295399187;
+ else if (risk_score <= 0.23478     ) pb =0.160582009919212;
+ else if (risk_score <= 0.23902     ) pb =0.171564304550662;
+ else if (risk_score <= 0.2599289511) pb =0.181836864582996;
+ else if (risk_score <= 0.2866352488) pb =0.197084626463013;
+ else if (risk_score <= 0.3181452488) pb =0.215551893740484;
+ else if (risk_score <= 0.31941     ) pb =0.232770315083721;
+ else if (risk_score <= 0.3445589511) pb =0.242019583776241;
+ else if (risk_score <= 0.35092     ) pb =0.252252007982842;
+ else if (risk_score <= 0.37536     ) pb =0.275154238398146;
+ else if (risk_score <= 0.3760689511) pb =0.292054139068498;
+ else if (risk_score <= 0.4027752488) pb =0.300377655168393;
+ else if (risk_score <= 0.40687     ) pb =0.311914674562453;
+ else if (risk_score <= 0.4606989511) pb =0.317559718768331;
+ else pb =0.326391037649379;
 
  return (pb);
 }
 //---------------------------------------------------------------------------
-void Loan::calculate_pd(TADOHandler *handler)
+double Loan::cal_GXb2_pb(int lending_amt, double apr, int period, double risk_score,
+                double ms082)
+{
+ double mp_r, mpr_n, brmp_score_n, pb;
+
+ mp_r = pow((Payment(apr / 12.0, period, -lending_amt, 0.0, ptEndOfPeriod) + ms082 * 1000.0), 0.5);
+ mpr_n = ((mp_r - MIN_MPR) > 0.0? (mp_r - MIN_MPR): 0.0) / (MAX_MPR - MIN_MPR) + TRIVIAL_NUM;
+ brmp_score_n = ((risk_score - MIN_BRMP_SCORE) > 0.0? (risk_score - MIN_BRMP_SCORE): 0.0)
+                   / (MAX_BRMP_SCORE - MIN_BRMP_SCORE) + TRIVIAL_NUM;
+ pb =  a_b2[0] + a_b2[1] * brmp_score_n + a_b2[2] * pow (brmp_score_n, a_b2[3])
+     + (b_b2[0] + b_b2[1] * brmp_score_n + b_b2[2] * pow (brmp_score_n, b_b2[3])) * mpr_n
+     + (c_b2[0] + c_b2[1] * brmp_score_n + c_b2[2] * pow (brmp_score_n, c_b2[3]))
+     * pow(mpr_n, (d_b2[0] + d_b2[1] * brmp_score_n + d_b2[2] * pow (brmp_score_n, d_b2[3])));
+
+ return (pb);
+}
+
+double Loan::cal_GXc_pb(double risk_score)
+{
+ double pb;
+
+ if      (risk_score <= 0.06348) pb = 0.0649831232981667;
+ else if (risk_score <= 0.09329) pb = 0.0707807385668779;
+ else if (risk_score <= 0.09731) pb = 0.0792251813444537;
+ else if (risk_score <= 0.09823) pb = 0.0910745257376597;
+ else if (risk_score <= 0.14058) pb = 0.098517428813551;
+ else if (risk_score <= 0.16891) pb = 0.106108567922379;
+ else if (risk_score <= 0.16983) pb = 0.117738902172291;
+ else if (risk_score <= 0.17533) pb = 0.125299997076995;
+ else if (risk_score <= 0.17935) pb = 0.143698844513559;
+ else if (risk_score <= 0.20505) pb = 0.170805868713081;
+ else if (risk_score <= 0.24693) pb = 0.180681774160762;
+ else if (risk_score <= 0.25095) pb = 0.241228269260367;
+ else if (risk_score <= 0.25645) pb = 0.339295046226114;
+ else pb =  0.385068531172599;
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
+double Loan::cal_KHJa2_pb(double risk_score)
+{
+ double rscore_n, pb;
+ double a, b, c, d, min_score, length;
+
+ a = 0.0000;
+ b = 0.0000;
+ c = 1.0000;
+ d = 1.0616;
+ min_score = 0.1031;
+ length = 1.15704;
+
+ rscore_n = ((risk_score + min_score) > 0.0? (risk_score + min_score): 0.0) / length;
+ pb =  a + b * rscore_n + c * pow (rscore_n, d);
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
+double Loan::cal_KHJb1_pb(double risk_score)
+{
+ double rscore_n, pb;
+ double a, b, c, d, min_score, length;
+
+ a = 0.056448;
+ b = 0.000000;
+ c = 0.734695;
+ d = 1.563120;
+ min_score = -0.12497;
+ length = 0.41403;
+
+ rscore_n = ((risk_score + min_score) > 0.0? (risk_score + min_score): 0.0) / length;
+ pb =  a + b * rscore_n + c * pow (rscore_n, d);
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
+double Loan::cal_KHJb2_pb(double risk_score)
+{
+ double rscore_n, pb;
+ double a, b, c, d, e, min_score, length;
+
+ a = 0.159427;
+ b = 0.285207;
+ c = 0.273425;
+ d = 0.682826;
+ e = 0.944249;
+ min_score = -0.08517;
+ length = 0.60995;
+
+ rscore_n = ((risk_score + min_score) > 0.0? (risk_score + min_score): 0.0) / length;
+ pb =  (a + b * rscore_n + c * pow (rscore_n, d)) * e;
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
+double Loan::cal_KHJc_pb(double risk_score)
+{
+ double rscore_n, pb;
+ double a, b, c, d, min_score, length;
+
+ a = 0.035741;
+ b = 0.403862;
+ c = 0.179088;
+ d = 9.618170;
+ min_score = 0.08398;
+ length = 0.476;
+
+ rscore_n = ((risk_score + min_score) > 0.0? (risk_score + min_score): 0.0) / length;
+ pb =  a + b * rscore_n + c * pow (rscore_n, d);
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
+double Loan::calculate_pd(int line, TADOHandler *handler)
 {
  Variant hostVars[5];
- int    score_card;
+ int    card;
  double ms082, wi001_12m, risk_score;
  double pb_original, pb_original_1, pb_original_2, pb_original_3, pb_inf;
  double pb_1, pb_2, pb_3;
@@ -579,49 +675,100 @@ void Loan::calculate_pd(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
-       score_card = ds->FieldValues["score_card"];
-       switch (score_card) {
-          case 0: // screen out
-                 break;
-          case 1: // A2, full JCIC
-                 risk_score = ds->FieldValues["partial_rscore_new"];
-                 if (! ds->FieldValues["ms082"].IsNull())
-                    ms082 = ds->FieldValues["ms082"];
-                 else
-                    ms082 = 0.0;
-                 wi001_12m = ds->FieldValues["WI001_12m"];
-                 pb_original = cal_GXa2_pb(principal, int_rate, periods, risk_score,
-                                        ms082, wi001_12m);
-                 pb_original_1 = cal_GXa2_pb(AMOUNT_1, int_rate, periods, risk_score,
-                                        ms082, wi001_12m);
-                 pb_original_2 = cal_GXa2_pb(AMOUNT_2, int_rate, periods, risk_score,
-                                        ms082, wi001_12m);
-                 pb_original_3 = cal_GXa2_pb(AMOUNT_3, int_rate, periods, risk_score,
-                                        ms082, wi001_12m);
-                 pb_1 = pb_original_1;
-                 pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
-                 pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
-                 if (principal > AMOUNT_3)
-                     pb_inf = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
-                 else if (principal > AMOUNT_2)
-                     pb_inf = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
-                 else if (principal > AMOUNT_1)
-                     pb_inf = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
-                 else
-                     pb_inf = pb_original;
-                 break;
-          case 2: // B1 ms080 > 0
-                 risk_score = ds->FieldValues["rscore_new"];
-                 break;
-          case 3: // B2 ms080 <= 0
-                 risk_score = ds->FieldValues["brmp_score"];
-                 break;
-          case 4: // Demographic
-                 risk_score = ds->FieldValues["rscore_new"];
-                 break;
-       }
+       if (product_type == 1) { // product GX
+          card = ds->FieldValues["card"];
+          switch (card) {
+             case 0: // screen out
+                    break;
+             case 1: // A2, full JCIC
+                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    if (! ds->FieldValues["ms082"].IsNull())
+                       ms082 = ds->FieldValues["ms082"];
+                    else
+                       ms082 = 0.0;
+                    wi001_12m = ds->FieldValues["WI001_12m"];
+                    pb_original = cal_GXa2_pb(line, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_original_1 = cal_GXa2_pb(AMOUNT_1, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_original_2 = cal_GXa2_pb(AMOUNT_2, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_original_3 = cal_GXa2_pb(AMOUNT_3, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_1 = pb_original_1;
+                    pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
+                    pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
+                    if (principal > AMOUNT_3)
+                        pb_inf = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                    else if (principal > AMOUNT_2)
+                        pb_inf = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                    else if (principal > AMOUNT_1)
+                        pb_inf = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                    else
+                        pb_inf = pb_original;
+                    pd = pb_inf;
+                    break;
+             case 2: // B1 ms080 > 0
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_GXb1_pb(risk_score);
+                    break;
+             case 3: // B2 ms080 <= 0
+                    risk_score = ds->FieldValues["brmp_score"];
+                    if (! ds->FieldValues["ms082"].IsNull())
+                       ms082 = ds->FieldValues["ms082"];
+                    else
+                       ms082 = 0.0;
+                    pb_original = cal_GXb2_pb(line, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_original_1 = cal_GXb2_pb(AMOUNT_1, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_original_2 = cal_GXb2_pb(AMOUNT_2, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_original_3 = cal_GXb2_pb(AMOUNT_3, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_1 = pb_original_1;
+                    pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
+                    pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
+                    if (principal > AMOUNT_3)
+                        pb_inf = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                    else if (principal > AMOUNT_2)
+                        pb_inf = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                    else if (principal > AMOUNT_1)
+                        pb_inf = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                    else
+                        pb_inf = pb_original;
+                    pd = pb_inf;
+                    break;
+             case 4: // Demographic
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_GXc_pb(risk_score);
+                    break;
+          } //End of switch
+       } // End of product GX
+       else if (product_type == 2) { // product KHJ
+          card = ds->FieldValues["card"];
+          switch (card) {
+             case 0: // screen out
+                    break;
+             case 1: // A2, full JCIC
+                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    pd = cal_KHJa2_pb(risk_score);
+                    break;
+             case 2: // B1 ms080 > 0
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_KHJb1_pb(risk_score);
+                    break;
+             case 3: // B2 ms080 <= 0
+                    risk_score = ds->FieldValues["brmp_score"];
+                    pd = cal_KHJb2_pb(risk_score);
+                    break;
+             case 4: // Demographic
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_KHJc_pb(risk_score);
+                    break;
+          } // End of switch
+       } // End of product KHJ
     }
-    pd = pb_inf;
 //     hostVars[0] = pd;
 //     hostVars[1] = app_sn;
 //     handler->ExecSQLCmd(SQLCommands[Write_PB_Result], hostVars, 1);
@@ -630,141 +777,33 @@ void Loan::calculate_pd(TADOHandler *handler)
  } catch (Exception &E) {
      throw;
  }
+ return(pd);
 }
 
 //---------------------------------------------------------------------------
-int Loan::calculate_optimal_line(int start_amount, int end_amount, int increment,
-                                    TADOHandler *handler)
+int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler)
+/*
+  npv[][0]: lending amount (input)
+  npv[][1]: PB (output)
+  npv[][2]: NPV (output)
+*/
 {
- Variant hostVars[5];
- double mp_r, amortization_rate, ln001, npv;
- int    score_card, index, jindex;
- double ms082, wi001_12m;
- int    ms082_ind;
- TADODataSet *ds = new TADODataSet(NULL);
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ double max_npv;
+ int max_line;
 
  try {
-    optimal_line = 0.0;
-    index = jindex = 0;
-    hostVars[0] = app_sn;
-    handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
-    ds->First();
-    if (!ds->Eof) {
-       score_card = ds->FieldValues["score_card"];
-       switch (score_card) {
-          case 0: // screen out
-                 break;
-          case 1: // A2, full JCIC
-                 index = ds->FieldValues["rtwentile_a2"];
-                 if (! ds->FieldValues["ms082"].IsNull())
-                    ms082 = ds->FieldValues["ms082"];
-                 else
-                    ms082 = 0.0;
-                 wi001_12m = ds->FieldValues["WI001_12m"];
-                 break;
-          case 2: // B1 ms080 > 0
-                 index = ds->FieldValues["rtwentile_b1"];
-                 break;
-          case 3: // B2 ms080 <= 0
-                 index = ds->FieldValues["brmp_twentile"];
-                 break;
-          case 4: // Demographic
-                 index = ds->FieldValues["rtwentile_c"];
-                 break;
-       }
-       index--; // index start at 0
+    max_npv = 0.0;
+    for (int i = 0; i < loops; i++) {
+      npv[i][1] = calculate_pd(npv[i][0], handler);
+      if ((npv[i][2] = calculate_npv(npv[i][0], npv[i][1])) > max_npv) {
+           max_npv = npv[i][2];
+           max_line = i;
+      }
     }
-    if (int_rate == 0.0) amortization_rate = 1.0 / periods;
-    else amortization_rate =  pow ((1 + (int_rate / 12.0 )), periods) * (int_rate / 12.0 )
-                              / (pow ((1 + (int_rate / 12.0 )), periods) - 1);
-
-    for (int line = start_amount; line <= end_amount; line += increment) {
-       switch (score_card) {
-          case 0: // screen out
-                 pd = 0.9;
-                 break;
-          case 1: // A2, full JCIC
-                 ln001 = pow ((line * amortization_rate + ms082 * 1000.0)
-                               / wi001_12m, 0.5);
-                 if (ln001 <= 0.0) jindex = 0;
-                 else if (ln001 <= 21.3540000000) jindex = 1;
-                 else if (ln001 <= 27.3980000000) jindex = 2;
-                 else if (ln001 <= 32.2840000000) jindex = 3;
-                 else if (ln001 <= 36.1610000000) jindex = 4;
-                 else if (ln001 <= 39.9150000000) jindex = 5;
-                 else if (ln001 <= 43.5220000000) jindex = 6;
-                 else if (ln001 <= 47.1000000000) jindex = 7;
-                 else if (ln001 <= 50.6460000000) jindex = 8;
-                 else if (ln001 <= 55.1270000000) jindex = 9;
-                 else if (ln001 <= 58.8450000000) jindex = 10;
-                 else if (ln001 <= 63.0650000000) jindex = 11;
-                 else if (ln001 <= 67.7100000000) jindex = 12;
-                 else if (ln001 <= 72.8690000000) jindex = 13;
-                 else if (ln001 <= 78.8130000000) jindex = 14;
-                 else if (ln001 <= 86.7410000000) jindex = 15;
-                 else if (ln001 <= 95.9160000000) jindex = 16;
-                 else if (ln001 <= 109.3390000000) jindex = 17;
-                 else if (ln001 <= 134.5470000000) jindex = 18;
-                 else if (ln001 <= 170.8902000000) jindex = 19;
-                 else if (ln001 <= 229.0276537120) jindex = 20;
-                 else if (ln001 <= 319.9872318933) jindex = 21;
-                 else if (ln001 <= 460.4174726738) jindex = 22;
-                 else if (ln001 <= 673.9418808429) jindex = 23;
-                 else if (ln001 <= 993.5307920375) jindex = 24;
-                 else if (ln001 <= 1464.5116054610) jindex = 25;
-                 else jindex = 26;
-                 pd =  GXa2_PB[index][jindex];
-                 break;
-          case 2: // B1 ms080 > 0
-                 pd =  GXb1_PB[index];
-                 break;
-          case 3: // B2 ms080 <= 0
-                 mp_r = pow((line * amortization_rate + ms082 * 1000.0), 0.5);
-
-                 if (mp_r <= 0 ) jindex = 0;
-                 else if (mp_r <= 40.517 ) jindex = 1;
-                 else if (mp_r <= 44.789 ) jindex = 2;
-                 else if (mp_r <= 49.477 ) jindex = 3;
-                 else if (mp_r <= 50.075 ) jindex = 4;
-                 else if (mp_r <= 56.812 ) jindex = 5;
-                 else if (mp_r <= 57.822 ) jindex = 6;
-                 else if (mp_r <= 58.481 ) jindex = 7;
-                 else if (mp_r <= 64.647 ) jindex = 8;
-                 else if (mp_r <= 64.712 ) jindex = 9;
-                 else if (mp_r <= 73.973 ) jindex = 10;
-                 else if (mp_r <= 78.992 ) jindex = 11;
-                 else if (mp_r <= 86.741 ) jindex = 12;
-                 else if (mp_r <= 104.614 ) jindex = 13;
-                 else if (mp_r <= 131.054 ) jindex = 14;
-                 else if (mp_r <= 175.6339 ) jindex = 15;
-                 else if (mp_r <= 248.435144 ) jindex = 16;
-                 else if (mp_r <= 364.6396332 ) jindex = 17;
-                 else if (mp_r <= 545.8185649 ) jindex = 18;
-                 else if (mp_r <= 821.9282779 ) jindex = 19;
-                 else if (mp_r <= 1233.779339 ) jindex = 20;
-                 else jindex = 21;
-                 pd =  GXb2_PB[index][jindex];
-                 break;
-          case 4: // Demographic
-                 pd =  GXdemo_PB[index];
-                 break;
-       }
-     if (score_card > 0)
-        if ((npv = calculate_npv(line)) > optimal_line)
-           optimal_line = npv;
-    }
-  delete ds;
-  hostVars[0] = pd;
-  hostVars[1] = npv;
-  hostVars[2] = index;
-  hostVars[3] = jindex;
-  hostVars[4] = app_sn;
-  handler->ExecSQLQry(SQLCommands[Write_NPV_Result], hostVars, 4, ds);
  } catch (Exception &E) {
      throw;
  }
- return (0);
+ return (max_line);
 }
 //---------------------------------------------------------------------------
 /*
@@ -783,7 +822,7 @@ void Loan::postFilter()
 }
 */
 //---------------------------------------------------------------------------
-double Loan::calculate_npv(int line)
+double Loan::calculate_npv(int line, double pb)
 {
  Variant hostVars[5];
  double revenue, cost, wc;
@@ -794,7 +833,7 @@ double Loan::calculate_npv(int line)
  try {
   npv_init();
   set_apr();
-  set_attrition();
+  set_attrition(pb);
   set_annuity(line);  // 本息法
   commission =  calculate_commission();
   if (commission < 0) commission = 0;
@@ -934,16 +973,16 @@ double Loan::get_KHJ_adjustment(double annual_pb)
 
 }
 //---------------------------------------------------------------------------
-void Loan::set_attrition()
+void Loan::set_attrition(double pb)
 {
-  double monthly_pd = pd / 12.0;
+  double monthly_pd = pb / 12.0;
   double adjustment;
 
   // product_type: 1 for GX, 2 for KHJ
   switch (product_type - 1) {
-     case GX: adjustment = get_GX_adjustment(pd);
+     case GX: adjustment = get_GX_adjustment(pb);
               break;
-     case KHJ: adjustment = get_KHJ_adjustment(pd);
+     case KHJ: adjustment = get_KHJ_adjustment(pb);
   };
 
   for (int i = 0; i <= periods; i++) {
@@ -1228,30 +1267,28 @@ double Loan::set_credit_loss()
 
 //---------------------------------------------------------------------------
 
-double Loan::get_test_PB(char *idn, TADOHandler *handler)
+int Loan::get_test_PB(char *idn, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
- double pb;
+// double pb;
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
 
   try {
-    hostVars[0] = idn;
-    handler->ExecSQLQry(SQLCommands[Get_Ploan_PD], hostVars, 0, ds);
-    record_count = ds->RecordCount;
-
+    hostVars[0] = app_sn;
+    handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
-       if (! ds->FieldValues["pb"].IsNull())
-          pb = ds->FieldByName("pb")->AsFloat;
+       if (! ds->FieldValues["card"].IsNull())
+          card = ds->FieldByName("card")->AsInteger;
 //       if (! ds->FieldValues["rscore"].IsNull())
 //          rscore = ds->FieldByName("rscore")->AsFloat;
     }
-    pd = pb;
+//    pd = pb;
  } catch (Exception &E) {
     throw;
  }
- return (pb);
+ return (card);
 }
 

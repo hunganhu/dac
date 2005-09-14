@@ -2,6 +2,7 @@
 #pragma hdrstop
 
 #include "functions.h"
+#include <dateutils.hpp>
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
@@ -131,6 +132,14 @@ static char daytab[2][13] = {
  {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
 };
 
+//---------------------------------------------------------------------------
+/*
+ * Function: validate_date(String date)
+ * Description: Check input date is a valid date. The year part should be 0001 ~ 9999.
+ *              The month part should be 01 ~ 12. The day part should be 01 ~ 31.
+ *              The leap year is also checked.
+ *
+ */
 bool validate_date(String date)
 {
  int year, month, day;
@@ -147,7 +156,10 @@ bool validate_date(String date)
  return(true);
 }
 //---------------------------------------------------------------------------
-
+/*
+ * Function: check_expiration(int lock)
+ * Description: Check if current date greater than the lock date.
+ */
 int check_expiration(int lock)
 {
   int year;
@@ -170,3 +182,24 @@ int check_expiration(int lock)
      return (0);
 }
 
+//---------------------------------------------------------------------------
+/*
+ * Function: Days_between (String begin, String end)
+ * Description: Input two date strings, find the number of whole days between
+ *              the two dates. The date format is yyyymmdd.
+ */
+int Days_between (String begin, String end)
+{
+ TDateTime beginDate, endDate;
+ String beginString, endString;
+
+ ShortDateFormat = "yyyymmdd";
+ beginString = begin.SubString(1, 4) + "/" +  begin.SubString(5, 2)
+               + "/" +  begin.SubString(7, 2);
+ endString = end.SubString(1, 4) + "/" +  end.SubString(5, 2)
+               + "/" +  end.SubString(7, 2);
+
+ beginDate = StrToDate(beginString);
+ endDate = StrToDate(endString);
+ return(DaysBetween(endDate, beginDate));
+}
