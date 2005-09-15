@@ -10,6 +10,7 @@ enum SQLCodes { Get_AppInfo_Record,
                 Get_Prescreen_Record,
 		Write_Prescreen_Result,
                 Write_Specific_Result,
+                Write_Optimal_Result,
 
                 Calculate_Loan_Del_Number,
                 Update_TS_Date,

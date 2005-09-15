@@ -45,6 +45,12 @@ char *SQLCommands[] = {
 "     ext_monthly_payment)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, 0, :v9, :v10, 0);",
 
+/* Write_Optimal_Result */
+" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+"     product_type, optimal_amount, pb, npv, optimal, reason_code, reason_message, "
+"     ext_monthly_payment)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, 1, :v9, :v10, 0);",
+
 /* Calculate_Loan_Del_Number*/
 " insert into #tmp1(app_sn, v1)"
 "    select app_sn, isnull(loan1_payment6,0) + isnull(loan2_payment6,0) + isnull(loan3_payment6,0)"

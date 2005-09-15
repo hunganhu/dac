@@ -199,9 +199,10 @@ class Loan {
     void calculate_rscore(TADOHandler *handler);
     double calculate_pd(int line, TADOHandler *handler);
     double calculate_npv(int line, double pb);
-    int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
+    int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     int  get_product_type();
     int  get_code();
+    int Loan::get_card();
     double get_rscore ();
     double get_pd();
     int get_test_PB(char *idn, TADOHandler *handler);

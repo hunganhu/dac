@@ -361,19 +361,24 @@ int Loan::get_code ()
  return code;
 }
 //---------------------------------------------------------------------------
-double Loan::get_pd ()
+double Loan::get_pd()
 {
  return pd;
 }
 //---------------------------------------------------------------------------
-double Loan::get_npv ()
+double Loan::get_npv()
 {
  return total_npv;
 }
 //---------------------------------------------------------------------------
-double Loan::get_principal ()
+double Loan::get_principal()
 {
  return principal;
+}
+//---------------------------------------------------------------------------
+int Loan::get_card()
+{
+ return card;
 }
 //---------------------------------------------------------------------------
 void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
@@ -663,14 +668,13 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
  Variant hostVars[5];
  int    card;
  double ms082, wi001_12m, risk_score;
- double pb_original, pb_original_1, pb_original_2, pb_original_3, pb_inf;
+ double pb_original, pb_original_1, pb_original_2, pb_original_3;
  double pb_1, pb_2, pb_3;
  int    ms082_ind;
  TADODataSet *ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
 
  try {
-    optimal_line = 0.0;
     hostVars[0] = app_sn;
     handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
     ds->First();
@@ -699,14 +703,14 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
                     pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
                     pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
                     if (principal > AMOUNT_3)
-                        pb_inf = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                        pd = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
                     else if (principal > AMOUNT_2)
-                        pb_inf = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                        pd = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
                     else if (principal > AMOUNT_1)
-                        pb_inf = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                        pd = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
                     else
-                        pb_inf = pb_original;
-                    pd = pb_inf;
+                        pd = pb_original;
+                    if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 2: // B1 ms080 > 0
                     risk_score = ds->FieldValues["rscore_new"];
@@ -730,14 +734,14 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
                     pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
                     pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
                     if (principal > AMOUNT_3)
-                        pb_inf = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                        pd = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
                     else if (principal > AMOUNT_2)
-                        pb_inf = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                        pd = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
                     else if (principal > AMOUNT_1)
-                        pb_inf = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                        pd = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
                     else
-                        pb_inf = pb_original;
-                    pd = pb_inf;
+                        pd = pb_original;
+                    if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 4: // Demographic
                     risk_score = ds->FieldValues["rscore_new"];
@@ -753,18 +757,22 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
              case 1: // A2, full JCIC
                     risk_score = ds->FieldValues["partial_rscore_new"];
                     pd = cal_KHJa2_pb(risk_score);
+                    if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 2: // B1 ms080 > 0
                     risk_score = ds->FieldValues["rscore_new"];
                     pd = cal_KHJb1_pb(risk_score);
+                    if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 3: // B2 ms080 <= 0
                     risk_score = ds->FieldValues["brmp_score"];
                     pd = cal_KHJb2_pb(risk_score);
+                    if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 4: // Demographic
                     risk_score = ds->FieldValues["rscore_new"];
                     pd = cal_KHJc_pb(risk_score);
+                    if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
           } // End of switch
        } // End of product KHJ
@@ -792,7 +800,7 @@ int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handle
  int max_line;
 
  try {
-    max_npv = 0.0;
+    max_npv =-999999999;   // set max_npv to a large negative number
     for (int i = 0; i < loops; i++) {
       npv[i][1] = calculate_pd(npv[i][0], handler);
       if ((npv[i][2] = calculate_npv(npv[i][0], npv[i][1])) > max_npv) {
@@ -800,6 +808,8 @@ int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handle
            max_line = i;
       }
     }
+    pd = npv[max_line][1];
+    total_npv = npv[max_line][2];
  } catch (Exception &E) {
      throw;
  }
@@ -1281,7 +1291,7 @@ int Loan::get_test_PB(char *idn, TADOHandler *handler)
     ds->First();
     if (!ds->Eof) {
        if (! ds->FieldValues["card"].IsNull())
-          card = ds->FieldByName("card")->AsInteger;
+          card = ds->FieldByName("card")->AsFloat;
 //       if (! ds->FieldValues["rscore"].IsNull())
 //          rscore = ds->FieldByName("rscore")->AsFloat;
     }
