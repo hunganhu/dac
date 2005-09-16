@@ -702,11 +702,11 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
                     pb_1 = pb_original_1;
                     pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
                     pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
-                    if (principal > AMOUNT_3)
+                    if (line > AMOUNT_3)
                         pd = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
-                    else if (principal > AMOUNT_2)
+                    else if (line > AMOUNT_2)
                         pd = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
-                    else if (principal > AMOUNT_1)
+                    else if (line > AMOUNT_1)
                         pd = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
                     else
                         pd = pb_original;
@@ -733,11 +733,11 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
                     pb_1 = pb_original_1;
                     pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
                     pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
-                    if (principal > AMOUNT_3)
+                    if (line > AMOUNT_3)
                         pd = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
-                    else if (principal > AMOUNT_2)
+                    else if (line > AMOUNT_2)
                         pd = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
-                    else if (principal > AMOUNT_1)
+                    else if (line > AMOUNT_1)
                         pd = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
                     else
                         pd = pb_original;
@@ -845,7 +845,7 @@ double Loan::calculate_npv(int line, double pb)
   set_apr();
   set_attrition(pb);
   set_annuity(line);  // 本息法
-  commission =  calculate_commission();
+  commission =  calculate_commission(line);
   if (commission < 0) commission = 0;
   // Revenue
   Interest_Revenue = set_interest_revenue();
@@ -1019,7 +1019,7 @@ void Loan::set_amortize(int line)
   principal_repayment [0] = 0.0;
 //  monthly_repayment [0] = 0.0;
   grace_period = ((grace_period == periods)? grace_period - 1: grace_period);
-  double fix_payment = principal / (periods - grace_period);
+  double fix_payment = line / (periods - grace_period);
 
   for (int i = 1; i<= periods; i++) {
       interest_repayment[i] = os_principal[i-1] * apr[i];
@@ -1037,7 +1037,7 @@ void Loan::set_annuity(int line)
 {
   int Grace_Period = ((grace_period == periods)? grace_period - 1: grace_period);
   int after_grace_period = periods - Grace_Period;
-  double repayment = principal / periods;     // assume apr = 0.0%
+  double repayment = line / periods;     // assume apr = 0.0%
   int remaining_period;
 
   os_principal [0] = line;
@@ -1141,7 +1141,7 @@ double Loan::set_interest_cost()
 }
 
 // Commission:
-double Loan::calculate_commission()
+double Loan::calculate_commission(int line)
 {
  int channel = sales_channel.ToInt();
  int apr_group, line_grp;
@@ -1165,15 +1165,15 @@ double Loan::calculate_commission()
  else apr_group = 0;
 
  switch (product_type - 1) {
-    case GX: if (principal <= 150000) line_grp = 0;
-             else if (principal <= 200000) line_grp = 1;
-             else if (principal <= 250000) line_grp = 2;
-             else if (principal <= 300000) line_grp = 3;
-             else if (principal <= 350000) line_grp = 4;
-             else if (principal <= 400000) line_grp = 5;
-             else if (principal <= 450000) line_grp = 6;
-             else if (principal <= 500000) line_grp = 7;
-             else if (principal <= 550000) line_grp = 8;
+    case GX: if (line <= 150000) line_grp = 0;
+             else if (line <= 200000) line_grp = 1;
+             else if (line <= 250000) line_grp = 2;
+             else if (line <= 300000) line_grp = 3;
+             else if (line <= 350000) line_grp = 4;
+             else if (line <= 400000) line_grp = 5;
+             else if (line <= 450000) line_grp = 6;
+             else if (line <= 500000) line_grp = 7;
+             else if (line <= 550000) line_grp = 8;
              else line_grp = 9;
              point_cost = VariableCommission[GX][channel][apr_group] //記點成本
                           * risk_mgmt_fee
@@ -1185,7 +1185,7 @@ double Loan::calculate_commission()
                 transfer_bonus = 0.0;
 
              if (channel == 9 ) {
-                out_source_fee = principal * GX_OUT_SOURCE_RATE; // 委外佣金
+                out_source_fee = line * GX_OUT_SOURCE_RATE; // 委外佣金
                 out_source_bonus = GX_OUT_SOURCE_BONUS; //委外銷售獎金
              }
              else
@@ -1202,8 +1202,8 @@ double Loan::calculate_commission()
              else sales_bonus = 0.0;
 
              break;
-    case KHJ:if (principal <= 100000) line_grp = 0;
-             else if (principal <= 120000) line_grp = 1;
+    case KHJ:if (line <= 100000) line_grp = 0;
+             else if (line <= 120000) line_grp = 1;
              else line_grp = 2;
              point_cost = VariableCommission[KHJ][channel][apr_group] //記點成本
                           * risk_mgmt_fee
@@ -1215,7 +1215,7 @@ double Loan::calculate_commission()
                 transfer_bonus = 0.0;
 
              if (channel == 9 ) {
-                out_source_fee = principal * KHJ_OUT_SOURCE_RATE; // 委外佣金
+                out_source_fee = line * KHJ_OUT_SOURCE_RATE; // 委外佣金
                 out_source_bonus = KHJ_OUT_SOURCE_BONUS; //委外銷售獎金
              }
              else

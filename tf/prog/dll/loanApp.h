@@ -149,7 +149,7 @@ class Loan {
     double set_taishin_tax();
     double set_tf_tax();
     double set_interest_cost();
-    double calculate_commission();
+    double calculate_commission(int line);
     double set_account_management_cost();
     double set_precollection_cost();
     double set_collection_cost();
