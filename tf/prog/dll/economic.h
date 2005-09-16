@@ -146,9 +146,9 @@ const double vol_attrition_open[2][61] = {
 const double AMOUNT_3 = 300000;
 const double AMOUNT_2 = 200000;
 const double AMOUNT_1 = 100000;
-const double INFLAT_3 = 25;
-const double INFLAT_2 = 5;
-const double INFLAT_1 = 2;
+const double INFLAT_3 = 15;
+const double INFLAT_2 = 3;
+const double INFLAT_1 = 1;
 const double TRIVIAL_NUM = 0.000001;
 
 
