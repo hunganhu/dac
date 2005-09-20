@@ -10,7 +10,7 @@ const double LATE_PENALTY_RATIO = 0.1; //Late penalty ratio on unpaid interest
 const double LATE_30D_RATIO = 0.203896985; // tatio of 30 days late / original
 
 // GX product information
-const double GX_APP_FEE_RECEIVABLE = 4000.0;
+const double GX_APP_FEE_RECEIVABLE = 5000.0;
 const double GX_TRANSFER_BONUS = 3000.0;
 const double GX_OUT_SOURCE_BONUS = 740.0;
 const double GX_OUT_SOURCE_RATE = 0.04;
@@ -28,33 +28,33 @@ enum Product { GX,   // 0: 國民信貸
 
 const char *ChannelDescription [] = { "",        // Dummy channel 0
 				  "Direct sales",  // Channel 1
-				  "Channel",       // Channel 2 
+				  "Channel",       // Channel 2
 				  "行員轉介DS",    // Channel 3
 				  "行員轉介電銷",  // Channel 4
-				  "行員轉介貸款店",// Channel 5 
+				  "行員轉介貸款店",// Channel 5
 				  "TM - CRM",      // Channel 6
 				  "TM - Others",   // Channel 7
 				  "貸款店",        // Channel 8
 				  "委外" };        // Channel 9
 
 // 點數成本, Add 0 for dummy channel 0
-const int SalesPointCost[2][10] = {{0, 520, 520, 520, 858, 88, 858, 858, 88, 0}, // GX Channel 1-9 
-                                   {0, 520, 520, 520, 858, 88, 858, 858, 88, 0}};// KHJ Channel 1-9
-// 主管手續獎金, Add 0 for dummy channel 0				  
+const int SalesPointCost[2][10] = {{0, 1503, 1503, 1503, 1844, 2709, 1844, 1844, 2709, 0}, // GX Channel 1-9
+                                   {0, 1503, 1503, 1503, 1844, 2709, 1844, 1844, 2709, 0}};// KHJ Channel 1-9
+// 主管手續獎金, Add 0 for dummy channel 0
 const int HeadFeeBonus [2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  // GX, Channel 1-9
-                                  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // KHJ, Channel 1-9				  
+                                  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // KHJ, Channel 1-9
 
-// 業務手續獎金, Add 0 for dummy channel 0				  
-const int SalesFeeBonus [2][10] = {{0, 3458, 3458, 0, 0, 0, 0, 2122, 0, 0},  // GX, Channel 1-9
-                                   {0, 1067, 1067, 0, 0, 0, 0,  639, 0, 0}}; // KHJ, Channel 1-9				  
+// 業務手續獎金, Add 0 for dummy channel 0
+const int SalesFeeBonus [2][10] = {{0, 2700, 2700, 540, 540, 540, 540, 2700, 540, 0},  // GX, Channel 1-9
+                                   {0, 1080, 1080, 0, 0, 0, 0,  1080, 0, 0}}; // KHJ, Channel 1-9
 
-// 主管手獎減免, Add 0 for dummy channel 0				  
-const int HeadBonusDiscount [2][10] = {{0, 1, 1, 1, 1, 0, 0, 1, 0, 0},  // GX, Channel 1-9
-                                       {0, 1, 1, 1, 1, 0, 0, 1, 0, 0}}; // KHJ, Channel 1-9				  
+// 主管手獎減免, Add 0 for dummy channel 0
+const int HeadBonusDiscount [2][10] = {{0, 1, 1, 0, 0, 0, 0, 1, 0, 0},  // GX, Channel 1-9
+                                       {0, 1, 1, 0, 0, 0, 0, 1, 0, 0}}; // KHJ, Channel 1-9
 
-// 業務手獎減免, Add 0 for dummy channel 0				  
+// 業務手獎減免, Add 0 for dummy channel 0
 int SalesBonusDiscount [2][10] = {{0, 1, 1, 0, 0, 0, 0, 1, 0, 0},  // GX, Channel 1-9
-                                  {0, 1, 1, 0, 0, 0, 0, 1, 0, 0}}; // KHJ, Channel 1-9				  
+                                  {0, 1, 1, 0, 0, 0, 0, 1, 0, 0}}; // KHJ, Channel 1-9
 
 // 產品	通路 利率, Add 0 for dummy channel 0
 const double VariableCommission [2][10][11] = {
@@ -76,7 +76,7 @@ const double VariableCommission [2][10][11] = {
    {2.5, 2, 1.5, 1, 0.5, 0, 0, 0, 0, 0, 0},//KHJ, Channel 5, [20.0% to 15.0% by 0.5%]
    {2.5, 2, 1.5, 1, 0.5, 0, 0, 0, 0, 0, 0},//KHJ, Channel 6, [20.0% to 15.0% by 0.5%]
    {2.5, 2, 1.5, 1, 0.5, 0, 0, 0, 0, 0, 0},//KHJ, Channel 7, [20.0% to 15.0% by 0.5%]
-   {  0, 0,   0, 0,   0, 0, 0, 0, 0, 0, 0},//KHJ, Channel 8, [20.0% to 15.0% by 0.5%]
+   {2.5, 2, 1.5, 1, 0.5, 0, 0, 0, 0, 0, 0},//KHJ, Channel 8, [20.0% to 15.0% by 0.5%]
    {  0, 0,   0, 0,   0, 0, 0, 0, 0, 0, 0}}//KHJ, Channel 9, [20.0% to 15.0% by 0.5%]
 };
 /*

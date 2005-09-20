@@ -102,14 +102,17 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
     ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
     ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+
+    // write common fields
+    hostVars[0] = app_sn;
+    hostVars[1] = tsn;
+    hostVars[2] = ts_data_date;
+    hostVars[3] = jcic_data_date;
+    hostVars[4] = app_data_time;
+    hostVars[5] = ptrLoan->get_product_type();
+
     if (ptrLoan->get_code() != 0){
        // write data error to approval_cal.
-       hostVars[0] = app_sn;
-       hostVars[1] = tsn;
-       hostVars[2] = ts_data_date;
-       hostVars[3] = jcic_data_date;
-       hostVars[4] = app_data_time;
-       hostVars[5] = ptrLoan->get_product_type();
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = 0;
        hostVars[8] = 0;
@@ -127,35 +130,17 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
         // check product type and card
         if (ptrLoan->get_product_type() == 1) { // product GX
             switch (ptrLoan->get_card()) {
-               case 1:if (ptrLoan->get_principal() > 400000) {
-                          others_npv[0][0]  = ptrLoan->get_principal(); // set line to loan amount
-                          max_line = ptrLoan->calculate_optimal_line(1, others_npv, dbhandle);
-                          optimal_line = others_npv[max_line][0];
-                          optimal_pb = others_npv[max_line][1];
-                          optimal_npv = others_npv[max_line][2];
-                          optimal = 0;
-                      } else {
-                          max_line = ptrLoan->calculate_optimal_line(6, a2_npv, dbhandle);
-                          optimal_line = a2_npv[max_line][0];
-                          optimal_pb = a2_npv[max_line][1];
-                          optimal_npv = a2_npv[max_line][2];
-                          optimal = 1;
-                      }
+               case 1:max_line = ptrLoan->calculate_optimal_line(6, a2_npv, dbhandle);
+                      optimal_line = a2_npv[max_line][0];
+                      optimal_pb = a2_npv[max_line][1];
+                      optimal_npv = a2_npv[max_line][2];
+                      optimal = 1;
                       break;
-               case 3:if (ptrLoan->get_principal() > 200000) {
-                          others_npv[0][0]  = ptrLoan->get_principal(); // set line to loan amount
-                          max_line = ptrLoan->calculate_optimal_line(1, others_npv, dbhandle);
-                          optimal_line = others_npv[max_line][0];
-                          optimal_pb = others_npv[max_line][1];
-                          optimal_npv = others_npv[max_line][2];
-                          optimal = 0;
-                      } else {
-                          max_line = ptrLoan->calculate_optimal_line(2, b2_npv, dbhandle);
-                          optimal_line = b2_npv[max_line][0];
-                          optimal_pb = b2_npv[max_line][1];
-                          optimal_npv = b2_npv[max_line][2];
-                          optimal = 1;
-                      }
+               case 3:max_line = ptrLoan->calculate_optimal_line(2, b2_npv, dbhandle);
+                      optimal_line = b2_npv[max_line][0];
+                      optimal_pb = b2_npv[max_line][1];
+                      optimal_npv = b2_npv[max_line][2];
+                      optimal = 1;
                       break;
                case 2:
                case 4:others_npv[0][0]  = ptrLoan->get_principal(); // set line to loan amount
@@ -175,42 +160,19 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
              optimal = 0;
         }
        // write_optimal result to approval_cal
+       hostVars[6] = optimal_line;
+       hostVars[7] = optimal_pb;
+       hostVars[8] = optimal_npv;
+       hostVars[9] = reason_code;
+       hostVars[10] = Message;
        if (optimal) {
-          hostVars[0] = app_sn;
-          hostVars[1] = tsn;
-          hostVars[2] = ts_data_date;
-          hostVars[3] = jcic_data_date;
-          hostVars[4] = app_data_time;
-          hostVars[5] = ptrLoan->get_product_type();
-          hostVars[6] = optimal_line;
-          hostVars[7] = optimal_pb;
-          hostVars[8] = optimal_npv;
-          hostVars[9] = reason_code;
-          hostVars[10] = Message;
           dbhandle->ExecSQLCmd(SQLCommands[Write_Optimal_Result], hostVars, 10);
        } else {
-          hostVars[0] = app_sn;
-          hostVars[1] = tsn;
-          hostVars[2] = ts_data_date;
-          hostVars[3] = jcic_data_date;
-          hostVars[4] = app_data_time;
-          hostVars[5] = ptrLoan->get_product_type();
-          hostVars[6] = optimal_line;
-          hostVars[7] = optimal_pb;
-          hostVars[8] = optimal_npv;
-          hostVars[9] = reason_code;
-          hostVars[10] = Message;
           dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 10);
        }
     }
     else {
        // write prescreen result to approval_cal
-       hostVars[0] = app_sn;
-       hostVars[1] = tsn;
-       hostVars[2] = ts_data_date;
-       hostVars[3] = jcic_data_date;
-       hostVars[4] = app_data_time;
-       hostVars[5] = ptrLoan->get_product_type();
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = 0;
        hostVars[8] = 0;
