@@ -42,10 +42,6 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
     dbhandle->CloseDatabase();
 
-    if (Days_between(jcic_data_date, app_data_time) > 30) {
-       errCode = 2;
-       strcpy (error_message, JCIC_EXPIRE);
-    }
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
@@ -114,19 +110,19 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
     if (ptrLoan->get_code() != 0){
        // write data error to approval_cal.
        hostVars[6] = ptrLoan->get_principal();
-       hostVars[7] = 0;
-       hostVars[8] = 0;
-       hostVars[9] = ptrLoan->get_code();
-       hostVars[10] = ptrLoan->error();
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 10);
-       return 0;
+       hostVars[7] = ptrLoan->get_code();
+       hostVars[8] = ptrLoan->error();
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 10);
+//    dbhandle->CloseDatabase();
+       delete ptrLoan;
+       return (0);
     }
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
-//    ptrLoan->prescreen(jcic_data_date, dbhandle);
-//    errCode = ptrLoan->get_code();
-//    if (errCode == 0) {
-//       ptrLoan->calculate_rscore(dbhandle);
-    if (ptrLoan->get_test_PB(app_sn, dbhandle) > 0) {
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
+    errCode = ptrLoan->get_code();
+    if (errCode == 0) {
+       ptrLoan->calculate_rscore(dbhandle);
+//    if (ptrLoan->get_test_PB(app_sn, dbhandle) > 0) {
         // check product type and card
         if (ptrLoan->get_product_type() == 1) { // product GX
             switch (ptrLoan->get_card()) {
@@ -163,6 +159,31 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
        hostVars[6] = optimal_line;
        hostVars[7] = optimal_pb;
        hostVars[8] = optimal_npv;
+       if (optimal_npv >= 0){
+          reason_code = 1;
+          Message = TF_Messages[Normal_1];
+       }
+       else {
+          reason_code = 0;
+          Message = TF_Messages[Normal_0];
+       }
+       if (Days_between(jcic_data_date, app_data_time) > 30) {
+          errCode = 2;
+          reason_code = 201;
+          Message = TF_Messages[Warning_201];
+          strcpy (error_message, TF_Messages[Warning_201]);
+       } else {
+          if (optimal_npv >= 0){
+             reason_code = 1;
+             Message = TF_Messages[Normal_1];
+          }
+          else {
+             reason_code = 0;
+             Message = TF_Messages[Normal_0];
+          }
+          if (optimal == 0)
+             Message = TF_Messages[Optimal_error_501];
+       }
        hostVars[9] = reason_code;
        hostVars[10] = Message;
        if (optimal) {
@@ -172,13 +193,8 @@ int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
        }
     }
     else {
-       // write prescreen result to approval_cal
-       hostVars[6] = ptrLoan->get_principal();
-       hostVars[7] = 0;
-       hostVars[8] = 0;
-       hostVars[9] = 101;
-       hostVars[10] = "Major Derug";
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 10);
+       // write prescreen result to PRESECREEN
+       errCode = 1;
        strcpy (error_message, ptrLoan->error().c_str());
     }
 #ifdef _WRFLOW
@@ -226,58 +242,75 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
     ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
     ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+    hostVars[0] = app_sn;
+    hostVars[1] = tsn;
+    hostVars[2] = ts_data_date;
+    hostVars[3] = jcic_data_date;
+    hostVars[4] = app_data_time;
+    hostVars[5] = ptrLoan->get_product_type();
+
     if (ptrLoan->get_code() != 0){
        // write data error to approval_cal.
-       hostVars[0] = app_sn;
-       hostVars[1] = tsn;
-       hostVars[2] = ts_data_date;
-       hostVars[3] = jcic_data_date;
-       hostVars[4] = app_data_time;
-       hostVars[5] = ptrLoan->get_product_type();
        hostVars[6] = ptrLoan->get_principal();
-       hostVars[7] = 0;
-       hostVars[8] = 0;
-       hostVars[9] = ptrLoan->get_code();
-       hostVars[10] = ptrLoan->error();
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 10);
-       return 0;
+       hostVars[7] = ptrLoan->get_code();
+       hostVars[8] = ptrLoan->error();
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 10);
+//    dbhandle->CloseDatabase();
+       delete ptrLoan;
+       return (0);
     }
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
-//    ptrLoan->prescreen(jcic_data_date, dbhandle);
-//    errCode = ptrLoan->get_code();
-//    if (errCode == 0) {
-//       ptrLoan->calculate_rscore(dbhandle);
-    if (ptrLoan->get_test_PB(app_sn, dbhandle) > 0) {
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
+    errCode = ptrLoan->get_code();
+    if (errCode == 0) {
+       ptrLoan->calculate_rscore(dbhandle);
+//    if (ptrLoan->get_test_PB(app_sn, dbhandle) > 0) {
        pb = ptrLoan->calculate_pd(ptrLoan->get_principal(), dbhandle);
        ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
        // write_specific result to approval_cal
-       hostVars[0] = app_sn;
-       hostVars[1] = tsn;
-       hostVars[2] = ts_data_date;
-       hostVars[3] = jcic_data_date;
-       hostVars[4] = app_data_time;
-       hostVars[5] = ptrLoan->get_product_type();
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = pb;
        hostVars[8] = ptrLoan->get_npv();
+       if (ptrLoan->get_npv() >= 0){
+          reason_code = 1;
+          Message = TF_Messages[Normal_1];
+       }
+       else {
+          reason_code = 0;
+          Message = TF_Messages[Normal_0];
+       }
+       if (Days_between(jcic_data_date, app_data_time) > 30) {
+          errCode = 2;
+          reason_code = 201;
+          Message = TF_Messages[Warning_201];
+          strcpy (error_message, TF_Messages[Warning_201]);
+       } else {
+          switch (ptrLoan->get_card()) {
+             case 1:if (ptrLoan->get_principal() > A2_LIMIT) {
+                       reason_code = 202;
+                       Message = TF_Messages[Warning_202];
+                    }
+                    break;
+             case 2:if (ptrLoan->get_principal() > B1_LIMIT) {
+                       reason_code = 203;
+                       Message = TF_Messages[Warning_203];
+                    }
+                    break;
+             case 3:
+             case 4:if (ptrLoan->get_principal() > B2_C_LIMIT) {
+                       reason_code = 204;
+                       Message = TF_Messages[Warning_204];
+                    }
+                    break;
+          }
+       }
        hostVars[9] = reason_code;
        hostVars[10] = Message;
        dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 10);
     }
     else {
-       // write prescreen result to approval_cal
-       hostVars[0] = app_sn;
-       hostVars[1] = tsn;
-       hostVars[2] = ts_data_date;
-       hostVars[3] = jcic_data_date;
-       hostVars[4] = app_data_time;
-       hostVars[5] = ptrLoan->get_product_type();
-       hostVars[6] = ptrLoan->get_principal();
-       hostVars[7] = 0;
-       hostVars[8] = 0;
-       hostVars[9] = 101;
-       hostVars[10] = "Major Derug";
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 10);
+       // write prescreen result to PRESECREEN
+       errCode = 1;
        strcpy (error_message, ptrLoan->error().c_str());
     }
 #ifdef _WRFLOW
@@ -288,10 +321,6 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
      */
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
 //    dbhandle->CloseDatabase();
-    if (Days_between(jcic_data_date, app_data_time) > 30) {
-       errCode = 2;
-       strcpy (error_message, JCIC_EXPIRE);
-    }
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;

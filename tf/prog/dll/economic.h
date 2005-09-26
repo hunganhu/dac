@@ -4,10 +4,13 @@
 //Economic model constants
 const double leverage_ratio = 1.00; //舉債比率（％）
 const double recovery_ratio = 0.011;// Net recovery ratio (M6 之後四個月),壞帳回收百分比, (資金損失 % (EAD) )
-const double D1_WRITEOFF = 14.259238730; //D1 to W/O ratio
-const double D1_FIX_COST = 337.36; //D1 Fixed cost
 const double LATE_PENALTY_RATIO = 0.1; //Late penalty ratio on unpaid interest
-const double LATE_30D_RATIO = 0.203896985; // tatio of 30 days late / original
+const double GX_D1_WRITEOFF = 14.259238730; // GX D1 to W/O ratio
+const double GX_D1_FIX_COST = 337.36; // GX D1 Fixed cost
+const double GX_LATE_30D_RATIO = 0.203896985; // GX tatio of 30 days late / original
+const double KHJ_D1_WRITEOFF = 9.84797445; // KHJ D1 to W/O ratio
+const double KHJ_D1_FIX_COST = 377.5941; // KHJ D1 Fixed cost
+const double KHJ_LATE_30D_RATIO = 0.23115925; // KHJ tatio of 30 days late / original
 
 // GX product information
 const double GX_APP_FEE_RECEIVABLE = 5000.0;
@@ -121,9 +124,9 @@ const int GX_RiskMgmtFee [][2] = {
 /* KHJ Lines:
  100,000: line <= 100,000 then KHJ_line = 0;
  120,000: line <= 120,000 then KHJ_line = 1;
- 150,000: line <= 150,000 then KHJ_line = 2;
+ 150,000: line <= 200,000 then KHJ_line = 2;
 */
-const int KHJ_RiskMgmtFee [] = {100000, 120000, 150000};
+const int KHJ_RiskMgmtFee [] = {9000, 11000, 12000};
 
 //-------------------------------------------------------------------------------------------
 

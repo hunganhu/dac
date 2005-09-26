@@ -90,19 +90,6 @@ class Loan {
     int risk_mgmt_fee_ind;
     int risk_mgmt_fee_terms_ind;
 
-    /* Prefilter and postfilter variables */
-/*
-    int jas002_defect;
-    int krm001_hit;
-    int krm023_hit;
-    int bam085_hit;
-    int fs044;
-    int app_max_bucket;
-    int cash_max_bucket;
-    int delinquent_months;
-    int ind001;
-    int ms080;
-*/
     /* cash flow arrays to calculate NPV */
     String Message;
     int card;
@@ -145,7 +132,7 @@ class Loan {
     double set_interest_revenue();
     double set_open_credit_revenue();
     double set_risk_mgmt_revenue();
-    double set_late_fee();
+    double set_late_fee(double pb);
     double set_taishin_tax();
     double set_tf_tax();
     double set_interest_cost();
@@ -188,7 +175,7 @@ class Loan {
              code = err_code;
           }
     };
-   
+
     Loan (char *appSN, char *appDate, char *jcicDate);
     Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn);
     ~Loan ();
@@ -212,5 +199,64 @@ class Loan {
 //    double get_pd(char *idn, TADOHandler *handler);
 //    void postFilter();
 };
+
+const int A2_LIMIT = 400000;
+const int B1_LIMIT = 250000;
+const int B2_C_LIMIT = 200000;
+
+enum ErrorCodes {
+     Prescreen_0,
+     Normal_1,
+     Normal_0,
+     Warning_201,
+     Warning_202,
+     Warning_203,
+     Warning_204,
+     // Prescreen Errors
+     Prescreen_101,
+     Prescreen_102,
+     Prescreen_103,
+     Prescreen_104,
+     Prescreen_105,
+     Prescreen_106,
+     Prescreen_107,
+     Prescreen_108,
+     // Application Data Errors
+     App_error_301,
+     App_error_302,
+     App_error_303,
+     App_error_304,
+     App_error_305,
+     App_error_306,
+     App_error_307,
+     App_error_308,
+     App_error_309,
+     App_error_310,
+     App_error_311,
+     App_error_312,
+     // Financial Data Errors
+     Fin_error_321,
+     Fin_error_322,
+     Fin_error_323,
+     Fin_error_324,
+     Fin_error_325,
+     Fin_error_326,
+     Fin_error_327,
+     // Loan Conditions Data Errors
+     Loan_error_331_GX,
+     Loan_error_331_KHJ,
+     Loan_error_332,
+     Loan_error_333,
+     Loan_error_334,
+     Loan_error_335,
+     Loan_error_336,
+     Loan_error_337,
+     Loan_error_338,
+     Loan_error_339,
+     Loan_error_340,
+     Optimal_error_501
+};
+
+extern char *TF_Messages[];
 
 #endif

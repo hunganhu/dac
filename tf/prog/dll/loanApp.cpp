@@ -11,7 +11,58 @@
 #include "economic.h"
 // Constants used in the program.
 const char *expire_date = "21001231";
-const double m1_to_m7_ratio = 5.0;
+char *TF_Messages[]= {
+     "通過 ",                  // Prescreen_0,
+     "建議核准 ",              // Normal_1,
+     "建議婉拒 ",              // Normal_0,
+     "JCIC資料時間超過30 天 ", // Warning_201,
+     "申貸金額超出模組適用範圍，模組輸出僅供參考。(國民信貸A2超過40萬) ",     // Warning_202,
+     "申貸金額超出模組適用範圍，模組輸出僅供參考。(國民信貸B1超過25萬) ",     // Warning_203,
+     "申貸金額超出模組適用範圍，模組輸出僅供參考。(國民信貸B2 / C超過20萬) ", // Warning_204,
+     // Prescreen Errors
+     "申請人年齡大於55歲 ",         // Prescreen_101,
+     "申請人為外國人 ",             // Prescreen_102,
+     "申請人為本行現金卡額度被鎖 ", // Prescreen_103,
+     "重大信用瑕疵 ",               // Prescreen_104,
+     "信用卡連續三個月以上未繳足最低應繳金額 ", // Prescreen_105,
+     "貸款有逾期 ",                             // Prescreen_106,
+     "最近一個月有現金卡逾期 ",                 // Prescreen_107,
+     "其他非信用卡貸款連續三期以上繳款異常 ",   // Prescreen_108,
+     // Application Data Errors
+     "無法辨識申請人是否為外國人 ",             // App_error_301,
+     "無法辨識申請人年紀是否超過55歲 ",         // App_error_302,
+     "無法辨識是否申請人本行現金卡額度被鎖 ",   // App_error_303,
+     "無法辨識申請人性別 ",                     // App_error_304,
+     "產品代號無法辨識 ",                       // App_error_305,
+     "三碼郵遞區號錯誤 ",                       // App_error_306,
+     "無法辨識是否要密家人 ",                   // App_error_307,
+     "無法辨識婚姻狀況 ",                       // App_error_308,
+     "教育程度無法辨識 ",                       // App_error_309,
+     "佣金為負數 ",                             // App_error_310,
+     "銷售管道無法辨識 ",                       // App_error_311,
+     "風險等級無法辨識 ",                       // App_error_312,
+     // Financial Data Errors
+     "ROE小於或等於零 ", // Fin_error_321,
+     "台新金控資金成本小於或等於零 ",           // Fin_error_322,
+     "台新銀行營業稅小於或等於零 ",             // Fin_error_323,
+     "台新資融營業稅小於或等於零 ",             // Fin_error_324,
+     "台新資訊室費用小於或等於零 ",             // Fin_error_325,
+     "台新作業與客服費用小於或等於零 ",         // Fin_error_326,
+     "人事成本小於或等於零 ",                   // Fin_error_327,
+     // Loan Conditions Data Errors
+     "國民信貸貸款金額大於600000或小於100000 ", // Loan_error_331_GX,
+     "卡好借貸款金額大於200000或小於70000 ",    // Loan_error_331_KHJ,
+     "年利率小於15%或大於20% ",                 // Loan_error_332,
+     "期數大於84或小於13 ",                     // Loan_error_333,
+     "開辦費小於零 ",                           // Loan_error_334,
+     "徵信查詢費小於零 ",                                                                                                                                  // Loan_error_335,
+     "每期風險管理費用小於零 ",                   // Loan_error_336,
+     "風險管理費用收取期數(月)小於零或大於期數 ", // Loan_error_337,
+     "優惠期 (月) 小於零或大於等於期數 ",         // Loan_error_338,
+     "寬限期 (月) 小於零或大於等於期數 ",         // Loan_error_339,
+     "優惠年利率必須介於0和貸款利率",             // Loan_error_340,
+     "不適用於最適貸款金額計算 (信用卡資料不足) " // Optimal_error_501
+};
 
 //---------------------------------------------------------------------------
 
@@ -169,61 +220,61 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
      Message += "無申請件資料。";
 
   if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
-     Message += "301 - 無法辨識申請人是否為外國人。"; code = 301;}
+     Message += TF_Messages[App_error_301]; code = 301;}
 
   if ((age_ind == -1) || (age < 0) || (age > 1)) {
-     Message += "302 - 無法辨識申請人年紀是否超過55歲。"; code = 302;}
+     Message += TF_Messages[App_error_302]; code = 302;}
 
   if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
-     Message += "303 - 無法辨識是否申請人本行現金卡額度被鎖。"; code = 303;}
+     Message += TF_Messages[App_error_303]; code = 303;}
 
   if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
-     Message += "304 - 無法辨識申請人性別。"; code = 304;}
+     Message += TF_Messages[App_error_304]; code = 304;}
 
   if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
-     Message += "305 - 產品代號無法辨識。"; code = 305;}
+     Message += TF_Messages[App_error_305]; code = 305;}
 
   if ( validZIP(zip.c_str()) == 0) {
-     Message += "306 - 三碼郵遞區號錯誤。";  code = 306;}
+     Message += TF_Messages[App_error_306];  code = 306;}
 
   if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
-     Message += "307 - 無法辨識是否要密家人。"; code = 307;}
+     Message += TF_Messages[App_error_307]; code = 307;}
 
   if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
-     Message += "308 - 無法辨識婚姻狀況。";  code = 308;}
+     Message += TF_Messages[App_error_308];  code = 308;}
 
   if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
-     Message += "309 - 教育程度無法辨識。"; code = 309;}
+     Message += TF_Messages[App_error_309]; code = 309;}
 
   if ((commission_ind == -1) || (commission < 0)) {
-     Message += "310 - 佣金為負數。"; code = 310;}
+     Message += TF_Messages[App_error_310]; code = 310;}
 
   if ((sales_channel_ind == -1) || (sales_channel < "001") || (sales_channel > "009") ) {
-     Message += "311 - 銷售管道無法辨識。"; code = 311;}
+     Message += TF_Messages[App_error_311]; code = 311;}
 
   if ((risk_level_ind == -1) || (risk_level < 1) || (risk_level > 2) ) {
-     Message += "312 - 風險等級無法辨識。"; code = 312;}
+     Message += TF_Messages[App_error_312]; code = 312;}
 
   if ((roe_ind == -1) || (roe <= 0.0)) {
-     Message += "321 - ROE小於或等於零。"; code = 321;}
+     Message += TF_Messages[Fin_error_321]; code = 321;}
 
   if ((cof_ind == -1) || (cof <= 0.0)) {
-     Message += "322 - 台新金控資金成本小於或等於零。"; code = 322;}
+     Message += TF_Messages[Fin_error_322]; code = 322;}
 
   if ((ts_tax_rate_ind == -1) || (ts_tax_rate <= 0.0)) {
-     Message += "323 - 台新銀行營業稅小於或等於零。"; code = 323;}
+     Message += TF_Messages[Fin_error_323]; code = 323;}
 
   if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
-     Message += "324 - 台新資融營業稅小於或等於零。"; code = 324;}
+     Message += TF_Messages[Fin_error_324]; code = 324;}
 
   if ((info_processing_cost_ind == -1) || (info_processing_cost <= 0.0)) {
-     Message += "325 - 台新資訊室費用小於或等於零。"; code = 325;}
+     Message += TF_Messages[Fin_error_325]; code = 325;}
 
   if ((operation_cost_ind == -1) || (operation_cost <= 0.0)) {
-     Message += "326 - 台新作業與客服費用小於或等於零。"; code = 326;}
+     Message += TF_Messages[Fin_error_326]; code = 326;}
 
   if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
-     Message += "327 - 人事成本小於或等於零。"; code = 327;}
+     Message += TF_Messages[Fin_error_327]; code = 327;}
 
   delete ds;
  } catch (Exception &E) {
@@ -299,40 +350,40 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
      Message += "無貸款資料。";
   }
   if ((principal_ind == -1) || (product_type == 1 && (principal < 100000.0 || principal > 600000.0))) {
-     Message += "331 - 國民信貸貸款金額大於600000或小於100000。"; code = 331;}
+     Message += TF_Messages[Loan_error_331_GX]; code = 331;}
   else if ((principal_ind == -1) || (product_type == 2 && (principal < 50000.0 || principal > 200000.0))){
-     Message += "331 - 卡好借貸款金額大於200000或小於50000。"; code = 331;}
+     Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
 
   if ((int_rate_ind == -1) || (int_rate < 0.15 || int_rate > 0.2)
         ||(int_rate > 0.20)) {
-       Message += "332 - 年利率小於15%或大於20%。"; code = 332;}
+       Message += TF_Messages[Loan_error_332]; code = 332;}
 
   if ((periods_ind == -1) || (periods <= 0)) {
-     Message += "333 - 期數小於或等於零。";  code = 333;}
+     Message += TF_Messages[Loan_error_333];  code = 333;}
 
   if ((application_fee_ind == -1) || (application_fee < 0)) {
-     Message += "334 - 開辦費小於零。";  code = 334;}
+     Message += TF_Messages[Loan_error_334];  code = 334;}
 
   if ((credit_checking_fee_ind == -1) || (credit_checking_fee < 0)) {
-     Message += "335 - 徵信查詢費小於零。";  code = 335;}
+     Message += TF_Messages[Loan_error_335];  code = 335;}
 
   if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0)) {
-     Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;}
-  else if (principal_ind == 0 && risk_mgmt_fee > 0.1 * principal) {
-          Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;}
+     Message += TF_Messages[Loan_error_336];  code = 336;}
+//  else if (principal_ind == 0 && risk_mgmt_fee > 0.1 * principal) {
+//          Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;}
 
   if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
-     Message += "337 - 風險管理費用收取期數(月)小於零或大於期數";  code = 337;}
+     Message += TF_Messages[Loan_error_337];  code = 337;}
 
   if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period >= periods)) {
-     Message += "338 - 優惠期 (月) 小於零或大於等於期數。";   code = 338;}
+     Message +=TF_Messages[Loan_error_338];   code = 338;}
 
   if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
-     Message += "339 - 寬限期 (月) 小於零或大於等於期數。";  code = 339;}
+     Message += TF_Messages[Loan_error_339];  code = 339;}
 
   if ((teaser_rate_ind == -1) || (teaser_rate < 0.0)
         ||(teaser_rate > int_rate)) {
-       Message += "340 - 優惠年利率必須介於0和貸款利率。";  code = 340;}
+       Message += TF_Messages[Loan_error_340];  code = 340;}
 
   delete ds;
  } catch (Exception &E) {
@@ -419,21 +470,21 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
        cash_max_bucket = ds->FieldValues["fs302"];
     }
     if (age == 1) {
-       Message = "申請人年齡大於55歲"; code = 101; }
+       Message = TF_Messages[Prescreen_101]; code = 101; }
     else if (alien == 1) {
-       Message = "申請人為外國人"; code = 102; }
+       Message = TF_Messages[Prescreen_102]; code = 102; }
     else if ((cashcard_lock == 1) && (product_type == 2)) {
-       Message = "申請人為本行現金卡額度被鎖"; code = 103; }
+       Message = TF_Messages[Prescreen_103]; code = 103; }
     else if (jas002_defect > 0) {
-       Message = "重大信用瑕疵"; code = 104; }
+       Message = TF_Messages[Prescreen_104]; code = 104; }
     else if (app_max_bucket > 3) {
-       Message = "信用卡連續三個月以上未繳足最低應繳金額"; code = 105; }
+       Message = TF_Messages[Prescreen_105]; code = 105; }
     else if (fs044 > 0) {
-       Message = "貸款有逾期"; code = 106; }
+       Message = TF_Messages[Prescreen_106]; code = 106; }
     else if (cash_max_bucket > 0) {
-       Message = "最近一個月有現金卡逾期"; code = 107; }
+       Message = TF_Messages[Prescreen_107]; code = 107; }
     else if (delinquent_months > 3) {
-       Message = "其他非信用卡貸款連續三期以上繳款異常"; code = 108; }
+       Message = TF_Messages[Prescreen_108]; code = 108; }
     delete ds;
 
     /*Write_Prescreen_Result*/
@@ -599,8 +650,8 @@ double Loan::cal_KHJa2_pb(double risk_score)
  b = 0.0000;
  c = 1.0000;
  d = 1.0616;
- min_score = 0.1031;
- length = 1.15704;
+ min_score = 0.103105;
+ length = 1.1570411836;
 
  rscore_n = ((risk_score + min_score) > 0.0? (risk_score + min_score): 0.0) / length;
  pb =  a + b * rscore_n + c * pow (rscore_n, d);
@@ -816,22 +867,6 @@ int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handle
  return (max_line);
 }
 //---------------------------------------------------------------------------
-/*
-void Loan::postFilter()
-{
- if (jas002_defect > 0)
-    throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
- else if (app_max_bucket > 3)
-    throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
- else if (fs044 > 0)
-    throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
- else if (cash_max_bucket > 0)
-    throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
- else if (delinquent_months > 3)
-    throw (RiskEx ("拒絕 [貸款有90 天以上遲繳記錄]", 107));
-}
-*/
-//---------------------------------------------------------------------------
 double Loan::calculate_npv(int line, double pb)
 {
  Variant hostVars[5];
@@ -849,7 +884,7 @@ double Loan::calculate_npv(int line, double pb)
   if (commission < 0) commission = 0;
   // Revenue
   Interest_Revenue = set_interest_revenue();
-  Late_Fee = set_late_fee();
+  Late_Fee = set_late_fee(pb);
   Open_Credit_Fee = set_open_credit_revenue();
   Risk_Management_Fee = set_risk_mgmt_revenue();
 
@@ -1114,16 +1149,21 @@ double Loan::set_tf_tax()
 }
 //---------------------------------------------------------------------------
 
-double Loan::set_late_fee()
+double Loan::set_late_fee(double pb)
 {
-  double monthly_pd = pd / 12.0;
+  double monthly_pd = pb / 12.0;
 
   for (int i = 1; i <= periods; i++)
      if (i < 2)
         late_fee[i] = 0.0;
      else
-        late_fee[i] = interest_revenue[i-1] * open_attrition[i] *  monthly_pd
-                      / LATE_30D_RATIO * LATE_PENALTY_RATIO;
+       if (product_type ==1)
+          late_fee[i] = interest_revenue[i-1] * open_attrition[i] *  monthly_pd
+                      / GX_LATE_30D_RATIO * LATE_PENALTY_RATIO;
+       else if (product_type ==2)
+          late_fee[i] = interest_revenue[i-1] * open_attrition[i] *  monthly_pd
+                      / KHJ_LATE_30D_RATIO * LATE_PENALTY_RATIO;
+
 
   return (NetPresentValue(roe / 12.0, late_fee + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
@@ -1224,12 +1264,12 @@ double Loan::calculate_commission(int line)
              if (HeadBonusDiscount [KHJ][channel] == 1)       // 主管手續獎金
                 head_bonus = application_fee / KHJ_APP_FEE_RECEIVABLE
                              * HeadFeeBonus [KHJ][channel];
-             else head_bonus = 0.0;
+             else head_bonus = HeadFeeBonus [KHJ][channel];
 
              if (SalesBonusDiscount [KHJ][channel] == 1)      // 業務手續獎金
                 sales_bonus = application_fee / KHJ_APP_FEE_RECEIVABLE
                              * SalesFeeBonus [KHJ][channel];
-             else sales_bonus = 0.0;
+             else sales_bonus = SalesFeeBonus [KHJ][channel];
 
              break;
  }
@@ -1254,8 +1294,12 @@ double Loan::set_collection_cost()
   double monthly_pd = pd / 12.0;
 
   for (int i = 1; i <= periods; i++)
-      collection_cost[i] = D1_FIX_COST * open_attrition[i] * monthly_pd *
-                           D1_WRITEOFF;
+     if (product_type ==1)  // GX
+        collection_cost[i] = GX_D1_FIX_COST * open_attrition[i] * monthly_pd *
+                             GX_D1_WRITEOFF;
+     else if (product_type == 2)  // KHJ
+        collection_cost[i] = KHJ_D1_FIX_COST * open_attrition[i] * monthly_pd *
+                             KHJ_D1_WRITEOFF;
   return (NetPresentValue(roe / 12.0, collection_cost + 1, periods, ptEndOfPeriod)
           + collection_cost[0]);
 }

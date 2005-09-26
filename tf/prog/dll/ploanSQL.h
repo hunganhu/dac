@@ -9,6 +9,7 @@ enum SQLCodes { Get_AppInfo_Record,
                 Get_Branch_Ind,
                 Get_Prescreen_Record,
 		Write_Prescreen_Result,
+                Write_Specific_Result_Data_Error,
                 Write_Specific_Result,
                 Write_Optimal_Result,
 
