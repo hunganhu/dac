@@ -14,5 +14,6 @@ int yrmon_to_mon(String inquiry_month, bool time_lock, String lock);
 bool validate_date(String date);
 int check_expiration(int lock);
 int Days_between (String begin, String end);
+char * ExecutionTime();
 #endif
  

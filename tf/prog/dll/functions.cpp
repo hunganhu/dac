@@ -3,6 +3,7 @@
 
 #include "functions.h"
 #include <dateutils.hpp>
+#include <stdio.h>
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
@@ -202,4 +203,21 @@ int Days_between (String begin, String end)
  beginDate = StrToDate(beginString);
  endDate = StrToDate(endString);
  return(DaysBetween(endDate, beginDate));
+}
+//---------------------------------------------------------------------------
+/*
+ * Function: ExecutionTime ()
+ * Description: Return current date and time. The datetime format is yyyymmddHHMi.
+ */
+char * ExecutionTime()
+{
+ time_t timer;
+ struct tm *tblock;
+ static char buf[20];
+
+ timer = time(NULL);
+ tblock = localtime(&timer);
+ sprintf (buf, "%04d%02d%02d%02d%02d", tblock->tm_year+1900, tblock->tm_mon+1,
+          tblock->tm_mday, tblock->tm_hour, tblock->tm_min);
+ return (buf);
 }

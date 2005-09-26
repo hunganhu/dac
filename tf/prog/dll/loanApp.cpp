@@ -70,7 +70,7 @@ char *TF_Messages[]= {
 
 Loan::Loan (char *appSN, char *appDate, char *jcicDate):
     app_sn(appSN), app_date(appDate), jcic_date(jcicDate), product_type_ind(0),
-    gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
+    gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0), Message(""),
     marriage_status_ind(0), alien_ind(0), age_ind(0), cashcard_lock_ind(0),
     cof_ind(0), roe_ind(0), ts_tax_rate_ind(0), tf_tax_rate_ind(0),
     info_processing_cost_ind(0), operation_cost_ind(0), hr_cost_ind(0),
@@ -83,7 +83,7 @@ Loan::Loan (char *appSN, char *appDate, char *jcicDate):
 //---------------------------------------------------------------------------
 Loan::Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn):
     app_sn(appSN), app_date(appDate), ts_date(tsDate), jcic_date(jcicDate),tsn(tsn),product_type_ind(0),
-    gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0),
+    gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0), Message(""),
     marriage_status_ind(0), alien_ind(0), age_ind(0), cashcard_lock_ind(0),
     cof_ind(0), roe_ind(0), ts_tax_rate_ind(0), tf_tax_rate_ind(0),
     info_processing_cost_ind(0), operation_cost_ind(0), hr_cost_ind(0),
@@ -276,10 +276,11 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
   if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
      Message += TF_Messages[Fin_error_327]; code = 327;}
 
-  delete ds;
  } catch (Exception &E) {
     throw;
  }
+  ds->Close();  // close dataset before delete, otherwise result in "too many consecutive exceptions"
+  delete ds;
 }
 //---------------------------------------------------------------------------
 void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
@@ -369,8 +370,6 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
 
   if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0)) {
      Message += TF_Messages[Loan_error_336];  code = 336;}
-//  else if (principal_ind == 0 && risk_mgmt_fee > 0.1 * principal) {
-//          Message += "336 - 每期風險管理費用小於零或過高。";  code = 336;}
 
   if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
      Message += TF_Messages[Loan_error_337];  code = 337;}
@@ -385,10 +384,11 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
         ||(teaser_rate > int_rate)) {
        Message += TF_Messages[Loan_error_340];  code = 340;}
 
-  delete ds;
  } catch (Exception &E) {
     throw;
  }
+  ds->Close();
+  delete ds;
 }
 
 //---------------------------------------------------------------------------
@@ -431,17 +431,23 @@ int Loan::get_card()
 {
  return card;
 }
+int Loan::get_external_monthly_payment()
+{
+ return ms082;
+}
 //---------------------------------------------------------------------------
 void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 {
- Variant hostVars[5];
- int jas002_defect, fs044, app_max_bucket, cash_max_bucket, delinquent_months;
- TADODataSet *ds = new TADODataSet(NULL);
+ Variant hostVars[10];
+// int jas002_defect, fs044, app_max_bucket, cash_max_bucket, delinquent_months;
+ TADODataSet *ds;
 
+ ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  code = 0;
-// jcic_date = inquiry_date;
-// avail_flag = jas002_defect = krm001_hit = krm023_hit = fs044 = 0;
+ jcic_date = inquiry_date;
+ Message = "";
+ 
  try {
     hostVars[0] = app_sn;
     hostVars[1] = app_date;
@@ -468,7 +474,17 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
        fs044 = ds->FieldValues["fs044"];
        delinquent_months = ds->FieldValues["fs334"];
        cash_max_bucket = ds->FieldValues["fs302"];
+       ms082 = ds->FieldValues["ms082"];
     }
+ } catch (Exception &E) {
+     throw;
+ }
+    ds->Close();
+    delete ds;
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+
     if (age == 1) {
        Message = TF_Messages[Prescreen_101]; code = 101; }
     else if (alien == 1) {
@@ -485,7 +501,11 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
        Message = TF_Messages[Prescreen_107]; code = 107; }
     else if (delinquent_months > 3) {
        Message = TF_Messages[Prescreen_108]; code = 108; }
-    delete ds;
+    /* Output_Prescreen_Output to working table */
+ try {
+    hostVars[0] = Message;
+    hostVars[1] = app_sn;
+    handler->ExecSQLCmd(SQLCommands[Update_Prescreen_Output], hostVars, 1);
 
     /*Write_Prescreen_Result*/
     hostVars[0] = app_sn;
@@ -496,17 +516,18 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
     /* if PRESCREEN table has a record with the same key then skip writing*/
     if (record_count == 0) {
        hostVars[0] = app_sn;
-       hostVars[1] = app_date;
-       hostVars[2] = jcic_date;
+       hostVars[1] = jcic_date;
+       hostVars[2] = app_date;
        hostVars[3] = product_type;
        hostVars[4] = code;
        hostVars[5] = Message;
        handler->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
     }
-
  } catch (Exception &E) {
      throw;
-   }
+ }
+    ds->Close();
+    delete ds;
 }
 
 //---------------------------------------------------------------------------
@@ -727,16 +748,16 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
 
  try {
     hostVars[0] = app_sn;
-    handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
+    handler->ExecSQLQry(SQLCommands[Get_PB_Parameters], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
        if (product_type == 1) { // product GX
-          card = ds->FieldValues["card"];
+          card = ds->FieldValues["score_card"];
           switch (card) {
              case 0: // screen out
                     break;
              case 1: // A2, full JCIC
-                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    risk_score = ds->FieldValues["full_score"];
                     if (! ds->FieldValues["ms082"].IsNull())
                        ms082 = ds->FieldValues["ms082"];
                     else
@@ -764,11 +785,11 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
                     if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 2: // B1 ms080 > 0
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["b1_score"];
                     pd = cal_GXb1_pb(risk_score);
                     break;
              case 3: // B2 ms080 <= 0
-                    risk_score = ds->FieldValues["brmp_score"];
+                    risk_score = ds->FieldValues["b2_score"];
                     if (! ds->FieldValues["ms082"].IsNull())
                        ms082 = ds->FieldValues["ms082"];
                     else
@@ -795,33 +816,33 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
                     if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 4: // Demographic
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["demo_score"];
                     pd = cal_GXc_pb(risk_score);
                     break;
           } //End of switch
        } // End of product GX
        else if (product_type == 2) { // product KHJ
-          card = ds->FieldValues["card"];
+          card = ds->FieldValues["score_card"];
           switch (card) {
              case 0: // screen out
                     break;
              case 1: // A2, full JCIC
-                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    risk_score = ds->FieldValues["full_score"];
                     pd = cal_KHJa2_pb(risk_score);
                     if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 2: // B1 ms080 > 0
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["b1_score"];
                     pd = cal_KHJb1_pb(risk_score);
                     if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 3: // B2 ms080 <= 0
-                    risk_score = ds->FieldValues["brmp_score"];
+                    risk_score = ds->FieldValues["b2_score"];
                     pd = cal_KHJb2_pb(risk_score);
                     if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
              case 4: // Demographic
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["demo_score"];
                     pd = cal_KHJc_pb(risk_score);
                     if (pd > 1.0) pd = 1.0;      // cap pd at 100%
                     break;
@@ -832,10 +853,11 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
 //     hostVars[1] = app_sn;
 //     handler->ExecSQLCmd(SQLCommands[Write_PB_Result], hostVars, 1);
 //    }
-  delete ds;
  } catch (Exception &E) {
      throw;
  }
+  ds->Close();
+  delete ds;
  return(pd);
 }
 
@@ -851,7 +873,7 @@ int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handle
  int max_line;
 
  try {
-    max_npv =-999999999;   // set max_npv to a large negative number
+    max_npv =-999999999;   // set max_npv to a very small negative number
     for (int i = 0; i < loops; i++) {
       npv[i][1] = calculate_pd(npv[i][0], handler);
       if ((npv[i][2] = calculate_npv(npv[i][0], npv[i][1])) > max_npv) {

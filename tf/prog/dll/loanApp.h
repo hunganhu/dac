@@ -9,7 +9,7 @@
 using namespace std;
 #pragma package(smart_init)
 // Constants used in the program.
-const int TERM = 60;
+const int TERM = 84;
 
 //---------------------------------------------------------------------------
 class Loan {
@@ -90,6 +90,14 @@ class Loan {
     int risk_mgmt_fee_ind;
     int risk_mgmt_fee_terms_ind;
 
+    /* Prescreen variables */
+    int jas002_defect;               // Major derugotory
+    int fs044;                       // 貸款有逾期
+    int app_max_bucket;              // credit card 曾經最高逾期月數
+    int cash_max_bucket;             // 當月逾期現金卡筆數(cash card max bucket)
+    int delinquent_months;           // 曾經最高逾期月數
+    int ms082;                       // external monthly payment
+
     /* cash flow arrays to calculate NPV */
     String Message;
     int card;
@@ -120,8 +128,6 @@ class Loan {
     double collection_cost[TERM+4];
 //    double working_capital[TERM+4];
     double credit_loss[TERM+4];
-
-    /*maintenance variables*/
 
     /* functions to calculate cash flows */
     void npv_init();
@@ -187,9 +193,10 @@ class Loan {
     double calculate_pd(int line, TADOHandler *handler);
     double calculate_npv(int line, double pb);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
-    int  get_product_type();
-    int  get_code();
-    int Loan::get_card();
+    int get_product_type();
+    int get_code();
+    int get_card();
+    int get_external_monthly_payment();
     double get_rscore ();
     double get_pd();
     int get_test_PB(char *idn, TADOHandler *handler);

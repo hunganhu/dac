@@ -22,7 +22,7 @@ char *SQLCommands[] = {
 " where app_sn = :v0 and tsn = :v1;",
 
 /*Get_Prescreen_Result*/
-" select jas002_defect, app_max_bucket, fs044, fs334, fs302"
+" select jas002_defect, app_max_bucket, fs044, fs334, fs302, ms082"
 " from #tf_ploan_cal"
 " where app_sn = :v1",
 
@@ -32,11 +32,11 @@ char *SQLCommands[] = {
 " where app_sn = :v1",
 
 /*Get_Prescreen_Record*/
-" select app_sn, app_date, jcic_date from prescreen "
+" select app_sn, jcic_data_date, app_data_time from prescreen "
 "  where app_sn = :v0 and app_data_time = :v1 and jcic_data_date = :v2;",
 
 /*Write_Prescreen_Result*/
-" insert into prescreen(app_sn, app_date, jcic_date, product_type, code, reason)"
+" insert into prescreen(app_sn, jcic_data_date, app_data_time, product_type, reason_code, reason_message)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5);",
 
 /* Write_Specific_Result_Data_Error */
@@ -49,13 +49,35 @@ char *SQLCommands[] = {
 " insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
 "     product_type, specific_lending_amount, pb, npv, optimal, reason_code, reason_message, "
 "     ext_monthly_payment)"
-"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, 0, :v9, :v10, 0);",
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, 0, :v9, :v10, :v11);",
 
 /* Write_Optimal_Result */
 " insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
-"     product_type, optimal_amount, pb, npv, optimal, reason_code, reason_message, "
-"     ext_monthly_payment)"
-"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, 1, :v9, :v10, 0);",
+"     product_type, optimal, reason_code, reason_message, "
+"     ext_monthly_payment, optimal_amount, pb, npv)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, 1, :v6, :v7, :v8, :v9, :v10, :v11 );",
+
+/* Write_No_Optimal_Result */
+" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+"     product_type, optimal, reason_code, reason_message, "
+"     ext_monthly_payment, optimal_amount, pb, npv)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, 0, :v6, :v7, :v8, NULL, NULL, NULL);",
+
+/* Write_Decision_Result */
+" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+"     product_type, audit_userno1, change_code, major_deviation_code, minor_deviation_code, "
+"     decline_code, manual_code, approved_amount, "
+"     reason_code, reason_message, execution_time, ext_monthly_payment, pb, npv)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
+"          :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18);",
+
+/* Write_Decision_Result_Error */
+" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+"     product_type, audit_userno1, change_code, major_deviation_code, minor_deviation_code, "
+"     decline_code, manual_code, approved_amount, "
+"     reason_code, reason_message, execution_time, ext_monthly_payment, pb, npv)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
+"          :v11, :v12, :v13, :v14, :v15, NULL, NULL, NULL);",
 
 /* Calculate_Loan_Del_Number*/
 " insert into #tmp1(app_sn, v1)"
@@ -85,24 +107,8 @@ char *SQLCommands[] = {
 "     set ts_date = :v0"
 "     where app_sn = :v1",
 
-/* Get_Ploan_PD*/
-"  select pb "
-"  from gx_test_case"
-"  where idn = :v0",
-
-/* Write_Ploan_NPV*/
-"  update #tf_ploan_cal"
-"     set pb = :v0,"
-"         npv = :v1"
-"  where app_sn = :v2",
-
-/* Get_PB_Input*/
-"  select LN001_12m_r_tran3, amortization_rate, ms082, twentile, score_card "
-"  from #tf_ploan_cal"
-"  where app_sn = :v0",
-
 /* Get_PB_Parameters */
-"  select score_card, ms082, WI001_12m, twentile"
+"  select score_card, ms082, WI001_12m, full_score, b1_score, b2_score, demo_score"
 "  from #tf_ploan_cal"
 "  where app_sn = :v0",
 
@@ -119,9 +125,6 @@ char *SQLCommands[] = {
 "         pb_col = :v3"
 "  where app_sn = :v4",
 
-/*Write_PLoan_Result*/
-" insert into ploan_result(case_sn, idn, dac_sn, application_date,  return_msg, ev, pb, checksum1, checksum2)"
-"  values (:v0, :v1, :v2, :v3, :v4, %16.2f, %10.6f, %10.6f, %10.6f);",
 /* jcic data preparation for a idn */
 /* Create_Working_Tables */
 " IF OBJECT_ID('tempdb..#bam085_dedup') IS NOT NULL"
@@ -674,13 +677,40 @@ char *SQLCommands[] = {
 " update #tf_ploan_cal"
 "    set ms080 = 0"
 "    where ms080 is null;"
+" /*****************************************************************************************/"
+" /* MS082 貸款月付金    台新資融版, 以 contract_amount 為基準                             */"
+" /*****************************************************************************************/"
+" delete from #tmp"
+" insert into #tmp(app_sn, v1)"
+"    select app_sn,"
+"       sum(case when account_code = 'C' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0"
+"          when account_code = 'E' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) AND BANK_CODE2 IN ('809', '103', '815') then convert(float, isnull(contract_amt, 0)) / 10.0 * 158 / 1000.0"
+"          when account_code = 'E' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) then convert(float, isnull(contract_amt, 0)) / 10.0 * 342 / 1000.0"
+"          when account_code = 'H' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) then convert(float, isnull(contract_amt, 0)) / 10.0 * 342 / 1000.0"
+"          when account_code = 'K' then convert(float, isnull(contract_amt, 0)) / 10.0 * 12 / 1000.0"
+"          when account_code = 'C' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0"
+"          when account_code = 'E' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0"
+"          when account_code = 'H' and account_code2 in ('S', 'W', 'M') AND BANK_CODE2 IN ('001','052','016','056','057') then convert(float, isnull(contract_amt, 0)) / 10.0 * 342 / 1000.0"
+"          when account_code = 'H' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 193 / 1000.0"
+"          when account_code = 'I' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0"
+"          when account_code = 'Z' then convert(float, isnull(contract_amt, 0)) / 10.0 * 233 / 1000.0"
+"        end)"
+"    from #bam085_dedup"
+"    group by app_sn"
+" update #tf_ploan_cal"
+"    set ms082 = v1"
+"    from #tmp as a"
+"    where a.app_sn = #tf_ploan_cal.app_sn;"
+" update #tf_ploan_cal"
+"    set ms082 = 0"
+"    where ms082 is null;"
 " drop table #base_tmp;"
 ,
 
 /* Insert_Daco_Table */
 "  insert into #tf_ploan_cal (app_sn, app_date, edu, gender, secretive, marriage_status,"
 "            product_type, alien, age_over_limit, ts_cashcard_restricted)"
-"     select app_sn, data_time, edu, gender, secretive, marriage_status, product_type, alien,"
+"     select app_sn, data_time, education_level, gender, secretive, marriage_status, product_type, alien,"
 "            age_over_limit, ts_cashcard_restricted"
 "     from app_info"
 "     where app_sn = :v0 and data_time = :v1;"
@@ -700,15 +730,9 @@ char *SQLCommands[] = {
 
 /* Update_Prescreen_Output*/
 " update #tf_ploan_cal"
-"    set return_msg = (case when jas002_defect > 0 then '103 - 有退票強停拒往授信異常等記錄'"
-"                           when app_max_bucket > 3 then '104 - 信用卡有90 天以上遲繳記錄'"
-"                           when fs044 > 0 then '105 - 貸款有遲繳記錄'"
-"                           when fs334 > 3 then '106 - 貸款有90 天以上遲繳記錄'"
-"                           when fs302 > 0 then '107 - 現金卡使用超出額度'"
-"                      end)"
-" update #tf_ploan_cal"
-"    set score_card = 0"
-"    where return_msg is not null;",
+"    set return_msg = :v0,"
+"        score_card = 0"
+"    where app_sn = :v1;",
 
 /* Insert_Audit_Table */
 " if not exists (select * from dbo.sysobjects where id = object_id(N'dac_audit') and objectproperty(id, N'isusertable') = 1)"
@@ -1214,14 +1238,14 @@ char *SQLCommands[] = {
 "        ms024_3m_r =power ((case when ms024_3m < 0 then null else ms024_3m end), 0.5);"
 " update #tf_ploan_cal"
 "    set fs031_tran3 =(case when fs031 is null then -1"
-"			   when fs031 > 12 then 12"
+//"			   when fs031 > 12 then 12"    // release
 "      			   else fs031 end),"
 " 	loan_del_number_6m_tran3 =(case when loan_del_number_6m is null then 0"
 "			         	when loan_del_number_6m > 25 then 25"
 "			         	else loan_del_number_6m end),"
 " 	LN001_12m_r_tran3 = LN001_12m_r,"
 " 	fs310_tran3 =(case when fs310 is null then -1"
-"                   	   when fs310 > 3 then 3"
+//"                   	   when fs310 > 3 then 3"     // release
 "     			   else fs310 end),"
 " 	fs059_3m_1k_tran3 =(case when fs059_3m_1k is null then 0"
 "           			 when fs059_3m_1k > 3 then 3"
@@ -1229,7 +1253,7 @@ char *SQLCommands[] = {
 " 	app_last_month_bucket_tran3 =(case when app_last_month_bucket > 0 then 1"
 "                         		   else 0 end),"
 " 	fs203_12m_1k_tran3 =(case when fs203_12m_1k is null then 0"
-"            			  when fs203_12m_1k > 3 then 3"
+//"            			  when fs203_12m_1k > 3 then 3"   // release
 "            			  else fs203_12m_1k end),"
 " 	fs014_12m_tran3 =(case when fs014_12m is null then 4"
 "		    	       when fs014_12m > 4 then 4"
@@ -1253,73 +1277,8 @@ char *SQLCommands[] = {
 "                        fs203_12m_1k_tran3	*	0.04568	+"
 "                        fs014_12m_tran3	*      -0.02297	+"
 "                        ms056_6m_1k_r_tran3	*	0.00656	+"
-"                        ms024_3m_r_tran3	*      -0.01163	;"
-" update #tf_ploan_cal"
-"    set twentile = (case when full_score <= 0.0309420000 then 0"
-"                         when full_score <= 0.0599095445 then 1"
-"                         when full_score <= 0.0840364173 then 2"
-"                         when full_score <= 0.1011561002 then 3"
-"                         when full_score <= 0.1137460982 then 4"
-"                         when full_score <= 0.1299697259 then 5"
-"                         when full_score <= 0.1439726488 then 6"
-"                         when full_score <= 0.1585620000 then 7"
-"                         when full_score <= 0.1753261915 then 8"
-"                         when full_score <= 0.1932721735 then 9"
-"                         when full_score <= 0.2020564173 then 10"
-"                         when full_score <= 0.2102751429 then 11"
-"                         when full_score <= 0.2163527313 then 12"
-"                         when full_score <= 0.2218516715 then 13"
-"                         when full_score <= 0.2288887458 then 14"
-"                         when full_score <= 0.2360710324 then 15"
-"                         when full_score <= 0.2413816036 then 16"
-"                         when full_score <= 0.2501087671 then 17"
-"                         when full_score <= 0.2617200236 then 18"
-"                         when full_score <= 0.2693643552 then 19"
-"                         when full_score <= 0.2801548504 then 20"
-"                         when full_score <= 0.2908420000 then 21"
-"                         when full_score <= 0.3029348504 then 22"
-"                         when full_score <= 0.3193520000 then 23"
-"                         when full_score <= 0.3324997259 then 24"
-"                         when full_score <= 0.3475629206 then 25"
-"                         when full_score <= 0.3709020000 then 26"
-"                         when full_score <= 0.4123457450 then 27"
-"                         when full_score <= 0.4736396220 then 28"
-"                         else 29 end),"
-"        score_card = 1"
-"    where product_type = 1; /*For GX*/"
-" update #tf_ploan_cal"
-"    set twentile = (case when full_score <= 0.0228946205 then 0"
-"                         when full_score <= 0.0549491985 then 1"
-"                         when full_score <= 0.0812135378 then 2"
-"                         when full_score <= 0.0994224561 then 3"
-"                         when full_score <= 0.1195758240 then 4"
-"                         when full_score <= 0.1359236961 then 5"
-"                         when full_score <= 0.1410541634 then 6"
-"                         when full_score <= 0.1524669622 then 7"
-"                         when full_score <= 0.1728288396 then 8"
-"                         when full_score <= 0.1759541634 then 9"
-"                         when full_score <= 0.1933400000 then 10"
-"                         when full_score <= 0.1936726632 then 11"
-"                         when full_score <= 0.1977536244 then 12"
-"                         when full_score <= 0.2096020000 then 13"
-"                         when full_score <= 0.2232897259 then 14"
-"                         when full_score <= 0.2127566667 then 15"
-"                         when full_score <= 0.2400276938 then 16"
-"                         when full_score <= 0.2597516810 then 17"
-"                         when full_score <= 0.2628796681 then 18"
-"                         when full_score <= 0.2774597259 then 19"
-"                         when full_score <= 0.2873244807 then 20"
-"                         when full_score <= 0.3016985120 then 21"
-"                         when full_score <= 0.2967826568 then 22"
-"                         when full_score <= 0.3199336244 then 23"
-"                         when full_score <= 0.3569020000 then 24"
-"                         when full_score <= 0.3757333875 then 25"
-"                         when full_score <= 0.4062991207 then 26"
-"                         when full_score <= 0.4294127872 then 27"
-"                         when full_score <= 0.5155620000 then 28"
-"                         else 29 end),"
-"        score_card = 1"
-"    where product_type = 2; /*For KHJ*/"
+"                        ms024_3m_r_tran3	*      -0.01163, "
+"	 score_card = 1;"
 " drop table #open_card;"
 " drop table #open_line;"
 " drop table #latest_stmt_mon;"
@@ -1393,7 +1352,7 @@ char *SQLCommands[] = {
 "    set fs031_r =power ((case when fs031 < 0 then null else fs031 end), 0.5);"
 " update #tf_ploan_cal"
 "    set fs031_r_tran2 =(case when fs031_r is null then 0"
-"       when fs031_r > 3 then 3"
+//"       when fs031_r > 3 then 3"   // release
 "       else fs031_r end),"
 " fs536_3M_tran2 =(case when fs536_3M > 0 then 1"
 "       else 0 end),"
@@ -1403,48 +1362,9 @@ char *SQLCommands[] = {
 "    set b1_score = 0.12497	+"
 "                   fs031_r_tran2	*	0.0756	+"
 "                   fs536_3M_tran2	*	0.10964	+"
-"                   fs313_tran2		*	0.07759	;"
-" update #tf_ploan_cal"
-"    set twentile = (case when b1_score <= 0.1228800000  then 0"
-"                         when b1_score <= 0.2020052488  then 1"
-"                         when b1_score <= 0.2075100000  then 2"
-"                         when b1_score <= 0.2347800000  then 3"
-"                         when b1_score <= 0.2390200000  then 4"
-"                         when b1_score <= 0.2599289511  then 5"
-"                         when b1_score <= 0.2866352488  then 6"
-"                         when b1_score <= 0.3181452488  then 7"
-"                         when b1_score <= 0.3194100000  then 8"
-"                         when b1_score <= 0.3445589511  then 9"
-"                         when b1_score <= 0.3509200000  then 10"
-"                         when b1_score <= 0.3753600000  then 11"
-"                         when b1_score <= 0.3760689511  then 12"
-"                         when b1_score <= 0.4027752488  then 13"
-"                         when b1_score <= 0.4068700000  then 14"
-"                         when b1_score <= 0.4606989511  then 15"
-"                         else 16 end),"
-"        score_card = 2"
-"    where product_type = 1; /*For GX*/"
-" update #tf_ploan_cal"
-"    set twentile = (case when b1_score <= 0.1788300000  then 0"
-"                         when b1_score <= 0.2197882427  then 1"
-"                         when b1_score <= 0.2479880033  then 2"
-"                         when b1_score <= 0.2634600000  then 3"
-"                         when b1_score <= 0.2866352488  then 4"
-"                         when b1_score <= 0.2907300000  then 5"
-"                         when b1_score <= 0.3044182427  then 6"
-"                         when b1_score <= 0.3194100000  then 7"
-"                         when b1_score <= 0.3326180033  then 8"
-"                         when b1_score <= 0.3445589511  then 9"
-"                         when b1_score <= 0.3555397859  then 10"
-"                         when b1_score <= 0.3657604976  then 11"
-"                         when b1_score <= 0.3753600000  then 12"
-"                         when b1_score <= 0.4068700000  then 13"
-"                         when b1_score <= 0.4819004976  then 14"
-"                         else 15 end),"
-"        score_card = 2"
-"    where product_type = 2; /*For KHJ*/"
+"                   fs313_tran2		*	0.07759, "
+"	 score_card = 2;"
 ,
-
 
 /* Create_Procedure_TF_BAM_no_payment */
 " /* initialize variables */"
@@ -1544,12 +1464,13 @@ char *SQLCommands[] = {
 " 	mp_r1 =power ((case when mp < 0 then null else mp end), 0.5);"
 " update #tf_ploan_cal"
 "    set fs031_r_tran1 =(case when fs031_r is null then 0"
-"			     when fs031_r > 3 then 3"
+//"			     when fs031_r > 3 then 3"  // release
 "			     else fs031_r end),"
 " 	fs536_3M_tran1 =(case when fs536_3M > 0 then 1"
 "			      else 0 end),"
-" 	fs314_tran1 =(case when fs314 > 2 then 2"
-"			   else fs314 end),"
+//" 	fs314_tran1 =(case when fs314 > 2 then 2"    // release
+//"			   else fs314 end),"
+" 	fs314_tran1 = fs314, "   
 " 	education_tran1 = (case when edu < 4 then 1 /* 專科以上 */"
 "				else 0 end);"
 " update #tf_ploan_cal"
@@ -1558,61 +1479,9 @@ char *SQLCommands[] = {
 "                   fs031_r_tran1	*	0.03305	+"
 "                   fs536_3M_tran1	*	0.1647	+"
 "                   gender		*	0.0821	+"
-"                   education_tran1	*      -0.06381;"
-" update #tf_ploan_cal"
-"    set twentile = (case when b2_score <= 0.1221100000 then 0"
-"                         when b2_score <= 0.1764400000 then 1"
-"                         when b2_score <= 0.2275921046 then 2"
-"                         when b2_score <= 0.2487800000 then 3"
-"                         when b2_score <= 0.2518600000 then 4"
-"                         when b2_score <= 0.2650380440 then 5"
-"                         when b2_score <= 0.2787442091 then 6"
-"                         when b2_score <= 0.2849500000 then 7"
-"                         when b2_score <= 0.3030121046 then 8"
-"                         when b2_score <= 0.3355800000 then 9"
-"                         when b2_score <= 0.3476880440 then 10"
-"                         when b2_score <= 0.3603700000 then 11"
-"                         when b2_score <= 0.3867321046 then 12"
-"                         when b2_score <= 0.3897600000 then 13"
-"                         when b2_score <= 0.4079200000 then 14"
-"                         when b2_score <= 0.4241780440 then 15"
-"                         when b2_score <= 0.4314080440 then 16"
-"                         when b2_score <= 0.4378842091 then 17"
-"                         when b2_score <= 0.4440900000 then 18"
-"                         when b2_score <= 0.4451142091 then 19"
-"                         else 20 end),"
-"        score_card = 3"
-"    where product_type = 1; /*For GX*/"
-" update #tf_ploan_cal"
-"    set twentile = (case when b2_score <= 0.1438721046  then 0"
-"                         when b2_score <= 0.1650600000  then 1"
-"                         when b2_score <= 0.1764400000  then 2"
-"                         when b2_score <= 0.1950242091  then 3"
-"                         when b2_score <= 0.2126100000  then 4"
-"                         when b2_score <= 0.2275921046  then 5"
-"                         when b2_score <= 0.2390882777  then 6"
-"                         when b2_score <= 0.2487800000  then 7"
-"                         when b2_score <= 0.2573185787  then 8"
-"                         when b2_score <= 0.2650380440  then 9"
-"                         when b2_score <= 0.2721368249  then 10"
-"                         when b2_score <= 0.2787442091  then 11"
-"                         when b2_score <= 0.2849500000  then 12"
-"                         when b2_score <= 0.3060400000  then 13"
-"                         when b2_score <= 0.3186582777  then 14"
-"                         when b2_score <= 0.3283500000  then 15"
-"                         when b2_score <= 0.3368885787  then 16"
-"                         when b2_score <= 0.3517068249  then 17"
-"                         when b2_score <= 0.3603700000  then 18"
-"                         when b2_score <= 0.3645200000  then 19"
-"                         when b2_score <= 0.3982282777  then 20"
-"                         when b2_score <= 0.4241780440  then 21"
-"                         when b2_score <= 0.4378842091  then 22"
-"                         when b2_score <= 0.4440900000  then 23"
-"                         else 24 end),"
-"        score_card = 3"
-"    where product_type = 2; /*For KHJ*/"
+"                   education_tran1	*      -0.06381,"
+"	 score_card = 3;"
 ,
-
 
 /* Create_Procedure_TF_demographic_model */
 " /* initialize variables */"
@@ -1633,7 +1502,7 @@ char *SQLCommands[] = {
 " /* Transformation */"
 " update #tf_ploan_cal"
 "    set fs029_tran0 =(case when fs029 < 1 then 1"
-"			    when fs029 > 5 then 5"
+//"			    when fs029 > 5 then 5"    // release
 "			    else fs029 end),"
 "        single_0 = (case when marriage_status = 2 then 1"
 "			    else 0 end),"
@@ -1645,46 +1514,10 @@ char *SQLCommands[] = {
 "                      gender		*	0.07924	+"
 "                      education_tran0	*      -0.10814	+"
 "                      single_0		*	0.0711	+"
-"                      fs029_tran0	*	0.03408	;"
-" update #tf_ploan_cal"
-"    set twentile = (case when demo_score <= 0.06348 then 0"
-"                         when demo_score <= 0.09329 then 1"
-"                         when demo_score <= 0.09731 then 2"
-"                         when demo_score <= 0.09823 then 3"
-"                         when demo_score <= 0.14058 then 4"
-"                         when demo_score <= 0.16891 then 5"
-"                         when demo_score <= 0.16983 then 6"
-"                         when demo_score <= 0.17533 then 7"
-"                         when demo_score <= 0.17935 then 8"
-"                         when demo_score <= 0.20505 then 9"
-"                         when demo_score <= 0.24693 then 10"
-"                         when demo_score <= 0.25095 then 11"
-"                         when demo_score <= 0.25645 then 12"
-"                         else 13 end),"
-"        score_card = 4"
-"    where product_type = 1; /*For GX*/"
-" update #tf_ploan_cal"
-"    set twentile = (case when demo_score <= 0.0914313976 then 0"
-"                         when demo_score <= 0.0956308293 then 1"
-"                         when demo_score <= 0.1006655099 then 2"
-"                         when demo_score <= 0.1072093442 then 3"
-"                         when demo_score <= 0.1087811887 then 4"
-"                         when demo_score <= 0.1155693202 then 5"
-"                         when demo_score <= 0.1213222661 then 6"
-"                         when demo_score <= 0.1279416461 then 7"
-"                         when demo_score <= 0.1340751265 then 8"
-"                         when demo_score <= 0.1426949090 then 9"
-"                         when demo_score <= 0.1570794546 then 10"
-"                         when demo_score <= 0.1608873678 then 11"
-"                         when demo_score <= 0.1823011485 then 12"
-"                         when demo_score <= 0.1967582340 then 13"
-"                         when demo_score <= 0.2236237787 then 14"
-"                         when demo_score <= 0.2444342239 then 15"
-"                         when demo_score <= 0.2744663773 then 16"
-"                         else 17 end),"
-"        score_card = 4"
-"    where product_type = 2; /*For KHJ*/"
+"                      fs029_tran0	*	0.03408, "
+"	 score_card = 4;"
 ,
+
 /*Drop_Working_Tables*/
 " drop table #bam085_dedup;"
 " drop table #bam085_bucket;"
