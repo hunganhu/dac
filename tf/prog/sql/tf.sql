@@ -9,21 +9,25 @@ alter PROCEDURE TF_prepare_jcic_data_all
     select app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, count(*)
     from krm001
     where app_sn = @app_sn and data_time = @data_time
+      and card_brand is not null
     group by app_sn, data_time, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
  insert into #krm023_dedup (app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
     select app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment,  cash, pay_code, count(*)
     from krm023
     where app_sn = @app_sn and data_time = @data_time
+      and issue is not null
     group by app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
  insert into #stm001_dedup (app_sn, data_time, bank_code, bank_name, query_date, item_list, cnt)
     select app_sn, data_time, bank_code, bank_name, query_date, item_list, count(*)
     from stm001
     where app_sn = @app_sn and data_time = @data_time
+      and query_date is not null
     group by app_sn, data_time, bank_code, bank_name, query_date, item_list;
  insert into #bam085_dedup (app_sn, data_time, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
     select app_sn, data_time, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, count(*)
     from bam082
     where app_sn = @app_sn and data_time = @data_time
+      and data_yyy is not null
     group by app_sn, data_time, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
  insert into #jas002_t (app_sn, data_time, reason, date_happen)
     select app_sn, data_time, 'D', delinquent_date
@@ -1210,8 +1214,8 @@ go
 
 /******** main program */
 /* create working tables */
- if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_dedup') and objectproperty(id, N'isusertable') = 1)
-    drop table #bam085_dedup;
+ IF OBJECT_ID('tempdb..#bam085_dedup') IS NOT NULL
+    drop table #bam085_dedup; 
  create table #bam085_dedup (
     app_sn char(11),
     data_time char(8),
@@ -1233,8 +1237,8 @@ go
     now int,
     cnt int
  );
- if exists (select * from dbo.sysobjects where id = object_id(N'#bam085_bucket') and objectproperty(id, N'isusertable') = 1)
-    drop table #bam085_bucket;
+ IF OBJECT_ID('tempdb..#bam085_bucket') IS NOT NULL
+    drop table #bam085_bucket; 
   create table #bam085_bucket (
      app_sn char(11),
      data_time char(8),
@@ -1249,8 +1253,8 @@ go
      co_loan char (1),
      bucket    float
   )
- if exists (select * from dbo.sysobjects where id = object_id(N'#krm001_dedup') and objectproperty(id, N'isusertable') = 1)
-    drop table #krm001_dedup;
+ IF OBJECT_ID('tempdb..#krm001_dedup') IS NOT NULL
+    drop table #krm001_dedup; 
  create table #krm001_dedup (
     app_sn char(11),
     data_time char(8),
@@ -1272,8 +1276,8 @@ go
     now int,
     cnt int
  );
- if exists (select * from dbo.sysobjects where id = object_id(N'#krm023_dedup') and objectproperty(id, N'isusertable') = 1)
-    drop table #krm023_dedup;
+ IF OBJECT_ID('tempdb..#krm023_dedup') IS NOT NULL
+    drop table #krm023_dedup; 
  create table #krm023_dedup (
     app_sn char(11),
     data_time char(8),
@@ -1293,8 +1297,8 @@ go
     now int,
     cnt int
  );
- if exists (select * from dbo.sysobjects where id = object_id(N'#stm001_dedup') and objectproperty(id, N'isusertable') = 1)
-    drop table #stm001_dedup;
+ IF OBJECT_ID('tempdb..#stm001_dedup') IS NOT NULL
+    drop table #stm001_dedup; 
  create table #stm001_dedup (
     app_sn char(11),
     data_time char(8),
@@ -1306,8 +1310,8 @@ go
     now int,
     cnt int
  );
- if exists (select * from dbo.sysobjects where id = object_id(N'#jas002_t') and objectproperty(id, N'isusertable') = 1)
-    drop table #jas002_t;
+ IF OBJECT_ID('tempdb..#jas002_t') IS NOT NULL
+    drop table #jas002_t; 
  create table #jas002_t (
     app_sn char(11),
     data_time char(8),
@@ -1315,8 +1319,8 @@ go
     date_happen char(7),
     mon_since int
  );
- if exists (select * from dbo.sysobjects where id = object_id(N'#jas002_t_dedup') and objectproperty(id, N'isusertable') = 1)
-    drop table #jas002_t_dedup;
+ IF OBJECT_ID('tempdb..#jas002_t_dedup') IS NOT NULL
+    drop table #jas002_t_dedup; 
  create table #jas002_t_dedup (
     app_sn char(11),
     data_time char(8),
@@ -1326,8 +1330,8 @@ go
     now int,
     cnt int
  );
- if exists (select * from dbo.sysobjects where id = object_id(N'#tf_ploan_cal') and objectproperty(id, N'isusertable') = 1)
-    drop table #tf_ploan_cal
+ IF OBJECT_ID('tempdb..#tf_ploan_cal') IS NOT NULL
+    drop table #tf_ploan_cal; 
   create table #tf_ploan_cal (
      app_sn nvarchar (10),
      app_date char(8),
@@ -1415,16 +1419,16 @@ go
      npv decimal(16, 2),
      return_msg varchar(64)
   );
- if exists (select * from dbo.sysobjects where id = object_id(N'#tmp') and objectproperty(id, N'isusertable') = 1)
-    drop table #tmp
+ IF OBJECT_ID('tempdb..#tmp') IS NOT NULL
+    drop table #tmp; 
   create table #tmp (
    app_sn char(11),
    mon int,
    v1 decimal (16, 8),
    v2 decimal (16, 8),
    v3 decimal (16, 8));
- if exists (select * from dbo.sysobjects where id = object_id(N'#tmp1') and objectproperty(id, N'isusertable') = 1)
-    drop table #tmp1
+ IF OBJECT_ID('tempdb..#tmp1') IS NOT NULL
+    drop table #tmp1; 
   create table #tmp1 (
    app_sn char(11),
    mon int,

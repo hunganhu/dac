@@ -157,21 +157,29 @@ create table app_info (
 	gender		int not null check (gender in (0, 1)),
 	zip		char(3) not null,
 	secretive	int not null check (secretive in (0, 1)),
-	edu		int not null check (edu in (1, 2, 3, 4, 5, 6)),
+	education_level	int not null check (education_level in (1, 2, 3, 4, 5, 6)),
 	marriage_status	int not null check (marriage_status in (1, 2, 3, 4)),
 	alien		int not null check (alien in (0, 1)),
 	age_over_limit	int not null check (age_over_limit in (0, 1)),
 	ts_cashcard_restricted	int not null check (ts_cashcard_restricted in (0, 1)),
-	cof		decimal(5,4) not null,
-	roe		decimal(5,4) not null,
-	ts_tax_rate	decimal(5,4) not null,
-	tf_tax_rate	decimal(5,4) not null,
-	info_processing_cost	int not null,
-	operation_cost	int not null,
-	hr_cost		int not null,
+	cof		decimal(5,4) not null check (cof > 0),
+	roe		decimal(5,4) not null check (roe > 0),
+	ts_tax_rate	decimal(5,4) not null check (ts_tax_rate > 0),
+	tf_tax_rate	decimal(5,4) not null check (tf_tax_rate > 0),
+	info_processing_cost	int not null check (info_processing_cost > 0),
+	operation_cost	int not null check (operation_cost > 0),
+	hr_cost		int not null check (hr_cost > 0),
 	risk_level	int not null check (risk_level in (1, 2)),
-	sales_channel	char(3) not null,
-	commission	int not null default 0
+	sales_channel	char(3) not null check (sales_channel in ('001', '002', '003',
+	                                                          '004', '005', '006',
+	                                                          '007', '008', '009')),
+	commission	int not null check (commission >= 0),
+	add_loan	nvarchar(10) not null,
+	promotion_code	nvarchar(10) not null,
+	sales_region	nvarchar(20) not null,
+	sales_unit	nvarchar(20) not null,
+	sales_userno	nvarchar(10) not null
+
 );
 alter table app_info add constraint p_app_info primary key(app_sn, data_time); 
 go
@@ -179,16 +187,17 @@ go
 create table loan_condition (
 	app_sn		nvarchar(10) not null,
 	tsn		char(12) not null,
-	loan_amount	int not null,
-	apr		float not null,
-	terms		int not null,
-	application_fee	int not null,
-	credit_checking_fee	int not null,
-	risk_mgmt_fee	int not null,
-	risk_mgmt_fee_terms	int not null,
-	teaser_rate	decimal(5,4) not null,
-	teaser_period	int not null,
-	grace_period	int not null
+	loan_amount	int not null check (loan_amount > 0),
+	apr		float not null check (apr >= 0.15 and apr <=0.2),
+	terms		int not null check (terms > 0),
+	application_fee	int not null check (application_fee >= 0),
+	credit_checking_fee	int not null check (credit_checking_fee >= 0),
+	risk_mgmt_fee	int not null check (risk_mgmt_fee >= 0),
+	risk_mgmt_fee_terms	int not null check (risk_mgmt_fee_terms >= 0
+	                                        and risk_mgmt_fee_terms < terms),
+	teaser_rate	decimal(5,4) not null check (teaser_rate >= 0 and teaser_rate < apr),
+	teaser_period	int not null check (teaser_period >= 0 and teaser_period < terms),
+	grace_period	int not null check (grace_period >= 0 and grace_period < terms)
 );
 alter table loan_condition add constraint p_loan_condition primary key (app_sn, tsn); 
 go
@@ -196,122 +205,66 @@ go
 /* create OUTPUT tables */
 create table prescreen (
 	app_sn		nvarchar(10) not null,
-	jcic_date	char(8) not null,
+	jcic_data_date	char(8) not null,
+	app_data_time	char(12) not null,
 	product_type	int not null,
-	code		int not null,
-	reason		char(256) not null
+	reason_code	int not null,
+	reason_message	char(256) not null
 );
-alter table prescreen add constraint p_prescreen primary key (app_sn, jcic_date); 
+alter table prescreen add constraint p_prescreen primary key (app_sn, jcic_data_date, app_data_time); 
 go
 
 create table approval_cal (
 	app_sn		nvarchar(10) not null,
 	tsn		char(12) not null,
-	ts_date		char(8) not null,
-	jcic_date	char(8) not null,
+	ts_data_date	char(8) not null,
+	jcic_data_date	char(8) not null,
 	app_data_time	char(12) not null,
 	product_type	int not null check (product_type in (1, 2)),
-	optimal_amount	int not null,
+	optimal_amount	int,
+	specific_lending_amount	int,
 	pb		float not null,
 	npv		int not null,
 	optimal		int not null,
-	code		int not null,
-	reason		char(256) not null
+	reason_code	int not null,
+	reason_message	char(256) not null,
+	ext_monthly_payment int not null
 );
-alter table approval_cal add constraint p_approval primary key (app_sn, tsn, ts_date, jcic_date, app_data_time); 
+alter table approval_cal add constraint p_approval primary key (app_sn, tsn, ts_data_date, jcic_data_date, app_data_time); 
 go
 
 create table decision_cal (
 	app_sn		nvarchar(10) not null,
 	tsn		char(12) not null,
-	ts_date		char(8) not null,
-	jcic_date	char(8) not null,
+	ts_data_date	char(8) not null,
+	jcic_data_date	char(8) not null,
 	app_data_time	char(12) not null,
 	product_type	int not null check (product_type in (1, 2)),
 	decision	int not null check (decision in (0, 1)),
 	execution_time	char(12) not null,
-	pb		float not null,
-	npv		int not null,
-	code		int not null,
-	reason		char(256) not null
+	pb		float,
+	npv		int,
+	decision_amount	int not null,
+	reason_code	int not null,
+	ext_monthly_payment	int not null,
+	audit_userno1	nvarchar(10) not null,
+	change_code	nvarchar(10) not null,
+	major_deviation_code	nvarchar(10) not null,
+	minor_deviation_code 	nvarchar(10) not null,
+	decline_code	nvarchar(10) not null,
+	manual_code	nvarchar(10) not null,
+	reason_message	char(256) not null
 );
 alter table decision_cal add constraint p_decision primary key (app_sn, execution_time); 
 go
-create table app_r (
-	app_sn		nvarchar(10) not null,
-	product_type	int not null check (product_type in (1, 2)),
-	app_result	int not null check (app_result in (0, 1)),
-	taken_down	int not null check (taken_down in (0, 1)),
-        decline_reason_code nvarchar(10),
-	decision_date	char(8) not null
-);
-alter table app_r add constraint p_app_r primary key (app_sn, decision_date); 
-go
 
-/* create MAINTENANCE tables*/
-create table maintenance (
-	cof		decimal(5,4) not null,
-	roe		decimal(5,4) not null,
-	ts_tax_rate	decimal(5,4) not null,
-	tf_tax_rate	decimal(5,4) not null,
-	info_processing_cost	int not null,
-	operation_cost	int not null,
-	hr_cost		int not null,
-	commission	int not null
-);
-go
-
-insert into maintenance
-  (cof, roe, ts_tax_rate, tf_tax_rate, info_porcessing_cost, operation_cost, hr_cost, commission)
-values (0.0372, 0.10, 0.0225, 0.0476, 15, 17, 120, 5000);
-go
-
-create table maintenance_history (
-	system_time	datetime not null,
-	[user_id]	varchar(15) not null,
-	cof		decimal(5,4) not null,
-	roe		decimal(5,4) not null,
-	ts_tax_rate	decimal(5,4) not null,
-	tf_tax_rate	decimal(5,4) not null,
-	info_processing_cost	int not null,
-	operation_cost	int not null,
-	hr_cost		int not null,
-	commission	int not null
-);
-go
-
-create trigger trigger_maintenance_delete
-  on maintenance
-  instead of delete
-as 
-  set nocount on
-  print 'Sorry - you cannot delete this data'
-go
-
-create trigger trigger_maintenance_insert
-  on maintenance
-  instead of insert
-as
-  set nocount on 
-  print 'Sorry - you cannot insert this data'
-go
-
-create trigger trigger_maintenance_update
-  on maintenance
-  after update
-as 
-  insert into maintenance_history 
-	 (system_time, [user_id], cof, roe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost, commission)
-  select  getdate(), user_name(), cof, roe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost, commission
-  from deleted
-go
 
 /* create 3 users with different privileges*/
 /*
   The 3 users defined here are 'dacusr1', 'csusr1', 'dacusr2'. They may be changed as your wish.
   The passwords are strongly recommanded to be changed.
   The user dacusr1 is with 'Module execution' privilege. This account is for DAC¡¦s executable code to access the database.
-  The user dacusr2 is with 'MIS report' privilege. This account is for Fuhwa¡¦s business or MIS personnel  to generate
+  The user dacusr2 is with 'MIS report' privilege. This account is for TF¡¦s business or MIS personnel  to generate
 		reports from the Module.
   The user csusr1 is with 'App-processing access' privilege. This account is for CyberSoft to load necessary data prior to calling
 		DAC's executable.
@@ -345,34 +298,31 @@ grant create table, create view to dacusr1;
 grant select on ts to dacusr1;
 grant select on app_info to dacusr1;
 grant select on loan_condition to dacusr1;
-grant select, update on krm023 to dacusr1;
-grant select, update on krm001 to dacusr1;
-grant select, update on bam082 to dacusr1;
-grant select, update on bam101 to dacusr1;
-grant select, update on jas002 to dacusr1;
-grant select, update on stm001 to dacusr1;
-grant select, insert, delete, update on prescreen to dacusr1;
-grant select, insert, delete, update on approval_cal to dacusr1;
-grant select, insert, delete, update on decision_cal to dacusr1;
-grant select, insert, delete, update on maintenance to dacusr1;
-grant select, insert, delete, update on maintenance_history to dacusr1;
+grant select on krm023 to dacusr1;
+grant select on krm001 to dacusr1;
+grant select on bam082 to dacusr1;
+grant select on bam101 to dacusr1;
+grant select on jas002 to dacusr1;
+grant select on stm001 to dacusr1;
+grant select, insert on prescreen to dacusr1;
+grant select, insert on approval_cal to dacusr1;
+grant select, insert on decision_cal to dacusr1;
 go
 
 /*grant privileges to cybersoft*/
 grant create table to csusr1;
-grant select, insert, delete, update on ts to csusr1;
-grant select, insert, delete, update on app_info to csusr1;
-grant select, insert, delete, update on loan_condition to csusr1;
-grant select, insert, delete, update on krm023 to csusr1;
-grant select, insert, delete, update on krm001 to csusr1;
-grant select, insert, delete, update on bam082 to csusr1;
-grant select, insert, delete, update on bam101 to csusr1;
-grant select, insert, delete, update on jas002 to csusr1;
-grant select, insert, delete, update on stm001 to csusr1;
+grant select, insert on ts to csusr1;
+grant select, insert on app_info to csusr1;
+grant select, insert on loan_condition to csusr1;
+grant select, insert on krm023 to csusr1;
+grant select, insert on krm001 to csusr1;
+grant select, insert on bam082 to csusr1;
+grant select, insert on bam101 to csusr1;
+grant select, insert on jas002 to csusr1;
+grant select, insert on stm001 to csusr1;
 grant select on prescreen to csusr1;
 grant select on approval_cal to csusr1;
 grant select on decision_cal to csusr1;
-grant select, insert, delete, update on app_r to csusr1;
 go
 
 /*grant privileges to mis*/
@@ -389,6 +339,5 @@ grant select on stm001 to dacusr2;
 grant select on prescreen to dacusr2;
 grant select on approval_cal to dacusr2;
 grant select on decision_cal to dacusr2;
-grant select on app_r to dacusr2;
 go
  

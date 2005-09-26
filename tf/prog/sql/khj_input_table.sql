@@ -215,3 +215,157 @@ alter view ts as select * from khj_risk_ts
 go
 
 
+create table EM_KHJ_ts (
+	app_sn		nvarchar(10) not null,
+	data_time	char(8) not null,
+	loan1_payment1	int,
+	loan1_payment2	int,
+	loan1_payment3	int,
+	loan1_payment4	int,
+	loan1_payment5	int,
+	loan1_payment6	int,
+	loan2_payment1	int,
+	loan2_payment2	int,
+	loan2_payment3	int,
+	loan2_payment4	int,
+	loan2_payment5	int,
+	loan2_payment6	int,
+	loan3_payment1	int,
+	loan3_payment2	int,
+	loan3_payment3	int,
+	loan3_payment4	int,
+	loan3_payment5	int,
+	loan3_payment6	int
+);
+alter table EM_KHJ_ts add constraint p_EM_KHJ_ts primary key (app_sn, data_time); 
+go
+
+create table EM_KHJ_app_info (
+	app_sn		nvarchar(10) not null,
+	data_time	char(12) not null,
+	product_type	int not null check (product_type in (1, 2)),
+	gender		int not null check (gender in (0, 1)),
+	zip		char(3) not null,
+	secretive	int not null check (secretive in (0, 1)),
+	education_level	int not null check (education_level in (1, 2, 3, 4, 5, 6)),
+	marriage_status	int not null check (marriage_status in (1, 2, 3, 4)),
+	alien		int not null check (alien in (0, 1)),
+	age_over_limit	int not null check (age_over_limit in (0, 1)),
+	ts_cashcard_restricted	int not null check (ts_cashcard_restricted in (0, 1)),
+	cof		decimal(5,4) not null check (cof > 0),
+	roe		decimal(5,4) not null check (roe > 0),
+	ts_tax_rate	decimal(5,4) not null check (ts_tax_rate > 0),
+	tf_tax_rate	decimal(5,4) not null check (tf_tax_rate > 0),
+	info_processing_cost	int not null check (info_processing_cost > 0),
+	operation_cost	int not null check (operation_cost > 0),
+	hr_cost		int not null check (hr_cost > 0),
+	risk_level	int not null check (risk_level in (1, 2)),
+	sales_channel	char(3) not null check (sales_channel in ('001', '002', '003',
+	                                                          '004', '005', '006',
+	                                                          '007', '008', '009')),
+	commission	int not null check (commission >= 0),
+	add_loan	nvarchar(10),
+	promotion_code	nvarchar(10),
+	sales_region	nvarchar(20),
+	sales_unit	nvarchar(20),
+	sales_userno	nvarchar(10)
+
+);
+alter table EM_KHJ_app_info add constraint p_EM_KHJ_app_info primary key(app_sn, data_time); 
+go
+
+create table EM_KHJ_loan_condition (
+	app_sn		nvarchar(10) not null,
+	tsn		char(12) not null,
+	loan_amount	int not null check (loan_amount > 0),
+	apr		float not null check (apr >= 0.15 and apr <=0.2),
+	terms		int not null check (terms > 0),
+	application_fee	int not null check (application_fee >= 0),
+	credit_checking_fee	int not null check (credit_checking_fee >= 0),
+	risk_mgmt_fee	int not null check (risk_mgmt_fee >= 0),
+	risk_mgmt_fee_terms	int not null check (risk_mgmt_fee_terms >= 0),
+	teaser_rate	decimal(5,4) not null check (teaser_rate >= 0 ),
+	teaser_period	int not null check (teaser_period >= 0),
+	grace_period	int not null check (grace_period >= 0)
+);
+alter table EM_KHJ_loan_condition add constraint p_EM_KHJ_loan_condition primary key (app_sn, tsn); 
+go
+
+
+insert into EM_KHJ_app_info (app_sn, data_time, product_type, gender, zip, secretive, education_level, marriage_status, alien, age_over_limit, ts_cashcard_restricted, cof, roe, ts_tax_rate, tf_tax_rate, info_processing_cost, operation_cost, hr_cost, risk_level, sales_channel, commission)
+select app_sn, data_time, product_type, gender, zip, secretive, edu, marriage_status, 0, 0, 0, cof, roe, .0255, tf_tax_rate, info_processing_cost, operation_cost, 80, 1,'001', commission
+from khj_risk_app_info
+
+insert into EM_KHJ_loan_condition (app_sn, tsn, loan_amount, apr, terms, application_fee, credit_checking_fee, risk_mgmt_fee, risk_mgmt_fee_terms, teaser_rate, teaser_period, grace_period)
+select app_sn, tsn, 1, 0.2, 100, application_fee, credit_checking_fee, risk_mgmt_fee, risk_mgmt_fee_terms, teaser_rate, teaser_period, grace_period
+from khj_risk_loan_condition
+
+insert into EM_KHJ_ts (app_sn, data_time, loan1_payment1, loan1_payment2, loan1_payment3, loan1_payment4, loan1_payment5, loan1_payment6, loan2_payment1, loan2_payment2, loan2_payment3, loan2_payment4, loan2_payment5, loan2_payment6, loan3_payment1, loan3_payment2, loan3_payment3, loan3_payment4, loan3_payment5, loan3_payment6)
+select app_sn, data_time, loan1_payment1, loan1_payment2, loan1_payment3, loan1_payment4, loan1_payment5, loan1_payment6, loan2_payment1, loan2_payment2, loan2_payment3, loan2_payment4, loan2_payment5, loan2_payment6, loan3_payment1, loan3_payment2, loan3_payment3, loan3_payment4, loan3_payment5, loan3_payment6
+from khj_risk_ts
+
+
+update EM_KHJ_loan_condition
+set apr = a.apr,
+    loan_amount = a.principal,
+    terms = a.periods,
+    application_fee = a.SETUP_FEE,
+    credit_checking_fee = a.CREDIT_FEE,
+    risk_mgmt_fee = a.risk_fee,
+    risk_mgmt_fee_terms = 0
+from oliver.oliver.tf_khj_score_0920_15day_testcase a
+where a.idn = EM_KHJ_loan_condition.app_sn
+
+update EM_KHJ_app_info
+set sales_channel = (case when a.channel = 1 then '001'
+                          when a.channel = 2 then '002'
+                          when a.channel = 3 then '003'
+                          when a.channel = 4 then '004'
+                          when a.channel = 5 then '005'
+                          when a.channel = 6 then '006'
+                          when a.channel = 7 then '007'
+                          when a.channel = 8 then '008'
+                          when a.channel = 9 then '009'
+                      end)
+from oliver.oliver.tf_khj_score_0920_15day_testcase a
+where a.idn = EM_KHJ_app_info.app_sn
+
+
+select * from khj_risk_driving where ts_date = 0
+
+alter view bam082 as select * from khj_risk_bam082
+go
+
+alter view jas002 as select * from khj_risk_jas002
+go
+alter view krm001 as select * from khj_risk_krm001
+go
+alter view krm023 as select * from khj_risk_krm023
+go
+alter view stm001 as select * from khj_risk_stm001
+go
+alter view app_info as select * from EM_KHJ_app_info
+go
+alter view loan_condition as select * from EM_KHJ_loan_condition
+go
+
+alter view ts as select * from EM_KHJ_ts
+go
+alter view test_in as select * from khj_risk_driving
+go
+
+select *
+into tf_gx_score_0913_15day_testcase
+from oliver.oliver.tf_khj_score_0920_15day_testcase
+
+create index i_idn on tf_gx_score_0913_15day_testcase(idn)
+
+CREATE TABLE [test_out] (
+	[case_sn] [char] (12),
+	[idn] [char] (11),
+	[dac_sn] [decimal](3, 0),
+	[return_msg] [varchar] (256)
+) 
+GO
+
+
