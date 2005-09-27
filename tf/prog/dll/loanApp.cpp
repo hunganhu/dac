@@ -216,8 +216,8 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
           commission_ind = -1;
     }
 
-  if (record_count == 0)
-     Message += "無申請件資料。";
+  if (record_count == 0) {
+     Message += "無申請件資料。"; code = 313;}
 
   if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
      Message += TF_Messages[App_error_301]; code = 301;}
@@ -347,19 +347,19 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
        else
           risk_mgmt_fee_terms_ind = -1;
      }
-  if (trial_count == 0) {
-     Message += "無貸款資料。";
-  }
+  if (trial_count == 0)  {
+     Message += "無申請件資料。"; code = 313;}
+
   if ((principal_ind == -1) || (product_type == 1 && (principal < 100000.0 || principal > 600000.0))) {
      Message += TF_Messages[Loan_error_331_GX]; code = 331;}
-  else if ((principal_ind == -1) || (product_type == 2 && (principal < 50000.0 || principal > 200000.0))){
+  else if ((principal_ind == -1) || (product_type == 2 && (principal < 70000.0 || principal > 200000.0))){
      Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
 
   if ((int_rate_ind == -1) || (int_rate < 0.15 || int_rate > 0.2)
         ||(int_rate > 0.20)) {
        Message += TF_Messages[Loan_error_332]; code = 332;}
 
-  if ((periods_ind == -1) || (periods <= 0)) {
+  if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
      Message += TF_Messages[Loan_error_333];  code = 333;}
 
   if ((application_fee_ind == -1) || (application_fee < 0)) {
@@ -380,8 +380,7 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
   if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
      Message += TF_Messages[Loan_error_339];  code = 339;}
 
-  if ((teaser_rate_ind == -1) || (teaser_rate < 0.0)
-        ||(teaser_rate > int_rate)) {
+  if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
        Message += TF_Messages[Loan_error_340];  code = 340;}
 
  } catch (Exception &E) {
