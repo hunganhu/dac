@@ -23,6 +23,7 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
 {
  TADOHandler *dbhandle;    // commemt if past from argument
  Loan *ptrLoan;
+ Variant hostVars[20];
  int errCode = 0;
 
  if (check_expiration(EXPIRATION_DATE) == -1) {
@@ -35,6 +36,19 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
     dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
     ptrLoan = new Loan(app_sn, app_data_time, jcic_data_date);
     ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    if (ptrLoan->get_code() != 0) {
+       // write data error to approval_cal.
+       hostVars[0] = app_sn;
+       hostVars[1] = jcic_data_date;
+       hostVars[2] = app_data_time;
+       hostVars[3] = ptrLoan->get_product_type();
+       hostVars[4] = ptrLoan->get_code();
+       hostVars[5] = ptrLoan->error();
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
+       dbhandle->CloseDatabase();  // commemt if past from argument
+       delete ptrLoan;
+       return (0);
+    }
 
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
@@ -104,7 +118,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     hostVars[3] = jcic_data_date;
     hostVars[4] = app_data_time;
     hostVars[5] = ptrLoan->get_product_type();
-
+/*
     if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
        // write data error to approval_cal.
        errCode = -1;
@@ -112,7 +126,9 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (-1);
-    } else if (ptrLoan->get_code() != 0) {
+    } else
+*/
+    if (ptrLoan->get_code() != 0) {
        // write data error to approval_cal.
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = ptrLoan->get_code();
@@ -194,7 +210,8 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     else {
        // write prescreen result to PRESECREEN
        errCode = 1;
-       strcpy (error_message, ptrLoan->error().c_str());
+       strcpy (error_message, "");
+//       strcpy (error_message, ptrLoan->error().c_str());
     }
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
@@ -249,7 +266,7 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     hostVars[3] = jcic_data_date;
     hostVars[4] = app_data_time;
     hostVars[5] = ptrLoan->get_product_type();
-
+/*
     if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
        // write data error to approval_cal.
        errCode = -1;
@@ -257,7 +274,9 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (-1);
-    } else if (ptrLoan->get_code() != 0) {
+    } else
+*/
+    if (ptrLoan->get_code() != 0) {
        // write data error to approval_cal.
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = ptrLoan->get_code();
@@ -319,7 +338,8 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     else {
        // write prescreen result to PRESECREEN
        errCode = 1;
-       strcpy (error_message, ptrLoan->error().c_str());
+       strcpy (error_message, "");
+//       strcpy (error_message, ptrLoan->error().c_str());
     }
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
@@ -385,7 +405,7 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     hostVars[9] = minor_deviation;
     hostVars[10] = decline_code;
     hostVars[11] = manual_code;
-
+/*
     if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
        // write data error to approval_cal.
        errCode = -1;
@@ -393,7 +413,9 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (-1);
-    } else if (ptrLoan->get_code() != 0) {
+    } else
+ */
+    if (ptrLoan->get_code() != 0) {
        // write data error to approval_cal.
        hostVars[12] = ptrLoan->get_principal();
        hostVars[13] = ptrLoan->get_code();
@@ -426,7 +448,8 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     else {
        // write prescreen result to PRESECREEN
        errCode = 1;
-       strcpy (error_message, ptrLoan->error().c_str());
+       strcpy (error_message, "");
+//       strcpy (error_message, ptrLoan->error().c_str());
     }
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);

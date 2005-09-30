@@ -60,7 +60,7 @@ char *TF_Messages[]= {
      "風險管理費用收取期數(月)小於零或大於期數 ", // Loan_error_337,
      "優惠期 (月) 小於零或大於等於期數 ",         // Loan_error_338,
      "寬限期 (月) 小於零或大於等於期數 ",         // Loan_error_339,
-     "優惠年利率必須介於0和貸款利率",             // Loan_error_340,
+     "優惠利率小於零或大於等於年利率 ",             // Loan_error_340,
      "不適用於最適貸款金額計算 (信用卡資料不足) " // Optimal_error_501
 };
 
@@ -454,7 +454,7 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  code = 0;
  jcic_date = inquiry_date;
- Message = "";
+ Message = TF_Messages[Prescreen_0];
  
  try {
     hostVars[0] = app_sn;
@@ -497,7 +497,7 @@ void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
        Message = TF_Messages[Prescreen_101]; code = 101; }
     else if (alien == 1) {
        Message = TF_Messages[Prescreen_102]; code = 102; }
-    else if ((cashcard_lock == 1) && (product_type == 2)) {
+    else if (cashcard_lock == 1) {
        Message = TF_Messages[Prescreen_103]; code = 103; }
     else if (jas002_defect > 0) {
        Message = TF_Messages[Prescreen_104]; code = 104; }
