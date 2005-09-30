@@ -28,7 +28,7 @@
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
     <RELEASELIBPATH value="$(BCB)\lib\release"/>
     <LINKER value="ilink32"/>
-    <USERDEFINES value="_DEBUG;_WRFLOW"/>
+    <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
     <MAINSOURCE value="dac_ploan_ev.bpf"/>
     <INCLUDEPATH value="..;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\include;$(BCB)\include\vcl"/>
@@ -38,7 +38,7 @@
   </MACROS>
   <OPTIONS>
     <IDLCFLAGS value="-I.. -IC:\dac\fuhwa\PLoan\prog\dll -I$(BCB)\include -I$(BCB)\include\vcl 
-      -src_suffix cpp -D_DEBUG -D_WRFLOW -boa"/>
+      -src_suffix cpp -D_DEBUG -boa"/>
     <CFLAG1 value="-WD -Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- 
       -tWD -tWM -c"/>
     <PFLAGS value="-$YD -$W -$O- -$A8 -v -JPHNE -M"/>
@@ -115,8 +115,8 @@ Item0=$(BCB)\source\vcl
 
 [HistoryLists\hlConditionals]
 Count=2
-Item0=_DEBUG;_WRFLOW
-Item1=_DEBUG
+Item0=_DEBUG
+Item1=_DEBUG;_WRFLOW
 
 [Debugging]
 DebugSourceDirs=$(BCB)\source\vcl

@@ -185,8 +185,8 @@ class Loan {
     Loan (char *appSN, char *appDate, char *jcicDate);
     Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn);
     ~Loan ();
-    void app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
-    void loan_validate(char * appNo, char *tsn, TADOHandler *handler);
+    int app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
+    int loan_validate(char * appNo, char *tsn, TADOHandler *handler);
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);

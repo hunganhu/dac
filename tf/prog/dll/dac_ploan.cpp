@@ -14,16 +14,15 @@
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
-/*
 int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
               char *ole_db, char *error_message)
-*/
+/*
 int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
               char *ole_db, char *error_message, TADOHandler *dbhandle)
+*/
 {
-// TADOHandler *dbhandle;
+ TADOHandler *dbhandle;    // commemt if past from argument
  Loan *ptrLoan;
- Variant hostVars[10];
  int errCode = 0;
 
  if (check_expiration(EXPIRATION_DATE) == -1) {
@@ -32,8 +31,8 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
  }
  try {
     strcpy (error_message, "");      // return empty string if stop normally.
-//    dbhandle = new TADOHandler();
-//    dbhandle->OpenDatabase(ole_db);
+    dbhandle = new TADOHandler();    // commemt if past from argument
+    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
     ptrLoan = new Loan(app_sn, app_data_time, jcic_data_date);
     ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
 
@@ -44,7 +43,7 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-//    dbhandle->CloseDatabase();
+    dbhandle->CloseDatabase();     // commemt if past from argument
 
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
@@ -56,17 +55,17 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
 }
 
 //---------------------------------------------------------------------------
-/*
 int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                 char *app_data_time, char *tsn, char *ole_db, char *error_message)
-*/
+/*
 int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                 char *app_data_time, char *tsn, char *ole_db, char *error_message,
                 TADOHandler *dbhandle)
+*/
 {
-// TADOHandler *dbhandle;
+ TADOHandler *dbhandle; // commemt if past from argument
  Loan *ptrLoan;
- Variant hostVars[15];
+ Variant hostVars[20];
  char  sqlCommand[256];
  String Message = "";
  int errCode = 0;
@@ -91,11 +90,12 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     return(-1);
  }
  try {
-//    dbhandle = new TADOHandler();
-//    dbhandle->OpenDatabase(ole_db);
+    dbhandle = new TADOHandler();   // commemt if past from argument
+    dbhandle->OpenDatabase(ole_db); // commemt if past from argument
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
-    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
-    ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+    errCode = ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    if (errCode == 0)
+       ptrLoan->loan_validate(app_sn, tsn, dbhandle);
 
     // write common fields
     hostVars[0] = app_sn;
@@ -105,13 +105,20 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     hostVars[4] = app_data_time;
     hostVars[5] = ptrLoan->get_product_type();
 
-    if (ptrLoan->get_code() != 0){
+    if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
+       // write data error to approval_cal.
+       errCode = -1;
+       strcpy (error_message, ptrLoan->error().c_str());
+       dbhandle->CloseDatabase();  // commemt if past from argument
+       delete ptrLoan;
+       return (-1);
+    } else if (ptrLoan->get_code() != 0) {
        // write data error to approval_cal.
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = ptrLoan->get_code();
        hostVars[8] = ptrLoan->error();
        dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 8);
-//    dbhandle->CloseDatabase();
+       dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (0);
     }
@@ -120,7 +127,6 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     errCode = ptrLoan->get_code();
     if (errCode == 0) {
        ptrLoan->calculate_rscore(dbhandle);
-//    if (ptrLoan->get_test_PB(app_sn, dbhandle) > 0) {
         // check product type and card
         if (ptrLoan->get_product_type() == 1) { // product GX
             switch (ptrLoan->get_card()) {
@@ -155,7 +161,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
         }
        // write_optimal result to approval_cal
        hostVars[9] = optimal_line;
-       hostVars[10] = RoundTo(optimal_pb, -4);
+       hostVars[10] = RoundTo(optimal_pb, -3);
        hostVars[11] = optimal_npv;
        if (optimal_npv >= 0){
           reason_code = 1;
@@ -197,26 +203,26 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
         Without droping temp tables will not release system resource after connection is closed.
      */
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-//    dbhandle->CloseDatabase();
+    dbhandle->CloseDatabase();   // commemt if past from argument
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
  delete ptrLoan;
-// delete dbhandle;
+ delete dbhandle;  // commemt if past from argument
  return(errCode);
 }
 
 //---------------------------------------------------------------------------
-/*
 int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                 char *app_data_time, char *tsn, char *ole_db, char *error_message)
-*/
+/*
 int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                 char *app_data_time, char *tsn, char *ole_db, char *error_message,
                 TADOHandler *dbhandle)
+*/
 {
-// TADOHandler *dbhandle;
+ TADOHandler *dbhandle;  // commemt if past from argument
  Loan *ptrLoan;
  Variant hostVars[20];
  char  sqlCommand[256];
@@ -230,11 +236,13 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     return(-1);
  }
  try {
-//    dbhandle = new TADOHandler();
-//    dbhandle->OpenDatabase(ole_db);
+    dbhandle = new TADOHandler();    // commemt if past from argument
+    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
-    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
-    ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+    errCode = ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    if (errCode == 0)
+       ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+
     hostVars[0] = app_sn;
     hostVars[1] = tsn;
     hostVars[2] = ts_data_date;
@@ -242,13 +250,20 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     hostVars[4] = app_data_time;
     hostVars[5] = ptrLoan->get_product_type();
 
-    if (ptrLoan->get_code() != 0){
+    if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
+       // write data error to approval_cal.
+       errCode = -1;
+       strcpy (error_message, ptrLoan->error().c_str());
+       dbhandle->CloseDatabase();  // commemt if past from argument
+       delete ptrLoan;
+       return (-1);
+    } else if (ptrLoan->get_code() != 0) {
        // write data error to approval_cal.
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = ptrLoan->get_code();
        hostVars[8] = ptrLoan->error();
        dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 8);
-//    dbhandle->CloseDatabase();
+       dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (0);
     }
@@ -257,12 +272,11 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     errCode = ptrLoan->get_code();
     if (errCode == 0) {
        ptrLoan->calculate_rscore(dbhandle);
-//    if (ptrLoan->get_test_PB(app_sn, dbhandle) > 0) {
        pb = ptrLoan->calculate_pd(ptrLoan->get_principal(), dbhandle);
        ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
        // write_specific result to approval_cal
        hostVars[6] = ptrLoan->get_principal();
-       hostVars[7] = RoundTo(pb, -4);
+       hostVars[7] = RoundTo(pb, -3);
        hostVars[8] = ptrLoan->get_npv();
        if (ptrLoan->get_npv() >= 0){
           reason_code = 1;
@@ -314,33 +328,33 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
         Without droping temp tables will not release system resource after connection is closed.
      */
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-//    dbhandle->CloseDatabase();
+    dbhandle->CloseDatabase();  // commemt if past from argument
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
  delete ptrLoan;
-// delete dbhandle;
+ delete dbhandle;  // commemt if past from argument
  return(errCode);
 
 }
 //---------------------------------------------------------------------------
-/*
 int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                 char *app_data_time, char *tsn, char *ole_db,
+                 char *app_data_time, char *tsn, int decision, char *ole_db,
                  char *audit_userno1, char *change_code, char *major_deviation,
                  char *minor_deviation, char *decline_code, char *manual_code,
                  char *error_message)
-*/
+/*
 int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                 char *app_data_time, char *tsn, char *ole_db,
+                 char *app_data_time, char *tsn, int decision, char *ole_db,
                  char *audit_userno1, char *change_code, char *major_deviation,
                  char *minor_deviation, char *decline_code, char *manual_code,
                  char *error_message, TADOHandler *dbhandle)
+*/
 {
-// TADOHandler *dbhandle;
+ TADOHandler *dbhandle;  // commemt if past from argument
  Loan *ptrLoan;
- Variant hostVars[15];
+ Variant hostVars[20];
  char  sqlCommand[256];
  String Message = "";
  int errCode = 0;
@@ -352,11 +366,13 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     return(-1);
  }
  try {
-//    dbhandle = new TADOHandler();
-//    dbhandle->OpenDatabase(ole_db);
+    dbhandle = new TADOHandler();    // commemt if past from argument
+    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
-    ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
-    ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+    errCode = ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    if (errCode == 0)
+       ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+
     hostVars[0] = app_sn;
     hostVars[1] = tsn;
     hostVars[2] = ts_data_date;
@@ -370,14 +386,22 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     hostVars[10] = decline_code;
     hostVars[11] = manual_code;
 
-    if (ptrLoan->get_code() != 0){
+    if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
+       // write data error to approval_cal.
+       errCode = -1;
+       strcpy (error_message, ptrLoan->error().c_str());
+       dbhandle->CloseDatabase();  // commemt if past from argument
+       delete ptrLoan;
+       return (-1);
+    } else if (ptrLoan->get_code() != 0) {
        // write data error to approval_cal.
        hostVars[12] = ptrLoan->get_principal();
        hostVars[13] = ptrLoan->get_code();
        hostVars[14] = ptrLoan->error();
        hostVars[15] = ExecutionTime();
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Decision_Result_Error], hostVars, 15);
-//    dbhandle->CloseDatabase();
+       hostVars[16] = decision;
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Decision_Result_Error], hostVars, 16);
+       dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (0);
     }
@@ -390,13 +414,14 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
        // write_decision result to decision_cal
        hostVars[12] = ptrLoan->get_principal();
-       hostVars[17] = RoundTo(pb, -4);
-       hostVars[18] = ptrLoan->get_npv();
        hostVars[13] = reason_code;
        hostVars[14] = Message;
        hostVars[15] = ExecutionTime();
-       hostVars[16] = ptrLoan->get_external_monthly_payment();
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Decision_Result], hostVars, 18);
+       hostVars[16] = decision;
+       hostVars[17] = ptrLoan->get_external_monthly_payment();
+       hostVars[18] = RoundTo(pb, -3);
+       hostVars[19] = ptrLoan->get_npv();
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Decision_Result], hostVars, 19);
     }
     else {
        // write prescreen result to PRESECREEN
@@ -410,15 +435,14 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
         Without droping temp tables will not release system resource after connection is closed.
      */
     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-//    dbhandle->CloseDatabase();
+    dbhandle->CloseDatabase();  // commemt if past from argument
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
  delete ptrLoan;
-// delete dbhandle;
+ delete dbhandle;  // commemt if past from argument
  return(errCode);
-
 }
 
 

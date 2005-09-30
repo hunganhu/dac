@@ -104,7 +104,7 @@ Loan::Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn)
     For a column with number data type, you'd better use
      ds->FieldByName("m1_recovery_ratio")->AsFloat to get its value.
 */
-void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
+int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
@@ -217,73 +217,79 @@ void Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
     }
 
   if (record_count == 0) {
-     Message += "無申請件資料。"; code = 313;}
+     Message += "無申請件資料 "; code = 313;}
+  else {
+     if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
+        Message += TF_Messages[App_error_301]; code = 301;}
+   
+     if ((age_ind == -1) || (age < 0) || (age > 1)) {
+        Message += TF_Messages[App_error_302]; code = 302;}
+   
+     if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
+        Message += TF_Messages[App_error_303]; code = 303;}
+   
+     if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
+        Message += TF_Messages[App_error_304]; code = 304;}
+   
+     if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
+        Message += TF_Messages[App_error_305]; code = 305;}
+   
+     if ( validZIP(zip.c_str()) == 0) {
+        Message += TF_Messages[App_error_306];  code = 306;}
+   
+     if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
+        Message += TF_Messages[App_error_307]; code = 307;}
+   
+     if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
+        Message += TF_Messages[App_error_308];  code = 308;}
+   
+     if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
+        Message += TF_Messages[App_error_309]; code = 309;}
 
-  if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
-     Message += TF_Messages[App_error_301]; code = 301;}
+     // if commission is null then calculate ourselves, otherwise get it from this field
+     if ((commission_ind == 0) && (commission < 0)) {
+        Message += TF_Messages[App_error_310]; code = 310;}
 
-  if ((age_ind == -1) || (age < 0) || (age > 1)) {
-     Message += TF_Messages[App_error_302]; code = 302;}
-
-  if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
-     Message += TF_Messages[App_error_303]; code = 303;}
-
-  if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
-     Message += TF_Messages[App_error_304]; code = 304;}
-
-  if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
-     Message += TF_Messages[App_error_305]; code = 305;}
-
-  if ( validZIP(zip.c_str()) == 0) {
-     Message += TF_Messages[App_error_306];  code = 306;}
-
-  if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
-     Message += TF_Messages[App_error_307]; code = 307;}
-
-  if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
-     Message += TF_Messages[App_error_308];  code = 308;}
-
-  if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
-     Message += TF_Messages[App_error_309]; code = 309;}
-
-  if ((commission_ind == -1) || (commission < 0)) {
-     Message += TF_Messages[App_error_310]; code = 310;}
-
-  if ((sales_channel_ind == -1) || (sales_channel < "001") || (sales_channel > "009") ) {
-     Message += TF_Messages[App_error_311]; code = 311;}
-
-  if ((risk_level_ind == -1) || (risk_level < 1) || (risk_level > 2) ) {
-     Message += TF_Messages[App_error_312]; code = 312;}
-
-  if ((roe_ind == -1) || (roe <= 0.0)) {
-     Message += TF_Messages[Fin_error_321]; code = 321;}
-
-  if ((cof_ind == -1) || (cof <= 0.0)) {
-     Message += TF_Messages[Fin_error_322]; code = 322;}
-
-  if ((ts_tax_rate_ind == -1) || (ts_tax_rate <= 0.0)) {
-     Message += TF_Messages[Fin_error_323]; code = 323;}
-
-  if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
-     Message += TF_Messages[Fin_error_324]; code = 324;}
-
-  if ((info_processing_cost_ind == -1) || (info_processing_cost <= 0.0)) {
-     Message += TF_Messages[Fin_error_325]; code = 325;}
-
-  if ((operation_cost_ind == -1) || (operation_cost <= 0.0)) {
-     Message += TF_Messages[Fin_error_326]; code = 326;}
-
-  if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
-     Message += TF_Messages[Fin_error_327]; code = 327;}
-
+     if ((sales_channel_ind == -1) || (sales_channel < "001") || (sales_channel > "009") ) {
+        Message += TF_Messages[App_error_311]; code = 311;}
+   
+     if ((risk_level_ind == -1) || (risk_level < 1) || (risk_level > 2) ) {
+        Message += TF_Messages[App_error_312]; code = 312;}
+   
+     if ((roe_ind == -1) || (roe <= 0.0)) {
+        Message += TF_Messages[Fin_error_321]; code = 321;}
+   
+     if ((cof_ind == -1) || (cof <= 0.0)) {
+        Message += TF_Messages[Fin_error_322]; code = 322;}
+   
+     if ((ts_tax_rate_ind == -1) || (ts_tax_rate <= 0.0)) {
+        Message += TF_Messages[Fin_error_323]; code = 323;}
+   
+     if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
+        Message += TF_Messages[Fin_error_324]; code = 324;}
+   
+     if ((info_processing_cost_ind == -1) || (info_processing_cost <= 0.0)) {
+        Message += TF_Messages[Fin_error_325]; code = 325;}
+   
+     if ((operation_cost_ind == -1) || (operation_cost <= 0.0)) {
+        Message += TF_Messages[Fin_error_326]; code = 326;}
+   
+     if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
+        Message += TF_Messages[Fin_error_327]; code = 327;}
+  }   
  } catch (Exception &E) {
     throw;
  }
-  ds->Close();  // close dataset before delete, otherwise result in "too many consecutive exceptions"
+  ds->Close();  // close dataset before delete and drop an object outside the try block,
+                // otherwise result in "too many consecutive exceptions"
   delete ds;
+  if (code == 313)
+     return (-1);
+  else
+     return (0);
 }
 //---------------------------------------------------------------------------
-void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
+int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
@@ -348,46 +354,49 @@ void Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
           risk_mgmt_fee_terms_ind = -1;
      }
   if (trial_count == 0)  {
-     Message += "無申請件資料。"; code = 313;}
-
-  if ((principal_ind == -1) || (product_type == 1 && (principal < 100000.0 || principal > 600000.0))) {
-     Message += TF_Messages[Loan_error_331_GX]; code = 331;}
-  else if ((principal_ind == -1) || (product_type == 2 && (principal < 70000.0 || principal > 200000.0))){
-     Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
-
-  if ((int_rate_ind == -1) || (int_rate < 0.15 || int_rate > 0.2)
-        ||(int_rate > 0.20)) {
-       Message += TF_Messages[Loan_error_332]; code = 332;}
-
-  if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
-     Message += TF_Messages[Loan_error_333];  code = 333;}
-
-  if ((application_fee_ind == -1) || (application_fee < 0)) {
-     Message += TF_Messages[Loan_error_334];  code = 334;}
-
-  if ((credit_checking_fee_ind == -1) || (credit_checking_fee < 0)) {
-     Message += TF_Messages[Loan_error_335];  code = 335;}
-
-  if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0)) {
-     Message += TF_Messages[Loan_error_336];  code = 336;}
-
-  if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
-     Message += TF_Messages[Loan_error_337];  code = 337;}
-
-  if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period >= periods)) {
-     Message +=TF_Messages[Loan_error_338];   code = 338;}
-
-  if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
-     Message += TF_Messages[Loan_error_339];  code = 339;}
-
-  if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
-       Message += TF_Messages[Loan_error_340];  code = 340;}
-
+     Message += "無申請件資料 "; code = 313;}
+  else {
+     if ((principal_ind == -1) || (product_type == 1 && (principal < 100000.0 || principal > 600000.0))) {
+        Message += TF_Messages[Loan_error_331_GX]; code = 331;}
+     else if ((principal_ind == -1) || (product_type == 2 && (principal < 70000.0 || principal > 200000.0))){
+        Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
+   
+     if ((int_rate_ind == -1) || (int_rate < 0.15)||(int_rate > 0.20)) {
+          Message += TF_Messages[Loan_error_332]; code = 332;}
+   
+     if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
+        Message += TF_Messages[Loan_error_333];  code = 333;}
+   
+     if ((application_fee_ind == -1) || (application_fee < 0)) {
+        Message += TF_Messages[Loan_error_334];  code = 334;}
+   
+     if ((credit_checking_fee_ind == -1) || (credit_checking_fee < 0)) {
+        Message += TF_Messages[Loan_error_335];  code = 335;}
+   
+     if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0)) {
+        Message += TF_Messages[Loan_error_336];  code = 336;}
+   
+     if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
+        Message += TF_Messages[Loan_error_337];  code = 337;}
+   
+     if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period >= periods)) {
+        Message +=TF_Messages[Loan_error_338];   code = 338;}
+   
+     if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
+        Message += TF_Messages[Loan_error_339];  code = 339;}
+   
+     if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
+          Message += TF_Messages[Loan_error_340];  code = 340;}
+  }
  } catch (Exception &E) {
     throw;
  }
   ds->Close();
   delete ds;
+  if (code == 313)
+     return (-1);
+  else
+     return (0);
 }
 
 //---------------------------------------------------------------------------
@@ -601,24 +610,30 @@ double Loan::cal_GXb1_pb(double risk_score)
 {
  double pb;
 
- if      (risk_score <= 0.12288     ) pb =0.0953970176509232;
- else if (risk_score <= 0.2020052488) pb =0.129325782436330;
- else if (risk_score <= 0.20751     ) pb =0.143743295399187;
- else if (risk_score <= 0.23478     ) pb =0.160582009919212;
- else if (risk_score <= 0.23902     ) pb =0.171564304550662;
- else if (risk_score <= 0.2599289511) pb =0.181836864582996;
- else if (risk_score <= 0.2866352488) pb =0.197084626463013;
- else if (risk_score <= 0.3181452488) pb =0.215551893740484;
- else if (risk_score <= 0.31941     ) pb =0.232770315083721;
- else if (risk_score <= 0.3445589511) pb =0.242019583776241;
- else if (risk_score <= 0.35092     ) pb =0.252252007982842;
- else if (risk_score <= 0.37536     ) pb =0.275154238398146;
- else if (risk_score <= 0.3760689511) pb =0.292054139068498;
- else if (risk_score <= 0.4027752488) pb =0.300377655168393;
- else if (risk_score <= 0.40687     ) pb =0.311914674562453;
- else if (risk_score <= 0.4606989511) pb =0.317559718768331;
- else pb =0.326391037649379;
-
+ if      (risk_score <= 0.16277000000) pb =0.0850017500669239; 
+ else if (risk_score <= 0.20156500000) pb =0.1447272118939650; 
+ else if (risk_score <= 0.21722227265) pb =0.1668043016186280; 
+ else if (risk_score <= 0.23324727265) pb =0.1809447578598680; 
+ else if (risk_score <= 0.24526152055) pb =0.1931855549658770; 
+ else if (risk_score <= 0.26604152055) pb =0.2021941066136120; 
+ else if (risk_score <= 0.27716500000) pb =0.2100478269856190; 
+ else if (risk_score <= 0.28608836955) pb =0.2183503684425780; 
+ else if (risk_score <= 0.30174564220) pb =0.2243303993174850;
+ else if (risk_score <= 0.30981298495) pb =0.2310321403196800; 
+ else if (risk_score <= 0.31018071230) pb =0.2367873991108270; 
+ else if (risk_score <= 0.31120500000) pb =0.2416443136296220; 
+ else if (risk_score <= 0.31859439955) pb =0.2466326232893190; 
+ else if (risk_score <= 0.32924592010) pb =0.2476218971230850; 
+ else if (risk_score <= 0.33751379320) pb =0.2515519111045310; 
+ else if (risk_score <= 0.34664727265) pb =0.2585207795898800; 
+ else if (risk_score <= 0.35276500000) pb =0.2623365749832010; 
+ else if (risk_score <= 0.35965652055) pb =0.2659262561421880; 
+ else if (risk_score <= 0.36857989010) pb =0.2733758815054040; 
+ else if (risk_score <= 0.37870836955) pb =0.2801435216142030; 
+ else if (risk_score <= 0.38677571230) pb =0.2851904892831920; 
+ else if (risk_score <= 0.38777071230) pb =0.2903532136976970; 
+ else pb =0.3089703987428730; 
+ 
  return (pb);
 }
 //---------------------------------------------------------------------------
@@ -901,7 +916,8 @@ double Loan::calculate_npv(int line, double pb)
   set_apr();
   set_attrition(pb);
   set_annuity(line);  // 本息法
-  commission =  calculate_commission(line);
+//  if (commission_ind == -1)
+     commission =  calculate_commission(line);
   if (commission < 0) commission = 0;
   // Revenue
   Interest_Revenue = set_interest_revenue();

@@ -64,20 +64,20 @@ char *SQLCommands[] = {
 "  values (:v0, :v1, :v2, :v3, :v4, :v5, 0, :v6, :v7, :v8, NULL, NULL, NULL);",
 
 /* Write_Decision_Result */
-" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+" insert into decision_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
 "     product_type, audit_userno1, change_code, major_deviation_code, minor_deviation_code, "
 "     decline_code, manual_code, approved_amount, "
-"     reason_code, reason_message, execution_time, ext_monthly_payment, pb, npv)"
+"     reason_code, reason_message, execution_time, decision, ext_monthly_payment, pb, npv)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
-"          :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18);",
+"          :v11, :v12, :v13, :v14, :v15, :v16, :v17, :v18, :v19);",
 
 /* Write_Decision_Result_Error */
-" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+" insert into decision_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
 "     product_type, audit_userno1, change_code, major_deviation_code, minor_deviation_code, "
 "     decline_code, manual_code, approved_amount, "
-"     reason_code, reason_message, execution_time, ext_monthly_payment, pb, npv)"
+"     reason_code, reason_message, execution_time, decision, ext_monthly_payment, pb, npv)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, :v7, :v8, :v9, :v10,"
-"          :v11, :v12, :v13, :v14, :v15, NULL, NULL, NULL);",
+"          :v11, :v12, :v13, :v14, :v15, :v16, 0, NULL, NULL);",
 
 /* Calculate_Loan_Del_Number*/
 " insert into #tmp1(app_sn, v1)"
@@ -721,6 +721,9 @@ char *SQLCommands[] = {
 "    set ms082 = v1"
 "    from #tmp as a"
 "    where a.app_sn = #tf_ploan_cal.app_sn;"
+" update #tf_ploan_cal"
+"    set ms082 = 0"
+"    where ms082 is null;"
 " drop table #base_tmp;"
 ,
 
