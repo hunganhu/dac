@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 207
-  Top = 161
+  Left = 283
+  Top = 30
   Width = 683
   Height = 351
   Caption = 'TF Approval Module'
@@ -185,12 +185,12 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object Validate: TBitBtn
-    Left = 40
+  object Specific: TBitBtn
+    Left = 208
     Top = 136
-    Width = 153
+    Width = 113
     Height = 25
-    Caption = 'Input Validation'
+    Caption = 'Specific'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
@@ -198,7 +198,7 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 0
-    OnClick = ValidateClick
+    OnClick = SpecificClick
   end
   object Edit1: TEdit
     Left = 200
@@ -213,8 +213,8 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 1
     Text = 
-      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
-      'e;User ID=sa;Initial Catalog=TF_TEST;Data Source=OLIVER\DAISY'
+      'Provider=SQLOLEDB.1;Password=jcic;Persist Security Info=True;Use' +
+      'r ID=jcic;Initial Catalog=TF_TEST;Data Source=giza'
   end
   object CheckBox1: TCheckBox
     Left = 40
@@ -260,10 +260,9 @@ object Form1: TForm1
     Width = 73
     Height = 21
     TabOrder = 6
-    Text = '1'
   end
   object Button1: TButton
-    Left = 488
+    Left = 584
     Top = 136
     Width = 75
     Height = 25
@@ -277,12 +276,12 @@ object Form1: TForm1
     TabOrder = 7
     OnClick = Button1Click
   end
-  object Validate_NoConn: TBitBtn
-    Left = 256
+  object Optimal: TBitBtn
+    Left = 344
     Top = 136
-    Width = 153
+    Width = 105
     Height = 25
-    Caption = ' Validation NoConn'
+    Caption = 'Optimal'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -16
@@ -290,12 +289,42 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 8
-    OnClick = ValidateNoConnClick
+    OnClick = OptimalClick
+  end
+  object Decision: TBitBtn
+    Left = 472
+    Top = 136
+    Width = 89
+    Height = 25
+    Caption = 'Decision'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 9
+    OnClick = DecisionClick
+  end
+  object Prescreen: TBitBtn
+    Left = 48
+    Top = 136
+    Width = 113
+    Height = 25
+    Caption = 'Prescreen'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 10
+    OnClick = PrescreenClick
   end
   object ADOConnection1: TADOConnection
     ConnectionString = 
-      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
-      'e;User ID=sa;Initial Catalog=TF_TEST;Data Source=OLIVER\DAISY'
+      'Provider=SQLOLEDB.1;Password=jcic;Persist Security Info=True;Use' +
+      'r ID=jcic;Initial Catalog=TF_TEST;Data Source=giza'
     Provider = 'SQLOLEDB.1'
     Left = 416
     Top = 272

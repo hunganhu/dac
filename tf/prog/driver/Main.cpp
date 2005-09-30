@@ -33,9 +33,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
   }*/
 }
 //---------------------------------------------------------------------------
-
-
-void __fastcall TForm1::ValidateClick(TObject *Sender)
+void __fastcall TForm1::PrescreenClick(TObject *Sender)
 {
   TADOQuery *Query = ADOQuery1;
   TADOQuery *QueryW = ADOQuery2;
@@ -94,17 +92,110 @@ void __fastcall TForm1::ValidateClick(TObject *Sender)
 
        *errMsg = '\0';
        // call the validation function
-       status = optimal_cal_conn(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                            "1", ole_str, errMsg, dbhandle);
+       status = prescreen(app_sn.c_str(), jcic_date.c_str(), app_date.c_str(),
+                          ole_str, errMsg/*, dbhandle*/);
 
-          if (status < 0) {
-             sql_stmt2 = "insert into test_out (idn, return_msg) values ";
-             sql_stmt2 += "(:app_sn, :errMsg); ";
+          if (status != 0) {
+             sql_stmt2 = "insert into test_out (app_sn, jcic_date, app_date, status, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :jcic_date, :app_date, :status, :return_msg); ";
              QueryW->Close();
              QueryW->SQL->Clear();
              QueryW->SQL->Add(sql_stmt2);
              QueryW->Parameters->ParamValues["app_sn"] = app_sn;
-             QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+             QueryW->Parameters->ParamValues["jcic_date"] = jcic_date;
+             QueryW->Parameters->ParamValues["app_date"] = app_date;
+             QueryW->Parameters->ParamValues["status"] = status;
+             QueryW->Parameters->ParamValues["return_msg"] = errMsg;
+             QueryW->ExecSQL();
+          }
+
+       Query->Next();
+    }
+    End_time->Caption = CurrDateTime();
+  }
+  catch (Exception &E) {
+     ShowMessage(AnsiString(E.ClassName())+ E.Message);
+  }
+
+  dbhandle->CloseDatabase();    // pass connection object to function
+  delete  dbhandle;             // pass connection object to function
+  CoUninitialize();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SpecificClick(TObject *Sender)
+{
+  TADOQuery *Query = ADOQuery1;
+  TADOQuery *QueryW = ADOQuery2;
+  TADOHandler *dbhandle;             // pass connection object to function
+
+  AnsiString sql_stmt, sql_stmt2;
+  AnsiString app_sn, app_date, ts_date, jcic_date;
+  char errMsg[257];
+  char ole_str[256];
+  AnsiString oledbString;
+  int status = -1;
+  char * CurrDateTime ();
+
+  CoInitialize(NULL);
+  ADOConnection1->ConnectionTimeout = 30; // 30 seconds
+  ADOConnection1->CommandTimeout = 300;  //5 minutes; 20 minutes for AnShin
+
+  // Connect to Local DB
+  try {
+    if (ADOConnection1->Connected == false)
+      ADOConnection1->Open();
+
+    Start_time->Caption = CurrDateTime();
+    // Empty Validation Result table
+    sql_stmt = "delete from test_out;";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->ExecSQL();
+
+    // get data from input table, call validation function,
+    // and write result to validation_result table.
+    oledbString = Edit1->Text;
+    strcpy(ole_str, oledbString.c_str());
+    dbhandle = new TADOHandler();     // pass connection object to function
+    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
+    sql_stmt = "select app_sn, app_date, ts_date, jcic_date from test_in order by app_sn";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->Open();
+    Query->First();
+    int seq = 0;
+    while (!Query->Eof) {
+       app_sn = Query->FieldValues["app_sn"];
+       app_date = Query->FieldValues["app_date"];
+       ts_date = Query->FieldValues["ts_date"];
+       jcic_date = Query->FieldValues["jcic_date"];
+
+       Label2->Caption = app_sn;
+       Label3->Caption = app_date;
+       Label4->Caption = jcic_date;
+       count->Caption = ++seq;
+       Form1->Refresh();
+
+       *errMsg = '\0';
+       // call the validation function
+       status = specific_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                            "1", ole_str, errMsg/*, dbhandle*/);
+
+          if (status != 0) {
+             sql_stmt2 = "insert into test_out (app_sn, ts_date, jcic_date, app_date, status, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :ts_date, :jcic_date, :app_date, :status, :return_msg); ";
+             QueryW->Close();
+             QueryW->SQL->Clear();
+             QueryW->SQL->Add(sql_stmt2);
+             QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+             QueryW->Parameters->ParamValues["ts_date"] = ts_date;
+             QueryW->Parameters->ParamValues["jcic_date"] = jcic_date;
+             QueryW->Parameters->ParamValues["app_date"] = app_date;
+             QueryW->Parameters->ParamValues["status"] = status;
+             QueryW->Parameters->ParamValues["return_msg"] = errMsg;
              QueryW->ExecSQL();
           }
 
@@ -122,11 +213,11 @@ void __fastcall TForm1::ValidateClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
+void __fastcall TForm1::OptimalClick(TObject *Sender)
 {
   TADOQuery *Query = ADOQuery1;
   TADOQuery *QueryW = ADOQuery2;
-//  TADOHandler *dbhandle;             // pass connection object to function
+  TADOHandler *dbhandle;             // pass connection object to function
 
   CoInitialize(NULL);
   AnsiString sql_stmt, sql_stmt2;
@@ -157,8 +248,8 @@ void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
     // and write result to validation_result table.
     oledbString = Edit1->Text;
     strcpy(ole_str, oledbString.c_str());
-//    dbhandle = new TADOHandler();     // pass connection object to function
-//    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+    dbhandle = new TADOHandler();     // pass connection object to function
+    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
 
     sql_stmt = "select app_sn, app_date, ts_date, jcic_date from test_in order by app_sn";
     Query->Close();
@@ -181,17 +272,129 @@ void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
 
        *errMsg = '\0';
        // call the validation function
+       //status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+       //                     "1", ole_str, errMsg);
        status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                            "1", ole_str, errMsg);
+                            "1", ole_str, errMsg/*, dbhandle*/);
 
-          if (status < 0) {
-             sql_stmt2 = "insert into test_out (idn, return_msg) values ";
-             sql_stmt2 += "(:app_sn, :errMsg); ";
+       if (status != 0) {
+             sql_stmt2 = "insert into test_out (app_sn, ts_date, jcic_date, app_date, status, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :ts_date, :jcic_date, :app_date, :status, :return_msg); ";
              QueryW->Close();
              QueryW->SQL->Clear();
              QueryW->SQL->Add(sql_stmt2);
              QueryW->Parameters->ParamValues["app_sn"] = app_sn;
-             QueryW->Parameters->ParamValues["errMsg"] = errMsg;
+             QueryW->Parameters->ParamValues["ts_date"] = ts_date;
+             QueryW->Parameters->ParamValues["jcic_date"] = jcic_date;
+             QueryW->Parameters->ParamValues["app_date"] = app_date;
+             QueryW->Parameters->ParamValues["status"] = status;
+             QueryW->Parameters->ParamValues["return_msg"] = errMsg;
+             QueryW->ExecSQL();
+        }
+
+       Query->Next();
+    }
+    End_time->Caption = CurrDateTime();
+  }
+  catch (Exception &E) {
+     ShowMessage(AnsiString(E.ClassName())+ E.Message);
+  }
+
+  dbhandle->CloseDatabase();    // pass connection object to function
+  delete  dbhandle;             // pass connection object to function
+  CoUninitialize();
+}
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::DecisionClick(TObject *Sender)
+{
+  TADOQuery *Query = ADOQuery1;
+  TADOQuery *QueryW = ADOQuery2;
+  TADOHandler *dbhandle;             // pass connection object to function
+
+  CoInitialize(NULL);
+  AnsiString sql_stmt, sql_stmt2;
+  AnsiString app_sn, app_date, ts_date, jcic_date;
+  char errMsg[257];
+  char ole_str[256];
+  AnsiString oledbString;
+  int status = -1;
+  char * CurrDateTime ();
+
+  ADOConnection1->ConnectionTimeout = 30; // 30 seconds
+  ADOConnection1->CommandTimeout = 300;  //5 minutes; 20 minutes for AnShin
+
+  // Connect to Local DB
+  try {
+    if (ADOConnection1->Connected == false)
+      ADOConnection1->Open();
+
+    Start_time->Caption = CurrDateTime();
+    // Empty Validation Result table
+    sql_stmt = "delete from test_out;";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->ExecSQL();
+
+    // get data from input table, call validation function,
+    // and write result to validation_result table.
+    oledbString = Edit1->Text;
+    strcpy(ole_str, oledbString.c_str());
+    dbhandle = new TADOHandler();     // pass connection object to function
+    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
+    sql_stmt = "select app_sn, app_date, ts_date, jcic_date from test_in order by app_sn";
+    Query->Close();
+    Query->SQL->Clear();
+    Query->SQL->Add(sql_stmt);
+    Query->Open();
+    Query->First();
+    int seq = 0;
+    while (!Query->Eof) {
+       app_sn = Query->FieldValues["app_sn"];
+       app_date = Query->FieldValues["app_date"];
+       ts_date = Query->FieldValues["ts_date"];
+       jcic_date = Query->FieldValues["jcic_date"];
+
+       Label2->Caption = app_sn;
+       Label3->Caption = app_date;
+       Label4->Caption = jcic_date;
+       count->Caption = ++seq;
+       Form1->Refresh();
+
+       *errMsg = '\0';
+       // call the validation function
+       //status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+       //                     "1", ole_str, errMsg);
+
+     AnsiString audit_userno1="A12345";
+     AnsiString change_code="P1";
+     AnsiString major_deviation="ABC";
+     AnsiString minor_deviation="DEF";
+     AnsiString decline_code="R";
+     AnsiString manual_code="XYZ";
+     int decision = 1;
+
+     status = decision_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                            "1", decision, ole_str,
+                 audit_userno1.c_str(), change_code.c_str(), major_deviation.c_str(),
+                 minor_deviation.c_str(), decline_code.c_str(), manual_code.c_str(),
+                 errMsg/*, dbhandle*/);
+
+          if (status != 0) {
+             sql_stmt2 = "insert into test_out (app_sn, ts_date, jcic_date, app_date, status, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :ts_date, :jcic_date, :app_date, :status, :return_msg); ";
+             QueryW->Close();
+             QueryW->SQL->Clear();
+             QueryW->SQL->Add(sql_stmt2);
+             QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+             QueryW->Parameters->ParamValues["ts_date"] = ts_date;
+             QueryW->Parameters->ParamValues["jcic_date"] = jcic_date;
+             QueryW->Parameters->ParamValues["app_date"] = app_date;
+             QueryW->Parameters->ParamValues["status"] = status;
+             QueryW->Parameters->ParamValues["return_msg"] = errMsg;
              QueryW->ExecSQL();
           }
 
@@ -203,8 +406,8 @@ void __fastcall TForm1::ValidateNoConnClick(TObject *Sender)
      ShowMessage(AnsiString(E.ClassName())+ E.Message);
   }
 
-//  dbhandle->CloseDatabase();    // pass connection object to function
-//  delete  dbhandle;             // pass connection object to function
+  dbhandle->CloseDatabase();    // pass connection object to function
+  delete  dbhandle;             // pass connection object to function
   CoUninitialize();
 }
 //---------------------------------------------------------------------------
@@ -240,6 +443,8 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
   TADOQuery *QueryW = ADOQuery2;
   AnsiString sql_stmt, sql_stmt2;
   AnsiString app_sn, app_date, ts_date, jcic_date;
+  TADOHandler *dbhandle;             // pass connection object to function
+
   char *tsn="1";
   char errMsg[257];
   char ole_str[256];
@@ -258,36 +463,60 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
       ADOConnection1->Open();
 
     oledbString = Edit1->Text;
+
     strcpy(ole_str, oledbString.c_str());
+    dbhandle = new TADOHandler();     // pass connection object to function
+    dbhandle->OpenDatabase(ole_str);  // pass connection object to function
+
     app_sn = Edit2->Text;
     app_date = Edit3->Text;
     jcic_date = Edit4->Text;
     ts_date = app_date;
     *errMsg = '\0';
 
-    status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                          tsn, ole_str, errMsg);
+     AnsiString audit_userno1="A12345";
+     AnsiString change_code="P1";
+     AnsiString major_deviation="ABC";
+     AnsiString minor_deviation="DEF";
+     AnsiString decline_code="R";
+     AnsiString manual_code="XYZ";
+     int decision = 1;
+
+     status = decision_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                            tsn, decision, ole_str,
+                 audit_userno1.c_str(), change_code.c_str(), major_deviation.c_str(),
+                 minor_deviation.c_str(), decline_code.c_str(), manual_code.c_str(),
+                 errMsg/*, dbhandle*/);
+
+//    status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+//                          tsn, ole_str, errMsg/*, dbhandle*/);
 
     Label2->Caption = Edit2->Text;
     Label3->Caption = Edit3->Text;
     Label4->Caption = Edit4->Text;
     Form1->Refresh();
 
-    if (status < 0) {
-       sql_stmt2 = "insert into test_out (idn, return_msg) values ";
-       sql_stmt2 += "(:app_sn, :errMsg); ";
-       QueryW->Close();
-       QueryW->SQL->Clear();
-       QueryW->SQL->Add(sql_stmt2);
-       QueryW->Parameters->ParamValues["app_sn"] = app_sn;
-       QueryW->Parameters->ParamValues["errMsg"] = errMsg;
-       QueryW->ExecSQL();
-    }
+          if (status != 0) {
+             sql_stmt2 = "insert into test_out (app_sn, ts_date, jcic_date, app_date, status, return_msg) values ";
+             sql_stmt2 += "(:app_sn, :ts_date, :jcic_date, :app_date, :status, :return_msg); ";
+             QueryW->Close();
+             QueryW->SQL->Clear();
+             QueryW->SQL->Add(sql_stmt2);
+             QueryW->Parameters->ParamValues["app_sn"] = app_sn;
+             QueryW->Parameters->ParamValues["ts_date"] = ts_date;
+             QueryW->Parameters->ParamValues["jcic_date"] = jcic_date;
+             QueryW->Parameters->ParamValues["app_date"] = app_date;
+             QueryW->Parameters->ParamValues["status"] = status;
+             QueryW->Parameters->ParamValues["return_msg"] = errMsg;
+             QueryW->ExecSQL();
+          }
     ADOConnection1->Connected=false;
   }
   catch (Exception &E) {
      ShowMessage(AnsiString(E.ClassName())+ E.Message);
   }
+  dbhandle->CloseDatabase();    // pass connection object to function
+  delete  dbhandle;             // pass connection object to function
   CoUninitialize();
 
 }

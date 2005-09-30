@@ -13,25 +13,51 @@
 
 #include "AdoHandle.h"
 //---------------------------------------------------------------------------
-extern "C" __declspec(dllexport)
- int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                 char *app_data_date, char *tsn, char *ole_db, char *return_msg);
-extern "C" __declspec(dllexport)
- int optimal_cal_conn(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                  char *app_data_date, char *tsn, char *ole_db, char *return_msg, TADOHandler *dbhandle);
 /*
 extern "C" __declspec(dllexport)
- int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *error_msg);
+int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
+               char *ole_db, char *error_message, TADOHandler *dbhandle);
 
 extern "C" __declspec(dllexport)
- int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
-                 char *return_msg, TADOHandler *dbhandle);
+int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message,
+                TADOHandler *dbhandle);
+
+extern "C" __declspec(dllexport)
+int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message,
+                TADOHandler *dbhandle);
+
+extern "C" __declspec(dllexport)
+int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                 char *app_data_time, char *tsn, int decision, char *ole_db,
+                 char *audit_userno1, char *change_code, char *major_deviation,
+                 char *minor_deviation, char *decline_code, char *manual_code,
+                 char *error_message, TADOHandler *dbhandle);
 */
+extern "C" __declspec(dllexport)
+int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
+               char *ole_db, char *error_message);
+
+extern "C" __declspec(dllexport)
+ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                 char *app_data_time, char *tsn, char *ole_db, char *error_message);
+
+extern "C" __declspec(dllexport)
+int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message);
+
+extern "C" __declspec(dllexport)
+int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                 char *app_data_time, char *tsn, int decision, char *ole_db,
+                 char *audit_userno1, char *change_code, char *major_deviation,
+                 char *minor_deviation, char *decline_code, char *manual_code,
+                 char *error_message);
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
 __published:	// IDE-managed Components
-        TBitBtn *Validate;
+        TBitBtn *Specific;
         TEdit *Edit1;
         TLabel *Label1;
         TCheckBox *CheckBox1;
@@ -58,10 +84,14 @@ __published:	// IDE-managed Components
         TLabel *Label11;
         TLabel *Label12;
         TLabel *Label13;
-        TBitBtn *Validate_NoConn;
+        TBitBtn *Optimal;
+        TBitBtn *Decision;
+        TBitBtn *Prescreen;
         void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
-        void __fastcall ValidateNoConnClick(TObject *Sender);
-        void __fastcall ValidateClick(TObject *Sender);
+        void __fastcall OptimalClick(TObject *Sender);
+        void __fastcall DecisionClick(TObject *Sender);
+        void __fastcall PrescreenClick(TObject *Sender);
+        void __fastcall SpecificClick(TObject *Sender);
         void __fastcall CheckBox1Click(TObject *Sender);
         void __fastcall UnitTestClick(TObject *Sender);
         void __fastcall Button1Click(TObject *Sender);

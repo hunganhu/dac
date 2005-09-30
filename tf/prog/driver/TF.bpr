@@ -10,7 +10,7 @@
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES) Main.dfm"/>
-    <LIBFILES value="..\dll\dac_ploan_ev.lib"/>
+    <LIBFILES value="dac_ploan_ev.lib"/>
     <LIBRARIES value=""/>
     <SPARELIBS value="vcl.lib rtl.lib dbrtl.lib adortl.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
@@ -56,8 +56,8 @@
       <FILE FILENAME="TF.res" FORMNAME="" UNITNAME="TF.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="TF.cpp" FORMNAME="" UNITNAME="TF" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="AdoHandle.cpp" FORMNAME="" UNITNAME="AdoHandle" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\dll\dac_ploan_ev.lib" FORMNAME="" UNITNAME="dac_ploan_ev.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="Main.cpp" FORMNAME="Form1" UNITNAME="Main" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="dac_ploan_ev.lib" FORMNAME="" UNITNAME="dac_ploan_ev.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
