@@ -336,6 +336,53 @@ alter PROCEDURE TF_loan_prescreen
  update #tf_ploan_cal
     set ms080 = 0
     where ms080 is null;
+ /*****************************************************************************************/
+ /* MS082 貸款月付金    台新資融版, 以 contract_amount 為基準   940023 月付金             */
+ /*****************************************************************************************/
+ delete from #tmp
+ insert into #tmp(app_sn, v1)
+    select app_sn,
+       sum(case when account_code = 'C' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'E' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 158 / 1000.0
+           when account_code = 'H' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                     and bank_code2 in ('005','006')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 136 / 1000.0
+           when account_code = 'H' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 190 / 1000.0
+           when account_code = 'I' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0
+           when account_code = 'K' 
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 12 / 1000.0
+           when account_code = 'C' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'E' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'H' and account_code2 in ('S', 'W', 'M')
+                     and convert(float, isnull(contract_amt, 0)) >= 1000.0
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'H' and account_code2 in ('S', 'W', 'M')
+                     and bank_code2 in ('001','052','055','056','057','805','815')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 190 / 1000.0
+           when account_code = 'H' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 233 / 1000.0
+           when account_code = 'I' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'Y' 
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 300 / 1000.0
+           when account_code = 'Z'
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 181 / 1000.0
+        end)
+    from #bam085_dedup
+    group by app_sn
+ update #tf_ploan_cal
+    set ms082 = v1
+    from #tmp as a
+    where a.app_sn = #tf_ploan_cal.app_sn;
+ update #tf_ploan_cal
+    set ms082 = 0
+    where ms082 is null;
  drop table #base_tmp;
 go
 
@@ -613,24 +660,42 @@ CREATE PROCEDURE TF_ploan_model
     set fs310 = v1
     from #tmp as a
     where a.app_sn = #tf_ploan_cal.app_sn
-
  /*****************************************************************************************/
- /* MS082 貸款月付金    台新資融版, 以 contract_amount 為基準                             */
+ /* MS082 貸款月付金    台新資融版, 以 contract_amount 為基準   940023 月付金             */
  /*****************************************************************************************/
  delete from #tmp
  insert into #tmp(app_sn, v1)
     select app_sn,
-       sum(case when account_code = 'C' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0
-          when account_code = 'E' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) AND BANK_CODE2 IN ('809', '103', '815') then convert(float, isnull(contract_amt, 0)) / 10.0 * 158 / 1000.0
-          when account_code = 'E' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) then convert(float, isnull(contract_amt, 0)) / 10.0 * 342 / 1000.0
-          when account_code = 'H' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) then convert(float, isnull(contract_amt, 0)) / 10.0 * 342 / 1000.0
-          when account_code = 'K' then convert(float, isnull(contract_amt, 0)) / 10.0 * 12 / 1000.0
-          when account_code = 'C' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0
-          when account_code = 'E' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0
-          when account_code = 'H' and account_code2 in ('S', 'W', 'M') AND BANK_CODE2 IN ('001','052','016','056','057') then convert(float, isnull(contract_amt, 0)) / 10.0 * 342 / 1000.0
-          when account_code = 'H' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 193 / 1000.0
-          when account_code = 'I' and account_code2 in ('S', 'W', 'M') then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0
-          when account_code = 'Z' then convert(float, isnull(contract_amt, 0)) / 10.0 * 233 / 1000.0
+       sum(case when account_code = 'C' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                     then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'E' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 158 / 1000.0
+           when account_code = 'H' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N')) and bank_code2 in ('005','006')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 136 / 1000.0
+           when account_code = 'H' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 190 / 1000.0
+           when account_code = 'I' and ((account_code2 is null) or (account_code2 = '') or (account_code2 = 'N'))
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 72 / 1000.0
+           when account_code = 'K' 
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 12 / 1000.0
+           when account_code = 'C' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'E' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'H' and account_code2 in ('S', 'W', 'M')
+                     and convert(float, isnull(contract_amt, 0)) >= 1000.0
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'H' and account_code2 in ('S', 'W', 'M')
+                     and bank_code2 in ('001','052','055','056','057','805','815')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 190 / 1000.0
+           when account_code = 'H' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 233 / 1000.0
+           when account_code = 'I' and account_code2 in ('S', 'W', 'M')
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 58 / 1000.0
+           when account_code = 'Y' 
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 300 / 1000.0
+           when account_code = 'Z'
+                then convert(float, isnull(contract_amt, 0)) / 10.0 * 181 / 1000.0
         end)
     from #bam085_dedup
     group by app_sn

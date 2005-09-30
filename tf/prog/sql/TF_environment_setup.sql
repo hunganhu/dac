@@ -170,16 +170,13 @@ create table app_info (
 	operation_cost	int not null check (operation_cost > 0),
 	hr_cost		int not null check (hr_cost > 0),
 	risk_level	int not null check (risk_level in (1, 2)),
-	sales_channel	char(3) not null check (sales_channel in ('001', '002', '003',
-	                                                          '004', '005', '006',
-	                                                          '007', '008', '009')),
+	sales_channel	char(3) not null check (sales_channel in ('001', '002', '003',	                                                          '004', '005', '006',	                                                          '007', '008', '009')),
 	commission	int not null check (commission >= 0),
 	add_loan	nvarchar(10) not null,
 	promotion_code	nvarchar(10) not null,
 	sales_region	nvarchar(20) not null,
 	sales_unit	nvarchar(20) not null,
 	sales_userno	nvarchar(10) not null
-
 );
 alter table app_info add constraint p_app_info primary key(app_sn, data_time); 
 go
@@ -193,11 +190,12 @@ create table loan_condition (
 	application_fee	int not null check (application_fee >= 0),
 	credit_checking_fee	int not null check (credit_checking_fee >= 0),
 	risk_mgmt_fee	int not null check (risk_mgmt_fee >= 0),
-	risk_mgmt_fee_terms	int not null check (risk_mgmt_fee_terms >= 0
-	                                        and risk_mgmt_fee_terms < terms),
-	teaser_rate	decimal(5,4) not null check (teaser_rate >= 0 and teaser_rate < apr),
-	teaser_period	int not null check (teaser_period >= 0 and teaser_period < terms),
-	grace_period	int not null check (grace_period >= 0 and grace_period < terms)
+	risk_mgmt_fee_terms	int not null default 0 check (risk_mgmt_fee_terms >= 0),
+	teaser_rate	decimal(5,4) not null check (teaser_rate >= 0),
+	teaser_period	int not null check (teaser_period >= 0),
+	grace_period	int not null check (grace_period >= 0)
+	check (teaser_period < terms),
+	check (grace_period < terms)
 );
 alter table loan_condition add constraint p_loan_condition primary key (app_sn, tsn); 
 go
@@ -225,10 +223,10 @@ create table approval_cal (
 	specific_lending_amount	int,
 	pb		float not null,
 	npv		int not null,
-	optimal		int not null,
+	optimal		int not null check (Optimal in (0, 1)),
 	reason_code	int not null,
 	reason_message	char(256) not null,
-	ext_monthly_payment int not null
+	ext_monthly_payment int not null check (ext_monthly_payment >= 0)
 );
 alter table approval_cal add constraint p_approval primary key (app_sn, tsn, ts_data_date, jcic_data_date, app_data_time); 
 go
@@ -244,9 +242,9 @@ create table decision_cal (
 	execution_time	char(12) not null,
 	pb		float,
 	npv		int,
-	decision_amount	int not null,
+	approved_amount	int not null check (approved_amount >= 0),
 	reason_code	int not null,
-	ext_monthly_payment	int not null,
+	ext_monthly_payment	int not null check (ext_monthly_payment >= 0),
 	audit_userno1	nvarchar(10) not null,
 	change_code	nvarchar(10) not null,
 	major_deviation_code	nvarchar(10) not null,
