@@ -184,6 +184,8 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        }
        else {
           reason_code = 0;
+          hostVars[9] = 0;  //optimal_line
+          hostVars[11] = 0; //optimal_npv
           Message = TF_Messages[Normal_0];
        }
        if (Days_between(jcic_data_date, app_data_time) > 30) {
