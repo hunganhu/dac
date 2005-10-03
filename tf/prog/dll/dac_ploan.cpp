@@ -51,8 +51,7 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
     }
 
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
-    ptrLoan->prescreen(jcic_data_date, dbhandle);
-
+    ptrLoan->prescreen_only(jcic_data_date, dbhandle);
 #ifdef _WRFLOW
     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
@@ -109,7 +108,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
     errCode = ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
     if (errCode == 0)
-       ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+       ptrLoan->loan_validate_no_principal(app_sn, tsn, dbhandle);
 
     // write common fields
     hostVars[0] = app_sn;

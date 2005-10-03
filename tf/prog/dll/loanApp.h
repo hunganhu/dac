@@ -187,8 +187,10 @@ class Loan {
     ~Loan ();
     int app_info_validate(char * appNo, char* appDate, TADOHandler *handler);
     int loan_validate(char * appNo, char *tsn, TADOHandler *handler);
+    int loan_validate_no_principal(char * appNo, char *tsn, TADOHandler *handler);
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
+    void prescreen_only(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
     double calculate_pd(int line, TADOHandler *handler);
     double calculate_npv(int line, double pb);
