@@ -190,7 +190,6 @@ class Loan {
     int loan_validate_no_principal(char * appNo, char *tsn, TADOHandler *handler);
     String error();
     void prescreen(char *inquiry_date, TADOHandler *handler);
-    void prescreen_only(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
     double calculate_pd(int line, TADOHandler *handler);
     double calculate_npv(int line, double pb);
@@ -243,6 +242,10 @@ enum ErrorCodes {
      App_error_310,
      App_error_311,
      App_error_312,
+     App_error_313,
+     App_error_314,
+     App_error_315,
+     App_error_316,
      // Financial Data Errors
      Fin_error_321,
      Fin_error_322,

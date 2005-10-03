@@ -51,7 +51,7 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
     }
 
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
-    ptrLoan->prescreen_only(jcic_data_date, dbhandle);
+    ptrLoan->prescreen(jcic_data_date, dbhandle);
 #ifdef _WRFLOW
     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif

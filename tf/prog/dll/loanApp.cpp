@@ -41,6 +41,10 @@ char *TF_Messages[]= {
      "佣金為負數 ",                             // App_error_310,
      "銷售管道無法辨識 ",                       // App_error_311,
      "風險等級無法辨識 ",                       // App_error_312,
+     "無申請件資料 ",                           // App_error_313,
+     "申請資料日期格式錯誤 ",                   // App_error_314,
+     "JCIC資料日期格式錯誤 ",                   // App_error_315,
+     "台新內部信用資料日期格式錯誤 ",           // App_error_316,
      // Financial Data Errors
      "ROE小於或等於零 ", // Fin_error_321,
      "台新金控資金成本小於或等於零 ",           // Fin_error_322,
@@ -217,11 +221,16 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
     }
 
   if (record_count == 0) {
-     Message += "無申請件資料 "; code = 313;}
+     Message += TF_Messages[App_error_313]; code = 313;}
   else {
+     if (!validate_date(app_date)) {
+        Message += TF_Messages[App_error_314]; code = 314;}
+     if (!validate_date(jcic_date)) {
+        Message += TF_Messages[App_error_315]; code = 315;}
+
      if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
         Message += TF_Messages[App_error_301]; code = 301;}
-   
+
      if ((age_ind == -1) || (age < 0) || (age > 1)) {
         Message += TF_Messages[App_error_302]; code = 302;}
    
@@ -387,6 +396,9 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
    
      if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
           Message += TF_Messages[Loan_error_340];  code = 340;}
+
+     if (!validate_date(ts_date)) {
+        Message += TF_Messages[App_error_316]; code = 316;}
   }
  } catch (Exception &E) {
     throw;
@@ -497,6 +509,9 @@ int Loan::loan_validate_no_principal(char * appNo, char *tsn, TADOHandler *handl
 
      if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
           Message += TF_Messages[Loan_error_340];  code = 340;}
+
+     if (!validate_date(ts_date)) {
+        Message += TF_Messages[App_error_316]; code = 316;}
   }
  } catch (Exception &E) {
     throw;
@@ -557,102 +572,6 @@ int Loan::get_external_monthly_payment()
 void Loan::prescreen(char *inquiry_date, TADOHandler *handler)
 {
  Variant hostVars[10];
-// int jas002_defect, fs044, app_max_bucket, cash_max_bucket, delinquent_months;
- TADODataSet *ds;
-
- ds = new TADODataSet(NULL);
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
- code = 0;
- jcic_date = inquiry_date;
- Message = TF_Messages[Prescreen_0];
- 
- try {
-    hostVars[0] = app_sn;
-    hostVars[1] = app_date;
-    handler->ExecSQLCmd(SQLCommands[Insert_Daco_Table], hostVars, 1);
-
-    hostVars[0] = jcic_date;
-    handler->ExecSQLCmd(SQLCommands[Update_Inquiry_Date], hostVars, 0);
-
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
-    handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_prepare_jcic_data]);
-    hostVars[0] = app_sn;
-    hostVars[1] = jcic_date;
-    handler->ExecSQLCmd(SQLCommands[Exec_Procedure_TF_prepare_jcic_data], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Drop_Procedure_TF_prepare_jcic_data]);
-
-    handler->ExecSQLCmd(SQLCommands[Create_Procedure_TF_loan_prescreen]);
-
-    hostVars[0] = app_sn;
-    handler->ExecSQLQry(SQLCommands[Get_Prescreen_Result], hostVars, 0, ds);
-    ds->First();
-    if (!ds->Eof) {
-       jas002_defect = ds->FieldValues["jas002_defect"];
-       app_max_bucket = ds->FieldValues["app_max_bucket"];
-       fs044 = ds->FieldValues["fs044"];
-       delinquent_months = ds->FieldValues["fs334"];
-       cash_max_bucket = ds->FieldValues["fs302"];
-       ms082 = ds->FieldValues["ms082"];
-    }
- } catch (Exception &E) {
-     throw;
- }
-    ds->Close();
-    delete ds;
-
- ds = new TADODataSet(NULL);
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
-
-    if (age == 1) {
-       Message = TF_Messages[Prescreen_101]; code = 101; }
-    else if (alien == 1) {
-       Message = TF_Messages[Prescreen_102]; code = 102; }
-    else if (cashcard_lock == 1) {
-       Message = TF_Messages[Prescreen_103]; code = 103; }
-    else if (jas002_defect > 0) {
-       Message = TF_Messages[Prescreen_104]; code = 104; }
-    else if (app_max_bucket > 3) {
-       Message = TF_Messages[Prescreen_105]; code = 105; }
-    else if (fs044 > 0) {
-       Message = TF_Messages[Prescreen_106]; code = 106; }
-    else if (cash_max_bucket > 0) {
-       Message = TF_Messages[Prescreen_107]; code = 107; }
-    else if (delinquent_months > 3) {
-       Message = TF_Messages[Prescreen_108]; code = 108; }
-    /* Output_Prescreen_Output to working table */
- try {
-    hostVars[0] = Message;
-    hostVars[1] = app_sn;
-    handler->ExecSQLCmd(SQLCommands[Update_Prescreen_Output], hostVars, 1);
-
-    /*Write_Prescreen_Result*/
-    hostVars[0] = app_sn;
-    hostVars[1] = app_date;
-    hostVars[2] = jcic_date;
-    handler->ExecSQLQry(SQLCommands[Get_Prescreen_Record], hostVars, 2, ds);
-    record_count = ds->RecordCount;
-    /* if PRESCREEN table has a record with the same key then skip writing*/
-    if (record_count == 0) {
-       hostVars[0] = app_sn;
-       hostVars[1] = jcic_date;
-       hostVars[2] = app_date;
-       hostVars[3] = product_type;
-       hostVars[4] = code;
-       hostVars[5] = Message;
-       handler->ExecSQLCmd(SQLCommands[Write_Prescreen_Result], hostVars, 5);
-    }
- } catch (Exception &E) {
-     throw;
- }
-    ds->Close();
-    delete ds;
-}
-
-//---------------------------------------------------------------------------
-void Loan::prescreen_only(char *inquiry_date, TADOHandler *handler)
-{
- Variant hostVars[10];
-// int jas002_defect, fs044, app_max_bucket, cash_max_bucket, delinquent_months;
  TADODataSet *ds;
  int check_jcic_expire = 0;
 
@@ -749,6 +668,7 @@ void Loan::prescreen_only(char *inquiry_date, TADOHandler *handler)
     ds->Close();
     delete ds;
 }
+
 //---------------------------------------------------------------------------
 void Loan::calculate_rscore(TADOHandler *handler)
 {
