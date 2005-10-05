@@ -132,7 +132,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        hostVars[6] = ptrLoan->get_principal();
        hostVars[7] = ptrLoan->get_code();
        hostVars[8] = ptrLoan->error();
-       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 8);
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Optimal_Result_Data_Error], hostVars, 8);
        dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (0);

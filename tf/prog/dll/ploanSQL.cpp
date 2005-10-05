@@ -46,6 +46,12 @@ char *SQLCommands[] = {
 "     ext_monthly_payment)"
 "  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, NULL, NULL, 0, :v7, :v8, 0);",
 
+/* Write_Optimal_Result_Data_Error */
+" insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
+"     product_type, specific_lending_amount, pb, npv, optimal, reason_code, reason_message, "
+"     ext_monthly_payment)"
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, :v6, NULL, NULL, 1, :v7, :v8, 0);",
+
 /* Write_Specific_Result */
 " insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
 "     product_type, specific_lending_amount, pb, npv, optimal, reason_code, reason_message, "
