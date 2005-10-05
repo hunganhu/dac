@@ -140,7 +140,7 @@ int optimal_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     errCode = ptrLoan->get_code();
-    if (errCode == 0) {
+    if (errCode == 0 || errCode == 201) {   // No major derug hit or JCIC expires
        ptrLoan->calculate_rscore(dbhandle);
         // check product type and card
         if (ptrLoan->get_product_type() == 1) { // product GX
@@ -290,7 +290,7 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     errCode = ptrLoan->get_code();
-    if (errCode == 0) {
+    if (errCode == 0 || errCode == 201) {   // No major derug hit or JCIC expires
        ptrLoan->calculate_rscore(dbhandle);
        pb = ptrLoan->calculate_pd(ptrLoan->get_principal(), dbhandle);
        ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
@@ -431,16 +431,20 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
     errCode = ptrLoan->get_code();
-    if (errCode == 0) {
+    if (errCode == 0 || errCode == 201) {   // No major derug hit or JCIC expires
+       errCode = 0;
        ptrLoan->calculate_rscore(dbhandle);
        pb = ptrLoan->calculate_pd(ptrLoan->get_principal(), dbhandle);
        ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
        // write_decision result to decision_cal
-       hostVars[12] = ptrLoan->get_principal();
        hostVars[13] = reason_code;
        hostVars[14] = Message;
        hostVars[15] = ExecutionTime();
        hostVars[16] = decision;
+       if (decision == 1)             // set decision amount to 0 if declined
+          hostVars[12] = ptrLoan->get_principal();
+       else
+          hostVars[12] = 0;
        hostVars[17] = ptrLoan->get_external_monthly_payment();
        hostVars[18] = RoundTo(pb, -3);
        hostVars[19] = ptrLoan->get_npv();

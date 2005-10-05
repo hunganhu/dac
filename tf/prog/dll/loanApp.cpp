@@ -53,6 +53,9 @@ char *TF_Messages[]= {
      "穝戈癟禣ノ┪单箂 ",             // Fin_error_325,
      "穝穨籔狝禣ノ┪单箂 ",         // Fin_error_326,
      "ㄆΘセ┪单箂 ",                   // Fin_error_327,
+     "ㄤ秨快ΘセΘセ箂 ",               // Fin_error_328,
+     "ㄤ秨快ΘセΘセ箂 ",               // Fin_error_329,
+     "ㄤ秨快ΘセΘセ箂 ",               // Fin_error_330,
      // Loan Conditions Data Errors
      "瓣チ獺禪禪蹿肂600000┪100000 ", // Loan_error_331_GX,
      "禪蹿肂200000┪70000 ",    // Loan_error_331_KHJ,
@@ -73,7 +76,7 @@ char *TF_Messages[]= {
 #pragma package(smart_init)
 
 Loan::Loan (char *appSN, char *appDate, char *jcicDate):
-    app_sn(appSN), app_date(appDate), jcic_date(jcicDate), product_type_ind(0),
+    app_sn(appSN), app_date(appDate), jcic_date(jcicDate), product_type(0), product_type_ind(0),
     gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0), Message(""),
     marriage_status_ind(0), alien_ind(0), age_ind(0), cashcard_lock_ind(0),
     cof_ind(0), roe_ind(0), ts_tax_rate_ind(0), tf_tax_rate_ind(0),
@@ -81,12 +84,14 @@ Loan::Loan (char *appSN, char *appDate, char *jcicDate):
     principal_ind(0), int_rate_ind(0), teaser_rate_ind(0), periods_ind(0),
     teaser_period_ind(0), grace_period_ind(0), application_fee_ind(0),
     credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
-    sales_channel_ind(0), risk_level_ind(0), code(0), commission_ind(0)
+    sales_channel_ind(0), risk_level_ind(0), code(0), commission_ind(0),
+    other_initial_cost1_ind(0), other_initial_cost2_ind(0), other_initial_cost3_ind(0)
 {
 }
 //---------------------------------------------------------------------------
 Loan::Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn):
-    app_sn(appSN), app_date(appDate), ts_date(tsDate), jcic_date(jcicDate),tsn(tsn),product_type_ind(0),
+    app_sn(appSN), app_date(appDate), ts_date(tsDate), jcic_date(jcicDate),
+    product_type(0), tsn(tsn), product_type_ind(0),
     gender_ind(0), zip_ind(0), secretive_ind(0), edu_ind(0), Message(""),
     marriage_status_ind(0), alien_ind(0), age_ind(0), cashcard_lock_ind(0),
     cof_ind(0), roe_ind(0), ts_tax_rate_ind(0), tf_tax_rate_ind(0),
@@ -94,7 +99,8 @@ Loan::Loan (char *appSN, char *appDate, char *tsDate, char *jcicDate, char *tsn)
     principal_ind(0), int_rate_ind(0), teaser_rate_ind(0), periods_ind(0),
     teaser_period_ind(0), grace_period_ind(0), application_fee_ind(0),
     credit_checking_fee_ind(0), risk_mgmt_fee_ind(0), risk_mgmt_fee_terms_ind(0),
-    sales_channel_ind(0), risk_level_ind(0), code(0), commission_ind(0)
+    sales_channel_ind(0), risk_level_ind(0), code(0), commission_ind(0),
+    other_initial_cost1_ind(0), other_initial_cost2_ind(0), other_initial_cost3_ind(0)
 {
 }
 //---------------------------------------------------------------------------
@@ -218,6 +224,19 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
           commission = ds->FieldValues["commission"];
        else
           commission_ind = -1;
+
+       if (!ds->FieldValues["other_initial_cost1"].IsNull())
+          other_initial_cost1 = ds->FieldValues["other_initial_cost1"];
+       else
+          other_initial_cost1_ind = -1;
+       if (!ds->FieldValues["other_initial_cost2"].IsNull())
+          other_initial_cost2 = ds->FieldValues["other_initial_cost2"];
+       else
+          other_initial_cost2_ind = -1;
+       if (!ds->FieldValues["other_initial_cost3"].IsNull())
+          other_initial_cost3 = ds->FieldValues["other_initial_cost3"];
+       else
+          other_initial_cost3_ind = -1;
     }
 
   if (record_count == 0) {
@@ -233,10 +252,10 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 
      if ((age_ind == -1) || (age < 0) || (age > 1)) {
         Message += TF_Messages[App_error_302]; code = 302;}
-   
+
      if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
         Message += TF_Messages[App_error_303]; code = 303;}
-   
+
      if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
         Message += TF_Messages[App_error_304]; code = 304;}
    
@@ -245,7 +264,7 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 
      if ( validZIP(zip.c_str()) == 0) {
         Message += TF_Messages[App_error_306];  code = 306;}
-   
+
      if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
         Message += TF_Messages[App_error_307]; code = 307;}
    
@@ -276,7 +295,7 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 
      if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
         Message += TF_Messages[Fin_error_324]; code = 324;}
-   
+
      if ((info_processing_cost_ind == -1) || (info_processing_cost <= 0.0)) {
         Message += TF_Messages[Fin_error_325]; code = 325;}
    
@@ -285,7 +304,15 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
    
      if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
         Message += TF_Messages[Fin_error_327]; code = 327;}
-  }   
+
+     if ((other_initial_cost1_ind == -1) || (other_initial_cost1 < 0.0)) {
+        Message += TF_Messages[Fin_error_328]; code = 328;}
+     if ((other_initial_cost2_ind == -1) || (other_initial_cost2 < 0.0)) {
+        Message += TF_Messages[Fin_error_329]; code = 329;}
+     if ((other_initial_cost3_ind == -1) || (other_initial_cost3 < 0.0)) {
+        Message += TF_Messages[Fin_error_330]; code = 330;}
+
+  }
  } catch (Exception &E) {
     throw;
  }
@@ -375,7 +402,7 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
    
      if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
         Message += TF_Messages[Loan_error_333];  code = 333;}
-   
+
      if ((application_fee_ind == -1) || (application_fee < 0)) {
         Message += TF_Messages[Loan_error_334];  code = 334;}
    
@@ -1066,7 +1093,8 @@ double Loan::calculate_npv(int line, double pb)
   total_npv = (Interest_Revenue + Late_Fee + Open_Credit_Fee
                + Risk_Management_Fee)                            // Revenue
                - (Interest_Cost + Acct_Mgmt_Cost + Taishin_Corp_Tax + TF_Corp_Tax
-                  + Collection_Cost + commission + Credit_Loss);         // Cost
+                  + Collection_Cost + commission + Credit_Loss + other_initial_cost1
+                  + other_initial_cost3 + other_initial_cost3); // Cost
 
  } catch (Exception &E) {
      throw;

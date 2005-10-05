@@ -11,7 +11,8 @@ char *SQLCommands[] = {
 /* Get_AppInfo_Record */
 " select app_sn, data_time, product_type, gender, zip, secretive, education_level, marriage_status,"
 "        alien, age_over_limit, ts_cashcard_restricted, cof, roe, ts_tax_rate, tf_tax_rate,"
-"        info_processing_cost, operation_cost, hr_cost, risk_level, sales_channel, commission"
+"        info_processing_cost, operation_cost, hr_cost, risk_level, sales_channel, commission, "
+"        other_initial_cost1, other_initial_cost2, other_initial_cost3"
 " from app_info"
 " where app_sn = :v0 and data_time = :v1;",
 
@@ -61,7 +62,7 @@ char *SQLCommands[] = {
 " insert into approval_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "
 "     product_type, optimal, reason_code, reason_message, "
 "     ext_monthly_payment, optimal_amount, pb, npv)"
-"  values (:v0, :v1, :v2, :v3, :v4, :v5, 0, :v6, :v7, :v8, NULL, NULL, NULL);",
+"  values (:v0, :v1, :v2, :v3, :v4, :v5, 1, :v6, :v7, :v8, NULL, NULL, NULL);",
 
 /* Write_Decision_Result */
 " insert into decision_cal(app_sn, tsn, ts_data_date, jcic_data_date, app_data_time, "

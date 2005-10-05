@@ -38,6 +38,9 @@ class Loan {
     int operation_cost;             // 每戶每月分攤台新銀行分行作業及客服費用 (新台幣元)
     int hr_cost;                    // 每戶每月人事成本費用 (新台幣元)
     double commission;              // 佣金 (新台幣元)
+    int other_initial_cost1;       // 其他開辦成本一
+    int other_initial_cost2;       // 其他開辦成本二
+    int other_initial_cost3;       // 其他開辦成本三
 
     int record_count;               // number of app_info records read
     int trial_count;                // number of Loan records read
@@ -78,6 +81,9 @@ class Loan {
     int sales_channel_ind;
     int risk_level_ind;
     int commission_ind;
+    int other_initial_cost1_ind;
+    int other_initial_cost2_ind;
+    int other_initial_cost3_ind;
 
     int principal_ind;
     int int_rate_ind;
@@ -254,6 +260,9 @@ enum ErrorCodes {
      Fin_error_325,
      Fin_error_326,
      Fin_error_327,
+     Fin_error_328,
+     Fin_error_329,
+     Fin_error_330,
      // Loan Conditions Data Errors
      Loan_error_331_GX,
      Loan_error_331_KHJ,
