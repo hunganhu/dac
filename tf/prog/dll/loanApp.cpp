@@ -118,11 +118,27 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
+ TADOQuery *query = new TADOQuery(NULL);
+ String sql_stmt;
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  code = 0;
  Message = "";
  try {
+ /* the following statements are used to test sql server native error code */
+    if(query->Active) query->Close();
+    query->Connection = handler->ADOConnect;
+    query->CommandTimeout = 300;
+    query->EnableBCD = false;
+    sql_stmt = SQLCommands[Get_AppInfo_Record];
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["v0"] = appNo;
+    query->Parameters->ParamValues["v1"] = appDate;
+    query->Open();
+    query->Close();
+ //------------------------------------------------------------------------------
     hostVars[0] = appNo;
     hostVars[1] = appDate;
     handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 1, ds);
@@ -286,7 +302,7 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
    
      if ((roe_ind == -1) || (roe <= 0.0)) {
         Message += TF_Messages[Fin_error_321]; code = 321;}
-   
+
      if ((cof_ind == -1) || (cof <= 0.0)) {
         Message += TF_Messages[Fin_error_322]; code = 322;}
    
@@ -319,6 +335,7 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
   ds->Close();  // close dataset before delete and drop an object outside the try block,
                 // otherwise result in "too many consecutive exceptions"
   delete ds;
+  delete query;
   if (code == 313)
      return (-1);
   else
@@ -329,9 +346,25 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
+ TADOQuery *query = new TADOQuery(NULL);
+ String sql_stmt;
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
+ /* the following statements are used to test sql server native error code */
+    if(query->Active) query->Close();
+    query->Connection = handler->ADOConnect;
+    query->CommandTimeout = 300;
+    query->EnableBCD = false;
+    sql_stmt = SQLCommands[Get_Loan_Record];
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["v0"] = appNo;
+    query->Parameters->ParamValues["v1"] = tsn;
+    query->Open();
+    query->Close();
+ //------------------------------------------------------------------------------
     hostVars[0] = appNo;
     hostVars[1] = tsn;
     handler->ExecSQLQry(SQLCommands[Get_Loan_Record], hostVars, 1, ds);
@@ -420,7 +453,7 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
    
      if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
         Message += TF_Messages[Loan_error_339];  code = 339;}
-   
+
      if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
           Message += TF_Messages[Loan_error_340];  code = 340;}
 
@@ -432,6 +465,7 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
  }
   ds->Close();
   delete ds;
+  delete query;
   if (code == 313)
      return (-1);
   else
@@ -441,9 +475,25 @@ int Loan::loan_validate_no_principal(char * appNo, char *tsn, TADOHandler *handl
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
+ TADOQuery *query = new TADOQuery(NULL);
+ String sql_stmt;
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
+ /* the following statements are used to test sql server native error code */
+    if(query->Active) query->Close();
+    query->Connection = handler->ADOConnect;
+    query->CommandTimeout = 300;
+    query->EnableBCD = false;
+    sql_stmt = SQLCommands[Get_Loan_Record];
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["v0"] = appNo;
+    query->Parameters->ParamValues["v1"] = tsn;
+    query->Open();
+    query->Close();
+ //------------------------------------------------------------------------------
     hostVars[0] = appNo;
     hostVars[1] = tsn;
     handler->ExecSQLQry(SQLCommands[Get_Loan_Record], hostVars, 1, ds);
@@ -545,6 +595,7 @@ int Loan::loan_validate_no_principal(char * appNo, char *tsn, TADOHandler *handl
  }
   ds->Close();
   delete ds;
+  delete query;
   if (code == 313)
      return (-1);
   else

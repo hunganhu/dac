@@ -16,7 +16,7 @@ class Loan {
   private:
     /* application information */
     String app_sn;                  // 案件編號
-    String app_date;                // 申請日期YYYYMMDDHHmm
+    String app_date;                // 申請日期YYYYMMDDHHmmss
     String jcic_date;               // JCIC 查詢日期YYYYMMDD
     String ts_date;                 // Taishin internal credit data date YYYYMMDD
     String tsn;                     // trial seq #

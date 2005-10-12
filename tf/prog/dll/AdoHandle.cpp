@@ -8,6 +8,8 @@
 using namespace std;
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
+//#pragma alias "@System@@CheckAutoResult$qqrv"="@System@@CheckAutoResult$qqrl"
+
 //---------------------------------------------------------------------------
 TADOHandler::TADOHandler()
 {
@@ -210,7 +212,7 @@ bool TADOHandler::ExecSQLQry (char * CmdString, const Variant *Parameters,
     dataset->Recordset = ADOCommand->Execute(VarArrayOf(Parameters, index));
  }
  catch (Exception &E){
-        throw;
+    throw;
  }
  return (true);
 }

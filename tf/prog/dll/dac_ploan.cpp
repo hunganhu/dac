@@ -1,5 +1,6 @@
 //---------------------------------------------------------------------------
 #pragma hdrstop
+#include <vcl.h>
 #include <stdio.h>
 #include <Math.hpp>
 #include "dac_ploan.h"
@@ -13,7 +14,9 @@
 #endif
 //---------------------------------------------------------------------------
 
-#pragma package(smart_init)
+//#pragma package(smart_init)
+#pragma alias "@System@@CheckAutoResult$qqrv"="@System@@CheckAutoResult$qqrl"
+
 int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
               char *ole_db, char *error_message)
 /*
@@ -22,6 +25,7 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
 */
 {
  TADOHandler *dbhandle;    // commemt if past from argument
+ String Message = "";
  Loan *ptrLoan;
  Variant hostVars[20];
  int errCode = 0;
@@ -52,6 +56,11 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
 
     dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     ptrLoan->prescreen(jcic_data_date, dbhandle);
+
+    if (Days_between(jcic_data_date, app_data_time) > 30) {
+       errCode = 2;
+       strcpy (error_message, TF_Messages[Warning_201]);
+    }
 #ifdef _WRFLOW
     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
@@ -61,6 +70,17 @@ int prescreen(char *app_sn, char *jcic_data_date, char *app_data_time,
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
+/*
+    if (AnsiString(E.ClassName()) == "EOleException") {
+      if (E.Message.SubString(0,18) == "提供不一致或不完全")
+         strcpy (error_message, "無效的物件名稱。");
+      else
+         strcpy (error_message, E.Message.c_str());
+    }
+    else
+       strcpy (error_message, E.Message.c_str());
+    errCode = -1;
+*/
  }
  delete ptrLoan;
  delete dbhandle;
@@ -340,7 +360,6 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        // write prescreen result to PRESECREEN
        errCode = 1;
        strcpy (error_message, "");
-//       strcpy (error_message, ptrLoan->error().c_str());
     }
 #ifdef _WRFLOW
      dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
@@ -441,13 +460,17 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        hostVars[14] = Message;
        hostVars[15] = ExecutionTime();
        hostVars[16] = decision;
-       if (decision == 1)             // set decision amount to 0 if declined
-          hostVars[12] = ptrLoan->get_principal();
-       else
-          hostVars[12] = 0;
        hostVars[17] = ptrLoan->get_external_monthly_payment();
-       hostVars[18] = RoundTo(pb, -3);
-       hostVars[19] = ptrLoan->get_npv();
+       if (decision == 1) {            // set decision amount to 0 if declined
+          hostVars[12] = ptrLoan->get_principal();
+          hostVars[18] = RoundTo(pb, -3);
+          hostVars[19] = ptrLoan->get_npv();
+       }
+       else {
+          hostVars[12] = 0;
+          hostVars[18] = 0;
+          hostVars[19] = 0;
+       }
        dbhandle->ExecSQLCmd(SQLCommands[Write_Decision_Result], hostVars, 19);
     }
     else {
@@ -472,5 +495,11 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
  delete dbhandle;  // commemt if past from argument
  return(errCode);
 }
+
+
+
+
+
+
 
 
