@@ -21,7 +21,7 @@ const double GX_OUT_SOURCE_RATE = 0.04;
 // KHJ product information
 const double KHJ_APP_FEE_RECEIVABLE = 2000.0;
 const double KHJ_TRANSFER_BONUS = 3000.0;
-const double KHJ_OUT_SOURCE_BONUS = 740.0;
+const double KHJ_OUT_SOURCE_BONUS = 895.0;
 const double KHJ_OUT_SOURCE_RATE = 0.04;
 
 //-------------------------------------------------------------------------------------------
@@ -41,8 +41,13 @@ const char *ChannelDescription [] = { "",        // Dummy channel 0
 				  "委外" };        // Channel 9
 
 // 點數成本, Add 0 for dummy channel 0
+/*
 const int SalesPointCost[2][10] = {{0, 1503, 1503, 1503, 1844, 2709, 1844, 1844, 2709, 0}, // GX Channel 1-9
                                    {0, 1503, 1503, 1503, 1844, 2709, 1844, 1844, 2709, 0}};// KHJ Channel 1-9
+*/
+/*20051013 modified*/
+const int SalesPointCost[2][10] = {{0, 1526, 1526, 1526, 1857, 2520, 1857, 1857, 2520, 0}, // GX Channel 1-9
+                                   {0, 1526, 1526, 1526, 1857, 2520, 1857, 1857, 2520, 0}};// KHJ Channel 1-9
 // 主管手續獎金, Add 0 for dummy channel 0
 const int HeadFeeBonus [2][10] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  // GX, Channel 1-9
                                   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}; // KHJ, Channel 1-9

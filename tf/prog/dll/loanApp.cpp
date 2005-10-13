@@ -312,13 +312,13 @@ int Loan::app_info_validate(char * appNo, char* appDate, TADOHandler *handler)
      if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
         Message += TF_Messages[Fin_error_324]; code = 324;}
 
-     if ((info_processing_cost_ind == -1) || (info_processing_cost <= 0.0)) {
+     if ((info_processing_cost_ind == -1) || (info_processing_cost < 0.0)) {
         Message += TF_Messages[Fin_error_325]; code = 325;}
    
-     if ((operation_cost_ind == -1) || (operation_cost <= 0.0)) {
+     if ((operation_cost_ind == -1) || (operation_cost < 0.0)) {
         Message += TF_Messages[Fin_error_326]; code = 326;}
    
-     if ((hr_cost_ind == -1) || (hr_cost <= 0.0)) {
+     if ((hr_cost_ind == -1) || (hr_cost < 0.0)) {
         Message += TF_Messages[Fin_error_327]; code = 327;}
 
      if ((other_initial_cost1_ind == -1) || (other_initial_cost1 < 0.0)) {
@@ -430,7 +430,7 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
      else if ((principal_ind == -1) || (product_type == 2 && (principal < 70000.0 || principal > 200000.0))){
         Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
    
-     if ((int_rate_ind == -1) || (int_rate < 0.15)||(int_rate > 0.20)) {
+     if ((int_rate_ind == -1) || (int_rate < 0.0)||(int_rate > 0.20)) {
           Message += TF_Messages[Loan_error_332]; code = 332;}
    
      if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
@@ -450,7 +450,7 @@ int Loan::loan_validate(char * appNo, char *tsn, TADOHandler *handler)
    
      if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period >= periods)) {
         Message +=TF_Messages[Loan_error_338];   code = 338;}
-   
+
      if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
         Message += TF_Messages[Loan_error_339];  code = 339;}
 
@@ -560,7 +560,7 @@ int Loan::loan_validate_no_principal(char * appNo, char *tsn, TADOHandler *handl
      else if ((principal_ind == -1) || (product_type == 2 && (principal < 70000.0 || principal > 200000.0))){
         Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
   */
-     if ((int_rate_ind == -1) || (int_rate < 0.15)||(int_rate > 0.20)) {
+     if ((int_rate_ind == -1) || (int_rate < 0.0)||(int_rate > 0.20)) {
           Message += TF_Messages[Loan_error_332]; code = 332;}
 
      if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
