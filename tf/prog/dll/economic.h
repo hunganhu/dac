@@ -15,13 +15,13 @@ const double KHJ_LATE_30D_RATIO = 0.23115925; // KHJ tatio of 30 days late / ori
 // GX product information
 const double GX_APP_FEE_RECEIVABLE = 5000.0;
 const double GX_TRANSFER_BONUS = 3000.0;
-const double GX_OUT_SOURCE_BONUS = 740.0;
+const double GX_OUT_SOURCE_BONUS = 895.0;  // modified 20051013
 const double GX_OUT_SOURCE_RATE = 0.04;
 
 // KHJ product information
 const double KHJ_APP_FEE_RECEIVABLE = 2000.0;
 const double KHJ_TRANSFER_BONUS = 3000.0;
-const double KHJ_OUT_SOURCE_BONUS = 895.0;
+const double KHJ_OUT_SOURCE_BONUS = 895.0; // modified 20051013
 const double KHJ_OUT_SOURCE_RATE = 0.04;
 
 //-------------------------------------------------------------------------------------------
