@@ -87,6 +87,10 @@ __published:	// IDE-managed Components
         TBitBtn *Optimal;
         TBitBtn *Decision;
         TBitBtn *Prescreen;
+        TEdit *Edit5;
+        TLabel *Label14;
+        TEdit *Edit6;
+        TLabel *Label15;
         void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
         void __fastcall OptimalClick(TObject *Sender);
         void __fastcall DecisionClick(TObject *Sender);

@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 283
-  Top = 30
+  Left = 312
+  Top = 39
   Width = 683
   Height = 351
   Caption = 'TF Approval Module'
@@ -185,9 +185,35 @@ object Form1: TForm1
     Font.Style = [fsBold]
     ParentFont = False
   end
+  object Label14: TLabel
+    Left = 40
+    Top = 120
+    Width = 35
+    Height = 20
+    Caption = 'TSN'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object Label15: TLabel
+    Left = 208
+    Top = 120
+    Width = 55
+    Height = 20
+    Caption = 'tsDate'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'MS Sans Serif'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
   object Specific: TBitBtn
     Left = 208
-    Top = 136
+    Top = 160
     Width = 113
     Height = 25
     Caption = 'Specific'
@@ -213,8 +239,8 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 1
     Text = 
-      'Provider=SQLOLEDB.1;Password=jcic;Persist Security Info=True;Use' +
-      'r ID=jcic;Initial Catalog=TF_TEST;Data Source=giza'
+      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
+      'e;User ID=sa;Initial Catalog=dacdb;Data Source=oliver\daisy'
   end
   object CheckBox1: TCheckBox
     Left = 40
@@ -263,7 +289,7 @@ object Form1: TForm1
   end
   object Button1: TButton
     Left = 584
-    Top = 136
+    Top = 160
     Width = 75
     Height = 25
     Caption = 'End'
@@ -278,7 +304,7 @@ object Form1: TForm1
   end
   object Optimal: TBitBtn
     Left = 344
-    Top = 136
+    Top = 160
     Width = 105
     Height = 25
     Caption = 'Optimal'
@@ -293,7 +319,7 @@ object Form1: TForm1
   end
   object Decision: TBitBtn
     Left = 472
-    Top = 136
+    Top = 160
     Width = 89
     Height = 25
     Caption = 'Decision'
@@ -308,7 +334,7 @@ object Form1: TForm1
   end
   object Prescreen: TBitBtn
     Left = 48
-    Top = 136
+    Top = 160
     Width = 113
     Height = 25
     Caption = 'Prescreen'
@@ -321,10 +347,24 @@ object Form1: TForm1
     TabOrder = 10
     OnClick = PrescreenClick
   end
+  object Edit5: TEdit
+    Left = 96
+    Top = 120
+    Width = 105
+    Height = 21
+    TabOrder = 11
+  end
+  object Edit6: TEdit
+    Left = 280
+    Top = 120
+    Width = 81
+    Height = 21
+    TabOrder = 12
+  end
   object ADOConnection1: TADOConnection
     ConnectionString = 
-      'Provider=SQLOLEDB.1;Password=jcic;Persist Security Info=True;Use' +
-      'r ID=jcic;Initial Catalog=TF_TEST;Data Source=giza'
+      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
+      'e;User ID=sa;Initial Catalog=dacdb;Data Source=OLIVER\DAISY'
     Provider = 'SQLOLEDB.1'
     Left = 416
     Top = 272

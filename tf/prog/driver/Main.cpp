@@ -442,10 +442,10 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
 {
   TADOQuery *QueryW = ADOQuery2;
   AnsiString sql_stmt, sql_stmt2;
-  AnsiString app_sn, app_date, ts_date, jcic_date;
+  AnsiString app_sn, app_date, ts_date, jcic_date, tsn;
   TADOHandler *dbhandle;             // pass connection object to function
 
-  char *tsn="1";
+//  char *tsn="1";
   char errMsg[257];
   char ole_str[256];
   AnsiString oledbString;
@@ -471,7 +471,8 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
     app_sn = Edit2->Text;
     app_date = Edit3->Text;
     jcic_date = Edit4->Text;
-    ts_date = app_date;
+    tsn = Edit5->Text;
+    ts_date = Edit6->Text;
     *errMsg = '\0';
 
      AnsiString audit_userno1="A12345";
@@ -481,15 +482,15 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
      AnsiString decline_code="R";
      AnsiString manual_code="XYZ";
      int decision = 1;
-
+/*
      status = decision_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                            tsn, decision, ole_str,
+                            tsn.c_str(), decision, ole_str,
                  audit_userno1.c_str(), change_code.c_str(), major_deviation.c_str(),
                  minor_deviation.c_str(), decline_code.c_str(), manual_code.c_str(),
-                 errMsg/*, dbhandle*/);
-
-//    status = optimal_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-//                          tsn, ole_str, errMsg/*, dbhandle*/);
+                 errMsg);
+*/
+    status = specific_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                          tsn.c_str(), ole_str, errMsg/*, dbhandle*/);
 
     Label2->Caption = Edit2->Text;
     Label3->Caption = Edit3->Text;
