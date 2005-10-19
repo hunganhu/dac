@@ -198,6 +198,7 @@ class Loan {
     void prescreen(char *inquiry_date, TADOHandler *handler);
     void calculate_rscore(TADOHandler *handler);
     double calculate_pd(int line, TADOHandler *handler);
+    double calculate_pd_test(int line, TADOHandler *handler);
     double calculate_npv(int line, double pb);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     int get_product_type();

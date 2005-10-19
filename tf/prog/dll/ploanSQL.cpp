@@ -121,7 +121,7 @@ char *SQLCommands[] = {
 
 /* Get_PB_test */
 "  select card, ms082, WI001_12m, partial_rscore_new, rscore_new, brmp_score"
-"  from tf_gx_score_0913_15day_testcase"
+"  from tf_score_0913_15day_testcase"
 "  where idn = :v0",
 
 /* Write_NPV_Result*/

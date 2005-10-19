@@ -497,6 +497,133 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
 }
 
 
+//---------------------------------------------------------------------------
+int specific_cal_test(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message)
+/*
+int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message,
+                TADOHandler *dbhandle)
+*/
+{
+ TADOHandler *dbhandle;  // commemt if past from argument
+ Loan *ptrLoan;
+ Variant hostVars[20];
+ char  sqlCommand[256];
+ String Message = "";
+ int errCode = 0;
+ int reason_code = 0;
+ double pb;
+
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
+ try {
+    dbhandle = new TADOHandler();    // commemt if past from argument
+    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
+    ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
+    errCode = ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
+    if (errCode == 0)
+       ptrLoan->loan_validate(app_sn, tsn, dbhandle);
+
+    hostVars[0] = app_sn;
+    hostVars[1] = tsn;
+    hostVars[2] = ts_data_date;
+    hostVars[3] = jcic_data_date;
+    hostVars[4] = app_data_time;
+    hostVars[5] = ptrLoan->get_product_type();
+/*
+    if (ptrLoan->get_code() == 313 ||ptrLoan->get_code() == 305) {  // No application, Invalid product
+       // write data error to approval_cal.
+       errCode = -1;
+       strcpy (error_message, ptrLoan->error().c_str());
+       dbhandle->CloseDatabase();  // commemt if past from argument
+       delete ptrLoan;
+       return (-1);
+    } else
+*/
+    if (ptrLoan->get_code() != 0) {
+       // write data error to approval_cal.
+       hostVars[6] = ptrLoan->get_principal();
+       hostVars[7] = ptrLoan->get_code();
+       hostVars[8] = ptrLoan->error();
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 8);
+       dbhandle->CloseDatabase();  // commemt if past from argument
+       delete ptrLoan;
+       return (0);
+    }
+//    dbhandle->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
+//    ptrLoan->prescreen(jcic_data_date, dbhandle);
+//    errCode = ptrLoan->get_code();
+//    if (errCode == 0 || errCode == 201) {   // No major derug hit or JCIC expires
+//       ptrLoan->calculate_rscore(dbhandle);
+       pb = ptrLoan->calculate_pd_test(ptrLoan->get_principal(), dbhandle);
+       ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
+       // write_specific result to approval_cal
+       hostVars[6] = ptrLoan->get_principal();
+       hostVars[7] = RoundTo(pb, -3);
+       hostVars[8] = ptrLoan->get_npv();
+       if (ptrLoan->get_npv() >= 0){
+          reason_code = 1;
+          Message = TF_Messages[Normal_1];
+       }
+       else {
+          reason_code = 0;
+          Message = TF_Messages[Normal_0];
+       }
+       if (Days_between(jcic_data_date, app_data_time) > 30) {
+          errCode = 2;
+          reason_code = 201;
+          Message = TF_Messages[Warning_201];
+          strcpy (error_message, TF_Messages[Warning_201]);
+       } else {
+          switch (ptrLoan->get_card()) {
+             case 1:if (ptrLoan->get_principal() > A2_LIMIT) {
+                       reason_code = 202;
+                       Message = TF_Messages[Warning_202];
+                    }
+                    break;
+             case 2:if (ptrLoan->get_principal() > B1_LIMIT) {
+                       reason_code = 203;
+                       Message = TF_Messages[Warning_203];
+                    }
+                    break;
+             case 3:
+             case 4:if (ptrLoan->get_principal() > B2_C_LIMIT) {
+                       reason_code = 204;
+                       Message = TF_Messages[Warning_204];
+                    }
+                    break;
+          }
+       }
+       hostVars[9] = reason_code;
+       hostVars[10] = Message;
+       hostVars[11] = ptrLoan->get_external_monthly_payment();
+       dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 11);
+//    }
+//    else {
+//       // write prescreen result to PRESECREEN
+//       errCode = 1;
+//       strcpy (error_message, "");
+//    }
+//#ifdef _WRFLOW
+//     dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+//#endif
+     /* Drop all temporary tables before closing a connection to avoid connection creep problem.
+        Without droping temp tables will not release system resource after connection is closed.
+     */
+//    dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
+    dbhandle->CloseDatabase();  // commemt if past from argument
+ } catch (Exception &E) {
+     strcpy (error_message, E.Message.c_str());
+     errCode = -1;
+ }
+ delete ptrLoan;
+ delete dbhandle;  // commemt if past from argument
+ return(errCode);
+
+}
 
 
 

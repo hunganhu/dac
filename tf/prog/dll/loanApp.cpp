@@ -1085,6 +1085,132 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
 }
 
 //---------------------------------------------------------------------------
+double Loan::calculate_pd_test(int line, TADOHandler *handler)
+{
+ Variant hostVars[5];
+ int    card;
+ double ms082, wi001_12m, risk_score;
+ double pb_original, pb_original_1, pb_original_2, pb_original_3;
+ double pb_1, pb_2, pb_3;
+ int    ms082_ind;
+ TADODataSet *ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+
+ try {
+    hostVars[0] = app_sn;
+    handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
+    ds->First();
+    if (!ds->Eof) {
+       if (product_type == 1) { // product GX
+          card = ds->FieldValues["card"];
+          switch (card) {
+             case 0: // screen out
+                    break;
+             case 1: // A2, full JCIC
+                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    if (! ds->FieldValues["ms082"].IsNull())
+                       ms082 = ds->FieldValues["ms082"];
+                    else
+                       ms082 = 0.0;
+                    wi001_12m = ds->FieldValues["WI001_12m"];
+                    pb_original = cal_GXa2_pb(line, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_original_1 = cal_GXa2_pb(AMOUNT_1, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_original_2 = cal_GXa2_pb(AMOUNT_2, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_original_3 = cal_GXa2_pb(AMOUNT_3, int_rate, periods, risk_score,
+                                           ms082, wi001_12m);
+                    pb_1 = pb_original_1;
+                    pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
+                    pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
+                    if (line > AMOUNT_3)
+                        pd = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                    else if (line > AMOUNT_2)
+                        pd = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                    else if (line > AMOUNT_1)
+                        pd = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                    else
+                        pd = pb_original;
+                    if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
+                    break;
+             case 2: // B1 ms080 > 0
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_GXb1_pb(risk_score);
+                    break;
+             case 3: // B2 ms080 <= 0
+                    risk_score = ds->FieldValues["brmp_score"];
+                    if (! ds->FieldValues["ms082"].IsNull())
+                       ms082 = ds->FieldValues["ms082"];
+                    else
+                       ms082 = 0.0;
+                    pb_original = cal_GXb2_pb(line, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_original_1 = cal_GXb2_pb(AMOUNT_1, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_original_2 = cal_GXb2_pb(AMOUNT_2, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_original_3 = cal_GXb2_pb(AMOUNT_3, int_rate, periods, risk_score,
+                                           ms082);
+                    pb_1 = pb_original_1;
+                    pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
+                    pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
+                    if (line > AMOUNT_3)
+                        pd = (pb_original - pb_original_3) * INFLAT_3 + pb_3;
+                    else if (line > AMOUNT_2)
+                        pd = (pb_original - pb_original_2) * INFLAT_2 + pb_2;
+                    else if (line > AMOUNT_1)
+                        pd = (pb_original - pb_original_1) * INFLAT_1 + pb_1;
+                    else
+                        pd = pb_original;
+                    if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
+                    break;
+             case 4: // Demographic
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_GXc_pb(risk_score);
+                    break;
+          } //End of switch
+       } // End of product GX
+       else if (product_type == 2) { // product KHJ
+          card = ds->FieldValues["card"];
+          switch (card) {
+             case 0: // screen out
+                    break;
+             case 1: // A2, full JCIC
+                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    pd = cal_KHJa2_pb(risk_score);
+                    if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
+                    break;
+             case 2: // B1 ms080 > 0
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_KHJb1_pb(risk_score);
+                    if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
+                    break;
+             case 3: // B2 ms080 <= 0
+                    risk_score = ds->FieldValues["brmp_score"];
+                    pd = cal_KHJb2_pb(risk_score);
+                    if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
+                    break;
+             case 4: // Demographic
+                    risk_score = ds->FieldValues["rscore_new"];
+                    pd = cal_KHJc_pb(risk_score);
+                    if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
+                    break;
+          } // End of switch
+       } // End of product KHJ
+    }
+//     hostVars[0] = pd;
+//     hostVars[1] = app_sn;
+//     handler->ExecSQLCmd(SQLCommands[Write_PB_Result], hostVars, 1);
+//    }
+ } catch (Exception &E) {
+     throw;
+ }
+  ds->Close();
+  delete ds;
+ return(pd);
+}
+//---------------------------------------------------------------------------
 int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler)
 /*
   npv[][0]: lending amount (input)
@@ -1481,12 +1607,12 @@ double Loan::calculate_commission(int line)
              if (HeadBonusDiscount [GX][channel] == 1)       // 主管手續獎金
                 head_bonus = application_fee / GX_APP_FEE_RECEIVABLE
                              * HeadFeeBonus [GX][channel];
-             else head_bonus = 0.0;
+             else head_bonus = HeadFeeBonus [GX][channel];
 
              if (SalesBonusDiscount [GX][channel] == 1)      // 業務手續獎金
                 sales_bonus = application_fee / GX_APP_FEE_RECEIVABLE
                              * SalesFeeBonus [GX][channel];
-             else sales_bonus = 0.0;
+             else sales_bonus = SalesFeeBonus [GX][channel];
 
              break;
     case KHJ:if (line <= 100000) line_grp = 0;
