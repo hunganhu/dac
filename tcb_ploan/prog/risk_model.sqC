@@ -1,0 +1,1325 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2004
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: risk_model.sqC
+**
+** Description: How to generate a risk model
+**
+**
+**
+**
+****************************************************************************/
+
+#include <string.h>
+#include <sqlenv.h>
+#include <sqlutil.h>
+#include "utilemb.h"
+#if ((__cplusplus >= 199711L) && !defined DB2HP) || \
+    (DB2LINUX && (__LP64__ || (__GNUC__ >= 3)) )
+   #include <iostream>
+   using namespace std;
+#else
+   #include <iostream.h>
+#endif
+#include "risk_model.h"
+
+extern char MESSAGE[1024];
+
+int RiskModel::StaticStmtInvoke()
+{
+  struct sqlca sqlca;
+
+
+  EXEC SQL CREATE TABLE table1(col1 INTEGER);
+  EMB_SQL_CHECK();
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK();
+
+  EXEC SQL DROP TABLE table1;
+  EMB_SQL_CHECK();
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK();
+
+  return 0;
+} //RiskModel::StaticStmtInvoke
+
+int RiskModel::StaticStmtWithHostVarsInvoke()
+{
+/*
+  struct sqlca sqlca;
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    short hostVar1;
+    char hostVar2[20];
+  EXEC SQL END DECLARE SECTION;
+
+  hostVar1 = 15;
+  strcpy(hostVar2, "Eastern");
+
+  EXEC SQL DELETE FROM org
+    WHERE deptnumb = :hostVar1 AND division = :hostVar2;
+  EMB_SQL_CHECK("Delete with host variables -- Execute");
+
+  EXEC SQL ROLLBACK;
+  EMB_SQL_CHECK();
+*/
+  return 0;
+} //RiskModel::StaticStmtWithHostVarsInvoke
+
+int RiskModel::DynamicStmtEXECUTE_IMMEDIATE()
+{
+/*
+  struct sqlca sqlca;
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    char stmt1[50];
+    char stmt2[50];
+  EXEC SQL END DECLARE SECTION;
+
+
+  // create a table
+  strcpy(stmt1, "CREATE TABLE table1(col1 INTEGER)");
+  EXEC SQL EXECUTE IMMEDIATE :stmt1;
+  EMB_SQL_CHECK();
+
+  // drop a table
+  strcpy(stmt2, "DROP TABLE table1");
+
+  EXEC SQL EXECUTE IMMEDIATE :stmt2;
+  EMB_SQL_CHECK();
+*/
+  return 0;
+} //RiskModel::DynamicStmtEXECUTE_IMMEDIATE
+
+int RiskModel::DynamicStmtEXECUTE()
+{
+/*
+  struct sqlca sqlca;
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    char hostVarStmt[50];
+  EXEC SQL END DECLARE SECTION;
+
+  // prepare the statement
+  strcpy(hostVarStmt, "DELETE FROM org WHERE deptnumb = 15");
+  EXEC SQL PREPARE Stmt FROM :hostVarStmt;
+  EMB_SQL_CHECK();
+
+  // execute the statement
+  EXEC SQL EXECUTE Stmt;
+  EMB_SQL_CHECK();
+
+  // ROLLBACK the transaction
+  cout << "\n  Rollback the transaction." << endl;
+  EXEC SQL ROLLBACK;
+  EMB_SQL_CHECK();
+*/
+  return 0;
+} //RiskModel::DynamicStmtEXECUTE
+
+
+int RiskModel::CreateWorkingTables()
+{
+  struct sqlca sqlca;
+
+  cout << "Enter CreateWorkingTables()" << endl;
+/* create working tables */
+  EXEC SQL
+     create table bam086_dedup (
+     	case_sn		char(12),
+     	idn		char(11),
+    	inquiry_date	char(10),
+     	data_yyy	char(3),
+     	data_mm		char(2),
+     	bank_code	char(7),
+     	bank_name	char(40),
+     	account_code	char(1),
+     	account_code2	char(1),
+     	purpose_code	char(1),
+     	contract_amt	numeric(10),
+     	loan_amt	numeric(10),
+     	pass_due_amt	numeric(10),
+     	pay_code_12	char(12),
+     	co_loan		char(1),
+    	un_mark         char(1),
+    	u_yyymmdd       char(8),
+    	u_rate          numeric(3),
+    	ib_mark         char(1),
+    	iab_ban         char(8),
+    	iab_name        char(60),
+    	r_yyymmdd       char(7),
+    	refund_amt      numeric(10),
+    	ck_ref          char(1),
+     	bank_code2	char(3),
+    	now		int,
+     	cnt		int
+     );
+
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table krm001_dedup (
+     	case_sn		char(12),
+     	idn		char(11),
+    	inquiry_date	char(10),
+     	card_brand	char(1),
+     	card_type	char(1),
+     	issue		char(3),
+     	issue_name	char(40),
+     	start_date	char(7),
+     	stop_date	char(7),
+     	stop_code	char(1),
+     	ab_code		char(1),
+     	m_s		char(1),
+     	limit		char(6),
+    	limit_type	char(1),
+    	usage_type	char(1),
+    	secure		char(1),
+     	start_mon_since int,
+     	end_mon_since	int,
+    	now		int,
+     	cnt		int
+     );
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table krm023_dedup (
+     	case_sn		char(12),
+     	idn		char(11),
+    	inquiry_date	char(10),
+     	yrmon		char(5),
+     	issue		char(3),
+     	issue_name	char(40),
+     	kr_code		char(7),
+     	limit		char(5),
+     	payment		char(3),
+     	cash		char(1),
+     	pay_code	char(1),
+     	mon_since	int,
+     	payment_amt	float,
+     	bucket_def_1k	int default 0,
+     	bucket_ef_1k	int default 0,
+     	bucket_f_1k	int default 0,
+    	now		int,
+	curr_inqmon	int,
+     	cnt		int
+     );
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table stm001_dedup (
+     	case_sn		char(12),
+     	idn		char(11),
+    	inquiry_date	char(10),
+     	query_date	char(7),
+     	bank_code	char(7),
+     	bank_name	char(40),
+     	item_list	char(10),
+     	query_mon_since int,
+    	now		int,
+     	cnt		int
+     );
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table jas002_t (
+     	case_sn		char(12),
+     	idn		char(11),
+    	inquiry_date	char(10),
+     	reason		char(1),
+     	date_happen	char(7),
+     	mon_since	int
+     );
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table jas002_t_dedup (
+     	case_sn		char(12),
+     	idn		char(11),
+    	inquiry_date	char(10),
+     	reason		char(1),
+     	date_happen	char(7),
+     	mon_since	int,
+    	now		int,
+     	cnt		int
+     );
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table pdaco_cal (
+    	case_sn		char(12),
+    	idn		char(11),
+    	inquiry_date	char(10),
+    	now		int,
+    	avail_flag	int,
+    	jas002_defect	int default 0,
+    	krm001_hit	int default 0,
+    	krm023_hit	int default 0,
+    	max_bucket	int default 0,
+    	fs044		int default 0,
+    	cash_max_bucket	int default 0,
+    	cash_utilization int default 0,
+    	ind001		int default 0,
+    	fs102_3m	decimal(16,8),
+    	fs102_6m	decimal(16,8),
+    	fs102_9m	decimal(16,8),
+    	ft102_42	decimal(16,8),
+    	ft102_42_r	decimal(16,8),
+    	ft102_42_r_tran	decimal(16,8),
+    	fs031		decimal(16,8),
+    	fs031_tran	decimal(16,8),
+    	fs005_1k_3m	decimal(16,8),
+    	fs005_1k_3m_q	decimal(16,8),
+    	fs005_1k_3m_q_tran	decimal(16,8),
+    	fs059_1k_3m	decimal(16,8),
+    	fs059_1k_6m	decimal(16,8),
+    	fs059_1k_9m	decimal(16,8),
+    	ft059_1k_43	decimal(16,8),
+    	ft059_1k_43_r	decimal(16,8),
+    	ft059_1k_43_r_tran	decimal(16,8),
+    	ft059_1k_42	decimal(16,8),
+    	ft059_1k_42_q	decimal(16,8),
+    	ft059_1k_42_q_tran	decimal(16,8),
+    	fs051		decimal(16,8),
+    	fs051_tran	decimal(16,8),
+    	fs016_3m	decimal(16,8),
+    	fs101_3m	decimal(16,8),
+    	int015_3	decimal(16,8),
+    	int015_3_tran	decimal(16,8),
+    	fs205_1k_3m	decimal(16,8),
+    	fs205_1k_3m_q	decimal(16,8),
+    	fs205_1k_3m_q_tran	decimal(16,8),
+    	fs212_1k_3m	decimal(16,8),
+    	fs212_1k_6m	decimal(16,8),
+    	ft212_1k_43	decimal(16,8),
+    	ft212_1k_43_q	decimal(16,8),
+    	ft212_1k_43_q_tran	decimal(16,8),
+    	ms117_6m	decimal(16,8),
+    	fs014_9m	decimal(16,8),
+    	fs101_9m	decimal(16,8),
+    	int028_9	decimal(16,8),
+    	int028_9_tran	decimal(16,8),
+    	sex		int,
+    	sex_tran	int,
+    	app_last_month_bucket	int,
+    	app_last_month_bucket_tran	int,
+    	pdaco_score	decimal(16,8),
+    	pdaco_twen	decimal(16,8),
+    	pb_in		decimal(16,8),
+    	pb_inout	decimal(16,8)
+       );
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     create table t1 (
+        case_sn   char(12),
+        mon	  int,
+        deliquent_line int);
+  EMB_SQL_CHECK();
+    
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK();
+
+  cout << "Exit CreateWorkingTables()" << endl;
+  return 0;
+
+} // RiskModel::CreateWorkingTables()
+
+int RiskModel::PrepareJcicTables(char *case_sn)
+{
+  struct sqlca sqlca;
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    char Case_Sn[20];
+    char Idn[12];
+    long  inx;
+  EXEC SQL END DECLARE SECTION;
+
+  strcpy (Case_Sn, case_sn);
+//  strcpy (Idn, idn);
+  cout << "Enter PrepareJcicTables()" << endl;
+
+  EXEC SQL
+     insert into krm001_dedup (case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, cnt)
+        select case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, count(*)
+        from db2inst1.krm001
+        where case_sn = :Case_Sn
+        group by case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
+  EMB_SQL_CHECK();
+  cout << "stmt 1 done." << endl;
+
+  EXEC SQL
+     insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
+        select case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
+        from db2inst1.krm023
+        where case_sn = :Case_Sn
+        group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
+  EMB_SQL_CHECK();
+  cout << "stmt 2 done." << endl;
+
+  EXEC SQL
+     insert into stm001_dedup (case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, cnt)
+        select case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, count(*)
+        from db2inst1.stm001
+        where case_sn = :Case_Sn
+        group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
+  EMB_SQL_CHECK();
+  cout << "stmt 3 done." << endl;
+
+  EXEC SQL
+    insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
+       select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, count(*)
+       from db2inst1.bam086
+        where case_sn = :Case_Sn
+       group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
+  EMB_SQL_CHECK();
+  cout << "stmt 4 done." << endl;
+
+  EXEC SQL
+     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+        select case_sn, idn, inquiry_date, 'D', data_yyymmdd
+        from db2inst1.bas001
+        where data_yyymmdd is not null or rtrim(ltrim(data_yyymmdd)) <> ''
+          and case_sn = :Case_Sn;
+  EMB_SQL_CHECK();
+  cout << "stmt 5 done." << endl;
+
+  EXEC SQL
+     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+        select case_sn, idn, inquiry_date, 'B', ck_date
+        from db2inst1.dam103
+        where ck_date is not null or rtrim(ltrim(ck_date)) <> ''
+          and case_sn = :Case_Sn;
+  EMB_SQL_CHECK();
+  cout << "stmt 6 done." << endl;
+
+  EXEC SQL
+     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+        select case_sn, idn, inquiry_date, 'R', beg_date
+        from db2inst1.dam203
+        where beg_date is not null or rtrim(ltrim(beg_date)) <> ''
+          and case_sn = :Case_Sn;
+  EMB_SQL_CHECK();
+  cout << "stmt 7 done." << endl;
+
+  EXEC SQL
+     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+        select case_sn, idn, inquiry_date, 'S', stop_date
+        from db2inst1.krm001
+        where stop_code = '3'
+          and case_sn = :Case_Sn;
+  EMB_SQL_CHECK();
+  cout << "stmt 8 done." << endl;
+
+  EXEC SQL
+     insert into jas002_t_dedup (case_sn, idn, inquiry_date, reason, date_happen, cnt)
+        select case_sn, idn, inquiry_date, reason, date_happen, count(*)
+        from jas002_t
+        group by case_sn, idn, inquiry_date, reason, date_happen;
+  EMB_SQL_CHECK();
+  cout << "stmt 9 done." << endl;
+
+  EXEC SQL
+     update jas002_t_dedup set date_happen = (case when date_happen = '' then NULL else date_happen end);
+  EMB_SQL_CHECK();
+  cout << "stmt 10 done." << endl;
+
+  EXEC SQL
+     update krm001_dedup
+        set card_brand = (case when card_brand = '' then NULL else card_brand end),
+            card_type  = (case when card_type  = '' then NULL else card_type  end),
+            issue      = (case when issue      = '' then NULL else issue      end),
+            issue_name = (case when issue_name = '' then NULL else issue_name end),
+            start_date = (case when start_date = '' then NULL else start_date end),
+            stop_date  = (case when stop_date in ('','0') then NULL else stop_date  end),
+            stop_code  = (case when stop_code  = '' then NULL else stop_code  end),
+            ab_code    = (case when ab_code    = '' then NULL else ab_code    end),
+            m_s        = (case when m_s        = '' then NULL else m_s        end),
+            limit      = (case when limit      = '' then NULL else limit      end);
+  EMB_SQL_CHECK();
+  cout << "stmt 11 done." << endl;
+
+  EXEC SQL
+     update krm023_dedup
+        set issue      = (case when issue      = '' then NULL else issue      end),
+            issue_name = (case when issue_name = '' then NULL else issue_name end),
+            limit      = (case when limit      = '' then NULL else limit      end),
+            yrmon      = (case when yrmon      = '' then NULL else yrmon      end),
+            kr_code    = (case when kr_code    = '' then NULL else kr_code    end),
+            payment    = (case when payment    = '' then NULL else payment    end),
+            cash       = (case when cash       = '' then NULL else cash       end),
+            pay_code   = (case when pay_code   = '' then NULL else pay_code   end);
+  EMB_SQL_CHECK();
+  cout << "stmt 12 done." << endl;
+
+  EXEC SQL
+     update stm001_dedup
+        set bank_code  = (case when bank_code  = '' then NULL else bank_code  end),
+            bank_name  = (case when bank_name  = '' then NULL else bank_name  end),
+            query_date = (case when query_date = '' then NULL else query_date end),
+            item_list  = (case when item_list  = '' then NULL else item_list  end);
+  EMB_SQL_CHECK();
+  cout << "stmt 13 done." << endl;
+
+  EXEC SQL
+     update bam086_dedup
+        set data_yyy      = (case when data_yyy      = '' then NULL else data_yyy      end),
+            data_mm       = (case when data_mm       = '' then NULL else data_mm       end),
+            bank_code     = (case when bank_code     = '' then NULL else bank_code     end),
+            bank_name     = (case when bank_name     = '' then NULL else bank_name     end),
+            account_code  = (case when account_code  = '' then NULL else account_code  end),
+            account_code2 = (case when account_code2 = '' then NULL else account_code2 end),
+            purpose_code  = (case when purpose_code  = '' then NULL else purpose_code  end),
+            pay_code_12   = (case when pay_code_12   = '' then NULL else pay_code_12   end),
+            co_loan       = (case when co_loan       = '' then NULL else co_loan       end);
+  EMB_SQL_CHECK();
+  cout << "stmt 13.5 done." << endl;
+
+  EXEC SQL
+     update krm001_dedup
+        set start_date = (case
+     		   when left(ltrim(start_date),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(start_date))
+     		   else start_date
+     		  end),
+            stop_date =  (case
+     		   when left(ltrim(stop_date),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(stop_date))
+      		   else stop_date
+     		  end);
+  EMB_SQL_CHECK();
+  cout << "stmt 14 done." << endl;
+
+  EXEC SQL
+     update krm001_dedup
+        set start_mon_since = (case
+     			when left(start_date,1) = '*' then null
+     			else cast(left(start_date, 3) as int)  * 12 + cast(right(left(start_date, 5), 2) as int)
+     		       end),
+            end_mon_since = (case
+     			when left(stop_date, 1) = '*' then null
+     			else cast(left(stop_date, 3) as int) * 12 + cast(right(left(stop_date, 5), 2) as int)
+     		     end),
+            now = (case when substr(inquiry_date, 7,2) > '15' then
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+                   else
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                   end);
+  EMB_SQL_CHECK();
+  cout << "stmt 15 done." << endl;
+
+  EXEC SQL
+     update krm001_dedup
+        set end_mon_since = 12000
+        where end_mon_since is null;
+  EMB_SQL_CHECK();
+  cout << "stmt 16 done." << endl;
+
+  EXEC SQL
+     update jas002_t_dedup
+        set date_happen = (case
+     		    when left(ltrim(date_happen),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(date_happen))
+      		    else date_happen
+      		   end);
+  EMB_SQL_CHECK();
+  cout << "stmt 17 done." << endl;
+
+  EXEC SQL
+     update jas002_t_dedup
+        set mon_since = (case
+        		  when left(ltrim(date_happen),1) = '*' then null
+        		  else cast(left(ltrim(date_happen), 3) as int)* 12 + cast(right(left(rtrim(date_happen), 5), 2) as int)
+      	  	         end),
+            now = (case when substr(inquiry_date, 7,2) > '15' then
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+                   else
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                   end);
+  EMB_SQL_CHECK();
+  cout << "stmt 18 done." << endl;
+
+  EXEC SQL
+     update krm023_dedup
+        set yrmon = (case
+     	      when left(ltrim(yrmon),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(yrmon))
+     	      else yrmon
+     	     end);
+  EMB_SQL_CHECK();
+  cout << "stmt 19 done." << endl;
+
+  EXEC SQL
+     update krm023_dedup
+        set mon_since = (case
+     		   when left(yrmon,1) = '*' then null
+     		   else cast(left(yrmon, 3) as int) * 12 + cast(right(left(yrmon, 5), 2) as int)
+     		 end),
+            now = (case when substr(inquiry_date, 7,2) > '15' then
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+                   else
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                   end),
+            curr_inqmon = (case when substr(inquiry_date, 7,2) > '15' then 1
+                           else 0 end);
+  EMB_SQL_CHECK();
+  cout << "stmt 20 done." << endl;
+
+  EXEC SQL
+     update stm001_dedup
+        set query_date = (case
+     		   when left(ltrim(query_date),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(query_date))
+     		   else query_date
+     		  end);
+  EMB_SQL_CHECK();
+  cout << "stmt 21 done." << endl;
+
+  EXEC SQL
+     update stm001_dedup
+        set query_mon_since = (case
+     			when left(query_date,1) = '*' then null
+     			else cast(left(query_date, 3) as int) * 12 + cast(right(left(query_date, 5), 2) as int)
+     		       end),
+            now = (case when substr(inquiry_date, 7,2) > '15' then
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+                   else
+                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                   end);
+  EMB_SQL_CHECK();
+  cout << "stmt 22 done." << endl;
+
+  EXEC SQL
+     update krm023_dedup
+        set payment =
+             (case when right(left(payment,2),1) in ('H', 'M', 'L') then '0'||(left(payment,2))
+              else payment end);
+  EMB_SQL_CHECK();
+  cout << "stmt 23 done." << endl;
+
+  EXEC SQL
+     update krm023_dedup
+        set payment_amt =
+              (case right(payment,1) when 'L' then 2 when 'M' then 5 when 'H' then 8
+               else 0 end) * power(10, cast(left(payment,2) as int)-1) / 1000.0
+        where payment is not null;
+  EMB_SQL_CHECK();
+  cout << "stmt 24 done." << endl;
+
+  EXEC SQL
+     update krm023_dedup
+        set payment_amt = 0
+        where payment is null;
+  EMB_SQL_CHECK();
+  cout << "stmt 25 done." << endl;
+
+  EXEC SQL
+     update  krm023_dedup
+        set bucket_def_1k = (case when pay_code in ('D', 'E', 'F') and payment_amt > 1 then 1
+                             else 0 end),
+            bucket_ef_1k = (case when pay_code in ('E', 'F') and payment_amt > 1 then 1
+                            else 0 end),
+            bucket_f_1k = (case when pay_code = 'F' and payment_amt > 1 then 1
+                         else 0 end);
+  EMB_SQL_CHECK();
+  cout << "stmt 26 done." << endl;
+/*
+  EXEC SQL
+     create index i_k23_dedup_k on krm023_dedup(case_sn, issue, mon_since);
+  EMB_SQL_CHECK();
+  cout << "stmt 26-1 done." << endl;
+*/
+  inx = 11;
+  while (inx > 0){
+     EXEC SQL update krm023_dedup p
+        set (p.bucket_def_1k, p.bucket_ef_1k, p.bucket_f_1k) =
+            (select (case when p.bucket_def_1k=1 then s.bucket_def_1k +1 else 0 end),
+                    (case when p.bucket_ef_1k=1 then s.bucket_ef_1k +1 else 0 end),
+                    (case when p.bucket_f_1k=1 then s.bucket_f_1k +1 else 0 end)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and p.issue = s.issue
+               and p.mon_since = s.mon_since+1)
+         where p.now-p.mon_since = :inx;
+     inx--;
+     EMB_SQL_CHECK();
+  }
+  cout << "stmt 27 done." << endl;
+
+  EXEC SQL
+     update bam086_dedup
+        set bank_code2 = left(bank_code,3);
+  EMB_SQL_CHECK();
+  cout << "stmt 28 done." << endl;
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK();
+  cout << "Exit PrepareJcicTables()" << endl;
+
+  return 0;
+} // RiskModel::PrepareJcicTables()
+
+int RiskModel::Prescreen(char *case_sn)
+{
+  struct sqlca sqlca;
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    char Case_Sn_PS[20];
+  EXEC SQL END DECLARE SECTION;
+
+  strcpy (Case_Sn_PS, case_sn);
+  /* risk filter process */
+
+  EXEC SQL
+     insert into pdaco_cal(case_sn, idn)
+        select case_sn, Applicant_ID
+        from db2inst1.app_info
+        where case_sn = :Case_Sn_PS;
+  EMB_SQL_CHECK();
+  cout << "stmt 1 done." << endl;
+
+  /* Update filter variable*/
+  EXEC SQL
+    update pdaco_cal pv
+       set jas002_defect =
+           (select (case when count(*) > 0 then 1 else 0 end)
+            from jas002_t_dedup s
+            where now - mon_since <= 36
+              and p.case_sn = s.case_sn
+            group by s.case_sn );
+  EMB_SQL_CHECK();
+  cout << "stmt 2 done." << endl;
+
+  EXEC SQL
+    update pdaco_cal p
+       set krm023_hit =
+           (select (case when count(*) > 0 then 1 else 0 end)
+            from krm023_dedup s
+            where p.case_sn = s.case_sn);
+  EMB_SQL_CHECK();
+  cout << "stmt 3 done." << endl;
+
+  EXEC SQL
+    update pdaco_cal p
+       set krm001_hit =
+           (select (case when count(*) > 0 then 1 else 0 end)
+            from krm001_dedup s
+            where p.case_sn = s.case_sn);
+  EMB_SQL_CHECK();
+  cout << "stmt 4 done." << endl;
+
+  EXEC SQL
+    update pdaco_cal p
+       set max_bucket =
+           (select max(bucket_ef_1k)
+            from krm023_dedup s
+            where p.case_sn = s.case_sn
+            group by case_sn);
+  EMB_SQL_CHECK();
+  cout << "stmt 5 done." << endl;
+
+  /*----FS044----*/
+  EXEC SQL
+    update pdaco_cal p
+       set fs044 =
+           (select count(*)
+            from bam086_dedup s
+            where s.pass_due_amt > 0
+              and p.case_sn = s.case_sn
+            group by s.case_sn);
+  EMB_SQL_CHECK();
+  cout << "stmt 6 done." << endl;
+
+  /*----cash card max bucket----*/
+  EXEC SQL
+    update pdaco_cal p
+       set cash_max_bucket =
+          (select count(*)
+           from bam086_dedup s
+           where account_code = 'Y'
+             and NULLIF(left(pay_code_12, 1),'0') not in ('0', 'X')
+             and p.case_sn = s.case_sn
+           group by case_sn);
+  EMB_SQL_CHECK();
+  cout << "stmt 7 done." << endl;
+
+  /*----cash card utilization----*/
+  EXEC SQL
+    update pdaco_cal p
+       set cash_utilization =
+           (select count(*)
+            from bam086_dedup s
+            where account_code = 'Y'
+              and NULLIF(loan_amt, 0) / contract_amt >= 1
+              and contract_amt > 0
+              and p.case_sn = s.case_sn
+            group by case_sn );
+  EMB_SQL_CHECK();
+  cout << "stmt 8 done." << endl;
+
+  /*----Ind001----*/
+  EXEC SQL
+    update pdaco_cal p
+       set ind001 =
+           (select (case when  min(now) - min(start_mon_since) between 1 and 7 then 1 else 0 end)
+            from krm001_dedup s
+            where p.case_sn = s.case_sn
+            group by case_sn);
+  EMB_SQL_CHECK();
+  cout << "stmt 9 done." << endl;
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK();
+  return 0;
+} //RiskModel::Prescreen()
+
+int RiskModel::GeneratePdacoScore()
+{
+  struct sqlca sqlca;
+
+ /*Init variables*/
+ /*Init stm001 variables*/
+  EXEC SQL
+     update pdaco_cal p
+        set fs031 = 0
+        where exists (select *
+             from stm001_dedup s
+             where p.case_sn = s.case_sn);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 1 done." << endl;
+
+
+  /*Init bam085 variables*/
+  EXEC SQL
+     update pdaco_cal p
+        set fs051 = 0
+        where exists (select *
+             from bam086_dedup s
+             where p.case_sn = s.case_sn);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 2 done." << endl;
+
+  /*Init krm023 variables*/
+  EXEC SQL
+     update pdaco_cal p
+        set fs102_3m = 0,
+            fs102_6m = 0,
+            fs102_9m = 0,
+            fs005_1k_3m = 0,
+            fs059_1k_3m = 0,
+            fs059_1k_6m = 0,
+            fs059_1k_9m = 0,
+            fs014_9m = 0,
+            fs016_3m = 0,
+            fs101_3m = 0,
+            fs101_9m = 0,
+            ms117_6m = 0
+        where exists (select *
+             from krm023_dedup s
+             where p.case_sn = s.case_sn);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 3 done." << endl;
+  /*Init krm001 and krm023 variables*/
+
+  /* ft102_42_r_tran3	Τぇ獺ノ肂计 (Line > $100k) */
+  EXEC SQL
+     update pdaco_cal p
+        set fs102_3m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 3
+               and mon_since <= now - curr_inqmon
+               and cast(limit as int) > 100
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 4 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal p
+        set fs102_6m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 6
+               and mon_since <= now - curr_inqmon
+               and cast(limit as int) > 100
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 5 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal p
+        set fs102_9m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 9
+               and mon_since <= now - curr_inqmon
+               and cast(limit as int) > 100
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 6 done." << endl;
+
+  /*JCIC琩高Ω计within 4 month from the inquiry date (Credit Card ), no "15 day rule"*/
+  EXEC SQL
+     update pdaco_cal p
+        set fs031 =
+            (select count(*)
+             from stm001_dedup s
+             where p.case_sn = s.case_sn
+               and item_list is not null
+               and ltrim(rtrim(item_list)) != ''
+               and query_mon_since <= now - 3
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 7 done." << endl;
+
+  /* fs005_1k_3m	Τ┑筐煤蹿る计 (M2+) - Pay code in ('F') */
+  EXEC SQL
+     update pdaco_cal p
+        set fs005_1k_3m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 3
+               and mon_since <= now - curr_inqmon
+               and bucket_f_1k >= 2
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 8 done." << endl;
+
+  /* sex_tran	gender */
+  EXEC SQL
+     update pdaco_cal
+      set sex = cast(substr(idn, 2, 1) as int);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 9 done." << endl;
+
+  /* app_last_month_bucket_tran	last month max among all lines */
+  EXEC SQL
+     update pdaco_cal p
+        set app_last_month_bucket =
+            (select max(bucket_ef_1k)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 1
+               and mon_since <= now - curr_inqmon
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 10 done." << endl;
+
+  /* ft059_1k_43_r_tran	Τ┑筐煤蹿肂计 (M1+) - Pay code in ('E','F') */
+  /* ft059_1k_42_q_tran	Τ┑筐煤蹿肂计 (M1+) - Pay code in ('E','F') */
+  EXEC SQL
+     update pdaco_cal p
+        set fs059_1k_3m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 3
+               and mon_since <= now - curr_inqmon
+               and bucket_ef_1k >= 1
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 11 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal p
+        set fs059_1k_6m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 6
+               and mon_since <= now - curr_inqmon
+               and bucket_ef_1k >= 1
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 12 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal p
+        set fs059_1k_9m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 9
+               and mon_since <= now - curr_inqmon
+               and bucket_ef_1k >= 1
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 13 done." << endl;
+
+  /* fs051_tran	秅锣禪蹿掸计 */
+  EXEC SQL
+     update pdaco_cal p
+        set fs051 =
+            (select count(*)
+             from bam086_dedup s
+             where p.case_sn = s.case_sn
+               and purpose_code = '4'
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 14 done." << endl;
+
+  /* int015_3m_tran	ever 箇瞷肂计(FS016) / Τぇ獺ノ肂计(FS101) */
+  EXEC SQL
+     update pdaco_cal p
+        set fs016_3m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 3
+               and mon_since <= now - curr_inqmon
+               and cash = 'Y'
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 15 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal p
+        set fs101_3m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 3
+               and mon_since <= now - curr_inqmon
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 16 done." << endl;
+
+  /* ms117_6m	程碻吏κだゑ (Min of all line)paycode CD */
+  EXEC SQL
+     update pdaco_cal p
+        set ms117_6m =
+            (select min(payment_amt/cast(limit as decimal(16,8)))
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 6
+               and mon_since < now     /*keep 15-day rule*/
+               and pay_code in ('C', 'D')
+                and cast(limit as int) <> 0
+             group by s.case_sn
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 17 done." << endl;
+
+  /* int028_9_tran	睲肂计(Paycode A,B, FS014)/FS101 Τぇ獺ノ肂计 (All opened) */
+  EXEC SQL
+     update pdaco_cal p
+        set fs014_9m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 9
+               and mon_since <= now - curr_inqmon
+               and pay_code in ('A', 'B')
+             group by s.case_sn
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 18 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal p
+        set fs101_9m =
+            (select count(distinct issue)
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 9
+               and mon_since <= now - curr_inqmon
+            );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 19 done." << endl;
+
+
+
+/*---open_card and open_line contain months which should have transaction records based on
+     krm001, open_line contains one record for each credit line each month. One-card-one-line
+     issuers, i.e. 021(Citi) is processed seperately.  The other two one-card-one-line issuers,
+     i.e. 081(HSBC) ,974(AIG), for their KRM023 data are consolidated, are treated as
+     multi-card-one-line issers---*/
+  EXEC SQL
+     update pdaco_cal p
+        set fs205_1k_3m = 0,
+            fs212_1k_3m = 0,
+            fs212_1k_6m = 0
+        where exists (select *
+                      from krm001_dedup as a, krm023_dedup as b
+                      where a.case_sn = b.case_sn
+                        and a.case_sn = p.case_sn
+                        and ((a.issue = b.issue)
+                              or ((a.issue = '021' and a.card_brand = 'V') and (b.issue = 'CTV'))
+                              or ((a.issue = '021' and a.card_brand = 'M') and (b.issue = 'CTM'))
+                              or ((a.issue = '021' and a.card_brand = 'D') and (b.issue = 'CTD'))
+                              or ((a.issue = 'A82' and a.card_brand = 'A') and (b.issue = 'AEA'))
+                            )
+                      );      
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 20 done." << endl;
+    
+    /* fs205_1k_3m_q_tran	 of delinqunt lines opened less than a year */
+  EXEC SQL
+     delete from t1;
+  EMB_SQL_CHECK();
+
+  EXEC SQL
+     insert into t1(case_sn, mon, deliquent_line)
+        select b.case_sn, (b.now -b.mon_since), count(*) as deliquent_line
+        from (select case_sn, 
+                 (case when issue = '021' and card_brand = 'V' then 'CTV'
+                       when issue = '021' and card_brand = 'M' then 'CTM'
+                       when issue = '021' and card_brand = 'D' then 'CTD'
+                       when issue = 'A82' and card_brand = 'A' then 'AEA'
+                       else issue  end) as issue_m
+              from krm001_dedup
+              where start_mon_since <= now - 12
+              group by case_sn, 
+                       (case when issue = '021' and card_brand = 'V' then 'CTV'
+                             when issue = '021' and card_brand = 'M' then 'CTM'
+                             when issue = '021' and card_brand = 'D' then 'CTD'
+                             when issue = 'A82' and card_brand = 'A' then 'AEA'
+                        else issue end)
+             ) as a,
+             krm023_dedup as b
+        where a.case_sn = b.case_sn
+          and a.issue_m = b.issue
+          and pay_code in ('C', 'D', 'E', 'F')
+          and payment_amt > 1
+        group by b.case_sn, (b.now - b.mon_since);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 21 done." << endl;
+    
+    
+  EXEC SQL
+    update pdaco_cal p
+       set fs205_1k_3m =
+           (select sum(deliquent_line)
+            from t1 s
+            where p.case_sn = s.case_sn
+              and mon <=  3
+              and mon > 0
+           );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 22 done." << endl;
+    
+    /* ft212_1k_43_q_tran2	monthly average  of delinqunt lines that are opened less than 6 months */
+  EXEC SQL
+     delete from t1;
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 23 done." << endl;
+     
+  EXEC SQL
+     insert into t1(case_sn, mon, deliquent_line)
+        select b.case_sn, (b.now -b.mon_since) , count(*) as deliquent_line
+        from (select case_sn, 
+                 (case when issue = '021' and card_brand = 'V' then 'CTV'
+                       when issue = '021' and card_brand = 'M' then 'CTM'
+                       when issue = '021' and card_brand = 'D' then 'CTD'
+                       when issue = 'A82' and card_brand = 'A' then 'AEA'
+                       else issue  end) as issue_m
+              from krm001_dedup
+              where start_mon_since <= now - 6
+              group by case_sn, 
+                       (case when issue = '021' and card_brand = 'V' then 'CTV'
+                             when issue = '021' and card_brand = 'M' then 'CTM'
+                             when issue = '021' and card_brand = 'D' then 'CTD'
+                             when issue = 'A82' and card_brand = 'A' then 'AEA'
+                        else issue end)
+             ) as a,
+             krm023_dedup as b
+        where a.case_sn = b.case_sn
+          and a.issue_m = b.issue
+          and pay_code in ('C', 'D', 'E', 'F')
+          and payment_amt > 1
+        group by b.case_sn, (b.now - b.mon_since);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 24 done." << endl;
+    
+  EXEC SQL
+    update pdaco_cal p
+       set fs212_1k_3m =
+           (select avg(deliquent_line)
+            from t1 s
+            where p.case_sn = s.case_sn
+              and mon <=  3
+              and mon > 0
+           );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 25 done." << endl;
+    
+  EXEC SQL
+    update pdaco_cal p
+       set fs212_1k_6m =
+           (select avg(deliquent_line)
+            from t1 s
+            where p.case_sn = s.case_sn
+              and mon <= 6
+              and mon > 0
+           );
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 26 done." << endl;
+    
+
+  EXEC SQL
+     update pdaco_cal
+        set ft102_42 = fs102_3m - (fs102_9m - fs102_6m),
+            int015_3 = (case when fs101_3m = 0 then null else fs016_3m / fs101_3m end),
+            ft059_1k_43 = fs059_1k_3m - (fs059_1k_6m - fs059_1k_3m),
+            ft059_1k_42 = fs059_1k_3m - (fs059_1k_9m - fs059_1k_6m),
+            ft212_1k_43 = fs212_1k_3m - (fs212_1k_6m - fs212_1k_3m),
+            int028_9 = (case when fs101_9m = 0 then null else fs014_9m / fs101_9m end);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 27 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal
+        set ft059_1k_43_r = power((case when ft059_1k_43 < 0 then null else ft059_1k_43 end), 0.5),
+            ft059_1k_42_q = power (ft059_1k_42, 2),
+            ft102_42_r = power((case when ft102_42 < 0 then null else ft102_42 end), 0.5),
+            ft212_1k_43_q = power (ft212_1k_43, 2),
+            fs205_1k_3m_q = power (fs205_1k_3m, 2);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 28 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal
+        set int015_3_tran = (case when int015_3 is null then 1
+           			    when int015_3 > 1 then 1
+           			    else int015_3 end),
+            ft102_42_r_tran = (case when ft102_42_r is null then -0.2
+           			    when ft102_42_r > 1.7 then 1.7
+           			    else ft102_42_r end),
+            ft212_1k_43_q_tran = (case when ft212_1k_43_q is null then 0
+           			    else ft212_1k_43_q end),
+            ft059_1k_42_q_tran = (case when ft059_1k_42_q > 16 then 16
+           			       else ft059_1k_42_q end),
+            fs031_tran = (case when fs031 is null then -1
+           		       when fs031 > 9 then 9
+           		       else fs031 end),
+            sex_tran = (case when sex = 1 then 1 else 0 end),
+            app_last_month_bucket_tran = (case when app_last_month_bucket is null then 1
+           			    when app_last_month_bucket > 2 then 2
+           			    else app_last_month_bucket end),
+            fs205_1k_3m_q_tran = (case when fs205_1k_3m_q is null then 0
+           		       when fs205_1k_3m_q > 60 then 60
+           		       else fs205_1k_3m_q end),
+            int028_9_tran = (case when int028_9 is null then 0.3
+           		       when int028_9 > 0.3 then 0.3
+           		       else int028_9 end),
+            ft059_1k_43_r_tran = (case when ft059_1k_43_r is null then 1
+           			       else ft059_1k_43_r end),
+            fs051_tran = (case when fs051 is null then 2
+           		       when fs051 > 5 then 5
+           		       else fs051 end);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 29 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal
+        set pdaco_score= 0.01474		+
+     	     int015_3_tran		*	0.04190 +
+     	     ft059_1k_42_q_tran		*	0.00964 +
+     	     ft212_1k_43_q_tran		*	0.01186 +
+     	     ft102_42_r_tran		*	-0.02683 +
+     	     fs031_tran			*	0.00573 +
+     	     ms117_6m			*	0.04292 +
+     	     fs005_1k_3m		*	0.12726 +
+     	     sex_tran 			*	0.02654 +
+     	     app_last_month_bucket_tran	*	0.05866 +
+     	     fs205_1k_3m_q_tran		*	0.00058973 +
+     	     int028_9_tran		*	-0.08045 +
+     	     ft059_1k_43_r_tran		*	0.01873 +
+     	     fs051_tran 		*	0.00345;
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 30 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal
+        set pdaco_twen = (case
+                         when pdaco_score is null then 0
+                         when pdaco_score <= -0.03231 then 1
+                         when pdaco_score <= -0.02275 then 2
+                         when pdaco_score <= -0.01479 then 3
+                         when pdaco_score <= -0.00919 then 4
+                         when pdaco_score <= -0.00438 then 5
+                         when pdaco_score <= 0.00101 then 6
+                         when pdaco_score <= 0.00624 then 7
+                         when pdaco_score <= 0.01245 then 8
+                         when pdaco_score <= 0.01836 then 9
+                         when pdaco_score <= 0.02482 then 10
+                         when pdaco_score <= 0.03219 then 11
+                         when pdaco_score <= 0.03963 then 12
+                         when pdaco_score <= 0.04759 then 13
+                         when pdaco_score <= 0.05585 then 14
+                         when pdaco_score <= 0.06657 then 15
+                         when pdaco_score <= 0.07865 then 16
+                         when pdaco_score <= 0.09435 then 17
+                         when pdaco_score <= 0.11509 then 18
+                         when pdaco_score <= 0.15002 then 19
+                         else 20
+       		  end);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 31 done." << endl;
+
+  EXEC SQL
+     update pdaco_cal
+        set pb_in = (case
+     		when pdaco_twen = 1 then 0.00415
+     		when pdaco_twen = 2 then 0.00422
+     		when pdaco_twen = 3 then 0.0043
+     		when pdaco_twen = 4 then 0.0044
+     		when pdaco_twen = 5 then 0.0046
+     		when pdaco_twen = 6 then 0.0049
+     		when pdaco_twen = 7 then 0.0052
+     		when pdaco_twen = 8 then 0.0057
+     		when pdaco_twen = 9 then 0.0064
+     		when pdaco_twen = 10 then 0.0074
+     		when pdaco_twen = 11 then 0.0087
+     		when pdaco_twen = 12 then 0.0107
+     		when pdaco_twen = 13 then 0.0134
+     		when pdaco_twen = 14 then 0.0172
+     		when pdaco_twen = 15 then 0.0226
+     		when pdaco_twen = 16 then 0.0302
+     		when pdaco_twen = 17 then 0.0409
+     		when pdaco_twen = 18 then 0.0559
+     		when pdaco_twen = 19 then 0.0771
+     		when pdaco_twen = 20 then 0.1070
+     	     end);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 32 done." << endl;
+     
+  EXEC SQL
+     update pdaco_cal
+        set pb_inout = (case
+     		  when pdaco_twen = 1 then 0.0020
+     		  when pdaco_twen = 2 then 0.0040
+     		  when pdaco_twen = 3 then 0.0060
+     		  when pdaco_twen = 4 then 0.0080
+     		  when pdaco_twen = 5 then 0.0100
+     		  when pdaco_twen = 6 then 0.0120
+     		  when pdaco_twen = 7 then 0.0140
+     		  when pdaco_twen = 8 then 0.0160
+     		  when pdaco_twen = 9 then 0.0180
+     		  when pdaco_twen = 10 then 0.0200
+     		  when pdaco_twen = 11 then 0.0221
+     		  when pdaco_twen = 12 then 0.0241
+     		  when pdaco_twen = 13 then 0.0264
+     		  when pdaco_twen = 14 then 0.0289
+     		  when pdaco_twen = 15 then 0.0323
+     		  when pdaco_twen = 16 then 0.0380
+     		  when pdaco_twen = 17 then 0.0494
+     		  when pdaco_twen = 18 then 0.0755
+     		  when pdaco_twen = 19 then 0.1394
+     		  when pdaco_twen = 20 then 0.3000
+     		end);
+  EMB_SQL_CHECK();
+  cout << "PDACO stmt 33 done." << endl;
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK();
+  return 0;
+} //RiskModel::GeneratePdacoSore()
+
+

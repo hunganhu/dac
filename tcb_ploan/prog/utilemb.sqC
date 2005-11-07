@@ -1,0 +1,137 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: utilemb.sqC
+**
+** SAMPLE: Checks for and prints to the screen SQL warnings and errors
+**
+**         This utility file is compiled and linked in as an object module
+**         with embedded SQL sample programs by the supplied makefile and
+**         build files.
+**
+** CLASS FUNCTIONS:
+**         DbEmb::TransRollback() - rolls back the transaction
+**         DbEmb::Connect() - connects to the database
+**         DbEmb::Disconnect() - disconnects from the database
+**
+****************************************************************************/
+
+#include <string.h>
+#include <sql.h>
+#include <sqlenv.h>
+#include <sqlda.h>
+#include <sqlca.h>
+#include "utilemb.h"
+#if ((__cplusplus >= 199711L) && !defined DB2HP) || \
+    (DB2LINUX && (__LP64__ || (__GNUC__ >= 3)) )
+   #include <iostream>
+   using namespace std;
+#else
+   #include <iostream.h>
+#endif
+
+EXEC SQL BEGIN DECLARE SECTION;
+  char dbAlias[15];
+  char dbUser[129];
+  char dbPswd[15];
+EXEC SQL END DECLARE SECTION;
+extern char MESSAGE[1024];
+
+void DbEmb::TransRollback()
+{
+  struct sqlca sqlca;
+
+  // rollback the transaction
+  EXEC SQL ROLLBACK;
+
+} //DbEmb::TransRollback
+
+int DbEmb::Connect()
+{
+  struct sqlca sqlca;
+
+  strcpy(dbAlias, alias);
+  strcpy(dbUser, user);
+  strcpy(dbPswd, pswd);
+  cout <<"DB name= "<< dbAlias << endl;  
+  cout <<"User ID= "<< dbUser << endl;  
+  cout <<"User PW= "<< dbPswd << endl;  
+
+  if (strlen(dbUser) == 0)
+  {
+    EXEC SQL CONNECT TO :dbAlias;
+    EMB_SQL_CHECK();
+  }
+  else
+  {
+    cout <<"Before connect to "<< dbAlias <<endl;  
+    EXEC SQL CONNECT TO :dbAlias USER :dbUser USING :dbPswd;
+    EMB_SQL_CHECK();
+    cout <<"After connect to "<< dbAlias <<endl;  
+  }
+
+  return 0;
+
+} //DbEmb::Connect
+
+int DbEmb::Disconnect()
+{
+  struct sqlca sqlca;
+
+  EXEC SQL CONNECT RESET;
+  EMB_SQL_CHECK();
+
+  return 0;
+
+} //DbEmb::Disconnect
+
+
+
+void Db::setDb(char *a, char *u, char *p)
+{
+  strcpy(alias, a);
+  strcpy(user, u);
+  strcpy(pswd, p);
+} //Db::setDb
+
+char *Db::getAlias()
+{
+  return alias;
+} //Db::getAlias
+
+char *Db::getUser()
+{
+  return user;
+} //Db::getUser
+
+char *Db::getPswd()
+{
+  return pswd;
+} //Db::getPswd
+
+void SqlInfo::SqlInfoPrint(struct sqlca *pSqlca,
+                           int line,
+                           char *file)
+{
+  int rc = 0;
+  char errorMsg[1024];
+
+//  cout << "Enter SqlInfoPrint()" << endl;
+  cout << "sqlcode = " << pSqlca->sqlcode << endl;
+
+  if (pSqlca->sqlcode != 0 && pSqlca->sqlcode != 100)
+  {
+    // get error message
+    rc = sqlaintp(errorMsg, 1024, 80, pSqlca);
+    if (rc > 0)
+      sprintf(MESSAGE,"SQL(%s:%d):SQLCODE(%ld)-%s", file, line, pSqlca->sqlcode, errorMsg);
+    cout << "Error: " << MESSAGE;
+  } //endif
+//  cout << "Exit SqlInfoPrint()" << endl;
+} //SqlInfo::SqlInfoPrint
+

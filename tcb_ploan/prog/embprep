@@ -1,0 +1,31 @@
+#! /bin/sh
+#############################################################################
+# Licensed Materials - Property of DAC
+#
+# (C) COPYRIGHT Decision Analytics Consulting 2005
+# All Rights Reserved.
+#
+#############################################################################
+# SCRIPT: embprep
+# To prep and bind C/C++ embedded SQL programs
+#
+# Usage: embprep <prog_name> [ <db_name> [ <userid> <password> ]]
+#############################################################################
+
+# Connect to a database.
+   db2 connect to $2 user $3 using $4
+
+# Precompile the program.
+if [ -f $1".sqc" ]
+then
+  db2 prep $1.sqc bindfile
+elif [ -f $1".sqC" ]
+then
+  db2 prep $1.sqC bindfile
+fi
+# Bind the program to the database.
+db2 bind $1.bnd
+
+# Disconnect from the database.
+db2 connect reset
+db2 terminate
