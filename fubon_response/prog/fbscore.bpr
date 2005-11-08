@@ -3,9 +3,9 @@
 <PROJECT>
   <MACROS>
     <VERSION value="BCB.06.00"/>
-    <PROJECT value="Advscore.exe"/>
+    <PROJECT value="fbscore.exe"/>
     <OBJFILES value="main.obj AdoHandle.obj GetOpt.obj"/>
-    <RESFILES value="Advscore.res"/>
+    <RESFILES value="fbscore.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
@@ -29,7 +29,7 @@
     <LINKER value="ilink32"/>
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
-    <MAINSOURCE value="Advscore.bpf"/>
+    <MAINSOURCE value="fbscore.bpf"/>
     <INCLUDEPATH value="C:\dac\fuhwa\prog\test;$(BCB)\include;$(BCB)\include\vcl"/>
     <LIBPATH value="C:\dac\fuhwa\prog\test;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
@@ -53,8 +53,8 @@
     <OTHERFILES value=""/>
   </LINKER>
   <FILELIST>
-      <FILE FILENAME="Advscore.res" FORMNAME="" UNITNAME="Advscore.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="Advscore.bpf" FORMNAME="" UNITNAME="Advscore" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="fbscore.res" FORMNAME="" UNITNAME="fbscore.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="fbscore.bpf" FORMNAME="" UNITNAME="fbscore" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="main.cpp" FORMNAME="" UNITNAME="main.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="AdoHandle.cpp" FORMNAME="" UNITNAME="AdoHandle.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="GetOpt.cpp" FORMNAME="" UNITNAME="GetOpt.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>

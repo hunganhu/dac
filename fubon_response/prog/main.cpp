@@ -78,9 +78,9 @@ int main(int argc, char* argv[])
 //  if (argc < 2 || target_month == (char*) NULL) {
  if (target_month == (char*) NULL || password == (char*) NULL ||
     user == (char*) NULL || database == (char*) NULL || source == (char*) NULL) {
-//     fprintf (stderr,"usage: Advscore -m cycle_date -c config_file ");
+//     fprintf (stderr,"usage: fbscore -m cycle_date -c config_file ");
      fprintf (stderr,"All options are REQUIRED.\n");
-     fprintf (stderr,"usage: Advscore -m cycle_date ");
+     fprintf (stderr,"usage: fbscore -m cycle_date ");
      fprintf (stderr,"-u user -p password -s source -d database\n\n");
      fprintf (stderr,"\tcycle_date: the cycle date in which the PD are calculated.\n");
 //     fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.");
@@ -107,15 +107,10 @@ int main(int argc, char* argv[])
  else {
     strcpy (connect_string, CONNECTION_STRING);
  }
-
+ try {
  dbhandle = new TADOHandler();
- if (! dbhandle->OpenDatabase(connect_string)) {
-    fprintf(stderr, "Error: Could not connect to database.");
-    delete dbhandle;
-    return (1);
- }
-
  fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 started.\n", CurrDateTime());
+/*
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
         case Execute_Proc_Load_Input_Table:
@@ -165,8 +160,11 @@ int main(int argc, char* argv[])
            }
      }
  }
-
+*/
  dbhandle->CloseDatabase();
+ } catch (Exception &E) {
+    fprintf(stderr, "%s: %s\n", CurrDateTime(), E.Message.c_str());
+ }
  delete dbhandle;
  return (0);
 }
