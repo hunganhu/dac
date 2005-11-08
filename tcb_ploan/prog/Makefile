@@ -12,8 +12,6 @@
 #
 #   make app_name	   - Builds the program designated by app_name
 #   make all		   - Builds all supplied sample programs
-#   make srv		   - Builds all programs that that run on the server
-#			      including routines (stored procedures and UDFs)
 ##############################################################################
 #		   1 -- VARIABLES
 ##############################################################################
@@ -41,8 +39,8 @@ ERASE=rm -f
 #****************************************************************************
 
 all : \
-	libdac.so java  main mainl libdac.a
-
+	libdac.so java  main mainl
+	
 java: Dac.class libdacploan.so
 
 Dac.class: Dac.java
@@ -68,9 +66,9 @@ libdac.so: dac_pl_cal.o utilemb.o risk_model.o
 	$(CPP) -shared -ldb2 -L$(DB2PATH)/lib -o libdac.so \
 	dac_pl_cal.o utilemb.o risk_model.o
 
-libdac.a: dac_pl_cal.o utilemb.o risk_model.o
-	$(ERASE) $@
-	ar cq $@ dac_pl_cal.o utilemb.o risk_model.o
+#libdac.a: dac_pl_cal.o utilemb.o risk_model.o
+#	$(ERASE) $@
+#	ar cq $@ dac_pl_cal.o utilemb.o risk_model.o
 
 dac_pl_cal.o: dac_pl_cal.C dac_pl_cal.h
 #	$(EMBPREP) dac_pl_cal $(ALIAS) $(UID) $(PWD)

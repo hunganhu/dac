@@ -30,101 +30,6 @@
 
 extern char MESSAGE[1024];
 
-int RiskModel::StaticStmtInvoke()
-{
-  struct sqlca sqlca;
-
-
-  EXEC SQL CREATE TABLE table1(col1 INTEGER);
-  EMB_SQL_CHECK();
-
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK();
-
-  EXEC SQL DROP TABLE table1;
-  EMB_SQL_CHECK();
-
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK();
-
-  return 0;
-} //RiskModel::StaticStmtInvoke
-
-int RiskModel::StaticStmtWithHostVarsInvoke()
-{
-/*
-  struct sqlca sqlca;
-
-  EXEC SQL BEGIN DECLARE SECTION;
-    short hostVar1;
-    char hostVar2[20];
-  EXEC SQL END DECLARE SECTION;
-
-  hostVar1 = 15;
-  strcpy(hostVar2, "Eastern");
-
-  EXEC SQL DELETE FROM org
-    WHERE deptnumb = :hostVar1 AND division = :hostVar2;
-  EMB_SQL_CHECK("Delete with host variables -- Execute");
-
-  EXEC SQL ROLLBACK;
-  EMB_SQL_CHECK();
-*/
-  return 0;
-} //RiskModel::StaticStmtWithHostVarsInvoke
-
-int RiskModel::DynamicStmtEXECUTE_IMMEDIATE()
-{
-/*
-  struct sqlca sqlca;
-
-  EXEC SQL BEGIN DECLARE SECTION;
-    char stmt1[50];
-    char stmt2[50];
-  EXEC SQL END DECLARE SECTION;
-
-
-  // create a table
-  strcpy(stmt1, "CREATE TABLE table1(col1 INTEGER)");
-  EXEC SQL EXECUTE IMMEDIATE :stmt1;
-  EMB_SQL_CHECK();
-
-  // drop a table
-  strcpy(stmt2, "DROP TABLE table1");
-
-  EXEC SQL EXECUTE IMMEDIATE :stmt2;
-  EMB_SQL_CHECK();
-*/
-  return 0;
-} //RiskModel::DynamicStmtEXECUTE_IMMEDIATE
-
-int RiskModel::DynamicStmtEXECUTE()
-{
-/*
-  struct sqlca sqlca;
-
-  EXEC SQL BEGIN DECLARE SECTION;
-    char hostVarStmt[50];
-  EXEC SQL END DECLARE SECTION;
-
-  // prepare the statement
-  strcpy(hostVarStmt, "DELETE FROM org WHERE deptnumb = 15");
-  EXEC SQL PREPARE Stmt FROM :hostVarStmt;
-  EMB_SQL_CHECK();
-
-  // execute the statement
-  EXEC SQL EXECUTE Stmt;
-  EMB_SQL_CHECK();
-
-  // ROLLBACK the transaction
-  cout << "\n  Rollback the transaction." << endl;
-  EXEC SQL ROLLBACK;
-  EMB_SQL_CHECK();
-*/
-  return 0;
-} //RiskModel::DynamicStmtEXECUTE
-
-
 int RiskModel::CreateWorkingTables()
 {
   struct sqlca sqlca;
@@ -340,6 +245,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
     char Case_Sn[20];
     char Idn[12];
     long  inx;
+    char sqlStatement[512];
   EXEC SQL END DECLARE SECTION;
 
   strcpy (Case_Sn, case_sn);
@@ -631,18 +537,21 @@ int RiskModel::PrepareJcicTables(char *case_sn)
   EMB_SQL_CHECK();
   cout << "stmt 26-1 done." << endl;
 */
+  strcpy (sqlStatement,
+          "update krm023_dedup p "
+          "     set (p.bucket_def_1k, p.bucket_ef_1k, p.bucket_f_1k) ="
+          "         (select (case when p.bucket_def_1k=1 then s.bucket_def_1k +1 else 0 end),"
+          "                 (case when p.bucket_ef_1k=1 then s.bucket_ef_1k +1 else 0 end),"
+          "                 (case when p.bucket_f_1k=1 then s.bucket_f_1k +1 else 0 end)"
+          "          from krm023_dedup s"
+          "          where p.case_sn = s.case_sn"
+          "            and p.issue = s.issue"
+          "            and p.mon_since = s.mon_since+1)"
+          "      where p.now-p.mon_since = ?");
+  EXEC SQL PREPARE stmt1 FROM :sqlStatement;       
   inx = 11;
   while (inx > 0){
-     EXEC SQL update krm023_dedup p
-        set (p.bucket_def_1k, p.bucket_ef_1k, p.bucket_f_1k) =
-            (select (case when p.bucket_def_1k=1 then s.bucket_def_1k +1 else 0 end),
-                    (case when p.bucket_ef_1k=1 then s.bucket_ef_1k +1 else 0 end),
-                    (case when p.bucket_f_1k=1 then s.bucket_f_1k +1 else 0 end)
-             from krm023_dedup s
-             where p.case_sn = s.case_sn
-               and p.issue = s.issue
-               and p.mon_since = s.mon_since+1)
-         where p.now-p.mon_since = :inx;
+     EXEC SQL EXECUTE stmt1 USING :inx;
      inx--;
      EMB_SQL_CHECK();
   }
@@ -682,7 +591,7 @@ int RiskModel::Prescreen(char *case_sn)
 
   /* Update filter variable*/
   EXEC SQL
-    update pdaco_cal pv
+    update pdaco_cal p
        set jas002_defect =
            (select (case when count(*) > 0 then 1 else 0 end)
             from jas002_t_dedup s
@@ -1211,7 +1120,6 @@ int RiskModel::GeneratePdacoScore()
             ft059_1k_43_r_tran = (case when ft059_1k_43_r is null then 1
            			       else ft059_1k_43_r end),
             fs051_tran = (case when fs051 is null then 2
-           		       when fs051 > 5 then 5
            		       else fs051 end);
   EMB_SQL_CHECK();
   cout << "PDACO stmt 29 done." << endl;

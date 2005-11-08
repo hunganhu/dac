@@ -30,10 +30,6 @@ extern "C"
 class RiskModel
 {
   public:
-    static int StaticStmtInvoke();
-    static int StaticStmtWithHostVarsInvoke();
-    static int DynamicStmtEXECUTE_IMMEDIATE();
-    static int DynamicStmtEXECUTE();
     static int CreateWorkingTables();
     static int PrepareJcicTables(char *case_sn);
     static int Prescreen(char *case_sn);

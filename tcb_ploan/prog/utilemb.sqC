@@ -122,7 +122,7 @@ void SqlInfo::SqlInfoPrint(struct sqlca *pSqlca,
   char errorMsg[1024];
 
 //  cout << "Enter SqlInfoPrint()" << endl;
-  cout << "sqlcode = " << pSqlca->sqlcode << endl;
+//  cout << "sqlcode = " << pSqlca->sqlcode << endl;
 
   if (pSqlca->sqlcode != 0 && pSqlca->sqlcode != 100)
   {
@@ -130,7 +130,7 @@ void SqlInfo::SqlInfoPrint(struct sqlca *pSqlca,
     rc = sqlaintp(errorMsg, 1024, 80, pSqlca);
     if (rc > 0)
       sprintf(MESSAGE,"SQL(%s:%d):SQLCODE(%ld)-%s", file, line, pSqlca->sqlcode, errorMsg);
-    cout << "Error: " << MESSAGE;
+//    cout << "Error: " << MESSAGE;
   } //endif
 //  cout << "Exit SqlInfoPrint()" << endl;
 } //SqlInfo::SqlInfoPrint
