@@ -11,6 +11,9 @@ char * CurrDateTime ();
 
 enum SQLCodes { Create_Source_Table,
                 Insert_Source_Table,
+                Select_Close_Account,
+                Select_Close_Account_Date,
+                Delete_Redundant_Statements,
                 Update_Month_Since,
                 Create_Index_on_Stmt,
                 Get_Prev_Stmt_Info,
@@ -38,7 +41,7 @@ enum SQLCodes { Create_Source_Table,
                 Update_Insurance_Flag,
                 Update_Close_Flag,
                 Update_Card,
-                
+
                 Cal_FS003,
                 Cal_FS072,
                 Cal_FS089,
@@ -67,6 +70,9 @@ enum SQLCodes { Create_Source_Table,
 int step[] = {
 	Create_Source_Table,
 	Insert_Source_Table,
+        Select_Close_Account,
+        Select_Close_Account_Date,
+        Delete_Redundant_Statements,
 	Update_Month_Since,
 	Create_Index_on_Stmt,
 	Get_Prev_Stmt_Info,
@@ -101,28 +107,31 @@ int step[] = {
 	Cal_FS096,
 	Cal_MS035,
 	Cal_MS062,
-	
+
 	Transform_R1_Vars,
 	Cal_R1_Score_Twentile,
-	
+
 	Cal_FS191,
 	Cal_FS204,
 	Transform_T1_Vars,
 	Cal_T1_Score_Twentile,
-	
+
 	Cal_MS023,
 	Cal_FS197,
 	Transform_T2_Vars,
 	Cal_T2_Score_Twentile,
-	
+
 	Transform_N1_Vars,
 	Cal_N1_Score_Twentile,
-	
+
  	End_of_SQL
 };
 
 char *SQLNames[]= {"Create_Source_Table",
                 "Insert_Source_Table",
+                "Select_Close_Account",
+                "Select_Close_Account_Date",
+                "Delete_Redundant_Statements",
                 "Update_Month_Since",
                 "Create_Index_on_Stmt",
                 "Get_Prev_Stmt_Info",
@@ -150,7 +159,7 @@ char *SQLNames[]= {"Create_Source_Table",
                 "Update_Insurance_Flag",
                 "Update_Close_Flag",
                 "Update_Card",
-                
+
                 "Cal_FS003",
                 "Cal_FS072",
                 "Cal_FS089",
@@ -160,17 +169,17 @@ char *SQLNames[]= {"Create_Source_Table",
 		"Cal_RS001",
                 "Transform_R1_Vars",
                 "Cal_R1_Score_Twentile",
-                
+
                 "Cal_FS191",
                 "Cal_FS204",
                 "Transform_T1_Vars",
                 "Cal_T1_Score_Twentile",
-                
+
                 "Cal_MS023",
                 "Cal_FS197",
                 "Transform_T2_Vars",
                 "Cal_T2_Score_Twentile",
-                
+
                 "Transform_N1_Vars",
                 "Cal_N1_Score_Twentile"
  };
@@ -203,6 +212,9 @@ char *SQLCommands[] = {
 "    last_expenditure int,"
 "    last_cash_advance int,"
 "    last_revolving_int_amt int"
+"   );"
+" create table FB_close_acct ("
+"    Primary_Cardholder_ID char(11)"
 "   );",
 
 /*Insert_Source_Table*/
@@ -213,6 +225,38 @@ char *SQLCommands[] = {
 "  monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt, this_term_min_payment,"
 "  this_term_total_amt_receivable, this_term_cash_advance_amt"
 " from cc_credit_card_statements",
+
+/*Select_Close_Account*/
+" insert into FB_close_acct(Primary_Cardholder_ID)"
+" select distinct a.Primary_Cardholder_ID"
+" from cc_acct_credit_card as a left join"
+"    (select distinct Primary_Cardholder_ID"
+"     from cc_acct_credit_card"
+"     where Acct_Status_Code = 0)  as b"
+" on a.Primary_Cardholder_ID = b.Primary_Cardholder_ID"
+" where b.Primary_Cardholder_ID is null",
+
+/*Select_Close_Account_Date*/
+" insert into FB_close_acct_date"
+" select a.Primary_Cardholder_ID, max(a.Card_Cancel_Date) as card_cancel_date"
+" from cc_acct_credit_card  a,"
+"      FB_close_acct b"
+" where a.Primary_Cardholder_ID = b.Primary_Cardholder_ID"
+" group by a.Primary_Cardholder_ID;",
+
+/*Delete_Redundant_Statements*/
+" delete cc_credit_card_statements"
+" from (select a.Primary_Cardholder_ID,"
+"        b.card_cancel_date,"
+"        a.billing_close_date,"
+"        This_Term_Total_Amt_Receivable"
+" from FB_close_acct_date b,"
+"      cc_credit_card_statements a"
+" where b.Primary_Cardholder_ID = a.Primary_Cardholder_ID"
+" AND   DATEDIFF(day,card_cancel_date, billing_close_date) > 30"
+" and   This_Term_Total_Amt_Receivable <= 0 ) as t1"
+" where cc_credit_card_statements.Primary_Cardholder_ID = t1.Primary_Cardholder_ID"
+"   and cc_credit_card_statements.billing_close_date = t1.billing_close_date;",
 
 /*Update_Month_Since*/
 "update fubon_cc_stmts"
