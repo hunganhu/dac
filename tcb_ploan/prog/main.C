@@ -39,10 +39,6 @@ int main(int argc, char *argv[])
   strcpy (upw, "ejcicap1");
   strcpy (case_sn, "003000016373");
 
-  cout <<"DB name= "<< alias << endl;  
-  cout <<"User ID= "<< uid << endl;  
-  cout <<"User PW= "<< upw << endl;  
-  cout <<"Case SN= "<< case_sn << endl;  
   // connect to the database
   rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
   if (rc != 0)
@@ -51,6 +47,5 @@ int main(int argc, char *argv[])
     return rc;
   }
   
-  cout << "DB connected" << endl;
   return 0;
 } //main

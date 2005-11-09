@@ -8,7 +8,7 @@ public class Dac {
 
 	static {
 
-		System.loadLibrary("dacploan");
+		System.loadLibrary("dac");
 	}
 
 	public static void main(String[] args) {
@@ -16,7 +16,7 @@ public class Dac {
 		String alias, uid, upw;
 		String error_message;
 		
-		case_sn = "1";
+		case_sn = "003000016373";
 		alias = "dacdb";
 		uid = "ejcicap1";
 		upw = "ejcicap1";

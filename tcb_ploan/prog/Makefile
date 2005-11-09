@@ -6,7 +6,7 @@
 #
 #############################################################################
 #
-# MAKEFILE for C++ samples on AIX
+# MAKEFILE for C++ Approval module on AIX
 #
 # Enter one of the following commands
 #
@@ -22,7 +22,8 @@ DB2PATH = /home/db2inst1/sqllib
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-EXTRA_CFLAG= -g -Wno-deprecated
+EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG
+#EXTRA_CFLAG= -g -Wno-deprecated
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
@@ -41,17 +42,17 @@ ERASE=rm -f
 all : \
 	libdac.so java  main mainl
 	
-java: Dac.class libdacploan.so
+java: Dac.class 
 
 Dac.class: Dac.java
 	javac Dac.java
-Dac.h: Dac.java
+Dac.h: Dac.class
 	javah -jni Dac
-libdacploan.so: dacploan.o
-	gcc -shared -o libdacploan.so dacploan.o
+#libdacploan.so: dacploan.o
+#	gcc -shared -o libdacploan.so dacploan.o
 
 dacploan.o: dacploan.c
-	gcc -c -g -I/usr/java131/include dacploan.c
+	gcc -g $(EXTRA_CFLAG) -I$(DB2PATH)/include -I/usr/java131/include -c dacploan.c
 
 main: main.o utilemb.o risk_model.o dac_pl_cal.o
 	$(CPP) $(EXTRA_CFLAG) -o main main.o utilemb.o risk_model.o dac_pl_cal.o -ldb2 -L$(DB2PATH)/lib
@@ -62,9 +63,9 @@ mainl: main.o
 main.o: main.C
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2PATH)/include -c main.C
 
-libdac.so: dac_pl_cal.o utilemb.o risk_model.o
+libdac.so: dac_pl_cal.o utilemb.o risk_model.o dacploan.o
 	$(CPP) -shared -ldb2 -L$(DB2PATH)/lib -o libdac.so \
-	dac_pl_cal.o utilemb.o risk_model.o
+	dac_pl_cal.o utilemb.o risk_model.o dacploan.o
 
 #libdac.a: dac_pl_cal.o utilemb.o risk_model.o
 #	$(ERASE) $@
@@ -87,6 +88,5 @@ risk_model.o: risk_model.sqC
 #****************************************************************************
 
 clean :
-	$(ERASE) *.o *.so *.bak
-	$(ERASE) *.DEL *.TXT *.MSG *.bnd
-	$(ERASE) dac_pl_cal.C
+	$(ERASE) *.o *.so *.bak *~
+	$(ERASE) *.bnd

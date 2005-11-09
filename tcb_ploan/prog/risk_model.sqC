@@ -34,7 +34,7 @@ int RiskModel::CreateWorkingTables()
 {
   struct sqlca sqlca;
 
-  cout << "Enter CreateWorkingTables()" << endl;
+  Debug("Enter CreateWorkingTables()");
 /* create working tables */
   EXEC SQL
      create table bam086_dedup (
@@ -67,7 +67,7 @@ int RiskModel::CreateWorkingTables()
      	cnt		int
      );
 
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 1.");
 
   EXEC SQL
      create table krm001_dedup (
@@ -92,7 +92,7 @@ int RiskModel::CreateWorkingTables()
     	now		int,
      	cnt		int
      );
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 2.");
 
   EXEC SQL
      create table krm023_dedup (
@@ -116,7 +116,7 @@ int RiskModel::CreateWorkingTables()
 	curr_inqmon	int,
      	cnt		int
      );
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 3.");
 
   EXEC SQL
      create table stm001_dedup (
@@ -131,7 +131,7 @@ int RiskModel::CreateWorkingTables()
     	now		int,
      	cnt		int
      );
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 4.");
 
   EXEC SQL
      create table jas002_t (
@@ -142,7 +142,7 @@ int RiskModel::CreateWorkingTables()
      	date_happen	char(7),
      	mon_since	int
      );
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 5.");
 
   EXEC SQL
      create table jas002_t_dedup (
@@ -155,7 +155,7 @@ int RiskModel::CreateWorkingTables()
     	now		int,
      	cnt		int
      );
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 6.");
 
   EXEC SQL
      create table pdaco_cal (
@@ -220,19 +220,19 @@ int RiskModel::CreateWorkingTables()
     	pb_in		decimal(16,8),
     	pb_inout	decimal(16,8)
        );
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 7.");
 
   EXEC SQL
      create table t1 (
         case_sn   char(12),
         mon	  int,
         deliquent_line int);
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("Create Table 8.");
     
   EXEC SQL COMMIT;
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("COMMIT.");
 
-  cout << "Exit CreateWorkingTables()" << endl;
+  Debug("Exit CreateWorkingTables()");
   return 0;
 
 } // RiskModel::CreateWorkingTables()
@@ -250,7 +250,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
 
   strcpy (Case_Sn, case_sn);
 //  strcpy (Idn, idn);
-  cout << "Enter PrepareJcicTables()" << endl;
+  Debug("Enter PrepareJcicTables()");
 
   EXEC SQL
      insert into krm001_dedup (case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, cnt)
@@ -258,8 +258,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.krm001
         where case_sn = :Case_Sn
         group by case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
-  EMB_SQL_CHECK();
-  cout << "stmt 1 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 1.");
 
   EXEC SQL
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
@@ -267,8 +266,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.krm023
         where case_sn = :Case_Sn
         group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
-  EMB_SQL_CHECK();
-  cout << "stmt 2 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 2.");
 
   EXEC SQL
      insert into stm001_dedup (case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, cnt)
@@ -276,8 +274,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.stm001
         where case_sn = :Case_Sn
         group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
-  EMB_SQL_CHECK();
-  cout << "stmt 3 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 3.");
 
   EXEC SQL
     insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
@@ -285,8 +282,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
        from db2inst1.bam086
         where case_sn = :Case_Sn
        group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
-  EMB_SQL_CHECK();
-  cout << "stmt 4 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 4.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -294,8 +290,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.bas001
         where data_yyymmdd is not null or rtrim(ltrim(data_yyymmdd)) <> ''
           and case_sn = :Case_Sn;
-  EMB_SQL_CHECK();
-  cout << "stmt 5 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 5.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -303,8 +298,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.dam103
         where ck_date is not null or rtrim(ltrim(ck_date)) <> ''
           and case_sn = :Case_Sn;
-  EMB_SQL_CHECK();
-  cout << "stmt 6 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 6.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -312,8 +306,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.dam203
         where beg_date is not null or rtrim(ltrim(beg_date)) <> ''
           and case_sn = :Case_Sn;
-  EMB_SQL_CHECK();
-  cout << "stmt 7 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 7.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -321,21 +314,18 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         from db2inst1.krm001
         where stop_code = '3'
           and case_sn = :Case_Sn;
-  EMB_SQL_CHECK();
-  cout << "stmt 8 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 8.");
 
   EXEC SQL
      insert into jas002_t_dedup (case_sn, idn, inquiry_date, reason, date_happen, cnt)
         select case_sn, idn, inquiry_date, reason, date_happen, count(*)
         from jas002_t
         group by case_sn, idn, inquiry_date, reason, date_happen;
-  EMB_SQL_CHECK();
-  cout << "stmt 9 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 9.");
 
   EXEC SQL
      update jas002_t_dedup set date_happen = (case when date_happen = '' then NULL else date_happen end);
-  EMB_SQL_CHECK();
-  cout << "stmt 10 done." << endl;
+  EMB_SQL_CHECK("Update 10.");
 
   EXEC SQL
      update krm001_dedup
@@ -349,8 +339,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
             ab_code    = (case when ab_code    = '' then NULL else ab_code    end),
             m_s        = (case when m_s        = '' then NULL else m_s        end),
             limit      = (case when limit      = '' then NULL else limit      end);
-  EMB_SQL_CHECK();
-  cout << "stmt 11 done." << endl;
+  EMB_SQL_CHECK("Update 11.");
 
   EXEC SQL
      update krm023_dedup
@@ -362,8 +351,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
             payment    = (case when payment    = '' then NULL else payment    end),
             cash       = (case when cash       = '' then NULL else cash       end),
             pay_code   = (case when pay_code   = '' then NULL else pay_code   end);
-  EMB_SQL_CHECK();
-  cout << "stmt 12 done." << endl;
+  EMB_SQL_CHECK("Update 12.");
 
   EXEC SQL
      update stm001_dedup
@@ -371,8 +359,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
             bank_name  = (case when bank_name  = '' then NULL else bank_name  end),
             query_date = (case when query_date = '' then NULL else query_date end),
             item_list  = (case when item_list  = '' then NULL else item_list  end);
-  EMB_SQL_CHECK();
-  cout << "stmt 13 done." << endl;
+  EMB_SQL_CHECK("Update 13.");
 
   EXEC SQL
      update bam086_dedup
@@ -385,8 +372,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
             purpose_code  = (case when purpose_code  = '' then NULL else purpose_code  end),
             pay_code_12   = (case when pay_code_12   = '' then NULL else pay_code_12   end),
             co_loan       = (case when co_loan       = '' then NULL else co_loan       end);
-  EMB_SQL_CHECK();
-  cout << "stmt 13.5 done." << endl;
+  EMB_SQL_CHECK("Update 14.");
 
   EXEC SQL
      update krm001_dedup
@@ -398,8 +384,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      		   when left(ltrim(stop_date),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(stop_date))
       		   else stop_date
      		  end);
-  EMB_SQL_CHECK();
-  cout << "stmt 14 done." << endl;
+  EMB_SQL_CHECK("Update 15.");
 
   EXEC SQL
      update krm001_dedup
@@ -416,15 +401,13 @@ int RiskModel::PrepareJcicTables(char *case_sn)
                    else
                       (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end);
-  EMB_SQL_CHECK();
-  cout << "stmt 15 done." << endl;
+  EMB_SQL_CHECK("Update 16.");
 
   EXEC SQL
      update krm001_dedup
         set end_mon_since = 12000
         where end_mon_since is null;
-  EMB_SQL_CHECK();
-  cout << "stmt 16 done." << endl;
+  EMB_SQL_CHECK("Update 17.");
 
   EXEC SQL
      update jas002_t_dedup
@@ -432,8 +415,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      		    when left(ltrim(date_happen),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(date_happen))
       		    else date_happen
       		   end);
-  EMB_SQL_CHECK();
-  cout << "stmt 17 done." << endl;
+  EMB_SQL_CHECK("Update 18.");
 
   EXEC SQL
      update jas002_t_dedup
@@ -446,8 +428,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
                    else
                       (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end);
-  EMB_SQL_CHECK();
-  cout << "stmt 18 done." << endl;
+  EMB_SQL_CHECK("Update 19.");
 
   EXEC SQL
      update krm023_dedup
@@ -455,8 +436,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      	      when left(ltrim(yrmon),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(yrmon))
      	      else yrmon
      	     end);
-  EMB_SQL_CHECK();
-  cout << "stmt 19 done." << endl;
+  EMB_SQL_CHECK("Update 20.");
 
   EXEC SQL
      update krm023_dedup
@@ -471,8 +451,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
                    end),
             curr_inqmon = (case when substr(inquiry_date, 7,2) > '15' then 1
                            else 0 end);
-  EMB_SQL_CHECK();
-  cout << "stmt 20 done." << endl;
+  EMB_SQL_CHECK("Update 21.");
 
   EXEC SQL
      update stm001_dedup
@@ -480,8 +459,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      		   when left(ltrim(query_date),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(query_date))
      		   else query_date
      		  end);
-  EMB_SQL_CHECK();
-  cout << "stmt 21 done." << endl;
+  EMB_SQL_CHECK("Update 22.");
 
   EXEC SQL
      update stm001_dedup
@@ -494,16 +472,14 @@ int RiskModel::PrepareJcicTables(char *case_sn)
                    else
                       (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end);
-  EMB_SQL_CHECK();
-  cout << "stmt 22 done." << endl;
+  EMB_SQL_CHECK("Update 23.");
 
   EXEC SQL
      update krm023_dedup
         set payment =
              (case when right(left(payment,2),1) in ('H', 'M', 'L') then '0'||(left(payment,2))
               else payment end);
-  EMB_SQL_CHECK();
-  cout << "stmt 23 done." << endl;
+  EMB_SQL_CHECK("Update 24.");
 
   EXEC SQL
      update krm023_dedup
@@ -511,15 +487,13 @@ int RiskModel::PrepareJcicTables(char *case_sn)
               (case right(payment,1) when 'L' then 2 when 'M' then 5 when 'H' then 8
                else 0 end) * power(10, cast(left(payment,2) as int)-1) / 1000.0
         where payment is not null;
-  EMB_SQL_CHECK();
-  cout << "stmt 24 done." << endl;
+  EMB_SQL_CHECK("Update 25.");
 
   EXEC SQL
      update krm023_dedup
         set payment_amt = 0
         where payment is null;
-  EMB_SQL_CHECK();
-  cout << "stmt 25 done." << endl;
+  EMB_SQL_CHECK("Update 26.");
 
   EXEC SQL
      update  krm023_dedup
@@ -529,13 +503,12 @@ int RiskModel::PrepareJcicTables(char *case_sn)
                             else 0 end),
             bucket_f_1k = (case when pay_code = 'F' and payment_amt > 1 then 1
                          else 0 end);
-  EMB_SQL_CHECK();
-  cout << "stmt 26 done." << endl;
+  EMB_SQL_CHECK("Update 27.");
 /*
   EXEC SQL
      create index i_k23_dedup_k on krm023_dedup(case_sn, issue, mon_since);
   EMB_SQL_CHECK();
-  cout << "stmt 26-1 done." << endl;
+  cout << "Create Index 27-1." << endl;
 */
   strcpy (sqlStatement,
           "update krm023_dedup p "
@@ -553,19 +526,17 @@ int RiskModel::PrepareJcicTables(char *case_sn)
   while (inx > 0){
      EXEC SQL EXECUTE stmt1 USING :inx;
      inx--;
-     EMB_SQL_CHECK();
+     EMB_SQL_CHECK("Update 27-2.");
   }
-  cout << "stmt 27 done." << endl;
 
   EXEC SQL
      update bam086_dedup
         set bank_code2 = left(bank_code,3);
-  EMB_SQL_CHECK();
-  cout << "stmt 28 done." << endl;
+  EMB_SQL_CHECK("Update 29.");
 
   EXEC SQL COMMIT;
-  EMB_SQL_CHECK();
-  cout << "Exit PrepareJcicTables()" << endl;
+  EMB_SQL_CHECK("COMMIT");
+  Debug("Exit PrepareJcicTables()");
 
   return 0;
 } // RiskModel::PrepareJcicTables()
@@ -580,14 +551,14 @@ int RiskModel::Prescreen(char *case_sn)
 
   strcpy (Case_Sn_PS, case_sn);
   /* risk filter process */
+  Debug("Enter Prescreen()");
 
   EXEC SQL
      insert into pdaco_cal(case_sn, idn)
         select case_sn, Applicant_ID
         from db2inst1.app_info
         where case_sn = :Case_Sn_PS;
-  EMB_SQL_CHECK();
-  cout << "stmt 1 done." << endl;
+  EMB_SQL_CHECK("Insert-Select 1.");
 
   /* Update filter variable*/
   EXEC SQL
@@ -598,8 +569,7 @@ int RiskModel::Prescreen(char *case_sn)
             where now - mon_since <= 36
               and p.case_sn = s.case_sn
             group by s.case_sn );
-  EMB_SQL_CHECK();
-  cout << "stmt 2 done." << endl;
+  EMB_SQL_CHECK("Update 2.");
 
   EXEC SQL
     update pdaco_cal p
@@ -607,8 +577,7 @@ int RiskModel::Prescreen(char *case_sn)
            (select (case when count(*) > 0 then 1 else 0 end)
             from krm023_dedup s
             where p.case_sn = s.case_sn);
-  EMB_SQL_CHECK();
-  cout << "stmt 3 done." << endl;
+  EMB_SQL_CHECK("Update 3.");
 
   EXEC SQL
     update pdaco_cal p
@@ -616,8 +585,7 @@ int RiskModel::Prescreen(char *case_sn)
            (select (case when count(*) > 0 then 1 else 0 end)
             from krm001_dedup s
             where p.case_sn = s.case_sn);
-  EMB_SQL_CHECK();
-  cout << "stmt 4 done." << endl;
+  EMB_SQL_CHECK("Update 4.");
 
   EXEC SQL
     update pdaco_cal p
@@ -626,8 +594,7 @@ int RiskModel::Prescreen(char *case_sn)
             from krm023_dedup s
             where p.case_sn = s.case_sn
             group by case_sn);
-  EMB_SQL_CHECK();
-  cout << "stmt 5 done." << endl;
+  EMB_SQL_CHECK("Update 5.");
 
   /*----FS044----*/
   EXEC SQL
@@ -638,8 +605,7 @@ int RiskModel::Prescreen(char *case_sn)
             where s.pass_due_amt > 0
               and p.case_sn = s.case_sn
             group by s.case_sn);
-  EMB_SQL_CHECK();
-  cout << "stmt 6 done." << endl;
+  EMB_SQL_CHECK("Update 6.");
 
   /*----cash card max bucket----*/
   EXEC SQL
@@ -651,8 +617,7 @@ int RiskModel::Prescreen(char *case_sn)
              and NULLIF(left(pay_code_12, 1),'0') not in ('0', 'X')
              and p.case_sn = s.case_sn
            group by case_sn);
-  EMB_SQL_CHECK();
-  cout << "stmt 7 done." << endl;
+  EMB_SQL_CHECK("Update 7.");
 
   /*----cash card utilization----*/
   EXEC SQL
@@ -665,8 +630,7 @@ int RiskModel::Prescreen(char *case_sn)
               and contract_amt > 0
               and p.case_sn = s.case_sn
             group by case_sn );
-  EMB_SQL_CHECK();
-  cout << "stmt 8 done." << endl;
+  EMB_SQL_CHECK("Update 8.");
 
   /*----Ind001----*/
   EXEC SQL
@@ -676,17 +640,19 @@ int RiskModel::Prescreen(char *case_sn)
             from krm001_dedup s
             where p.case_sn = s.case_sn
             group by case_sn);
-  EMB_SQL_CHECK();
-  cout << "stmt 9 done." << endl;
+  EMB_SQL_CHECK("Update 9.");
 
   EXEC SQL COMMIT;
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("COMMIT");
+  Debug("Exit Prescreen()");
   return 0;
 } //RiskModel::Prescreen()
 
 int RiskModel::GeneratePdacoScore()
 {
   struct sqlca sqlca;
+
+  Debug("Enter GeneratePdacoScore()");
 
  /*Init variables*/
  /*Init stm001 variables*/
@@ -696,9 +662,7 @@ int RiskModel::GeneratePdacoScore()
         where exists (select *
              from stm001_dedup s
              where p.case_sn = s.case_sn);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 1 done." << endl;
-
+  EMB_SQL_CHECK("PDACO Update 1.");
 
   /*Init bam085 variables*/
   EXEC SQL
@@ -707,8 +671,7 @@ int RiskModel::GeneratePdacoScore()
         where exists (select *
              from bam086_dedup s
              where p.case_sn = s.case_sn);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 2 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 2.");
 
   /*Init krm023 variables*/
   EXEC SQL
@@ -728,9 +691,7 @@ int RiskModel::GeneratePdacoScore()
         where exists (select *
              from krm023_dedup s
              where p.case_sn = s.case_sn);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 3 done." << endl;
-  /*Init krm001 and krm023 variables*/
+  EMB_SQL_CHECK("PDACO Update 3.");
 
   /* ft102_42_r_tran3	Τぇ獺ノ肂计 (Line > $100k) */
   EXEC SQL
@@ -743,8 +704,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 4 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 4.");
 
   EXEC SQL
      update pdaco_cal p
@@ -756,8 +716,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 5 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 5.");
 
   EXEC SQL
      update pdaco_cal p
@@ -769,8 +728,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 6 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 6.");
 
   /*JCIC琩高Ω计within 4 month from the inquiry date (Credit Card ), no "15 day rule"*/
   EXEC SQL
@@ -783,8 +741,7 @@ int RiskModel::GeneratePdacoScore()
                and ltrim(rtrim(item_list)) != ''
                and query_mon_since <= now - 3
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 7 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 7.");
 
   /* fs005_1k_3m	Τ┑筐煤蹿る计 (M2+) - Pay code in ('F') */
   EXEC SQL
@@ -797,15 +754,13 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and bucket_f_1k >= 2
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 8 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 8.");
 
   /* sex_tran	gender */
   EXEC SQL
      update pdaco_cal
       set sex = cast(substr(idn, 2, 1) as int);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 9 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 9.");
 
   /* app_last_month_bucket_tran	last month max among all lines */
   EXEC SQL
@@ -817,8 +772,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 1
                and mon_since <= now - curr_inqmon
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 10 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 10.");
 
   /* ft059_1k_43_r_tran	Τ┑筐煤蹿肂计 (M1+) - Pay code in ('E','F') */
   /* ft059_1k_42_q_tran	Τ┑筐煤蹿肂计 (M1+) - Pay code in ('E','F') */
@@ -832,8 +786,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 11 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 11.");
 
   EXEC SQL
      update pdaco_cal p
@@ -845,8 +798,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 12 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 12.");
 
   EXEC SQL
      update pdaco_cal p
@@ -858,8 +810,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 13 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 13.");
 
   /* fs051_tran	秅锣禪蹿掸计 */
   EXEC SQL
@@ -870,8 +821,7 @@ int RiskModel::GeneratePdacoScore()
              where p.case_sn = s.case_sn
                and purpose_code = '4'
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 14 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 14.");
 
   /* int015_3m_tran	ever 箇瞷肂计(FS016) / Τぇ獺ノ肂计(FS101) */
   EXEC SQL
@@ -884,8 +834,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and cash = 'Y'
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 15 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 15.");
 
   EXEC SQL
      update pdaco_cal p
@@ -896,8 +845,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 3
                and mon_since <= now - curr_inqmon
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 16 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 16.");
 
   /* ms117_6m	程碻吏κだゑ (Min of all line)paycode CD */
   EXEC SQL
@@ -912,8 +860,7 @@ int RiskModel::GeneratePdacoScore()
                 and cast(limit as int) <> 0
              group by s.case_sn
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 17 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 17.");
 
   /* int028_9_tran	睲肂计(Paycode A,B, FS014)/FS101 Τぇ獺ノ肂计 (All opened) */
   EXEC SQL
@@ -927,8 +874,7 @@ int RiskModel::GeneratePdacoScore()
                and pay_code in ('A', 'B')
              group by s.case_sn
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 18 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 18.");
 
   EXEC SQL
      update pdaco_cal p
@@ -939,10 +885,7 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 9
                and mon_since <= now - curr_inqmon
             );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 19 done." << endl;
-
-
+  EMB_SQL_CHECK("PDACO Update 19.");
 
 /*---open_card and open_line contain months which should have transaction records based on
      krm001, open_line contains one record for each credit line each month. One-card-one-line
@@ -965,13 +908,12 @@ int RiskModel::GeneratePdacoScore()
                               or ((a.issue = 'A82' and a.card_brand = 'A') and (b.issue = 'AEA'))
                             )
                       );      
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 20 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 20.");
     
-    /* fs205_1k_3m_q_tran	 of delinqunt lines opened less than a year */
+  /* fs205_1k_3m_q_tran	 of delinqunt lines opened less than a year */
   EXEC SQL
      delete from t1;
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("PDACO Update 21.");
 
   EXEC SQL
      insert into t1(case_sn, mon, deliquent_line)
@@ -997,8 +939,7 @@ int RiskModel::GeneratePdacoScore()
           and pay_code in ('C', 'D', 'E', 'F')
           and payment_amt > 1
         group by b.case_sn, (b.now - b.mon_since);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 21 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 22.");
     
     
   EXEC SQL
@@ -1010,14 +951,12 @@ int RiskModel::GeneratePdacoScore()
               and mon <=  3
               and mon > 0
            );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 22 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 23.");
     
     /* ft212_1k_43_q_tran2	monthly average  of delinqunt lines that are opened less than 6 months */
   EXEC SQL
      delete from t1;
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 23 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 24.");
      
   EXEC SQL
      insert into t1(case_sn, mon, deliquent_line)
@@ -1043,8 +982,7 @@ int RiskModel::GeneratePdacoScore()
           and pay_code in ('C', 'D', 'E', 'F')
           and payment_amt > 1
         group by b.case_sn, (b.now - b.mon_since);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 24 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 25.");
     
   EXEC SQL
     update pdaco_cal p
@@ -1055,8 +993,7 @@ int RiskModel::GeneratePdacoScore()
               and mon <=  3
               and mon > 0
            );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 25 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 26.");
     
   EXEC SQL
     update pdaco_cal p
@@ -1067,9 +1004,7 @@ int RiskModel::GeneratePdacoScore()
               and mon <= 6
               and mon > 0
            );
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 26 done." << endl;
-    
+  EMB_SQL_CHECK("PDACO Update 27.");
 
   EXEC SQL
      update pdaco_cal
@@ -1079,8 +1014,7 @@ int RiskModel::GeneratePdacoScore()
             ft059_1k_42 = fs059_1k_3m - (fs059_1k_9m - fs059_1k_6m),
             ft212_1k_43 = fs212_1k_3m - (fs212_1k_6m - fs212_1k_3m),
             int028_9 = (case when fs101_9m = 0 then null else fs014_9m / fs101_9m end);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 27 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 28.");
 
   EXEC SQL
      update pdaco_cal
@@ -1089,8 +1023,7 @@ int RiskModel::GeneratePdacoScore()
             ft102_42_r = power((case when ft102_42 < 0 then null else ft102_42 end), 0.5),
             ft212_1k_43_q = power (ft212_1k_43, 2),
             fs205_1k_3m_q = power (fs205_1k_3m, 2);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 28 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 29.");
 
   EXEC SQL
      update pdaco_cal
@@ -1121,8 +1054,7 @@ int RiskModel::GeneratePdacoScore()
            			       else ft059_1k_43_r end),
             fs051_tran = (case when fs051 is null then 2
            		       else fs051 end);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 29 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 30.");
 
   EXEC SQL
      update pdaco_cal
@@ -1140,8 +1072,7 @@ int RiskModel::GeneratePdacoScore()
      	     int028_9_tran		*	-0.08045 +
      	     ft059_1k_43_r_tran		*	0.01873 +
      	     fs051_tran 		*	0.00345;
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 30 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 31.");
 
   EXEC SQL
      update pdaco_cal
@@ -1168,8 +1099,7 @@ int RiskModel::GeneratePdacoScore()
                          when pdaco_score <= 0.15002 then 19
                          else 20
        		  end);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 31 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 32.");
 
   EXEC SQL
      update pdaco_cal
@@ -1195,8 +1125,7 @@ int RiskModel::GeneratePdacoScore()
      		when pdaco_twen = 19 then 0.0771
      		when pdaco_twen = 20 then 0.1070
      	     end);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 32 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 33.");
      
   EXEC SQL
      update pdaco_cal
@@ -1222,11 +1151,11 @@ int RiskModel::GeneratePdacoScore()
      		  when pdaco_twen = 19 then 0.1394
      		  when pdaco_twen = 20 then 0.3000
      		end);
-  EMB_SQL_CHECK();
-  cout << "PDACO stmt 33 done." << endl;
+  EMB_SQL_CHECK("PDACO Update 34.");
 
   EXEC SQL COMMIT;
-  EMB_SQL_CHECK();
+  EMB_SQL_CHECK("COMMIT");
+  Debug("Exit GeneratePdacoScore()");
   return 0;
 } //RiskModel::GeneratePdacoSore()
 

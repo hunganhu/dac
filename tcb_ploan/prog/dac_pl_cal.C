@@ -14,6 +14,7 @@
 ****************************************************************************/
 
 #include <string.h>
+#include <stdio.h>
 #include <sqlenv.h>
 #include <sqlutil.h>
 #include "utilemb.h"
@@ -35,12 +36,13 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   RiskModel rm;
   int rc = 0;
   
-  cout << "Enter dac_pl_cal()" << endl;
-  cout <<"DB name= "<< alias << endl;  
-  cout <<"User ID= "<< uid << endl;  
-  cout <<"User PW= "<< upw << endl;  
-  cout <<"Case SN= "<< case_sn << endl;  
-
+  Info("Enter dac_pl_cal()\n");
+  Info("DB name= %s\n", alias);  
+  Info("User ID= %s\n", uid);  
+  Info("User PW= %s\n", upw);  
+  Info("Case SN= %s\n", case_sn);  
+  memset(MESSAGE, '\0', sizeof(MESSAGE));
+  
   db.setDb(alias, uid, upw);
   rc = db.Connect();
   if (rc != 0)  {
@@ -77,7 +79,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
     return rc;
   }
 
-  cout << "Exit dac_pl_cal()" << endl;
+  Info("Exit dac_pl_cal()\n");
 
   return 0;
 }

@@ -52,6 +52,12 @@ extern "C"
 #define PATH_SEP "/"
 #endif
 
+#ifdef DEBUG
+#define debug 1
+#else
+#define debug 0
+#endif
+
 // classes and methods
 class Db
 {
@@ -73,8 +79,15 @@ class SqlInfo
 };
 
 // macro for embedded SQL checking
-#define EMB_SQL_CHECK()                              \
+#define Debug( MSG_STR )                              \
+if (debug) cout << CurrDateTime() << ": " << MSG_STR << endl;    
+
+#define Info                              \
+if (debug) printf 
+
+#define EMB_SQL_CHECK( MSG_STR )                              \
 SqlInfo::SqlInfoPrint(&sqlca, __LINE__, __FILE__ ); \
+if (debug) cout << CurrDateTime() << ": " << MSG_STR << endl;     \
 if ( sqlca.sqlcode < 0 )                                      \
 {                                                             \
   DbEmb::TransRollback();                                     \
@@ -89,7 +102,8 @@ class DbEmb: public Db
     int Connect();
     int Disconnect();
 };
-
+char * CurrDateTime ();
+ 
 #ifdef __cplusplus
 }
 #endif
