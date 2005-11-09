@@ -13,6 +13,7 @@ enum SQLCodes { Create_Source_Table,
                 Insert_Source_Table,
                 Select_Close_Account,
                 Select_Close_Account_Date,
+                Select_Invalid_Statements,
                 Delete_Redundant_Statements,
                 Update_Month_Since,
                 Create_Index_on_Stmt,
@@ -51,17 +52,17 @@ enum SQLCodes { Create_Source_Table,
 		Cal_RS001,
                 Transform_R1_Vars,
                 Cal_R1_Score_Twentile,
-                
+
                 Cal_FS191,
                 Cal_FS204,
                 Transform_T1_Vars,
                 Cal_T1_Score_Twentile,
-                
+
                 Cal_MS023,
                 Cal_FS197,
                 Transform_T2_Vars,
                 Cal_T2_Score_Twentile,
-                
+
                 Transform_N1_Vars,
                 Cal_N1_Score_Twentile,
 
@@ -72,6 +73,7 @@ int step[] = {
 	Insert_Source_Table,
         Select_Close_Account,
         Select_Close_Account_Date,
+        Select_Invalid_Statements,
         Delete_Redundant_Statements,
 	Update_Month_Since,
 	Create_Index_on_Stmt,
@@ -84,12 +86,12 @@ int step[] = {
 	Cal_BucketM_on_Stmt_6,
 	Insert_Stmt_9,
 	Create_Index_Stmt_9,
-	
+
 	Create_Output_Table,
 	Insert_ID_to_Output,
 	Update_Max_Cycle,
 	Update_Now_on_Output,
-	
+
 	Update_Indicators,
 	Update_Demographics,
 	Update_Stmt3_Count,
@@ -100,7 +102,7 @@ int step[] = {
 	Update_Insurance_Flag,
 	Update_Close_Flag,
 	Update_Card,
-	
+
 	Cal_FS003,
 	Cal_FS072,
 	Cal_FS089,
@@ -131,6 +133,7 @@ char *SQLNames[]= {"Create_Source_Table",
                 "Insert_Source_Table",
                 "Select_Close_Account",
                 "Select_Close_Account_Date",
+                "Select_Invalid_Statements",
                 "Delete_Redundant_Statements",
                 "Update_Month_Since",
                 "Create_Index_on_Stmt",
@@ -187,7 +190,8 @@ char *SQLNames[]= {"Create_Source_Table",
 
 char *SQLCommands[] = {
 /* Create_Source_Table */
-"if not exists (select * from dbo.sysobjects where id = object_id(N'fubon_cc_stmts') and objectproperty(id, N'isusertable') = 1)"
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts') IS NOT NULL"
+"    drop table #fubon_cc_stmts;"
 " create table fubon_cc_stmts ("
 "    billing_close_date datetime,"
 "    cardholder_status_code char (1),"
@@ -213,8 +217,24 @@ char *SQLCommands[] = {
 "    last_cash_advance int,"
 "    last_revolving_int_amt int"
 "   );"
+" IF OBJECT_ID('tempdb..#FB_close_acct') IS NOT NULL"
+"    drop table #FB_close_acct;"
 " create table FB_close_acct ("
 "    Primary_Cardholder_ID char(11)"
+"   );"
+" IF OBJECT_ID('tempdb..#FB_close_acct_date') IS NOT NULL"
+"    drop table #FB_close_acct_date;"
+" create table FB_close_acct_date ("
+"    Primary_Cardholder_ID char(11),"
+"    card_cancel_date      datetime"
+"   );"
+" IF OBJECT_ID('tempdb..#FB_invalid_stmts') IS NOT NULL"
+"    drop table #FB_invalid_stmts;"
+" create table FB_invalid_stmts ("
+"    Primary_Cardholder_ID char(11),"
+"    card_cancel_date      datetime,"
+"    billing_close_date    datetime,"
+"    balance               int "
 "   );",
 
 /*Insert_Source_Table*/
@@ -224,7 +244,8 @@ char *SQLCommands[] = {
 " select billing_close_date, primary_cardholder_id, cardholder_status_code, last_payment_amt,"
 "  monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt, this_term_min_payment,"
 "  this_term_total_amt_receivable, this_term_cash_advance_amt"
-" from cc_credit_card_statements",
+" from cc_credit_card_statements"
+" where billing_close_date between (:v0 -10000) and :v0",
 
 /*Select_Close_Account*/
 " insert into FB_close_acct(Primary_Cardholder_ID)"
@@ -244,9 +265,9 @@ char *SQLCommands[] = {
 " where a.Primary_Cardholder_ID = b.Primary_Cardholder_ID"
 " group by a.Primary_Cardholder_ID;",
 
-/*Delete_Redundant_Statements*/
-" delete cc_credit_card_statements"
-" from (select a.Primary_Cardholder_ID,"
+/*Select_Invalid_Statements*/
+" insert into FB_invalid_stmts(Primary_Cardholder_ID,card_cancel_date,billing_close_date,balance)"
+" select a.Primary_Cardholder_ID,"
 "        b.card_cancel_date,"
 "        a.billing_close_date,"
 "        This_Term_Total_Amt_Receivable"
@@ -254,7 +275,11 @@ char *SQLCommands[] = {
 "      cc_credit_card_statements a"
 " where b.Primary_Cardholder_ID = a.Primary_Cardholder_ID"
 " AND   DATEDIFF(day,card_cancel_date, billing_close_date) > 30"
-" and   This_Term_Total_Amt_Receivable <= 0 ) as t1"
+" and   This_Term_Total_Amt_Receivable <= 0;",
+
+/*Delete_Redundant_Statements*/
+" delete cc_credit_card_statements"
+" from FB_invalid_stmts as t1"
 " where cc_credit_card_statements.Primary_Cardholder_ID = t1.Primary_Cardholder_ID"
 "   and cc_credit_card_statements.billing_close_date = t1.billing_close_date;",
 
@@ -267,9 +292,7 @@ char *SQLCommands[] = {
 "create index i_idn on fubon_cc_stmts(idn);",
 
 /*Get_Prev_Stmt_Info*/
-"declare @now int"
-"declare @i int"
-"set @now = 94 * 12 + 7"
+/*v0 is now = 94*12+7*/
 " declare @i int"
 " set @i=12"
 " while @i > 0"
@@ -283,7 +306,7 @@ char *SQLCommands[] = {
 "          from fubon_cc_stmts, fubon_cc_stmts as b"
 "          where fubon_cc_stmts.mon_since = b.mon_since + 1"
 "            and fubon_cc_stmts.idn = b.idn"
-"            and (@now - fubon_cc_stmts.mon_since) = @i"
+"            and (:v0 - fubon_cc_stmts.mon_since) = @i"
 "       set @i = @i - 1"
 "    end;",
 
@@ -298,8 +321,8 @@ char *SQLCommands[] = {
 "                        / (case when last_expenditure = 0 then null else last_expenditure end)",
 
 /*Insert_Stmt_3*/
-"if exists (select * from dbo.sysobjects where id = object_id(N'fubon_cc_stmts_3') and objectproperty(id, N'isusertable') = 1)"
-"   drop table fubon_cc_stmts_3;"
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_3') IS NOT NULL"
+"    drop table #fubon_cc_stmts_3;"
 "select a.*"
 "into fubon_cc_stmts_3"
 "from fubon_cc_stmts a, response_model b"
@@ -310,8 +333,8 @@ char *SQLCommands[] = {
 "create index i_idn_3 on fubon_cc_stmts_3(idn);",
 
 /*Insert_Stmt_6*/
-"if exists (select * from dbo.sysobjects where id = object_id(N'fubon_cc_stmts_6') and objectproperty(id, N'isusertable') = 1)"
-"   drop table fubon_cc_stmts_6;"
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_6') IS NOT NULL"
+"    drop table #fubon_cc_stmts_6;"
 "select a.*"
 " into fubon_cc_stmts_6"
 " from fubon_cc_stmts a, response_model b"
@@ -340,8 +363,8 @@ char *SQLCommands[] = {
 "    end;",
 
 /*Insert_Stmt_9*/
-" if exists (select * from dbo.sysobjects where id = object_id(N'fubon_cc_stmts_9') and objectproperty(id, N'isusertable') = 1)"
-"   drop table fubon_cc_stmts_9"
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_9') IS NOT NULL"
+"    drop table #fubon_cc_stmts_9;"
 " select a.*"
 " into fubon_cc_stmts_9"
 " from fubon_cc_stmts a, response_model b"
@@ -428,14 +451,35 @@ char *SQLCommands[] = {
 " insert response_model(Primary_Cardholder_ID, start_date, end_date)"
 " select  Primary_Cardholder_ID,"
 "         min(Card_Issue_Date) as start_date,"
+"         max(Card_Cancel_Date) as end_date"
+/*
 "         max(case when Card_Cancel_Date is null then convert(datetime, '99991231', 112)"
 "             else Card_Cancel_Date end) as end_date"
+*/
 " from cc_acct_credit_card"
 " group by Primary_Cardholder_ID;",
 
 /*Update_Max_Cycle*/
+" declare @cycle_date varchar(8);"
+" set @cycle_date = :v0;"
+" declare @yyyymm int;"
+" declare @yyyy int;"
+" declare @mm int;"
+" declare @dd int;"
+" declare @prev_month varchar(10);"
+" set @yyyymm = cast (substring(@cycle_date, 1, 6) as int)"
+" set @yyyy = (@yyyymm - @yyyymm % 100 ) / 100"
+" set @mm = @yyyymm % 100"
+" if  @mm <= 1"
+" begin"
+"  set @mm = @mm - 1 + 12"
+"  set @yyyy = @yyyy - 1"
+" end"
+" else"
+"  set @mm = @mm - 1"
+" set @prev_month = cast (((@yyyy * 100 + @mm) * 100 + 01) as char(8))"
 " update response_model"
-" set max_cycle = (case when max_date < '20050501' then '200505'"
+" set max_cycle = (case when max_date < @prev_month then substring(@prev_month,1,6)"
 "                      else left(convert(char(8),max_date,112), 6) end)"
 " from (select idn,"
 "             max(Billing_Close_Date) as max_date"
@@ -446,28 +490,6 @@ char *SQLCommands[] = {
 /*Update_Now_on_Output*/
 "update response_model"
 " set now = (substring(max_cycle, 1, 4) - 1911) * 12 + substring(max_cycle, 5, 2);",
-
-/**/
-/*
-"select *"
-"into cc_stmts"
-"from cc_credit_card_statements a,"
-"     response_model b"
-"where a.Primary_Cardholder_ID = b.Primary_Cardholder_ID"
-"  and a.billing_close_date between (@current -10000) and @current"
-"--  and datediff(day, b.start_date, a.billing_close_date) > -30"
-"  and (datediff(day, b.end_date, a.billing_close_date) <= 30"
-"       or This_Term_Total_Amt_Receivable > 0)"
-
-" select distinct a.Primary_Cardholder_ID"
-" into FB_close_acct"
-" from cc_acct_credit_card as a left join"
-"    (select distinct Primary_Cardholder_ID"
-"     from cc_acct_credit_card"
-"     where Acct_Status_Code = 0)  as b"
-" on a.Primary_Cardholder_ID = b.Primary_Cardholder_ID"
-" where b.Primary_Cardholder_ID is null",
-*/
 
 /*Update_Indicators*/
 "update response_model"
@@ -486,7 +508,7 @@ char *SQLCommands[] = {
 
 /*Update_Demographics*/
 "declare @current char(12)"
-"set @current = '20050604'"
+"set @current = :v0"
 "update response_model"
 "   set gender = (case when a.gender_code = 'M' then 1 else 0 end),"
 "       age = datediff(year, dob, convert(datetime, @current, 112)) + 1,"
