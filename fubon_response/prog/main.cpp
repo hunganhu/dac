@@ -21,7 +21,8 @@ int main(int argc, char* argv[])
   GetOpt getopt (argc, argv, "m:M:c:C:u:U:p:P:s:S:d:D:hHgG");
   int option_char, i, Debug = 0;
   char *target_month, *config_file, *user, *password, *source, *database;
-  char connect_string[128], buf[20];
+  char connect_string[128], buf[20], yrmon[10];
+  int now, yyyymm;
   Variant hostVars[10];
   TADOHandler *dbhandle;
   TADOQuery *Query;
@@ -62,12 +63,9 @@ int main(int argc, char* argv[])
          case 'h':
          case '?':
          default:
-//           fprintf (stderr,"usage: Advscore -m cycle_date -c config_file ");
            fprintf (stderr,"usage: Advscore -m cycle_date ");
            fprintf (stderr,"-u user -p password -s source -d database\n\n");
            fprintf (stderr,"\tcycle_date: the cycle date in which the PD are calculated.\n");
-//           fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.\n");
-//           fprintf (stderr,"\t             default is ./AdoConnect.udl\n");
            fprintf (stderr,"\tuser: user name to connect to SQL server.\n");
            fprintf (stderr,"\tpassword: password to connect to SQL server.\n");
            fprintf (stderr,"\tsource: source name of SQL server.\n");
@@ -75,16 +73,12 @@ int main(int argc, char* argv[])
            fprintf (stderr,"\n\t-h, -?: disply this help message.\n");
            return (0);
       }
-//  if (argc < 2 || target_month == (char*) NULL) {
  if (target_month == (char*) NULL || password == (char*) NULL ||
     user == (char*) NULL || database == (char*) NULL || source == (char*) NULL) {
-//     fprintf (stderr,"usage: fbscore -m cycle_date -c config_file ");
      fprintf (stderr,"All options are REQUIRED.\n");
      fprintf (stderr,"usage: fbscore -m cycle_date ");
      fprintf (stderr,"-u user -p password -s source -d database\n\n");
      fprintf (stderr,"\tcycle_date: the cycle date in which the PD are calculated.\n");
-//     fprintf (stderr,"\tconfig_file: the file contains the information to connect to SQL server.");
-//     fprintf (stderr," default is ./AdoConnect.udl\n");
      fprintf (stderr,"\tuser: user name to connect to SQL server.\n");
      fprintf (stderr,"\tpassword: password to connect to SQL server.\n");
      fprintf (stderr,"\tsource: source name of SQL server.\n");
@@ -107,18 +101,16 @@ int main(int argc, char* argv[])
  else {
     strcpy (connect_string, CONNECTION_STRING);
  }
+ yyyymm = atoi(strncpy(yrmon,target_month, 6));
+ now = (yyyymm /100 - 1911) * 12 + (yyyymm % 100);
  try {
  dbhandle = new TADOHandler();
- fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 started.\n", CurrDateTime());
-/*
+ fprintf(stderr, "%s: Calculating Response Model Ver.1 started.\n", CurrDateTime());
+
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
-        case Execute_Proc_Load_Input_Table:
-        case Execute_Proc_Assign_SegCode:
-        case Execute_Proc_Assign_AccountAge:
-        case Execute_Proc_Load_Vars_Table:
-        case Execute_Proc_Generate_Profile:
-        case Execute_Proc_Generate_Score:
+        case Update_Max_Cycle:
+        case Update_Demographics:
            hostVars[0] = target_month;
            DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
            if (! dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0)) {
@@ -126,9 +118,20 @@ int main(int argc, char* argv[])
               return (1);
            }
            break;
+        case Get_Prev_Stmt_Info:
+        case Cal_BucketM_on_Stmt_6:
+        case Update_Vintage:
+        case Cal_RS001:
+           hostVars[0] = now;
+           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+           if (! dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0)) {
+              delete dbhandle;
+              return (1);
+           }
+           break;
         case End_of_SQL:
-           fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 completed.\n", CurrDateTime());
-           fprintf (stderr, "\nFuHwa Holding Credit Card Risk Monthly Profile (%s)\n", target_month);
+           fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
+           fprintf (stderr, "\nFubon Response Model Profile (%s)\n", target_month);
            int risk_group, group_count;
            try {
               Query = new TADOQuery(NULL);
@@ -160,7 +163,7 @@ int main(int argc, char* argv[])
            }
      }
  }
-*/
+
  dbhandle->CloseDatabase();
  } catch (Exception &E) {
     fprintf(stderr, "%s: %s\n", CurrDateTime(), E.Message.c_str());

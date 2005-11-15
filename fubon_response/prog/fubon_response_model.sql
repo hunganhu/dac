@@ -75,7 +75,7 @@ set @now = 94 * 12 + 7
 -- within 3 months
 if exists (select * from dbo.sysobjects where id = object_id(N'fubon_cc_stmts_3') and objectproperty(id, N'isusertable') = 1)
    drop table fubon_cc_stmts_3;
-
+   
 select a.*
 into fubon_cc_stmts_3
 from fubon_cc_stmts a, response_model b
@@ -270,17 +270,42 @@ where a.Primary_Cardholder_ID = b.Primary_Cardholder_ID
 update response_model
    set cashADV_ind = (case when t1.cash_advance_amt > 0 then 1 else 0 end),
        revINT_ind = (case when t1.Revolving_Interest_Amt > 0 then 1 else 0 end),
-       expAMT_ind = (case when t1.Expenditure_Amt > 0 then 1 else 0 end),
-       Vintage_ind = (case when t1.vintage >= 12 then 1 else 0 end)
+       expAMT_ind = (case when t1.Expenditure_Amt > 0 then 1 else 0 end)
    from (select idn,
                 sum(This_Term_Cash_Advance_Amt) as cash_advance_amt,
                 sum(Revolving_Interest_Amt) as Revolving_Interest_Amt,
         	sum(This_Term_Expenditure_Amt) as Expenditure_Amt,
-        	count(*) as vintage
  	 from fubon_cc_stmts
  	 group by idn) as t1
    where response_model.Primary_Cardholder_ID = t1.idn;
 -- 1085985
+update response_model
+   set expAMT_ind = (case when t1.Expenditure_Amt > 0 then 1 else 0 end)
+   from (select idn,
+        	count(*) as Expenditure_Amt
+ 	 from fubon_cc_stmts
+	 where This_Term_Expenditure_Amt > 0
+ 	 group by idn) as t1
+   where response_model.Primary_Cardholder_ID = t1.idn;
+--796195
+
+update response_model
+   set Vintage_ind = datediff(month,start_date, convert(datetime,@current,112))
+/*
+declare @current char(12)
+set @current = '20050604'
+
+update response_model
+   set Vintage_ind = datediff(month,start_date, convert(datetime,@current,112))
+--1472554
+select top 100 start_date, 
+       datediff(month,start_date, convert(datetime,@current,112)),
+       (case when datediff(month,start_date, convert(datetime,@current,112)) >= 12 then 1 else 0 end)
+from response_model
+
+*/
+
+
 declare @current char(12)
 set @current = '20050604'
 
@@ -334,7 +359,7 @@ update response_model
          from fubon_cc_stmts_3
          group by idn) as a
    where a.idn = response_model.Primary_Cardholder_ID;
-
+   
 update response_model
    set stmt_6 = a.v1
    from (select idn, count(*) as v1
@@ -350,7 +375,7 @@ update response_model
          group by idn) as a
    where a.idn = response_model.Primary_Cardholder_ID;
 --1064518
-
+   
 update response_model
    set stmt_12 = a.v1
    from (select idn, count(*) as v1
@@ -454,26 +479,54 @@ update response_model
 update response_model
    set card = 0
    where cashADV_ind = 1;
--- 101861
+-- 101861  
 update response_model
-   set card = (case when Vintage_ind = 0 then 0 else 4 end)
+   set card = (case when Vintage_ind < 12 then 40 else 4 end)
    where cashADV_ind = 0
      and revINT_ind = 1;
 --177209
 update response_model
-   set card = (case when Vintage_ind = 0 then 3 else 2 end)
+   set card = (case when Vintage_ind < 12 then 3 else 2 end)
    where cashADV_ind = 0
      and revINT_ind = 0
      and expAMT_ind = 1;
--- 531642
+-- 531642 
+-- 532083
 update response_model
-   set card = (case when wm_flag = 1 and ins_flag =0 then 0 else 1 end)
+   set card = (case when wm_flag = 1 and ins_flag =0 then 10 else 1 end)
    where cashADV_ind = 0
      and revINT_ind = 0
      and expAMT_ind = 0;
--- 661842
+-- 661842  
+-- 661401
+select card, count(*)
+from response_model
+group by card
+order by card
+/*
+0	149068
+1	620380
+2	491900
+3	39742
+4	171464
+*/
+/*
+0	101861 C
+1	619956 N1
+2	492317 T1
+3	39766  T2
+4	171464 R1
+10	41445  N2
+40	5745   R2
 
-----------------------------------------------------------------------------------------R1
+C	101861
+N1	619956
+N2	41445
+R1	171464
+R2	5745
+T1	492317
+T2	39766
+*/----------------------------------------------------------------------------------------R1
 -- FS003  硈尿Xる度煤程肂Ω计
 update response_model
    set fs003_6 = a.v1
@@ -527,17 +580,22 @@ update response_model
          from fubon_cc_stmts_12
          group by idn) as a
    where a.idn = response_model.Primary_Cardholder_ID;
--- 1085985
+-- 1085985   
 -- RS001	程Ω秨禯さる计
+declare @current char(12)
+set @current = '20050604'
+
 update response_model
-   set rs001 = now - ((cast(substring(t1.recent_open_date, 1, 4) as int)-1911) * 12 +
-                      (cast(substring(t1.recent_open_date, 5, 2) as int)))
+   set rs001 = ((cast(substring(@current, 1, 4) as int)-1911) * 12 +
+               (cast(substring(@current, 5, 2) as int))) - 
+               ((cast(substring(t1.recent_open_date, 1, 4) as int)-1911) * 12 +
+               (cast(substring(t1.recent_open_date, 5, 2) as int)))
    from (select primary_cardholder_id,
                 left(convert(char(8), max(Card_Issue_Date), 112), 6) as recent_open_date
          from cc_acct_credit_card
          group by primary_cardholder_id) as t1
    where t1.primary_cardholder_id = response_model.primary_cardholder_id;
---1472554
+--1472554   
 
  update response_model
     set FS089_3_n=FS089_3 / (case when stmt_3 = 0 then null else stmt_3 end),
@@ -586,9 +644,9 @@ go
         MS062_12_r_t_r1	 *	0.0335	+
         FS096_12_n_t_r1	 *	0.07503	+
         FS072_9_n_t_r1	 *     -0.04747	+
-        FS003_6_n_r_t_r1 *	0.02337
+        FS003_6_n_r_t_r1 *	0.02337	
      where card = 4;
---10548
+--171464
  update response_model
     set twentile_r1 = (case when rscore_r1 is null then 0
                             when rscore_r1 <= -0.00459 then 1
@@ -612,7 +670,7 @@ go
                             when rscore_r1 <= 0.23687 then 19
                             else 20 end)
      where card = 4;
---10548
+--171464
 ----------------------------------------------------------------------------------------T1
 -- FS191  禣蹿搭ぶ>=20%る计
 update response_model
@@ -691,7 +749,7 @@ update response_model
                             else 20 end)
      where card = 2;
 go
---27314
+--492317
 ----------------------------------------------------------------------------------------T2
 -- MS023	average open to buy
 update response_model
@@ -756,7 +814,7 @@ go
                             when rscore_t2 <= 0.21463  then 19
                             else 20 end)
      where card = 3;
---504328
+--39766
 ----------------------------------------------------------------------------------------N1
 update response_model
     set age_t_n1 = (case when age < 24  then 24
@@ -802,4 +860,4 @@ go
                             when rscore_n1 <= 0.17368 then 19
                             else 20 end)
      where card = 1;
---620380
+--619956

@@ -16,6 +16,11 @@ enum SQLCodes { Create_Source_Table,
                 Select_Invalid_Statements,
                 Delete_Redundant_Statements,
                 Update_Month_Since,
+                Create_Output_Table,
+                Insert_ID_to_Output,
+                Update_Max_Cycle,
+                Update_Now_on_Output,
+
                 Create_Index_on_Stmt,
                 Get_Prev_Stmt_Info,
                 Cal_Stmt_Flag,
@@ -27,12 +32,8 @@ enum SQLCodes { Create_Source_Table,
                 Insert_Stmt_9,
                 Create_Index_Stmt_9,
 
-                Create_Output_Table,
-                Insert_ID_to_Output,
-                Update_Max_Cycle,
-                Update_Now_on_Output,
-
                 Update_Indicators,
+                Update_Vintage,
                 Update_Demographics,
                 Update_Stmt3_Count,
                 Update_Stmt6_Count,
@@ -76,6 +77,11 @@ int step[] = {
         Select_Invalid_Statements,
         Delete_Redundant_Statements,
 	Update_Month_Since,
+	Create_Output_Table,
+	Insert_ID_to_Output,
+	Update_Max_Cycle,
+	Update_Now_on_Output,
+
 	Create_Index_on_Stmt,
 	Get_Prev_Stmt_Info,
 	Cal_Stmt_Flag,
@@ -87,12 +93,8 @@ int step[] = {
 	Insert_Stmt_9,
 	Create_Index_Stmt_9,
 
-	Create_Output_Table,
-	Insert_ID_to_Output,
-	Update_Max_Cycle,
-	Update_Now_on_Output,
-
 	Update_Indicators,
+        Update_Vintage,
 	Update_Demographics,
 	Update_Stmt3_Count,
 	Update_Stmt6_Count,
@@ -136,6 +138,11 @@ char *SQLNames[]= {"Create_Source_Table",
                 "Select_Invalid_Statements",
                 "Delete_Redundant_Statements",
                 "Update_Month_Since",
+                "Create_Output_Table",
+                "Insert_ID_to_Output",
+                "Update_Max_Cycle",
+                "Update_Now_on_Output",
+
                 "Create_Index_on_Stmt",
                 "Get_Prev_Stmt_Info",
                 "Cal_Stmt_Flag",
@@ -146,11 +153,6 @@ char *SQLNames[]= {"Create_Source_Table",
                 "Cal_BucketM_on_Stmt_6",
                 "Insert_Stmt_9",
                 "Create_Index_Stmt_9",
-
-                "Create_Output_Table",
-                "Insert_ID_to_Output",
-                "Update_Max_Cycle",
-                "Update_Now_on_Output",
 
                 "Update_Indicators",
                 "Update_Demographics",
@@ -244,8 +246,7 @@ char *SQLCommands[] = {
 " select billing_close_date, primary_cardholder_id, cardholder_status_code, last_payment_amt,"
 "  monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt, this_term_min_payment,"
 "  this_term_total_amt_receivable, this_term_cash_advance_amt"
-" from cc_credit_card_statements"
-" where billing_close_date between (:v0 -10000) and :v0",
+" from cc_credit_card_statements",
 
 /*Select_Close_Account*/
 " insert into FB_close_acct(Primary_Cardholder_ID)"
@@ -278,101 +279,15 @@ char *SQLCommands[] = {
 " and   This_Term_Total_Amt_Receivable <= 0;",
 
 /*Delete_Redundant_Statements*/
-" delete cc_credit_card_statements"
+" delete fubon_cc_stmts"
 " from FB_invalid_stmts as t1"
-" where cc_credit_card_statements.Primary_Cardholder_ID = t1.Primary_Cardholder_ID"
-"   and cc_credit_card_statements.billing_close_date = t1.billing_close_date;",
+" where fubon_cc_stmts.idn = t1.Primary_Cardholder_ID"
+"   and fubon_cc_stmts.billing_close_date = t1.billing_close_date;",
 
 /*Update_Month_Since*/
 "update fubon_cc_stmts"
 "   set mon_since = (cast (substring(convert(char(8),billing_close_date,112),1,4) as int) - 1911) * 12 +"
 "                    cast (substring(convert(char(8),billing_close_date,112),5,2) as int);",
-
-/*Create_Index_on_Stmt*/
-"create index i_idn on fubon_cc_stmts(idn);",
-
-/*Get_Prev_Stmt_Info*/
-/*v0 is now = 94*12+7*/
-" declare @i int"
-" set @i=12"
-" while @i > 0"
-"    begin"
-"       update fubon_cc_stmts"
-"          set last_balance = b.this_term_total_amt_receivable,"
-"              last_min_payment = b.this_term_min_payment,"
-"              last_expenditure = b.this_term_expenditure_amt,"
-"              last_cash_advance = b.this_term_cash_advance_amt,"
-"	       last_revolving_int_amt = b.revolving_interest_amt"
-"          from fubon_cc_stmts, fubon_cc_stmts as b"
-"          where fubon_cc_stmts.mon_since = b.mon_since + 1"
-"            and fubon_cc_stmts.idn = b.idn"
-"            and (:v0 - fubon_cc_stmts.mon_since) = @i"
-"       set @i = @i - 1"
-"    end;",
-
-/*Cal_Stmt_Flag*/
-" update fubon_cc_stmts"
-"    set bal_dec  = (case when this_term_total_amt_receivable < last_balance then  1 else 0 end),"
-"        bal_pct_diff  = convert(float,(this_term_total_amt_receivable - last_balance))"
-"                        / (case when last_balance=0 then null else last_balance end),"
-"        min_pay  = (case when (last_payment_amt = last_min_payment) and (last_min_payment > 0) then 1 else 0 end),"
-"        exp_dec  = (case when This_Term_Expenditure_Amt < last_expenditure then 1 else 0 end),"
-"        exp_pct_diff  = convert(float,(This_Term_Expenditure_Amt - last_expenditure))"
-"                        / (case when last_expenditure = 0 then null else last_expenditure end)",
-
-/*Insert_Stmt_3*/
-" IF OBJECT_ID('tempdb..#fubon_cc_stmts_3') IS NOT NULL"
-"    drop table #fubon_cc_stmts_3;"
-"select a.*"
-"into fubon_cc_stmts_3"
-"from fubon_cc_stmts a, response_model b"
-"where a.idn = b.Primary_Cardholder_ID"
-"  and a.mon_since > (b.now - 3);",
-
-/*Create_Index_Stmt_3*/
-"create index i_idn_3 on fubon_cc_stmts_3(idn);",
-
-/*Insert_Stmt_6*/
-" IF OBJECT_ID('tempdb..#fubon_cc_stmts_6') IS NOT NULL"
-"    drop table #fubon_cc_stmts_6;"
-"select a.*"
-" into fubon_cc_stmts_6"
-" from fubon_cc_stmts a, response_model b"
-" where a.idn = b.Primary_Cardholder_ID"
-"   and a.mon_since > (b.now - 6);",
-
-/*Create_Index_Stmt_6*/
-"create index i_idn_6 on fubon_cc_stmts_6(idn);",
-
-/*Cal_BucketM_on_Stmt_6*/
-" declare @now int"
-" declare @i int"
-" set @now = 94 * 12 + 7"
-" update fubon_cc_stmts_6"
-"    set bucket_M = (case when min_pay = 1 then 1 else 0 end);"
-" set @i=7"
-" while @i > 0"
-"    begin"
-"       update fubon_cc_stmts_6"
-"          set bucket_M = (case when fubon_cc_stmts_6.min_pay = 1 then b.bucket_M + 1 else 0 end)"
-"          from fubon_cc_stmts_6, fubon_cc_stmts_6 as b"
-"          where fubon_cc_stmts_6.mon_since = b.mon_since + 1"
-"            and fubon_cc_stmts_6.idn = b.idn"
-"            and (@now - fubon_cc_stmts_6.mon_since) = @i"
-"       set @i = @i - 1"
-"    end;",
-
-/*Insert_Stmt_9*/
-" IF OBJECT_ID('tempdb..#fubon_cc_stmts_9') IS NOT NULL"
-"    drop table #fubon_cc_stmts_9;"
-" select a.*"
-" into fubon_cc_stmts_9"
-" from fubon_cc_stmts a, response_model b"
-" where a.idn = b.Primary_Cardholder_ID"
-"   and a.mon_since > (b.now - 9);",
-
-/*Create_Index_Stmt_9*/
-"create index i_idn_9 on fubon_cc_stmts_9(idn);",
 
 /*Create_Output_Table*/
 " create table response_model ("
@@ -452,10 +367,6 @@ char *SQLCommands[] = {
 " select  Primary_Cardholder_ID,"
 "         min(Card_Issue_Date) as start_date,"
 "         max(Card_Cancel_Date) as end_date"
-/*
-"         max(case when Card_Cancel_Date is null then convert(datetime, '99991231', 112)"
-"             else Card_Cancel_Date end) as end_date"
-*/
 " from cc_acct_credit_card"
 " group by Primary_Cardholder_ID;",
 
@@ -491,27 +402,119 @@ char *SQLCommands[] = {
 "update response_model"
 " set now = (substring(max_cycle, 1, 4) - 1911) * 12 + substring(max_cycle, 5, 2);",
 
+/*Create_Index_on_Stmt*/
+"create index i_idn on fubon_cc_stmts(idn);",
+
+/*Get_Prev_Stmt_Info*/
+/*v0 is now = 94*12+6*/
+" declare @i int"
+" set @i=12"
+" while @i > 0"
+"    begin"
+"       update fubon_cc_stmts"
+"          set last_balance = b.this_term_total_amt_receivable,"
+"              last_min_payment = b.this_term_min_payment,"
+"              last_expenditure = b.this_term_expenditure_amt,"
+"              last_cash_advance = b.this_term_cash_advance_amt,"
+"	       last_revolving_int_amt = b.revolving_interest_amt"
+"          from fubon_cc_stmts, fubon_cc_stmts as b"
+"          where fubon_cc_stmts.mon_since = b.mon_since + 1"
+"            and fubon_cc_stmts.idn = b.idn"
+"            and (:v0 - fubon_cc_stmts.mon_since) = @i"
+"       set @i = @i - 1"
+"    end;",
+
+/*Cal_Stmt_Flag*/
+" update fubon_cc_stmts"
+"    set bal_dec  = (case when this_term_total_amt_receivable < last_balance then  1 else 0 end),"
+"        bal_pct_diff  = convert(float,(this_term_total_amt_receivable - last_balance))"
+"                        / (case when last_balance=0 then null else last_balance end),"
+"        min_pay  = (case when (last_payment_amt = last_min_payment) and (last_min_payment > 0) then 1 else 0 end),"
+"        exp_dec  = (case when This_Term_Expenditure_Amt < last_expenditure then 1 else 0 end),"
+"        exp_pct_diff  = convert(float,(This_Term_Expenditure_Amt - last_expenditure))"
+"                        / (case when last_expenditure = 0 then null else last_expenditure end)",
+
+/*Insert_Stmt_3*/
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_3') IS NOT NULL"
+"    drop table #fubon_cc_stmts_3;"
+"select a.*"
+"into fubon_cc_stmts_3"
+"from fubon_cc_stmts a, response_model b"
+"where a.idn = b.Primary_Cardholder_ID"
+"  and a.mon_since > (b.now - 3);",
+
+/*Create_Index_Stmt_3*/
+"create index i_idn_3 on fubon_cc_stmts_3(idn);",
+
+/*Insert_Stmt_6*/
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_6') IS NOT NULL"
+"    drop table #fubon_cc_stmts_6;"
+"select a.*"
+" into fubon_cc_stmts_6"
+" from fubon_cc_stmts a, response_model b"
+" where a.idn = b.Primary_Cardholder_ID"
+"   and a.mon_since > (b.now - 6);",
+
+/*Create_Index_Stmt_6*/
+"create index i_idn_6 on fubon_cc_stmts_6(idn);",
+
+/*Cal_BucketM_on_Stmt_6*/
+/*v0 is now = 94*12+7*/
+" update fubon_cc_stmts_6"
+"    set bucket_M = (case when min_pay = 1 then 1 else 0 end);"
+" set @i=7"
+" while @i > 0"
+"    begin"
+"       update fubon_cc_stmts_6"
+"          set bucket_M = (case when fubon_cc_stmts_6.min_pay = 1 then b.bucket_M + 1 else 0 end)"
+"          from fubon_cc_stmts_6, fubon_cc_stmts_6 as b"
+"          where fubon_cc_stmts_6.mon_since = b.mon_since + 1"
+"            and fubon_cc_stmts_6.idn = b.idn"
+"            and (:v0 - fubon_cc_stmts_6.mon_since) = @i"
+"       set @i = @i - 1"
+"    end;",
+
+/*Insert_Stmt_9*/
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_9') IS NOT NULL"
+"    drop table #fubon_cc_stmts_9;"
+" select a.*"
+" into fubon_cc_stmts_9"
+" from fubon_cc_stmts a, response_model b"
+" where a.idn = b.Primary_Cardholder_ID"
+"   and a.mon_since > (b.now - 9);",
+
+/*Create_Index_Stmt_9*/
+"create index i_idn_9 on fubon_cc_stmts_9(idn);",
+
 /*Update_Indicators*/
 "update response_model"
 "   set cashADV_ind = (case when t1.cash_advance_amt > 0 then 1 else 0 end),"
-"       revINT_ind = (case when t1.Revolving_Interest_Amt > 0 then 1 else 0 end),"
-"       expAMT_ind = (case when t1.Expenditure_Amt > 0 then 1 else 0 end),"
-"       Vintage_ind = (case when t1.vintage >= 12 then 1 else 0 end)"
+"       revINT_ind = (case when t1.Revolving_Interest_Amt > 0 then 1 else 0 end)"
 "   from (select idn,"
 "                sum(This_Term_Cash_Advance_Amt) as cash_advance_amt,"
-"                sum(Revolving_Interest_Amt) as Revolving_Interest_Amt,"
-"        	sum(This_Term_Expenditure_Amt) as Expenditure_Amt,"
-"        	count(*) as vintage"
+"                sum(Revolving_Interest_Amt) as Revolving_Interest_Amt"
 " 	 from fubon_cc_stmts"
 " 	 group by idn) as t1"
-"   where response_model.Primary_Cardholder_ID = t1.idn;",
+"   where response_model.Primary_Cardholder_ID = t1.idn; "
+"update response_model"
+"   set expAMT_ind = (case when t1.Expenditure_Amt > 0 then 1 else 0 end)"
+"   from (select idn,"
+"        	count(*) as Expenditure_Amt"
+" 	 from fubon_cc_stmts"
+"	 where This_Term_Expenditure_Amt > 0"
+" 	 group by idn) as t1"
+"   where response_model.Primary_Cardholder_ID = t1.idn; ",
+
+/*Update_Vintage*/
+/*:v0 current date yyyymmdd*/
+"update response_model"
+"   set Vintage_ind = datediff(month, start_date, convert(datetime,:v0,112))",
 
 /*Update_Demographics*/
-"declare @current char(12)"
-"set @current = :v0"
+/*v0 current date yyyymmdd*/
 "update response_model"
 "   set gender = (case when a.gender_code = 'M' then 1 else 0 end),"
-"       age = datediff(year, dob, convert(datetime, @current, 112)) + 1,"
+"       age = datediff(year, dob, convert(datetime, :v0, 112)) + 1,"
 "       edu = cast(a.education_code as int)"
 "   from cc_party_bank_credit_card a"
 "   where response_model.Primary_Cardholder_ID = a.party_ID;",
@@ -617,30 +620,33 @@ char *SQLCommands[] = {
 "       close_flag = (case when close_flag = 1 then 1 else 0 end);",
 
 /*
-" 0: others"
+" 0: C"
 " 1: N1"
+" 10: N2"
 " 2: T1"
 " 3: T2"
 " 4: R1"
+" 40: R2"
 */
 /*Update_Card*/
-" update response_model"
+"update response_model"
 "   set card = 0"
-"   where cashADV_ind = 1;",
-" update response_model"
-"   set card = (case when Vintage_ind = 0 then 0 else 4 end)"
+"   where cashADV_ind = 1;"
+"update response_model"
+"   set card = (case when Vintage_ind < 12 then 40 else 4 end)"
 "   where cashADV_ind = 0"
 "     and revINT_ind = 1;"
-" update response_model"
-"   set card = (case when Vintage_ind = 0 then 3 else 2 end)"
+"update response_model"
+"   set card = (case when Vintage_ind < 12 then 3 else 2 end)"
 "   where cashADV_ind = 0"
 "     and revINT_ind = 0"
 "     and expAMT_ind = 1;"
-" update response_model"
-"   set card = (case when wm_flag = 1 and ins_flag =0 then 0 else 1 end)"
+"update response_model"
+"   set card = (case when wm_flag = 1 and ins_flag =0 then 10 else 1 end)"
 "   where cashADV_ind = 0"
 "     and revINT_ind = 0"
-"     and expAMT_ind = 0;",
+"     and expAMT_ind = 0;"
+,
 
 // FS003  連續X個月僅繳最低金額
 /*Cal_FS003*/
@@ -703,14 +709,17 @@ char *SQLCommands[] = {
 
 //-- RS001	最近一次開卡距
 /*Cal_RS001*/
+/*:v0 now 94*12+6*/
 "update response_model"
-"   set rs001 = now - ((cast(substring(t1.recent_open_date, 1, 4) as int)-1911) * 12 +"
-"                      (cast(substring(t1.recent_open_date, 5, 2) as int)))"
+"   set rs001 = :v0 -"
+"               ((cast(substring(t1.recent_open_date, 1, 4) as int)-1911) * 12 +"
+"               (cast(substring(t1.recent_open_date, 5, 2) as int)))"
 "   from (select primary_cardholder_id,"
 "                left(convert(char(8), max(Card_Issue_Date), 112), 6) as recent_open_date"
 "         from cc_acct_credit_card"
 "         group by primary_cardholder_id) as t1"
-"   where t1.primary_cardholder_id = response_model.primary_cardholder_id;",
+"   where t1.primary_cardholder_id = response_model.primary_cardholder_id;"
+,
 
 /*Transform_R1_Vars*/
 " update response_model"
@@ -927,7 +936,7 @@ char *SQLCommands[] = {
 "	                 else age end),"
 "        FS204_t_n1 = (case when FS204 > 4 then 4"
 "	                      else FS204 end),"
-"	index7 = (1 - wm_flag) * (1 - ins_flag) * close_flag,"
+"	 index7 = (1 - wm_flag) * (1 - ins_flag) * close_flag,"
 "        edu_t_n1 = (case when edu = 1 then 1"
 "                         when edu = 2 then 1"
 "                         when edu = 3 then 2"
