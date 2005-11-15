@@ -30,10 +30,13 @@ extern "C"
 class RiskModel
 {
   public:
-    static int CreateWorkingTables();
-    static int PrepareJcicTables(char *case_sn);
-    static int Prescreen(char *case_sn);
-    static int GeneratePdacoScore();
+    int CreateWorkingTables();
+    int PrepareJcicTables(char *case_sn, char *idn);
+    int Prescreen(char *case_sn, char *idn);
+    int GeneratePdacoScore();
+    int SaveScore();
+    int CleanTables();
+
 };
 
 

@@ -228,7 +228,7 @@ int RiskModel::CreateWorkingTables()
         mon	  int,
         deliquent_line int);
   EMB_SQL_CHECK("Create Table 8.");
-    
+
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT.");
 
@@ -237,7 +237,7 @@ int RiskModel::CreateWorkingTables()
 
 } // RiskModel::CreateWorkingTables()
 
-int RiskModel::PrepareJcicTables(char *case_sn)
+int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 {
   struct sqlca sqlca;
 
@@ -249,14 +249,14 @@ int RiskModel::PrepareJcicTables(char *case_sn)
   EXEC SQL END DECLARE SECTION;
 
   strcpy (Case_Sn, case_sn);
-//  strcpy (Idn, idn);
+  strcpy (Idn, idn);
   Debug("Enter PrepareJcicTables()");
 
   EXEC SQL
      insert into krm001_dedup (case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, cnt)
         select case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, count(*)
         from db2inst1.krm001
-        where case_sn = :Case_Sn
+        where case_sn = :Case_Sn and idn = :Idn
         group by case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
   EMB_SQL_CHECK("Insert-Select 1.");
 
@@ -264,7 +264,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
         select case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
         from db2inst1.krm023
-        where case_sn = :Case_Sn
+        where case_sn = :Case_Sn and idn = :Idn
         group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
   EMB_SQL_CHECK("Insert-Select 2.");
 
@@ -272,7 +272,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      insert into stm001_dedup (case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, cnt)
         select case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, count(*)
         from db2inst1.stm001
-        where case_sn = :Case_Sn
+        where case_sn = :Case_Sn and idn = :Idn
         group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
   EMB_SQL_CHECK("Insert-Select 3.");
 
@@ -280,7 +280,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
     insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
        select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, count(*)
        from db2inst1.bam086
-        where case_sn = :Case_Sn
+        where case_sn = :Case_Sn and idn = :Idn
        group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
   EMB_SQL_CHECK("Insert-Select 4.");
 
@@ -289,7 +289,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         select case_sn, idn, inquiry_date, 'D', data_yyymmdd
         from db2inst1.bas001
         where data_yyymmdd is not null or rtrim(ltrim(data_yyymmdd)) <> ''
-          and case_sn = :Case_Sn;
+          and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("Insert-Select 5.");
 
   EXEC SQL
@@ -297,7 +297,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         select case_sn, idn, inquiry_date, 'B', ck_date
         from db2inst1.dam103
         where ck_date is not null or rtrim(ltrim(ck_date)) <> ''
-          and case_sn = :Case_Sn;
+          and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("Insert-Select 6.");
 
   EXEC SQL
@@ -305,7 +305,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         select case_sn, idn, inquiry_date, 'R', beg_date
         from db2inst1.dam203
         where beg_date is not null or rtrim(ltrim(beg_date)) <> ''
-          and case_sn = :Case_Sn;
+          and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("Insert-Select 7.");
 
   EXEC SQL
@@ -313,7 +313,7 @@ int RiskModel::PrepareJcicTables(char *case_sn)
         select case_sn, idn, inquiry_date, 'S', stop_date
         from db2inst1.krm001
         where stop_code = '3'
-          and case_sn = :Case_Sn;
+          and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("Insert-Select 8.");
 
   EXEC SQL
@@ -509,31 +509,51 @@ int RiskModel::PrepareJcicTables(char *case_sn)
      create index i_k23_dedup_k on krm023_dedup(case_sn, issue, mon_since);
   EMB_SQL_CHECK();
   cout << "Create Index 27-1." << endl;
+
 */
   strcpy (sqlStatement,
-          "update krm023_dedup p "
-          "     set (p.bucket_def_1k, p.bucket_ef_1k, p.bucket_f_1k) ="
-          "         (select (case when p.bucket_def_1k=1 then s.bucket_def_1k +1 else 0 end),"
-          "                 (case when p.bucket_ef_1k=1 then s.bucket_ef_1k +1 else 0 end),"
-          "                 (case when p.bucket_f_1k=1 then s.bucket_f_1k +1 else 0 end)"
-          "          from krm023_dedup s"
-          "          where p.case_sn = s.case_sn"
-          "            and p.issue = s.issue"
-          "            and p.mon_since = s.mon_since+1)"
-          "      where p.now-p.mon_since = ?");
-  EXEC SQL PREPARE stmt1 FROM :sqlStatement;       
+         "update krm023_dedup p "
+         " set  p.bucket_ef_1k= "
+         "      (select (case when p.bucket_ef_1k=1 then s.bucket_ef_1k+1 else 0 end) "
+         "      from krm023_dedup s "
+         "      where p.case_sn = s.case_sn "
+         "        and p.issue = s.issue "
+         "        and p.mon_since = s.mon_since+1) "
+         "   where p.now-p.mon_since = ? "
+         "     and exists (select s.case_sn from krm023_dedup s  "
+         "                 where p.case_sn = s.case_sn "
+         "                   and p.issue = s.issue "
+         "                   and p.mon_since = s.mon_since+1)");
+  EXEC SQL PREPARE stmt1 FROM :sqlStatement;
+
+  strcpy (sqlStatement,
+         "update krm023_dedup p "
+         " set  p.bucket_f_1k= "
+         "      (select (case when p.bucket_f_1k =1 then s.bucket_f_1k +1 else 0 end) "
+         "      from krm023_dedup s "
+         "      where p.case_sn = s.case_sn "
+         "        and p.issue = s.issue "
+         "        and p.mon_since = s.mon_since+1) "
+         "   where p.now-p.mon_since = ? "
+         "     and exists (select s.case_sn from krm023_dedup s  "
+         "                 where p.case_sn = s.case_sn "
+         "                   and p.issue = s.issue "
+         "                   and p.mon_since = s.mon_since+1)");
+  EXEC SQL PREPARE stmt2 FROM :sqlStatement;
+  
   inx = 11;
   while (inx > 0){
      EXEC SQL EXECUTE stmt1 USING :inx;
+     EXEC SQL EXECUTE stmt2 USING :inx;
      inx--;
      EMB_SQL_CHECK("Update 27-2.");
   }
-
+/*
   EXEC SQL
      update bam086_dedup
         set bank_code2 = left(bank_code,3);
   EMB_SQL_CHECK("Update 29.");
-
+*/
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT");
   Debug("Exit PrepareJcicTables()");
@@ -541,24 +561,24 @@ int RiskModel::PrepareJcicTables(char *case_sn)
   return 0;
 } // RiskModel::PrepareJcicTables()
 
-int RiskModel::Prescreen(char *case_sn)
+int RiskModel::Prescreen(char *case_sn, char *idn)
 {
   struct sqlca sqlca;
 
   EXEC SQL BEGIN DECLARE SECTION;
     char Case_Sn_PS[20];
+    char Idn_PS[12];
   EXEC SQL END DECLARE SECTION;
 
   strcpy (Case_Sn_PS, case_sn);
+  strcpy (Idn_PS, idn);
   /* risk filter process */
   Debug("Enter Prescreen()");
 
   EXEC SQL
      insert into pdaco_cal(case_sn, idn)
-        select case_sn, Applicant_ID
-        from db2inst1.app_info
-        where case_sn = :Case_Sn_PS;
-  EMB_SQL_CHECK("Insert-Select 1.");
+        values (:Case_Sn_PS, :Idn_PS);
+  EMB_SQL_CHECK("Insert 1.");
 
   /* Update filter variable*/
   EXEC SQL
@@ -653,44 +673,40 @@ int RiskModel::GeneratePdacoScore()
   struct sqlca sqlca;
 
   Debug("Enter GeneratePdacoScore()");
-
- /*Init variables*/
  /*Init stm001 variables*/
   EXEC SQL
      update pdaco_cal p
         set fs031 = 0
         where exists (select *
-             from stm001_dedup s
-             where p.case_sn = s.case_sn);
+                      from stm001_dedup s
+                      where p.case_sn = s.case_sn);
   EMB_SQL_CHECK("PDACO Update 1.");
-
-  /*Init bam085 variables*/
+ /*Init bam085 variables*/
   EXEC SQL
      update pdaco_cal p
         set fs051 = 0
         where exists (select *
-             from bam086_dedup s
-             where p.case_sn = s.case_sn);
+                      from bam086_dedup s
+                      where p.case_sn = s.case_sn);
   EMB_SQL_CHECK("PDACO Update 2.");
-
-  /*Init krm023 variables*/
+ /*Init krm023 variables*/
   EXEC SQL
      update pdaco_cal p
-        set fs102_3m = 0,
-            fs102_6m = 0,
-            fs102_9m = 0,
-            fs005_1k_3m = 0,
-            fs059_1k_3m = 0,
-            fs059_1k_6m = 0,
-            fs059_1k_9m = 0,
-            fs014_9m = 0,
-            fs016_3m = 0,
-            fs101_3m = 0,
-            fs101_9m = 0,
-            ms117_6m = 0
+        set fs102_3m =  0,
+            fs102_6m =  0,
+            fs102_9m =  0,
+            fs005_1k_3m =  0,
+            fs059_1k_3m =  0,
+            fs059_1k_6m =  0,
+            fs059_1k_9m =  0,
+            fs014_9m =  0,
+            fs016_3m =  0,
+            fs101_3m =  0,
+            fs101_9m =  0,
+            ms117_6m =  0
         where exists (select *
-             from krm023_dedup s
-             where p.case_sn = s.case_sn);
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn);
   EMB_SQL_CHECK("PDACO Update 3.");
 
   /* ft102_42_r_tran3	Τぇ獺ノ肂计 (Line > $100k) */
@@ -703,7 +719,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 3
                and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 3
+                        and mon_since <= now - curr_inqmon
+                        and cast(limit as int) > 100
+                     );
   EMB_SQL_CHECK("PDACO Update 4.");
 
   EXEC SQL
@@ -715,7 +738,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 6
                and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 6
+                        and mon_since <= now - curr_inqmon
+                        and cast(limit as int) > 100
+                     );
   EMB_SQL_CHECK("PDACO Update 5.");
 
   EXEC SQL
@@ -727,7 +757,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 9
                and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 9
+                        and mon_since <= now - curr_inqmon
+                        and cast(limit as int) > 100
+                     );
   EMB_SQL_CHECK("PDACO Update 6.");
 
   /*JCIC琩高Ω计within 4 month from the inquiry date (Credit Card ), no "15 day rule"*/
@@ -737,10 +774,16 @@ int RiskModel::GeneratePdacoScore()
             (select count(*)
              from stm001_dedup s
              where p.case_sn = s.case_sn
-               and item_list is not null
-               and ltrim(rtrim(item_list)) != ''
-               and query_mon_since <= now - 3
-            );
+               and (item_list is not null or ltrim(rtrim(item_list)) != '')
+               and query_mon_since >= now - 3
+            )
+        where exists (select *
+                      from stm001_dedup s
+                      where p.case_sn = s.case_sn
+                        and (item_list is not null or ltrim(rtrim(item_list)) != '')
+                        and query_mon_since >= now - 3
+                     );
+
   EMB_SQL_CHECK("PDACO Update 7.");
 
   /* fs005_1k_3m	Τ┑筐煤蹿る计 (M2+) - Pay code in ('F') */
@@ -753,7 +796,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 3
                and mon_since <= now - curr_inqmon
                and bucket_f_1k >= 2
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 3
+                        and mon_since <= now - curr_inqmon
+                        and bucket_f_1k >= 2
+                     );
   EMB_SQL_CHECK("PDACO Update 8.");
 
   /* sex_tran	gender */
@@ -785,7 +835,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 3
                and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 3
+                        and mon_since <= now - curr_inqmon
+                        and bucket_ef_1k >= 1
+                     );
   EMB_SQL_CHECK("PDACO Update 11.");
 
   EXEC SQL
@@ -797,7 +854,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 6
                and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 6
+                        and mon_since <= now - curr_inqmon
+                        and bucket_ef_1k >= 1
+                     );
   EMB_SQL_CHECK("PDACO Update 12.");
 
   EXEC SQL
@@ -809,7 +873,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 9
                and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 9
+                        and mon_since <= now - curr_inqmon
+                        and bucket_ef_1k >= 1
+                     );
   EMB_SQL_CHECK("PDACO Update 13.");
 
   /* fs051_tran	秅锣禪蹿掸计 */
@@ -820,7 +891,12 @@ int RiskModel::GeneratePdacoScore()
              from bam086_dedup s
              where p.case_sn = s.case_sn
                and purpose_code = '4'
-            );
+            )
+        where exists (select *
+                      from bam086_dedup s
+                      where p.case_sn = s.case_sn
+                        and purpose_code = '4'
+                     );
   EMB_SQL_CHECK("PDACO Update 14.");
 
   /* int015_3m_tran	ever 箇瞷肂计(FS016) / Τぇ獺ノ肂计(FS101) */
@@ -833,7 +909,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since >= now - 3
                and mon_since <= now - curr_inqmon
                and cash = 'Y'
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 3
+                        and mon_since <= now - curr_inqmon
+                        and cash = 'Y'
+                     );
   EMB_SQL_CHECK("PDACO Update 15.");
 
   EXEC SQL
@@ -844,7 +927,13 @@ int RiskModel::GeneratePdacoScore()
              where p.case_sn = s.case_sn
                and mon_since >= now - 3
                and mon_since <= now - curr_inqmon
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 3
+                        and mon_since <= now - curr_inqmon
+                     );
   EMB_SQL_CHECK("PDACO Update 16.");
 
   /* ms117_6m	程碻吏κだゑ (Min of all line)paycode CD */
@@ -873,7 +962,14 @@ int RiskModel::GeneratePdacoScore()
                and mon_since <= now - curr_inqmon
                and pay_code in ('A', 'B')
              group by s.case_sn
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 9
+                        and mon_since <= now - curr_inqmon
+                        and pay_code in ('A', 'B')
+                     );
   EMB_SQL_CHECK("PDACO Update 18.");
 
   EXEC SQL
@@ -884,32 +980,41 @@ int RiskModel::GeneratePdacoScore()
              where p.case_sn = s.case_sn
                and mon_since >= now - 9
                and mon_since <= now - curr_inqmon
-            );
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 9
+                        and mon_since <= now - curr_inqmon
+                     );
   EMB_SQL_CHECK("PDACO Update 19.");
+
 
 /*---open_card and open_line contain months which should have transaction records based on
      krm001, open_line contains one record for each credit line each month. One-card-one-line
      issuers, i.e. 021(Citi) is processed seperately.  The other two one-card-one-line issuers,
      i.e. 081(HSBC) ,974(AIG), for their KRM023 data are consolidated, are treated as
      multi-card-one-line issers---*/
+
+ /*Init krm001 and krm023 variables*/
   EXEC SQL
      update pdaco_cal p
-        set fs205_1k_3m = 0,
-            fs212_1k_3m = 0,
-            fs212_1k_6m = 0
-        where exists (select *
-                      from krm001_dedup as a, krm023_dedup as b
-                      where a.case_sn = b.case_sn
-                        and a.case_sn = p.case_sn
-                        and ((a.issue = b.issue)
-                              or ((a.issue = '021' and a.card_brand = 'V') and (b.issue = 'CTV'))
-                              or ((a.issue = '021' and a.card_brand = 'M') and (b.issue = 'CTM'))
-                              or ((a.issue = '021' and a.card_brand = 'D') and (b.issue = 'CTD'))
-                              or ((a.issue = 'A82' and a.card_brand = 'A') and (b.issue = 'AEA'))
-                            )
-                      );      
+     set fs205_1k_3m = 0,
+         fs212_1k_3m = 0,
+         fs212_1k_6m = 0
+     where exists (select *
+                   from krm001_dedup as a, krm023_dedup as b
+                   where a.idn = b.idn
+                     and a.idn = p.idn
+                     and ((a.issue = b.issue)
+                           or ((a.issue = '021' and a.card_brand = 'V') and (b.issue = 'CTV'))
+                           or ((a.issue = '021' and a.card_brand = 'M') and (b.issue = 'CTM'))
+                           or ((a.issue = '021' and a.card_brand = 'D') and (b.issue = 'CTD'))
+                           or ((a.issue = 'A82' and a.card_brand = 'A') and (b.issue = 'AEA'))
+                         )
+                   );
   EMB_SQL_CHECK("PDACO Update 20.");
-    
+
   /* fs205_1k_3m_q_tran	 of delinqunt lines opened less than a year */
   EXEC SQL
      delete from t1;
@@ -918,15 +1023,15 @@ int RiskModel::GeneratePdacoScore()
   EXEC SQL
      insert into t1(case_sn, mon, deliquent_line)
         select b.case_sn, (b.now -b.mon_since), count(*) as deliquent_line
-        from (select case_sn, 
+        from (select case_sn,
                  (case when issue = '021' and card_brand = 'V' then 'CTV'
                        when issue = '021' and card_brand = 'M' then 'CTM'
                        when issue = '021' and card_brand = 'D' then 'CTD'
                        when issue = 'A82' and card_brand = 'A' then 'AEA'
                        else issue  end) as issue_m
               from krm001_dedup
-              where start_mon_since <= now - 12
-              group by case_sn, 
+              where start_mon_since > now - 12
+              group by case_sn,
                        (case when issue = '021' and card_brand = 'V' then 'CTV'
                              when issue = '021' and card_brand = 'M' then 'CTM'
                              when issue = '021' and card_brand = 'D' then 'CTD'
@@ -940,8 +1045,8 @@ int RiskModel::GeneratePdacoScore()
           and payment_amt > 1
         group by b.case_sn, (b.now - b.mon_since);
   EMB_SQL_CHECK("PDACO Update 22.");
-    
-    
+
+
   EXEC SQL
     update pdaco_cal p
        set fs205_1k_3m =
@@ -950,26 +1055,32 @@ int RiskModel::GeneratePdacoScore()
             where p.case_sn = s.case_sn
               and mon <=  3
               and mon > 0
-           );
+           )
+       where exists (select *
+                     from t1 s
+                     where p.case_sn = s.case_sn
+                       and mon <=  3
+                       and mon > 0
+                    );
   EMB_SQL_CHECK("PDACO Update 23.");
-    
+
     /* ft212_1k_43_q_tran2	monthly average  of delinqunt lines that are opened less than 6 months */
   EXEC SQL
      delete from t1;
   EMB_SQL_CHECK("PDACO Update 24.");
-     
+
   EXEC SQL
      insert into t1(case_sn, mon, deliquent_line)
         select b.case_sn, (b.now -b.mon_since) , count(*) as deliquent_line
-        from (select case_sn, 
+        from (select case_sn,
                  (case when issue = '021' and card_brand = 'V' then 'CTV'
                        when issue = '021' and card_brand = 'M' then 'CTM'
                        when issue = '021' and card_brand = 'D' then 'CTD'
                        when issue = 'A82' and card_brand = 'A' then 'AEA'
                        else issue  end) as issue_m
               from krm001_dedup
-              where start_mon_since <= now - 6
-              group by case_sn, 
+              where start_mon_since > now - 6
+              group by case_sn,
                        (case when issue = '021' and card_brand = 'V' then 'CTV'
                              when issue = '021' and card_brand = 'M' then 'CTM'
                              when issue = '021' and card_brand = 'D' then 'CTD'
@@ -983,7 +1094,7 @@ int RiskModel::GeneratePdacoScore()
           and payment_amt > 1
         group by b.case_sn, (b.now - b.mon_since);
   EMB_SQL_CHECK("PDACO Update 25.");
-    
+
   EXEC SQL
     update pdaco_cal p
        set fs212_1k_3m =
@@ -992,9 +1103,15 @@ int RiskModel::GeneratePdacoScore()
             where p.case_sn = s.case_sn
               and mon <=  3
               and mon > 0
-           );
+           )
+       where exists (select *
+                     from t1 s
+                     where p.case_sn = s.case_sn
+                       and mon <=  3
+                       and mon > 0
+                    );
   EMB_SQL_CHECK("PDACO Update 26.");
-    
+
   EXEC SQL
     update pdaco_cal p
        set fs212_1k_6m =
@@ -1003,7 +1120,13 @@ int RiskModel::GeneratePdacoScore()
             where p.case_sn = s.case_sn
               and mon <= 6
               and mon > 0
-           );
+           )
+       where exists (select *
+                     from t1 s
+                     where p.case_sn = s.case_sn
+                       and mon <= 6
+                       and mon > 0
+                    );
   EMB_SQL_CHECK("PDACO Update 27.");
 
   EXEC SQL
@@ -1126,7 +1249,7 @@ int RiskModel::GeneratePdacoScore()
      		when pdaco_twen = 20 then 0.1070
      	     end);
   EMB_SQL_CHECK("PDACO Update 33.");
-     
+
   EXEC SQL
      update pdaco_cal
         set pb_inout = (case
@@ -1160,3 +1283,67 @@ int RiskModel::GeneratePdacoScore()
 } //RiskModel::GeneratePdacoSore()
 
 
+int RiskModel::CleanTables()
+{
+  struct sqlca sqlca;
+
+  Debug("Enter CleanTables()");
+
+  EXEC SQL delete from krm001_dedup;
+  EMB_SQL_CHECK("delete krm001_dedup");
+  EXEC SQL delete from krm023_dedup;
+  EMB_SQL_CHECK("delete krm023_dedup");
+  EXEC SQL delete from bam086_dedup;
+  EMB_SQL_CHECK("delete bam086_dedup");
+  EXEC SQL delete from stm001_dedup;
+  EMB_SQL_CHECK("delete stm001_dedup");
+  EXEC SQL delete from jas002_t_dedup;
+  EMB_SQL_CHECK("delete jas002_t_dedup");
+  EXEC SQL delete from jas002_t;
+  EMB_SQL_CHECK("delete jas002_t");
+  EXEC SQL delete from pdaco_cal;
+  EMB_SQL_CHECK("delete pdaco_cal");
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+
+
+  Debug("Exit CleanTables()");
+  return 0;
+} //RiskModel::CleanTables()
+
+
+int RiskModel::SaveScore()
+{
+  struct sqlca sqlca;
+
+  Debug("Enter SaveScore()");
+  EXEC SQL
+  insert into pdaco_result(
+     case_sn, idn, inquiry_date, now, avail_flag, jas002_defect, krm001_hit, krm023_hit, max_bucket,
+     fs044, cash_max_bucket, cash_utilization, ind001, fs102_3m, fs102_6m, fs102_9m, ft102_42,
+     ft102_42_r, ft102_42_r_tran, fs031, fs031_tran, fs005_1k_3m, fs005_1k_3m_q, fs005_1k_3m_q_tran,
+     fs059_1k_3m, fs059_1k_6m, fs059_1k_9m, ft059_1k_43, ft059_1k_43_r, ft059_1k_43_r_tran,
+     ft059_1k_42, ft059_1k_42_q, ft059_1k_42_q_tran, fs051, fs051_tran, fs016_3m, fs101_3m, int015_3,
+     int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
+     ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
+     int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
+     pdaco_score, pdaco_twen, pb_in, pb_inout)
+  select
+     case_sn, idn, inquiry_date, now, avail_flag, jas002_defect, krm001_hit, krm023_hit, max_bucket,
+     fs044, cash_max_bucket, cash_utilization, ind001, fs102_3m, fs102_6m, fs102_9m, ft102_42,
+     ft102_42_r, ft102_42_r_tran, fs031, fs031_tran, fs005_1k_3m, fs005_1k_3m_q, fs005_1k_3m_q_tran,
+     fs059_1k_3m, fs059_1k_6m, fs059_1k_9m, ft059_1k_43, ft059_1k_43_r, ft059_1k_43_r_tran,
+     ft059_1k_42, ft059_1k_42_q, ft059_1k_42_q_tran, fs051, fs051_tran, fs016_3m, fs101_3m, int015_3,
+     int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
+     ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
+     int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
+     pdaco_score, pdaco_twen, pb_in, pb_inout
+  from pdaco_cal;
+  EMB_SQL_CHECK("Save result");
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+
+  Debug("Exit SaveScore()");
+  return 0;
+} //RiskModel::SaveScore()

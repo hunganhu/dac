@@ -15,17 +15,21 @@
 #include "Dac.h"
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "dac_pl_cal.h"
 
 jclass Class_java_lang_String;
 jmethodID MID_String_init;
 jmethodID MID_String_getBytes;
+char * CurrTime ();
 
 JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
   (JNIEnv *env, jobject obj, jstring case_sn, jstring alias, jstring uid, jstring upw)
 {
      char c_case_sn[32], c_alias[32], c_uid[32], c_upw[32], c_error_msg[512];
      int rc = 0;
+     int index = 0;
+     FILE *fp;
      const char *caseSN;
      const char *dbName;
      const char *userID;
@@ -65,12 +69,21 @@ JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
      strcpy(c_upw, userPW);
      (*env)->ReleaseStringUTFChars(env, upw, userPW);
      errMsg[0] = '\0';
-     rc = dac_pl_cal(c_case_sn, c_alias, c_uid, c_upw, errMsg);
-
      printf ("C: Case_sn=%s\n", c_case_sn);
      printf ("C: Alias = %s\n", c_alias);
      printf ("C: User ID=%s\n", c_uid);
      printf ("C: User PW=%s\n", c_upw);
+
+	fp = fopen("case_list", "r");
+	while (fgets(c_case_sn, sizeof(c_case_sn), fp) != NULL) {
+	   c_case_sn[12] = '\0';	
+           index++;
+           printf("%s: %d-%s...\n", CurrTime(), index, c_case_sn); 
+           rc = dac_pl_cal(c_case_sn, c_alias, c_uid, c_upw, errMsg);
+           if (rc != 0)
+              printf("%s:(%d)%s.\n", CurrTime() , rc, errMsg); 
+	}
+
      sprintf (c_error_msg, "%04d%s", -rc, errMsg);
 
   Class_java_lang_String = (*env)->FindClass(env, "java/lang/String");
@@ -92,4 +105,16 @@ JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
      }
      return NULL;
 
+}
+char * CurrTime ()
+{
+ time_t timer;
+ struct tm *tblock;
+ static char buf[20];
+
+ timer = time(NULL);
+ tblock = localtime(&timer);
+ sprintf (buf, "%04d/%02d/%02d %02d:%02d:%02d", tblock->tm_year+1900, tblock->tm_mon+1,
+          tblock->tm_mday, tblock->tm_hour, tblock->tm_min, tblock->tm_sec);
+ return (buf);
 }

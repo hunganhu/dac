@@ -6,11 +6,11 @@
 **
 *****************************************************************************
 **
-** SOURCE FILE NAME: dac_pl_cal.sqC 
-**    
-** Description: 
+** SOURCE FILE NAME: dac_pl_cal.sqC
 **
-**           
+** Description:
+**
+**
 ****************************************************************************/
 
 #include <string.h>
@@ -22,33 +22,48 @@
 #if ((__cplusplus >= 199711L) && !defined DB2HP) || \
     (DB2LINUX && (__LP64__ || (__GNUC__ >= 3)) )
    #include <iostream>
-   using namespace std; 
+   using namespace std;
 #else
    #include <iostream.h>
 #endif
 #include "dac_pl_cal.h"
 #include "risk_model.h"
+#include "loan_app.h"
 char MESSAGE[1024];
 
 int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_message)
 {
   DbEmb db;
   RiskModel rm;
+  LoanApp app = LoanApp(case_sn);
   int rc = 0;
-  
+  char idn[12];
+
   Info("Enter dac_pl_cal()\n");
-  Info("DB name= %s\n", alias);  
-  Info("User ID= %s\n", uid);  
-  Info("User PW= %s\n", upw);  
-  Info("Case SN= %s\n", case_sn);  
+  Info("DB name= %s\n", alias);
+  Info("User ID= %s\n", uid);
+  Info("User PW= %s\n", upw);
+  Info("Case SN= %s\n", case_sn);
   memset(MESSAGE, '\0', sizeof(MESSAGE));
-  
+
   db.setDb(alias, uid, upw);
   rc = db.Connect();
   if (rc != 0)  {
      strcpy (error_message, "Connect to DB failed");
      return rc;
   }
+
+  rc = app.initial();
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+  rc = app.validate();
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+
 /*
   rc = rm.CreateWorkingTables();
   if (rc != 0)  {
@@ -56,12 +71,18 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return rc;
   }
 */
-  rc = rm.PrepareJcicTables(case_sn);
+  // Calculate PB of applicant
+  strcpy(idn, app.Applicant_id());
+  Info("Case SN= %s\n", case_sn);
+  Info("IDN= %s\n", idn);
+
+//  strcpy(idn, "V248994754");
+  rc = rm.PrepareJcicTables(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
   }
-  rc = rm.Prescreen(case_sn);
+  rc = rm.Prescreen(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
@@ -71,6 +92,37 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      strcpy (error_message, MESSAGE);
      return rc;
   }
+
+  rc = rm.SaveScore();
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+  rc = rm.CleanTables();
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+
+  /*
+  // Calculate PB of guanrantor
+  strcpy(idn, app.Guanrantor_id());
+  rc = rm.PrepareJcicTables(case_sn, idn);
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+  rc = rm.Prescreen(case_sn, idn);
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+  rc = rm.GeneratePdacoScore();
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
+  */
 
   rc = db.Disconnect();
   if (rc != 0)

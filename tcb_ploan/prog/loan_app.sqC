@@ -1,0 +1,150 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: LoanApp.sqC
+**
+**
+****************************************************************************/
+#include <string.h>
+#include <sqlenv.h>
+#include <sqlutil.h>
+#include "utilemb.h"
+#if ((__cplusplus >= 199711L) && !defined DB2HP) || \
+    (DB2LINUX && (__LP64__ || (__GNUC__ >= 3)) )
+   #include <iostream>
+   using namespace std;
+#else
+   #include <iostream.h>
+#endif
+#include "loan_app.h"
+extern char MESSAGE[1024];
+
+LoanApp::LoanApp(char *caseSN)
+{
+ strcpy (case_sn, caseSN);
+}
+
+int LoanApp::initial()
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+    char Case_Sn[20];
+    char Applicant_Id[12];
+    char Guantantor_Id[12];
+    short GID_ind;
+  EXEC SQL END DECLARE SECTION;
+  struct sqlca sqlca;
+
+  strcpy (Case_Sn, case_sn);
+//  strcpy (Idn, idn);
+  Debug("Enter LoanApp.initial()");
+
+  EXEC SQL
+     select applicant_id, guanrantor_id
+     into :Applicant_Id, :Guantantor_Id:GID_ind
+     from db2inst1.app_info
+     where case_sn = :Case_Sn;
+  EMB_SQL_CHECK("Select appInfo.");
+
+  if (sqlca.sqlcode != 100) {
+   strcpy (aID, Applicant_Id);
+   if (GID_ind == 1)
+      strcpy(gID, "");
+   else
+      strcpy (gID, Guantantor_Id);
+  } else {
+    strcpy(MESSAGE, "申貸編號不存在於APP_INFO");
+    return(2001);
+  }
+  Debug("Exit LoanApp.initial()");
+  return(0);
+}
+
+LoanApp::~LoanApp()
+{
+}
+
+char * LoanApp::Applicant_id()
+{
+ return(aID);
+}
+
+char * LoanApp::Guanrantor_id()
+{
+ return(gID);
+}
+
+int LoanApp::validate()
+{
+  Debug("Enter LoanApp.validate()");
+/*
+     if (!validate_date(app_date)) {
+        Message += TF_Messages[App_error_314]; code = 314;}
+     if (!validate_date(jcic_date)) {
+        Message += TF_Messages[App_error_315]; code = 315;}
+
+     if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
+        Message += TF_Messages[App_error_301]; code = 301;}
+
+     if ((age_ind == -1) || (age < 0) || (age > 1)) {
+        Message += TF_Messages[App_error_302]; code = 302;}
+
+     if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
+        Message += TF_Messages[App_error_303]; code = 303;}
+
+     if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
+        Message += TF_Messages[App_error_304]; code = 304;}
+   
+     if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
+        Message += TF_Messages[App_error_305]; code = 305;}
+
+     if ( validZIP(zip.c_str()) == 0) {
+        Message += TF_Messages[App_error_306];  code = 306;}
+
+     if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
+        Message += TF_Messages[App_error_307]; code = 307;}
+   
+     if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
+        Message += TF_Messages[App_error_308];  code = 308;}
+   
+     if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
+        Message += TF_Messages[App_error_309]; code = 309;}
+
+     // if commission is null then calculate ourselves, otherwise get it from this field
+     if ((commission_ind == 0) && (commission < 0)) {
+        Message += TF_Messages[App_error_310]; code = 310;}
+
+     if ((sales_channel_ind == -1) || (sales_channel < "001") || (sales_channel > "009") ) {
+        Message += TF_Messages[App_error_311]; code = 311;}
+   
+     if ((risk_level_ind == -1) || (risk_level < 1) || (risk_level > 2) ) {
+        Message += TF_Messages[App_error_312]; code = 312;}
+   
+     if ((roe_ind == -1) || (roe <= 0.0)) {
+        Message += TF_Messages[Fin_error_321]; code = 321;}
+
+     if ((cof_ind == -1) || (cof <= 0.0)) {
+        Message += TF_Messages[Fin_error_322]; code = 322;}
+   
+     if ((ts_tax_rate_ind == -1) || (ts_tax_rate <= 0.0)) {
+        Message += TF_Messages[Fin_error_323]; code = 323;}
+
+     if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
+        Message += TF_Messages[Fin_error_324]; code = 324;}
+
+     if ((info_processing_cost_ind == -1) || (info_processing_cost < 0.0)) {
+        Message += TF_Messages[Fin_error_325]; code = 325;}
+   
+     if ((operation_cost_ind == -1) || (operation_cost < 0.0)) {
+        Message += TF_Messages[Fin_error_326]; code = 326;}
+   
+     if ((hr_cost_ind == -1) || (hr_cost < 0.0)) {
+        Message += TF_Messages[Fin_error_327]; code = 327;}
+*/
+  Debug("Exit LoanApp.validate()");
+  return (0);
+}

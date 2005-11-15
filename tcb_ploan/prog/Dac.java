@@ -16,7 +16,7 @@ public class Dac {
 		String alias, uid, upw;
 		String error_message;
 		
-		case_sn = "003000016373";
+		case_sn = "000000000005";
 		alias = "dacdb";
 		uid = "ejcicap1";
 		upw = "ejcicap1";
