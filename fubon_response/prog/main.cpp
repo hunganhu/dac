@@ -18,10 +18,10 @@
 int main(int argc, char* argv[])
 {
   using namespace std;
-  GetOpt getopt (argc, argv, "m:M:c:C:u:U:p:P:s:S:d:D:hHgG");
+  GetOpt getopt (argc, argv, "m:M:u:U:p:P:s:S:d:D:hHgG");
   int option_char, i, Debug = 0;
   char *target_month, *config_file, *user, *password, *source, *database;
-  char connect_string[128], buf[20], yrmon[10];
+  char connect_string[128], buf[20], yrmon[10], sqlStatement[256];
   int now, yyyymm;
   Variant hostVars[10];
   TADOHandler *dbhandle;
@@ -36,10 +36,6 @@ int main(int argc, char* argv[])
          case 'M':
            target_month = getopt.optarg;
            DEBUG (stderr,"cycle_date: %s\n", target_month); break;
-         case 'c':
-         case 'C':
-           config_file = getopt.optarg;
-           DEBUG (stderr,"config: %s\n", config_file); break;
          case 'U':
          case 'u':
            user = getopt.optarg;
@@ -63,7 +59,7 @@ int main(int argc, char* argv[])
          case 'h':
          case '?':
          default:
-           fprintf (stderr,"usage: Advscore -m cycle_date ");
+           fprintf (stderr,"usage: fbscore -m cycle_date ");
            fprintf (stderr,"-u user -p password -s source -d database\n\n");
            fprintf (stderr,"\tcycle_date: the cycle date in which the PD are calculated.\n");
            fprintf (stderr,"\tuser: user name to connect to SQL server.\n");
@@ -105,29 +101,28 @@ int main(int argc, char* argv[])
  now = (yyyymm /100 - 1911) * 12 + (yyyymm % 100);
  try {
  dbhandle = new TADOHandler();
+ dbhandle->OpenDatabase(connect_string);
  fprintf(stderr, "%s: Calculating Response Model Ver.1 started.\n", CurrDateTime());
 
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
-        case Update_Max_Cycle:
+        case Update_Vintage:
         case Update_Demographics:
+           sprintf (sqlStatement, SQLCommands[step[i]], target_month);
+           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+           dbhandle->ExecSQLCmd(sqlStatement);
+           break;
+        case Execute_Proc_Update_Max_Cycle:
            hostVars[0] = target_month;
            DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
-           if (! dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0)) {
-              delete dbhandle;
-              return (1);
-           }
+           dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
-        case Get_Prev_Stmt_Info:
-        case Cal_BucketM_on_Stmt_6:
-        case Update_Vintage:
+        case Execute_Proc_Get_Prev_Stmt_Info:
+        case Execute_Proc_Cal_BucketM_on_Stmt_6:
         case Cal_RS001:
            hostVars[0] = now;
            DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
-           if (! dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0)) {
-              delete dbhandle;
-              return (1);
-           }
+           dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
         case End_of_SQL:
            fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
@@ -157,10 +152,7 @@ int main(int argc, char* argv[])
            break;
         default:
            DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);
-           if (! dbhandle->ExecSQLCmd(SQLCommands[step[i]])) {
-              delete dbhandle;
-              return (1);
-           }
+           dbhandle->ExecSQLCmd(SQLCommands[step[i]]);
      }
  }
 

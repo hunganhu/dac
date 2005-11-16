@@ -18,17 +18,23 @@ enum SQLCodes { Create_Source_Table,
                 Update_Month_Since,
                 Create_Output_Table,
                 Insert_ID_to_Output,
-                Update_Max_Cycle,
+                Execute_Proc_Update_Max_Cycle,
+                Drop_Proc_Update_Max_Cycle,
+                Create_Proc_Update_Max_Cycle,
                 Update_Now_on_Output,
 
                 Create_Index_on_Stmt,
-                Get_Prev_Stmt_Info,
+                Execute_Proc_Get_Prev_Stmt_Info,
+                Drop_Proc_Get_Prev_Stmt_Info,
+                Create_Proc_Get_Prev_Stmt_Info,
                 Cal_Stmt_Flag,
                 Insert_Stmt_3,
                 Create_Index_Stmt_3,
                 Insert_Stmt_6,
                 Create_Index_Stmt_6,
-                Cal_BucketM_on_Stmt_6,
+                Execute_Proc_Cal_BucketM_on_Stmt_6,
+                Drop_Proc_Cal_BucketM_on_Stmt_6,
+                Create_Proc_Cal_BucketM_on_Stmt_6,
                 Insert_Stmt_9,
                 Create_Index_Stmt_9,
 
@@ -79,17 +85,27 @@ int step[] = {
 	Update_Month_Since,
 	Create_Output_Table,
 	Insert_ID_to_Output,
-	Update_Max_Cycle,
+
+        Drop_Proc_Update_Max_Cycle,
+        Create_Proc_Update_Max_Cycle,
+        Execute_Proc_Update_Max_Cycle,
+        Drop_Proc_Update_Max_Cycle,
 	Update_Now_on_Output,
 
 	Create_Index_on_Stmt,
-	Get_Prev_Stmt_Info,
+        Drop_Proc_Get_Prev_Stmt_Info,
+        Create_Proc_Get_Prev_Stmt_Info,
+        Execute_Proc_Get_Prev_Stmt_Info,
+//        Drop_Proc_Update_Max_Cycle,
 	Cal_Stmt_Flag,
 	Insert_Stmt_3,
 	Create_Index_Stmt_3,
 	Insert_Stmt_6,
 	Create_Index_Stmt_6,
-	Cal_BucketM_on_Stmt_6,
+        Drop_Proc_Cal_BucketM_on_Stmt_6,
+        Create_Proc_Cal_BucketM_on_Stmt_6,
+        Execute_Proc_Cal_BucketM_on_Stmt_6,
+//        Drop_Proc_Cal_BucketM_on_Stmt_6,
 	Insert_Stmt_9,
 	Create_Index_Stmt_9,
 
@@ -104,14 +120,13 @@ int step[] = {
 	Update_Insurance_Flag,
 	Update_Close_Flag,
 	Update_Card,
-
 	Cal_FS003,
 	Cal_FS072,
 	Cal_FS089,
 	Cal_FS096,
 	Cal_MS035,
 	Cal_MS062,
-
+        Cal_RS001,
 	Transform_R1_Vars,
 	Cal_R1_Score_Twentile,
 
@@ -140,21 +155,28 @@ char *SQLNames[]= {"Create_Source_Table",
                 "Update_Month_Since",
                 "Create_Output_Table",
                 "Insert_ID_to_Output",
-                "Update_Max_Cycle",
+                "Execute_Proc_Update_Max_Cycle",
+                "Drop_Proc_Update_Max_Cycle",
+                "Create_Proc_Update_Max_Cycle",
                 "Update_Now_on_Output",
 
                 "Create_Index_on_Stmt",
-                "Get_Prev_Stmt_Info",
+                "Execute_Proc_Get_Prev_Stmt_Info",
+                "Drop_Proc_Get_Prev_Stmt_Info",
+                "Create_Proc_Get_Prev_Stmt_Info",
                 "Cal_Stmt_Flag",
                 "Insert_Stmt_3",
                 "Create_Index_Stmt_3",
                 "Insert_Stmt_6",
                 "Create_Index_Stmt_6",
-                "Cal_BucketM_on_Stmt_6",
+                "Execute_Proc_Cal_BucketM_on_Stmt_6",
+                "Drop_Proc_Cal_BucketM_on_Stmt_6",
+                "Create_Proc_Cal_BucketM_on_Stmt_6",
                 "Insert_Stmt_9",
                 "Create_Index_Stmt_9",
 
                 "Update_Indicators",
+                "Update_Vintage",
                 "Update_Demographics",
                 "Update_Stmt3_Count",
                 "Update_Stmt6_Count",
@@ -370,9 +392,18 @@ char *SQLCommands[] = {
 " from cc_acct_credit_card"
 " group by Primary_Cardholder_ID;",
 
-/*Update_Max_Cycle*/
-" declare @cycle_date varchar(8);"
-" set @cycle_date = :v0;"
+/* Execute_Proc_Update_Max_Cycle */
+"EXEC Update_Max_Cycle :v0",
+
+/* Drop_Proc_Update_Max_Cycle */
+"if exists (select * from dbo.sysobjects where id = object_id(N'[Update_Max_Cycle]')"
+" and OBJECTPROPERTY(id, N'IsProcedure') = 1)"
+"drop procedure [Update_Max_Cycle]",
+
+/*Create_Proc_Update_Max_Cycle*/
+" CREATE PROCEDURE Update_Max_Cycle"
+" (@cycle_date varchar(8))"
+" AS"
 " declare @yyyymm int;"
 " declare @yyyy int;"
 " declare @mm int;"
@@ -396,7 +427,7 @@ char *SQLCommands[] = {
 "             max(Billing_Close_Date) as max_date"
 "      from  fubon_cc_stmts"
 "      group by idn) as a"
-" where response_model.Primary_Cardholder_ID = a.idn;"
+" where response_model.Primary_Cardholder_ID = a.idn;",
 
 /*Update_Now_on_Output*/
 "update response_model"
@@ -405,11 +436,21 @@ char *SQLCommands[] = {
 /*Create_Index_on_Stmt*/
 "create index i_idn on fubon_cc_stmts(idn);",
 
-/*Get_Prev_Stmt_Info*/
-/*v0 is now = 94*12+6*/
+/* Execute_Proc_Get_Prev_Stmt_Info */
+"EXEC Get_Prev_Stmt_Info :v0",
+
+/* Drop_Proc_Get_Prev_Stmt_Info */
+"if exists (select * from dbo.sysobjects where id = object_id(N'[Get_Prev_Stmt_Info]')"
+" and OBJECTPROPERTY(id, N'IsProcedure') = 1)"
+"drop procedure [Get_Prev_Stmt_Info]",
+
+/*Create_Proc_Get_Prev_Stmt_Info*/
+" CREATE PROCEDURE Get_Prev_Stmt_Info"
+" (@now int)"
+" AS"
 " declare @i int"
 " set @i=12"
-" while @i > 0"
+" while @i >= 0"
 "    begin"
 "       update fubon_cc_stmts"
 "          set last_balance = b.this_term_total_amt_receivable,"
@@ -420,7 +461,7 @@ char *SQLCommands[] = {
 "          from fubon_cc_stmts, fubon_cc_stmts as b"
 "          where fubon_cc_stmts.mon_since = b.mon_since + 1"
 "            and fubon_cc_stmts.idn = b.idn"
-"            and (:v0 - fubon_cc_stmts.mon_since) = @i"
+"            and (@now - fubon_cc_stmts.mon_since) = @i"
 "       set @i = @i - 1"
 "    end;",
 
@@ -437,11 +478,11 @@ char *SQLCommands[] = {
 /*Insert_Stmt_3*/
 " IF OBJECT_ID('tempdb..#fubon_cc_stmts_3') IS NOT NULL"
 "    drop table #fubon_cc_stmts_3;"
-"select a.*"
-"into fubon_cc_stmts_3"
-"from fubon_cc_stmts a, response_model b"
-"where a.idn = b.Primary_Cardholder_ID"
-"  and a.mon_since > (b.now - 3);",
+" select a.*"
+"   into fubon_cc_stmts_3"
+"   from fubon_cc_stmts a, response_model b"
+"   where a.idn = b.Primary_Cardholder_ID"
+"     and a.mon_since > (b.now - 3);",
 
 /*Create_Index_Stmt_3*/
 "create index i_idn_3 on fubon_cc_stmts_3(idn);",
@@ -449,19 +490,30 @@ char *SQLCommands[] = {
 /*Insert_Stmt_6*/
 " IF OBJECT_ID('tempdb..#fubon_cc_stmts_6') IS NOT NULL"
 "    drop table #fubon_cc_stmts_6;"
-"select a.*"
-" into fubon_cc_stmts_6"
-" from fubon_cc_stmts a, response_model b"
-" where a.idn = b.Primary_Cardholder_ID"
-"   and a.mon_since > (b.now - 6);",
+" select a.*"
+"   into fubon_cc_stmts_6"
+"   from fubon_cc_stmts a, response_model b"
+"   where a.idn = b.Primary_Cardholder_ID"
+"     and a.mon_since > (b.now - 6);",
 
 /*Create_Index_Stmt_6*/
 "create index i_idn_6 on fubon_cc_stmts_6(idn);",
 
-/*Cal_BucketM_on_Stmt_6*/
-/*v0 is now = 94*12+7*/
+/* Execute_Proc_Cal_BucketM_on_Stmt_6 */
+"EXEC Cal_BucketM_on_Stmt_6 :v0",
+
+/* Drop_Proc_Cal_BucketM_on_Stmt_6 */
+"if exists (select * from dbo.sysobjects where id = object_id(N'[Cal_BucketM_on_Stmt_6]')"
+" and OBJECTPROPERTY(id, N'IsProcedure') = 1)"
+" drop procedure [Cal_BucketM_on_Stmt_6]",
+
+/*Create_Proc_Cal_BucketM_on_Stmt_6*/
+" CREATE PROCEDURE Cal_BucketM_on_Stmt_6"
+" (@now int)"
+" AS"
 " update fubon_cc_stmts_6"
 "    set bucket_M = (case when min_pay = 1 then 1 else 0 end);"
+" declare @i int"
 " set @i=7"
 " while @i > 0"
 "    begin"
@@ -470,7 +522,7 @@ char *SQLCommands[] = {
 "          from fubon_cc_stmts_6, fubon_cc_stmts_6 as b"
 "          where fubon_cc_stmts_6.mon_since = b.mon_since + 1"
 "            and fubon_cc_stmts_6.idn = b.idn"
-"            and (:v0 - fubon_cc_stmts_6.mon_since) = @i"
+"            and (@now - fubon_cc_stmts_6.mon_since) = @i"
 "       set @i = @i - 1"
 "    end;",
 
@@ -478,10 +530,10 @@ char *SQLCommands[] = {
 " IF OBJECT_ID('tempdb..#fubon_cc_stmts_9') IS NOT NULL"
 "    drop table #fubon_cc_stmts_9;"
 " select a.*"
-" into fubon_cc_stmts_9"
-" from fubon_cc_stmts a, response_model b"
-" where a.idn = b.Primary_Cardholder_ID"
-"   and a.mon_since > (b.now - 9);",
+"   into fubon_cc_stmts_9"
+"   from fubon_cc_stmts a, response_model b"
+"   where a.idn = b.Primary_Cardholder_ID"
+"     and a.mon_since > (b.now - 9);",
 
 /*Create_Index_Stmt_9*/
 "create index i_idn_9 on fubon_cc_stmts_9(idn);",
@@ -507,14 +559,14 @@ char *SQLCommands[] = {
 
 /*Update_Vintage*/
 /*:v0 current date yyyymmdd*/
-"update response_model"
-"   set Vintage_ind = datediff(month, start_date, convert(datetime,:v0,112))",
+" update response_model"
+"   set Vintage_ind = datediff(month, start_date, convert(datetime, '%s', 112))",
 
 /*Update_Demographics*/
 /*v0 current date yyyymmdd*/
 "update response_model"
 "   set gender = (case when a.gender_code = 'M' then 1 else 0 end),"
-"       age = datediff(year, dob, convert(datetime, :v0, 112)) + 1,"
+"       age = datediff(year, dob, convert(datetime, '%s', 112)) + 1,"
 "       edu = cast(a.education_code as int)"
 "   from cc_party_bank_credit_card a"
 "   where response_model.Primary_Cardholder_ID = a.party_ID;",
@@ -684,7 +736,7 @@ char *SQLCommands[] = {
 "update response_model"
 "   set fs096_12 = a.v1"
 "   from (select idn, count(*) as v1"
-"         from fubon_cc_stmts_12"
+"         from fubon_cc_stmts"
 "         where revolving_interest_amt >= 4000"
 "         group by idn) as a"
 "   where a.idn = response_model.Primary_Cardholder_ID;",
@@ -694,7 +746,7 @@ char *SQLCommands[] = {
 "update response_model"
 "   set ms035_12 = a.v1"
 "   from (select idn, avg(convert(float, this_term_total_amt_receivable) / (case when monthly_limit_amt = 0 then null else monthly_limit_amt end)) as v1"
-"         from fubon_cc_stmts_12"
+"         from fubon_cc_stmts"
 "         group by idn) as a"
 "   where a.idn = response_model.Primary_Cardholder_ID;",
 
@@ -703,7 +755,7 @@ char *SQLCommands[] = {
 "update response_model"
 "   set ms062_12 = a.v1"
 "   from (select idn, max(convert(float, revolving_interest_amt)/(case when last_revolving_int_amt = 0 then NULL else last_revolving_int_amt end)) as v1"
-"         from fubon_cc_stmts_12"
+"         from fubon_cc_stmts"
 "         group by idn) as a"
 "   where a.idn = response_model.Primary_Cardholder_ID;",
 
@@ -796,7 +848,7 @@ char *SQLCommands[] = {
 "update response_model"
 "   set fs191_12 = a.v1"
 "   from (select idn, count(*) as v1"
-"         from fubon_cc_stmts_12"
+"         from fubon_cc_stmts"
 "         where -exp_pct_diff >= 0.2"
 "           and exp_dec = 1"
 "         group by idn) as a"
@@ -871,7 +923,7 @@ char *SQLCommands[] = {
 "update response_model"
 "   set ms023_12 = a.v1"
 "   from (select idn, avg(cast((monthly_limit_amt - this_term_total_amt_receivable) as float)) as v1"
-"         from fubon_cc_stmts_12"
+"         from fubon_cc_stmts"
 "         group by idn) as a"
 "   where a.idn = response_model.Primary_Cardholder_ID;",
 
@@ -941,6 +993,7 @@ char *SQLCommands[] = {
 "                         when edu = 2 then 1"
 "                         when edu = 3 then 2"
 "	                 else 3 end);",
+
 /*Cal_N1_Score_Twentile*/
 " update response_model"
 "    set rscore_n1 =	  0.25173  +"
