@@ -64,6 +64,15 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return rc;
   }
 
+  strcpy(idn, app.Applicant_id());
+  Info("Case SN= %s\n", case_sn);
+  Info("IDN= %s\n", idn);
+
+  rc = rm.CleanTables(case_sn, idn);
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
 /*
   rc = rm.CreateWorkingTables();
   if (rc != 0)  {
@@ -72,10 +81,6 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   }
 */
   // Calculate PB of applicant
-  strcpy(idn, app.Applicant_id());
-  Info("Case SN= %s\n", case_sn);
-  Info("IDN= %s\n", idn);
-
 //  strcpy(idn, "V248994754");
   rc = rm.PrepareJcicTables(case_sn, idn);
   if (rc != 0)  {
@@ -87,18 +92,19 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      strcpy (error_message, MESSAGE);
      return rc;
   }
-  rc = rm.GeneratePdacoScore();
+  rc = rm.GeneratePdacoScore(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
   }
 
-  rc = rm.SaveScore();
+  rc = rm.SaveScore(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
   }
-  rc = rm.CleanTables();
+
+  rc = rm.CleanTables(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
