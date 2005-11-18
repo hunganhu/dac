@@ -76,6 +76,7 @@ enum SQLCodes { Create_Source_Table,
                 End_of_SQL};
 
 int step[] = {
+/*
 	Create_Source_Table,
 	Insert_Source_Table,
         Select_Close_Account,
@@ -102,10 +103,12 @@ int step[] = {
 	Create_Index_Stmt_3,
 	Insert_Stmt_6,
 	Create_Index_Stmt_6,
+*/
         Drop_Proc_Cal_BucketM_on_Stmt_6,
         Create_Proc_Cal_BucketM_on_Stmt_6,
         Execute_Proc_Cal_BucketM_on_Stmt_6,
 //        Drop_Proc_Cal_BucketM_on_Stmt_6,
+/*
 	Insert_Stmt_9,
 	Create_Index_Stmt_9,
 
@@ -120,7 +123,9 @@ int step[] = {
 	Update_Insurance_Flag,
 	Update_Close_Flag,
 	Update_Card,
+*/
 	Cal_FS003,
+/*
 	Cal_FS072,
 	Cal_FS089,
 	Cal_FS096,
@@ -142,7 +147,7 @@ int step[] = {
 
 	Transform_N1_Vars,
 	Cal_N1_Score_Twentile,
-
+*/
  	End_of_SQL
 };
 
@@ -514,8 +519,8 @@ char *SQLCommands[] = {
 " update fubon_cc_stmts_6"
 "    set bucket_M = (case when min_pay = 1 then 1 else 0 end);"
 " declare @i int"
-" set @i=7"
-" while @i > 0"
+" set @i=6"
+" while @i >= 0"
 "    begin"
 "       update fubon_cc_stmts_6"
 "          set bucket_M = (case when fubon_cc_stmts_6.min_pay = 1 then b.bucket_M + 1 else 0 end)"
