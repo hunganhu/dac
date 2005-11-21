@@ -29,14 +29,17 @@ extern "C"
 // classes and methods
 class RiskModel
 {
+	
+  float risk_cut[][][12];
+	
   public:
     int CreateWorkingTables();
     int PrepareJcicTables(char *case_sn, char *idn);
     int Prescreen(char *case_sn, char *idn);
-    int GeneratePdacoScore();
-    int SaveScore();
-    int CleanTables();
-
+    int GeneratePdacoScore(char *case_sn, char *idn);
+    int SaveScore(char *case_sn, char *idn);
+    int CleanTables(char *case_sn, char *idn);
+    float get_risk_cut_point(float apr, int term, int loan_amount);
 };
 
 
