@@ -524,31 +524,6 @@ create table app_info (
 	agent		varchar(30)	
 );
 alter table app_info add constraint p_app_info primary key (CASE_SN); 
-
-alter table app_info add constraint c_loan_purpose check (loan_purpose in (1, 2)); 
-alter table app_info add constraint c_education check (education in (1, 2, 3, 4, 5, 6)); 
-alter table app_info add constraint c_Marriage_status check (Marriage_status in (1, 2)); 
-alter table app_info add constraint c_Annual_Income check (Annual_Income between 0 and 9990000); 
-alter table app_info add constraint c_Home_ownership check (Home_ownership in (1, 2, 3, 4, 5, 6, 7)); 
-alter table app_info add constraint c_Year_at_current_address check (Year_at_current_address between 0 and 99); 
-alter table app_info add constraint c_Year_at_current_job check (Year_at_current_job between 0 and 99); 
-alter table app_info add constraint c_Product_type_code check (Product_type_code in (1, 2, 3, 4)); 
-alter table app_info add constraint c_App_amt check (App_amt between 0 and 2000000); 
-alter table app_info add constraint c_Term_1 check (Term_1 between 1 and 84); 
-alter table app_info add constraint c_Term_2 check (Term_2 between 0 and 84); 
-alter table app_info add constraint c_Term_3 check (Term_3 between 0 and 84); 
-alter table app_info add constraint c_APR_1 check (APR_1 between 0.0 and 12.0); 
-alter table app_info add constraint c_APR_2 check (APR_2 between 0.0 and 12.0); 
-alter table app_info add constraint c_APR_3 check (APR_3 between 0.0 and 12.0); 
-alter table app_info add constraint c_grace_period check (grace_period between 0 and 24); 
-alter table app_info add constraint c_Fee_1 check (Fee_1 >= 0); 
-alter table app_info add constraint c_Fee_2 check (Fee_2 between 0.0 and 100.0); 
-alter table app_info add constraint c_Approval_final check (Approval_final in (0, 1, 2)); 
-alter table app_info add constraint c_Loan_amt check (Loan_amt > 0); 
-alter table app_info add constraint c_Loan_APR check (Loan_APR between 0.0 and 100.0); 
-alter table app_info add constraint c_Loan_term check (Loan_term between 0 and 84); 
-alter table app_info add constraint c_Fee_1_final check (Fee_1_final >= 0); 
-alter table app_info add constraint c_Fee_2_final check (Fee_2_final between 0.0 and 100.0); 
 	
 COMMENT ON TABLE app_info	IS 'DAC個人信貸表格';
 COMMENT ON COLUMN app_info.CASE_SN	IS '申請編號(不可重複)';
@@ -626,22 +601,6 @@ create table app_result (
 	Lowest_Rate_3	decimal(7,4)
 );
 alter table app_result add constraint p_app_result primary key (CASE_SN); 
-
-alter table app_result add constraint c_Applicant_PB check (Applicant_PB between 0.0 and 100.0); 
-alter table app_result add constraint c_Guarantor_PB check (Guarantor_PB between 0.0 and 100.0); 
-alter table app_result add constraint c_Applicant_PB_adj check (Applicant_PB_adj between 0.0 and 100.0); 
-alter table app_result add constraint c_Guarantor_pass check (Guarantor_pass in (0, 1)); 
-alter table app_result add constraint c_Fund_deposit_pct1 check (Fund_deposit_pct between 0.0 and 100.0); 
-alter table app_result add constraint c_Fund_bank_pct1 check (Fund_bank_pct between 0.0 and 100.0); 
-alter table app_result add constraint c_Fund_self_pct1 check (Fund_self_pct between 0.0 and 100.0); 
-alter table app_result add constraint c_Fund_free_pct1 check (Fund_free_pct between 0.0 and 100.0); 
-alter table app_result add constraint c_COF_deposit1 check (COF_deposit between 0.0 and 100.0); 
-alter table app_result add constraint c_COF_bank1 check (COF_bank between 0.0 and 100.0); 
-alter table app_result add constraint c_ROE check1 (ROE between 0.0 and 100.0); 
-alter table app_result add constraint c_Comission1 check (Comission between 0.0 and 100.0); 
-alter table app_result add constraint c_Lowest_Rate_1 check (Lowest_Rate_1 between 0.0 and 100.0); 
-alter table app_result add constraint c_Lowest_Rate_2 check (Lowest_Rate_2 between 0.0 and 100.0); 
-alter table app_result add constraint c_Lowest_Rate_3 check (Lowest_Rate_3 between 0.0 and 100.0); 
 
 COMMENT ON TABLE app_result	IS 'DAC個人信貸模組結果表格';
 COMMENT ON COLUMN app_result.CASE_SN	IS '申請編號(不可重複)';
