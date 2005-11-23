@@ -26,20 +26,22 @@ extern "C"
 {
 #endif
 
+extern float risk_cut[12][5][21];  // loan_amt, term, apr
+	
 // classes and methods
 class RiskModel
 {
-	
-  float risk_cut[][][12];
 	
   public:
     int CreateWorkingTables();
     int PrepareJcicTables(char *case_sn, char *idn);
     int Prescreen(char *case_sn, char *idn);
+    int GenerateScreenVars(char *case_sn, char *idn);
     int GeneratePdacoScore(char *case_sn, char *idn);
     int SaveScore(char *case_sn, char *idn);
     int CleanTables(char *case_sn, char *idn);
-    float get_risk_cut_point(float apr, int term, int loan_amount);
+    float get_risk_cut_point(float apr, int term, int loan_amt);
+    void print_cut_point();
 };
 
 

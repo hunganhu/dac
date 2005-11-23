@@ -46,6 +46,9 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   Info("Case SN= %s\n", case_sn);
   memset(MESSAGE, '\0', sizeof(MESSAGE));
 
+//  rm.print_cut_point();
+//  return(0);
+  
   db.setDb(alias, uid, upw);
   rc = db.Connect();
   if (rc != 0)  {
@@ -87,11 +90,17 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      strcpy (error_message, MESSAGE);
      return rc;
   }
+  rc = rm.GenerateScreenVars(case_sn, idn);
+  if (rc != 0)  {
+     strcpy (error_message, MESSAGE);
+     return rc;
+  }
   rc = rm.Prescreen(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
   }
+
   rc = rm.GeneratePdacoScore(case_sn, idn);
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);

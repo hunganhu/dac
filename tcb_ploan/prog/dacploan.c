@@ -74,6 +74,8 @@ JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
      printf ("C: User ID=%s\n", c_uid);
      printf ("C: User PW=%s\n", c_upw);
 
+/*     rc = dac_pl_cal(c_case_sn, c_alias, c_uid, c_upw, errMsg); */
+
 	fp = fopen("case_list", "r");
 	while (fgets(c_case_sn, sizeof(c_case_sn), fp) != NULL) {
 	   c_case_sn[12] = '\0';	

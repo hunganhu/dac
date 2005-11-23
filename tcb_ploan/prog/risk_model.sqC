@@ -30,6 +30,142 @@
 
 extern char MESSAGE[1024];
 
+/*
+Risk cut points are determined by the values of apr, term, and loan amount:
+APR	Term	Loan Amt
+2.00%	12	 50000
+2.50%	24	100000
+3.00%	36	150000
+3.50%	48	200000
+4.00%	60	250000
+4.50%		300000
+5.00%		350000
+5.50%		400000
+6.00%		450000
+6.50%		500000
+7.00%		550000
+7.50%		600000
+8.00%
+8.50%
+9.00%
+9.50%
+10.00%
+10.50%
+11.00%
+11.50%
+12.00%
+*/
+float risk_cut[12][5][21] =  // loan_amt, term, apr
+{
+ { //[0] 50000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200}, // 12
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0250, 0.0300, 0.0350, 0.0375, 0.0425, 0.0475}, // 24
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0050, 0.0100, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0350, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550}, // 36
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0225, 0.0275, 0.0300, 0.0350, 0.0375, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575}, // 48
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0050, 0.0100, 0.0125, 0.0175, 0.0200, 0.0250, 0.0275, 0.0325, 0.0350, 0.0400, 0.0400, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600}  // 60
+ },
+ 
+ { //[1] 100000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0550, 0.0625, 0.0675}, // 12
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750}, // 24
+   {0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750}, // 36
+   {0.0000, 0.0000, 0.0025, 0.0075, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750}, // 48
+   {0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0500, 0.0525, 0.0575, 0.0625, 0.0650, 0.0700, 0.0750}  // 60
+ },
+ 
+ { //[2] 150000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0750, 0.0800, 0.0850}, // 12
+   {0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850}, // 24
+   {0.0000, 0.0000, 0.0050, 0.0075, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0775, 0.0825}, // 36
+   {0.0000, 0.0025, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0675, 0.0725, 0.0775, 0.0825}, // 48
+   {0.0000, 0.0025, 0.0075, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800}  // 60
+ },
+   
+ { //[3] 200000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0000, 0.0000, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0350, 0.0400, 0.0450, 0.0500, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0950}, // 12
+   {0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900}, // 24
+   {0.0000, 0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875}, // 36
+   {0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0750, 0.0800, 0.0850}, // 48
+   {0.0000, 0.0050, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825}  // 60
+ },
+ 
+ { //[4] 250000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0175, 0.0225, 0.0275, 0.0325, 0.0400, 0.0450, 0.0500, 0.0550, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0900, 0.0950, 0.1000}, // 12
+   {0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925}, // 24
+   {0.0000, 0.0050, 0.0075, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900}, // 36
+   {0.0000, 0.0050, 0.0100, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875}, // 48
+   {0.0000, 0.0050, 0.0100, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850}  // 60
+ },
+ 
+ { //[5] 300000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0025, 0.0075, 0.0150, 0.0200, 0.0250, 0.0300, 0.0375, 0.0425, 0.0475, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0825, 0.0875, 0.0925, 0.0975, 0.1050}, // 12
+   {0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950}, // 24
+   {0.0000, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0900}, // 36
+   {0.0025, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0825, 0.0875}, // 48
+   {0.0025, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0675, 0.0725, 0.0775, 0.0800, 0.0850}  // 60
+ },
+ 
+ { //[6] 350000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0000, 0.0050, 0.0100, 0.0175, 0.0225, 0.0275, 0.0325, 0.0400, 0.0450, 0.0500, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0850, 0.0900, 0.0950, 0.1000, 0.1075}, // 12
+   {0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925, 0.0975}, // 24
+   {0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925}, // 36
+   {0.0025, 0.0050, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0500, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850, 0.0875}, // 48
+   {0.0025, 0.0075, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0850}  // 60
+ },
+ 
+ { //[7] 400000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0250, 0.0300, 0.0350, 0.0400, 0.0475, 0.0525, 0.0575, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0925, 0.0975, 0.1025, 0.1100}, // 12
+   {0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925, 0.0975}, // 24
+   {0.0025, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0875, 0.0925}, // 36
+   {0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0750, 0.0800, 0.0850, 0.0900}, // 48
+   {0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875}  // 60
+ },
+ 
+ { //[8] 450000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0025, 0.0075, 0.0150, 0.0200, 0.0250, 0.0300, 0.0375, 0.0425, 0.0475, 0.0550, 0.0600, 0.0650, 0.0700, 0.0775, 0.0825, 0.0875, 0.0925, 0.1000, 0.1050, 0.1100}, // 12
+   {0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
+   {0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0925}, // 36
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0800, 0.0850, 0.0900}, // 48
+   {0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0775, 0.0825, 0.0875}  // 60
+ },
+ 
+ { //[9] 500000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0025, 0.0100, 0.0150, 0.0200, 0.0275, 0.0325, 0.0375, 0.0425, 0.0500, 0.0550, 0.0600, 0.0675, 0.0725, 0.0775, 0.0825, 0.0900, 0.0950, 0.1000, 0.1075, 0.1125}, // 12
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950}, // 36
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0600, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0850, 0.0900}, // 48
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0775, 0.0825, 0.0875}  // 60
+ },
+ 
+ { //[10] 550000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0050, 0.0100, 0.0150, 0.0225, 0.0275, 0.0325, 0.0400, 0.0450, 0.0500, 0.0550, 0.0625, 0.0675, 0.0725, 0.0800, 0.0850, 0.0900, 0.0950, 0.1025, 0.1075, 0.1125}, // 12
+   {0.0025, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
+   {0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0725, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950}, // 36
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0900}, // 48
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0675, 0.0700, 0.0750, 0.0800, 0.0825, 0.0875}  // 60
+ },
+   
+ { //[11] 600000
+   /*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
+   {0.0000, 0.0050, 0.0100, 0.0175, 0.0225, 0.0275, 0.0350, 0.0400, 0.0450, 0.0500, 0.0575, 0.0625, 0.0675, 0.0750, 0.0800, 0.0850, 0.0900, 0.0975, 0.1025, 0.1075, 0.1150}, // 12
+   {0.0025, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
+   {0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0800, 0.0850, 0.0900, 0.0950}, // 36
+   {0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875, 0.0900}, // 48
+   {0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0525, 0.0575, 0.0600, 0.0675, 0.0700, 0.0750, 0.0800, 0.0825, 0.0875}  // 60
+ }
+};
+
 int RiskModel::CreateWorkingTables()
 {
   struct sqlca sqlca;
@@ -63,11 +199,22 @@ int RiskModel::CreateWorkingTables()
     	refund_amt      numeric(10),
     	ck_ref          char(1),
      	bank_code2	char(3),
+	mon_since	int,
+	cycle		int,
     	now		int,
      	cnt		int
      );
-
   EMB_SQL_CHECK("Create Table bam086_dedup.");
+  
+  EXEC SQL
+     create table bam086_bucket (
+     	case_sn		char(12),
+     	idn		char(11),
+    	bank_code	char(7),
+    	mon_since	int,
+    	bucket		float
+      );
+  EMB_SQL_CHECK("Create Table bam086_bucket.");
 
   EXEC SQL
      create table krm001_dedup (
@@ -159,66 +306,70 @@ int RiskModel::CreateWorkingTables()
 
   EXEC SQL
      create table pdaco_cal (
-    	case_sn		char(12),
-    	idn		char(11),
-    	inquiry_date	char(10),
-    	now		int,
-    	avail_flag	int,
-    	jas002_defect	int default 0,
-    	krm001_hit	int default 0,
-    	krm023_hit	int default 0,
-    	max_bucket	int default 0,
-    	fs044		int default 0,
-    	cash_max_bucket	int default 0,
-    	cash_utilization int default 0,
-    	ind001		int default 0,
-    	fs102_3m	decimal(16,8),
-    	fs102_6m	decimal(16,8),
-    	fs102_9m	decimal(16,8),
-    	ft102_42	decimal(16,8),
-    	ft102_42_r	decimal(16,8),
-    	ft102_42_r_tran	decimal(16,8),
-    	fs031		decimal(16,8),
-    	fs031_tran	decimal(16,8),
-    	fs005_1k_3m	decimal(16,8),
-    	fs005_1k_3m_q	decimal(16,8),
-    	fs005_1k_3m_q_tran	decimal(16,8),
-    	fs059_1k_3m	decimal(16,8),
-    	fs059_1k_6m	decimal(16,8),
-    	fs059_1k_9m	decimal(16,8),
-    	ft059_1k_43	decimal(16,8),
-    	ft059_1k_43_r	decimal(16,8),
-    	ft059_1k_43_r_tran	decimal(16,8),
-    	ft059_1k_42	decimal(16,8),
-    	ft059_1k_42_q	decimal(16,8),
-    	ft059_1k_42_q_tran	decimal(16,8),
-    	fs051		decimal(16,8),
-    	fs051_tran	decimal(16,8),
-    	fs016_3m	decimal(16,8),
-    	fs101_3m	decimal(16,8),
-    	int015_3	decimal(16,8),
-    	int015_3_tran	decimal(16,8),
-    	fs205_1k_3m	decimal(16,8),
-    	fs205_1k_3m_q	decimal(16,8),
-    	fs205_1k_3m_q_tran	decimal(16,8),
-    	fs212_1k_3m	decimal(16,8),
-    	fs212_1k_6m	decimal(16,8),
-    	ft212_1k_43	decimal(16,8),
-    	ft212_1k_43_q	decimal(16,8),
-    	ft212_1k_43_q_tran	decimal(16,8),
-    	ms117_6m	decimal(16,8),
-    	fs014_9m	decimal(16,8),
-    	fs101_9m	decimal(16,8),
-    	int028_9	decimal(16,8),
-    	int028_9_tran	decimal(16,8),
-    	sex		int,
-    	sex_tran	int,
-    	app_last_month_bucket	int,
-    	app_last_month_bucket_tran	int,
-    	pdaco_score	decimal(16,8),
-    	pdaco_twen	decimal(16,8),
-    	pb_in		decimal(16,8),
-    	pb_inout	decimal(16,8)
+	case_sn		char(12),
+	idn		char(11),
+	inquiry_date	char(10),
+	now		int,
+	age		int,
+	jas002_defect	int default 0,
+	krm001_hit	int default 0,
+	krm023_hit	int default 0,
+	max_bucket	int default 0,
+	fs044		int default 0,
+	fs334		int default 0,
+	cash_max_bucket	int default 0,
+	cash_utilization int default 0,
+	ind001		int default 0,
+	revolving_amt	int default 0,
+	fs102_3m	decimal(16,8),
+	fs102_6m	decimal(16,8),
+	fs102_9m	decimal(16,8),
+	ft102_42	decimal(16,8),
+	ft102_42_r	decimal(16,8),
+	ft102_42_r_tran	decimal(16,8),
+	fs031		decimal(16,8),
+	fs031_tran	decimal(16,8),
+	fs005_1k_3m	decimal(16,8),
+	fs005_1k_3m_q	decimal(16,8),
+	fs005_1k_3m_q_tran	decimal(16,8),
+	fs059_1k_3m	decimal(16,8),
+	fs059_1k_6m	decimal(16,8),
+	fs059_1k_9m	decimal(16,8),
+	ft059_1k_43	decimal(16,8),
+	ft059_1k_43_r	decimal(16,8),
+	ft059_1k_43_r_tran	decimal(16,8),
+	ft059_1k_42	decimal(16,8),
+	ft059_1k_42_q	decimal(16,8),
+	ft059_1k_42_q_tran	decimal(16,8),
+	fs051		decimal(16,8),
+	fs051_tran	decimal(16,8),
+	fs016_3m	decimal(16,8),
+	fs101_3m	decimal(16,8),
+	int015_3	decimal(16,8),
+	int015_3_tran	decimal(16,8),
+	fs205_1k_3m	decimal(16,8),
+	fs205_1k_3m_q	decimal(16,8),
+	fs205_1k_3m_q_tran	decimal(16,8),
+	fs212_1k_3m	decimal(16,8),
+	fs212_1k_6m	decimal(16,8),
+	ft212_1k_43	decimal(16,8),
+	ft212_1k_43_q	decimal(16,8),
+	ft212_1k_43_q_tran	decimal(16,8),
+	ms117_6m	decimal(16,8),
+	fs014_9m	decimal(16,8),
+	fs101_9m	decimal(16,8),
+	int028_9	decimal(16,8),
+	int028_9_tran	decimal(16,8),
+	sex		int,
+	sex_tran	int,
+	app_last_month_bucket	int,
+	app_last_month_bucket_tran	int,
+	pdaco_score	decimal(16,8),
+	pdaco_twen	decimal(16,8),
+	pb_in		decimal(16,8),
+	npv		decimal(16,2),
+	ps_code		int,
+	ps_msg		varchar(128)
        );
   EMB_SQL_CHECK("Create Table pdaco_cal.");
 
@@ -603,6 +754,33 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      EMB_SQL_CHECK("Update 27-2.");
   }
 
+  EXEC SQL
+     update bam086_dedup
+        set bank_code2 = left(bank_code,3),
+            mon_since = cast(data_yyy as int)* 12 + cast(data_mm as int),
+            cycle = length(ltrim(rtrim(pay_code_12)))
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Update 28.");
+
+  strcpy (pjtSqlStmt,
+         "insert into bam086_bucket (case_sn, idn, bank_code, mon_since, bucket) "
+         " select case_sn, idn, bank_code, (mon_since - ? + 1), "
+         "               (case when substr(rtrim(pay_code_12), ?, 1) = 'A' then 0.25 "
+         "                     when substr(rtrim(pay_code_12), ?, 1) = 'B' then 0.5 "
+         "                     when substr(rtrim(pay_code_12), ?, 1) = 'X' then 0.0 "
+         "                     else cast(substr(rtrim(pay_code_12), ?, 1) as int) end) "
+         " from bam086_dedup "
+         " where cycle >= ? "
+         "   and case_sn = ? and idn = ? ");
+         
+  EXEC SQL PREPARE stmt3 FROM :pjtSqlStmt;
+  pjtInx = 1;
+  while (pjtInx <= 12){
+     EXEC SQL EXECUTE stmt3 USING :pjtInx, :pjtInx, :pjtInx, :pjtInx, :pjtInx, :pjtInx, :pjtCase_Sn, :pjtIdn;
+     pjtInx++;
+     EMB_SQL_CHECK("Update 29.");
+  }
+
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT");
   Debug("Exit PrepareJcicTables()");
@@ -611,6 +789,80 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 } // RiskModel::PrepareJcicTables()
 
 int RiskModel::Prescreen(char *case_sn, char *idn)
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+    char pfCase_Sn[20];
+    char pfIdn[12];
+    long  jas002_defect;
+    long  krm001_hit;
+    long  krm023_hit;
+    long  max_bucket;
+    long  fs044;
+    long  fs334;
+    long  cash_max_bucket;
+    long  cash_utilization;
+    long  ind001;
+    long  revolving_amt;
+    long  ps_code;
+    char  ps_msg[1024];
+  EXEC SQL END DECLARE SECTION;
+  int rc = 0;
+  struct sqlca sqlca;
+
+  strcpy (pfCase_Sn, case_sn);
+  strcpy (pfIdn, idn);
+
+  EXEC SQL
+     select jas002_defect, krm001_hit, krm023_hit, max_bucket, fs044, fs334, cash_max_bucket,
+            cash_max_bucket, cash_utilization, ind001, revolving_amt
+     into :jas002_defect, :krm001_hit, :krm023_hit, :max_bucket, :fs044, :fs334, :cash_max_bucket,
+          :cash_max_bucket, :cash_utilization, :ind001, :revolving_amt
+     from pdaco_cal
+     where case_sn = :pfCase_Sn and idn = :pfIdn;
+  EMB_SQL_CHECK("Select Pdaco_cal.");
+
+  if (sqlca.sqlcode == 100) {
+    strcpy(MESSAGE, "申貸編號不存在於 pdaco_cal");
+    return(2004);
+  }
+  
+ if (krm001_hit ==0 || krm023_hit == 0 || ind001 == 1) {
+    strcpy(MESSAGE, "人工審核 [JCIC資料不足]");
+    rc = 3102;
+ }
+ else if (jas002_defect > 0) {
+    strcpy(MESSAGE, "拒絕 [三年內有強停、拒往、退票、授信異常情況者]");
+    rc = 3103;
+ }
+ else if (max_bucket > 3) {
+    strcpy(MESSAGE, "拒絕 [信用卡繳款異常連續三個月以上]");
+    rc = 3104;
+ }
+ else if (fs044 > 0 || fs334 > 3) {
+    strcpy(MESSAGE, "拒絕 [非信用卡貸款有延遲繳款金額或連續三個月繳款異常]");
+    rc = 3105;
+ }
+ else if (cash_max_bucket >= 0.5 || cash_utilization >= 1) {
+    strcpy(MESSAGE, "拒絕 [最近一個月現金卡繳款異常或使用率超過100%(含) ]");
+    rc = 3106;
+ }
+ else if (revolving_amt > 500000) {
+    strcpy(MESSAGE, "拒絕 [最近一個月現金卡加信用卡循環金額大於五十萬(不含)]");
+    rc = 3107;
+ }
+ if (rc > 0) {
+     ps_code = rc;
+     strcpy(ps_msg, MESSAGE);
+     EXEC SQL
+        update pdaco_cal
+           set ps_code = :ps_code,
+               ps_msg = :ps_msg
+        where case_sn = :pfCase_Sn and idn = :pfIdn;
+     EMB_SQL_CHECK("Select Pdaco_cal.");
+ }
+ return(rc);
+}
+int RiskModel::GenerateScreenVars(char *case_sn, char *idn)
 {
   struct sqlca sqlca;
 
@@ -638,7 +890,11 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
             where now - mon_since <= 36
               and p.case_sn = s.case_sn
             group by s.case_sn )
-       where case_sn = :psCase_Sn and idn = :psIdn;
+       where exists (select *
+            from jas002_t_dedup s
+            where now - mon_since <= 36
+              and p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 2.");
 
   EXEC SQL
@@ -647,7 +903,10 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
            (select (case when count(*) > 0 then 1 else 0 end)
             from krm023_dedup s
             where p.case_sn = s.case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
+       where exists (select *
+            from krm023_dedup s
+            where p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 3.");
 
   EXEC SQL
@@ -656,7 +915,10 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
            (select (case when count(*) > 0 then 1 else 0 end)
             from krm001_dedup s
             where p.case_sn = s.case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
+       where exists (select *
+            from krm001_dedup s
+            where p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 4.");
 
   EXEC SQL
@@ -666,7 +928,10 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
             from krm023_dedup s
             where p.case_sn = s.case_sn
             group by case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
+       where exists (select *
+            from krm023_dedup s
+            where p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 5.");
 
   /*----FS044----*/
@@ -678,8 +943,26 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
             where s.pass_due_amt > 0
               and p.case_sn = s.case_sn
             group by s.case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
+       where exists (select *
+            from bam086_dedup s
+            where s.pass_due_amt > 0
+              and p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 6.");
+
+  /*----FS334--曾經最高遲繳月數--*/
+  EXEC SQL
+    update pdaco_cal p
+       set fs334 =
+           (select max(bucket)
+            from bam086_bucket s
+            where p.case_sn = s.case_sn
+            group by s.case_sn)
+       where exists (select *
+            from bam086_bucket s
+            where p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update 7.");
 
   /*----cash card max bucket----*/
   EXEC SQL
@@ -691,8 +974,13 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
              and NULLIF(left(pay_code_12, 1),'0') not in ('0', 'X')
              and p.case_sn = s.case_sn
            group by case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update 7.");
+       where exists (select *
+           from bam086_dedup s
+           where account_code = 'Y'
+             and NULLIF(left(pay_code_12, 1),'0') not in ('0', 'X')
+             and p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update 8.");
 
   /*----cash card utilization----*/
   EXEC SQL
@@ -705,8 +993,14 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
               and contract_amt > 0
               and p.case_sn = s.case_sn
             group by case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update 8.");
+       where exists (select *
+            from bam086_dedup s
+            where account_code = 'Y'
+              and NULLIF(loan_amt, 0) / contract_amt >= 1
+              and contract_amt > 0
+              and p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update 9.");
 
   /*----Ind001----*/
   EXEC SQL
@@ -716,8 +1010,45 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
             from krm001_dedup s
             where p.case_sn = s.case_sn
             group by case_sn)
-       where case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update 9.");
+       where exists (select *
+            from krm001_dedup s
+            where p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update 10.");
+
+  /*----cash card and credit card last month revolving balance ----*/
+  EXEC SQL
+    update pdaco_cal p
+       set revolving_amt = revolving_amt +
+           (select sum(loan_amt + pass_due_amt)
+            from bam086_dedup s
+            where account_code = 'Y'
+              and p.case_sn = s.case_sn
+            group by s.case_sn)
+       where exists (select *
+                     from bam086_dedup s
+                     where account_code = 'Y'
+                       and p.case_sn = s.case_sn)
+         and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update 11.");
+
+  EXEC SQL
+     update pdaco_cal p
+        set revolving_amt = revolving_amt +
+            (select sum(payment_amt) * 1000.0
+             from krm023_dedup s
+             where p.case_sn = s.case_sn
+               and mon_since >= now - 1
+               and mon_since <= now - curr_inqmon
+            )
+        where exists (select *
+                      from krm023_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since >= now - 1
+                        and mon_since <= now - curr_inqmon
+                     )
+          and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update 12.");
 
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT");
@@ -766,7 +1097,6 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
             fs059_1k_3m =  0,
             fs059_1k_6m =  0,
             fs059_1k_9m =  0,
-            app_last_month_bucket = 0,
             fs014_9m =  0,
             fs016_3m =  0,
             fs101_3m =  0,
@@ -1251,9 +1581,6 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
   EMB_SQL_CHECK("PDACO Update 29.");
 
   // ft212_1k_43_q_tran2	monthly average  of delinqunt lines that are opened less than 6 months
-  EXEC SQL
-     delete from t1 where case_sn = :Case_Sn;
-  EMB_SQL_CHECK("PDACO Update 30.");
 
   EXEC SQL
      insert into t1(case_sn, mon, deliquent_line)
@@ -1405,57 +1732,32 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
 
   EXEC SQL
      update pdaco_cal
-        set pb_in = (case
-     		when pdaco_twen = 1 then 0.00415
-     		when pdaco_twen = 2 then 0.00422
-     		when pdaco_twen = 3 then 0.0043
-     		when pdaco_twen = 4 then 0.0044
-     		when pdaco_twen = 5 then 0.0046
-     		when pdaco_twen = 6 then 0.0049
-     		when pdaco_twen = 7 then 0.0052
-     		when pdaco_twen = 8 then 0.0057
-     		when pdaco_twen = 9 then 0.0064
-     		when pdaco_twen = 10 then 0.0074
-     		when pdaco_twen = 11 then 0.0087
-     		when pdaco_twen = 12 then 0.0107
-     		when pdaco_twen = 13 then 0.0134
-     		when pdaco_twen = 14 then 0.0172
-     		when pdaco_twen = 15 then 0.0226
-     		when pdaco_twen = 16 then 0.0302
-     		when pdaco_twen = 17 then 0.0409
-     		when pdaco_twen = 18 then 0.0559
-     		when pdaco_twen = 19 then 0.0771
-     		when pdaco_twen = 20 then 0.1070
+        set pb_in = (case        
+                when pdaco_twen = 0  then NULL
+                when pdaco_twen = 1  then 0.0070 
+                when pdaco_twen = 2  then 0.0080 
+                when pdaco_twen = 3  then 0.0095 
+                when pdaco_twen = 4  then 0.0105 
+                when pdaco_twen = 5  then 0.0120 
+                when pdaco_twen = 6  then 0.0135 
+                when pdaco_twen = 7  then 0.0155 
+                when pdaco_twen = 8  then 0.0175 
+                when pdaco_twen = 9  then 0.0205 
+                when pdaco_twen = 10 then 0.0235 
+                when pdaco_twen = 11 then 0.0265 
+                when pdaco_twen = 12 then 0.0300 
+                when pdaco_twen = 13 then 0.0340 
+                when pdaco_twen = 14 then 0.0385 
+                when pdaco_twen = 15 then 0.0430 
+                when pdaco_twen = 16 then 0.0500 
+                when pdaco_twen = 17 then 0.0640 
+                when pdaco_twen = 18 then 0.0885 
+                when pdaco_twen = 19 then 0.1190 
+                when pdaco_twen = 20 then 0.1800 
      	     end)
         where case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("PDACO Update 39.");
 
-  EXEC SQL
-     update pdaco_cal
-        set pb_inout = (case
-     		  when pdaco_twen = 1 then 0.0020
-     		  when pdaco_twen = 2 then 0.0040
-     		  when pdaco_twen = 3 then 0.0060
-     		  when pdaco_twen = 4 then 0.0080
-     		  when pdaco_twen = 5 then 0.0100
-     		  when pdaco_twen = 6 then 0.0120
-     		  when pdaco_twen = 7 then 0.0140
-     		  when pdaco_twen = 8 then 0.0160
-     		  when pdaco_twen = 9 then 0.0180
-     		  when pdaco_twen = 10 then 0.0200
-     		  when pdaco_twen = 11 then 0.0221
-     		  when pdaco_twen = 12 then 0.0241
-     		  when pdaco_twen = 13 then 0.0264
-     		  when pdaco_twen = 14 then 0.0289
-     		  when pdaco_twen = 15 then 0.0323
-     		  when pdaco_twen = 16 then 0.0380
-     		  when pdaco_twen = 17 then 0.0494
-     		  when pdaco_twen = 18 then 0.0755
-     		  when pdaco_twen = 19 then 0.1394
-     		  when pdaco_twen = 20 then 0.3000
-     		end)
-        where case_sn = :Case_Sn and idn = :Idn;
-  EMB_SQL_CHECK("PDACO Update 40.");
 
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT");
@@ -1485,6 +1787,8 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   EMB_SQL_CHECK("delete krm023_dedup");
   EXEC SQL delete from bam086_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete bam086_dedup");
+  EXEC SQL delete from bam086_bucket where case_sn= :delCase_Sn and idn = :delIdn;
+  EMB_SQL_CHECK("delete bam086_bucket");
   EXEC SQL delete from stm001_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete stm001_dedup");
   EXEC SQL delete from jas002_t_dedup where case_sn= :delCase_Sn and idn = :delIdn;
@@ -1501,6 +1805,9 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   EMB_SQL_CHECK("delete latest_line");
   EXEC SQL delete from latest_stmt_mon where case_sn= :delCase_Sn;
   EMB_SQL_CHECK("delete latest_stmt_mon");
+  EXEC SQL delete from t1 where case_sn = :delCase_Sn;
+  EMB_SQL_CHECK("delete t1.");
+
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT");
 
@@ -1525,25 +1832,25 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
   strcpy (ssIdn, idn);
   EXEC SQL
   insert into pdaco_result(
-     case_sn, idn, inquiry_date, now, avail_flag, jas002_defect, krm001_hit, krm023_hit, max_bucket,
-     fs044, cash_max_bucket, cash_utilization, ind001, fs102_3m, fs102_6m, fs102_9m, ft102_42,
+     case_sn, idn, inquiry_date, now, age, jas002_defect, krm001_hit, krm023_hit, max_bucket,
+     fs044, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
      ft102_42_r, ft102_42_r_tran, fs031, fs031_tran, fs005_1k_3m, fs005_1k_3m_q, fs005_1k_3m_q_tran,
      fs059_1k_3m, fs059_1k_6m, fs059_1k_9m, ft059_1k_43, ft059_1k_43_r, ft059_1k_43_r_tran,
      ft059_1k_42, ft059_1k_42_q, ft059_1k_42_q_tran, fs051, fs051_tran, fs016_3m, fs101_3m, int015_3,
      int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
      ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
      int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
-     pdaco_score, pdaco_twen, pb_in, pb_inout)
+     pdaco_score, pdaco_twen, pb_in)
   select
-     case_sn, idn, inquiry_date, now, avail_flag, jas002_defect, krm001_hit, krm023_hit, max_bucket,
-     fs044, cash_max_bucket, cash_utilization, ind001, fs102_3m, fs102_6m, fs102_9m, ft102_42,
+     case_sn, idn, inquiry_date, now, age, jas002_defect, krm001_hit, krm023_hit, max_bucket,
+     fs044, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
      ft102_42_r, ft102_42_r_tran, fs031, fs031_tran, fs005_1k_3m, fs005_1k_3m_q, fs005_1k_3m_q_tran,
      fs059_1k_3m, fs059_1k_6m, fs059_1k_9m, ft059_1k_43, ft059_1k_43_r, ft059_1k_43_r_tran,
      ft059_1k_42, ft059_1k_42_q, ft059_1k_42_q_tran, fs051, fs051_tran, fs016_3m, fs101_3m, int015_3,
      int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
      ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
      int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
-     pdaco_score, pdaco_twen, pb_in, pb_inout
+     pdaco_score, pdaco_twen, pb_in
   from pdaco_cal
   where case_sn = :ssCase_Sn and idn = :ssIdn;
   EMB_SQL_CHECK("Save result");
@@ -1556,139 +1863,13 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
 } //RiskModel::SaveScore()
 
 
-/*
-Risk cut points are determined by the values of apr, term, and loan amount:
-
-APR	Term	Loan Amt
-2.00%	12	 50000
-2.50%	24	100000
-3.00%	36	150000
-3.50%	48	200000
-4.00%	60	250000
-4.50%		300000
-5.00%		350000
-5.50%		400000
-6.00%		450000
-6.50%		500000
-7.00%		550000
-7.50%		600000
-8.00%
-8.50%
-9.00%
-9.50%
-10.00%
-10.50%
-11.00%
-11.50%
-12.00%
-*/
-
-risk_cut[][][0] = { // 50000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200}, // 12
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0250, 0.0300, 0.0350, 0.0375, 0.0425, 0.0475}, // 24
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0050, 0.0100, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0350, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550}, // 36
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0225, 0.0275, 0.0300, 0.0350, 0.0375, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575}, // 48
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0050, 0.0100, 0.0125, 0.0175, 0.0200, 0.0250, 0.0275, 0.0325, 0.0350, 0.0400, 0.0400, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600}  // 60
-};
-
-risk_cut[][][1] = { // 100000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0550, 0.0625, 0.0675}, // 12
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750}, // 24
-{0.0000, 0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750}, // 36
-{0.0000, 0.0000, 0.0025, 0.0075, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750}, // 48
-{0.0000, 0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0500, 0.0525, 0.0575, 0.0625, 0.0650, 0.0700, 0.0750}  // 60
-};
-risk_cut[][][2] = { // 150000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0750, 0.0800, 0.0850}, // 12
-{0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850}, // 24
-{0.0000, 0.0000, 0.0050, 0.0075, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0775, 0.0825}, // 36
-{0.0000, 0.0025, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0675, 0.0725, 0.0775, 0.0825}, // 48
-{0.0000, 0.0025, 0.0075, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800}  // 60
-};
-risk_cut[][][3] = { // 200000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0000, 0.0000, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0350, 0.0400, 0.0450, 0.0500, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0950}, // 12
-{0.0000, 0.0000, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900}, // 24
-{0.0000, 0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875}, // 36
-{0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0750, 0.0800, 0.0850}, // 48
-{0.0000, 0.0050, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825}  // 60
-};
-risk_cut[][][4] = { // 250000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0000, 0.0050, 0.0100, 0.0175, 0.0225, 0.0275, 0.0325, 0.0400, 0.0450, 0.0500, 0.0550, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0900, 0.0950, 0.1000}, // 12
-{0.0000, 0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925}, // 24
-{0.0000, 0.0050, 0.0075, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900}, // 36
-{0.0000, 0.0050, 0.0100, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875}, // 48
-{0.0000, 0.0050, 0.0100, 0.0125, 0.0175, 0.0225, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850}  // 60
-};
-risk_cut[][][5] = { // 300000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0025, 0.0075, 0.0150, 0.0200, 0.0250, 0.0300, 0.0375, 0.0425, 0.0475, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0825, 0.0875, 0.0925, 0.0975, 0.1050}, // 12
-{0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950}, // 24
-{0.0000, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0900}, // 36
-{0.0025, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0825, 0.0875}, // 48
-{0.0025, 0.0050, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0675, 0.0725, 0.0775, 0.0800, 0.0850}  // 60
-};
-risk_cut[][][6] = { // 350000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0000, 0.0050, 0.0100, 0.0175, 0.0225, 0.0275, 0.0325, 0.0400, 0.0450, 0.0500, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0850, 0.0900, 0.0950, 0.1000, 0.1075}, // 12
-{0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925, 0.0975}, // 24
-{0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925}, // 36
-{0.0025, 0.0050, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0500, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850, 0.0875}, // 48
-{0.0025, 0.0075, 0.0100, 0.0150, 0.0175, 0.0225, 0.0275, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0850}  // 60
-};
-risk_cut[][][7] = { // 400000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0025, 0.0075, 0.0125, 0.0175, 0.0250, 0.0300, 0.0350, 0.0400, 0.0475, 0.0525, 0.0575, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0925, 0.0975, 0.1025, 0.1100}, // 12
-{0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0925, 0.0975}, // 24
-{0.0025, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0875, 0.0925}, // 36
-{0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0750, 0.0800, 0.0850, 0.0900}, // 48
-{0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875}  // 60
-};
-risk_cut[][][8] = { // 450000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0025, 0.0075, 0.0150, 0.0200, 0.0250, 0.0300, 0.0375, 0.0425, 0.0475, 0.0550, 0.0600, 0.0650, 0.0700, 0.0775, 0.0825, 0.0875, 0.0925, 0.1000, 0.1050, 0.1100}, // 12
-{0.0000, 0.0050, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
-{0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0375, 0.0425, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0925}, // 36
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0800, 0.0850, 0.0900}, // 48
-{0.0025, 0.0075, 0.0100, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0775, 0.0825, 0.0875}  // 60
-};
-risk_cut[][][9] = { // 500000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0025, 0.0100, 0.0150, 0.0200, 0.0275, 0.0325, 0.0375, 0.0425, 0.0500, 0.0550, 0.0600, 0.0675, 0.0725, 0.0775, 0.0825, 0.0900, 0.0950, 0.1000, 0.1075, 0.1125}, // 12
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0425, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950}, // 36
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0450, 0.0500, 0.0550, 0.0600, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0850, 0.0900}, // 48
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0650, 0.0700, 0.0750, 0.0775, 0.0825, 0.0875}  // 60
-};
-risk_cut[][][10] = { // 550000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0050, 0.0100, 0.0150, 0.0225, 0.0275, 0.0325, 0.0400, 0.0450, 0.0500, 0.0550, 0.0625, 0.0675, 0.0725, 0.0800, 0.0850, 0.0900, 0.0950, 0.1025, 0.1075, 0.1125}, // 12
-{0.0025, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
-{0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0725, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950}, // 36
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0625, 0.0675, 0.0725, 0.0775, 0.0825, 0.0875, 0.0900}, // 48
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0600, 0.0675, 0.0700, 0.0750, 0.0800, 0.0825, 0.0875}  // 60
-};
-
-risk_cut[][][11] = { // 600000
-/*2.00%	 2.50%	 3.00%	 3.50%	 4.00%	 4.50%	 5.00%	 5.50%	 6.00%	 6.50%	 7.00%	 7.50%	 8.00%	 8.50%	 9.00%	 9.50%	 10.00%	 10.50%	 11.00%	 11.50%	 12.00%*/
-{0.0000, 0.0050, 0.0100, 0.0175, 0.0225, 0.0275, 0.0350, 0.0400, 0.0450, 0.0500, 0.0575, 0.0625, 0.0675, 0.0750, 0.0800, 0.0850, 0.0900, 0.0975, 0.1025, 0.1075, 0.1150}, // 12
-{0.0025, 0.0075, 0.0125, 0.0175, 0.0225, 0.0275, 0.0325, 0.0375, 0.0425, 0.0475, 0.0525, 0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000}, // 24
-{0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0475, 0.0525, 0.0575, 0.0625, 0.0675, 0.0725, 0.0775, 0.0800, 0.0850, 0.0900, 0.0950}, // 36
-{0.0025, 0.0075, 0.0125, 0.0175, 0.0200, 0.0250, 0.0300, 0.0325, 0.0375, 0.0425, 0.0475, 0.0500, 0.0550, 0.0600, 0.0650, 0.0700, 0.0725, 0.0775, 0.0825, 0.0875, 0.0900}, // 48
-{0.0025, 0.0075, 0.0125, 0.0150, 0.0200, 0.0250, 0.0275, 0.0325, 0.0375, 0.0400, 0.0450, 0.0500, 0.0525, 0.0575, 0.0600, 0.0675, 0.0700, 0.0750, 0.0800, 0.0825, 0.0875}  // 60
-};
-
-float get_risk_cut_point(float apr, int term, int loan_amount)
+float RiskModel::get_risk_cut_point(float apr, int term, int loan_amt)
 {
  int i, j, k;
  
  i = j = k = 0;
  
- if (apr < 0.0200) i = -1
+ if (apr < 0.0200) i = -1;
  else if (apr < 0.0250) i = 0;
  else if (apr < 0.0300) i = 1;
  else if (apr < 0.0350) i = 2;
@@ -1735,6 +1916,17 @@ float get_risk_cut_point(float apr, int term, int loan_amount)
  if ( i == -1 || j == -1 || k == -1)
     return(0.0);
  else 
-    return(risk_cut[i][j][k]);
+    return(risk_cut[k][j][i]);
 }
 
+void RiskModel::print_cut_point()
+{
+  int i, j, k;
+  
+  for (k = 0; k < 12; k++)
+     for (j = 0; j < 5; j++)
+        for (i = 0; i < 21; i++)
+           printf ("cut[%d][%d][%4.2f%%]= %5.4f\n",
+            (k+1)*500000, (j+1)*12,  (2.0+i*0.5), risk_cut[k][j][i]);
+  
+}

@@ -91,7 +91,7 @@ if (debug) cout << CurrDateTime() << ": " << MSG_STR << endl;     \
 if ( sqlca.sqlcode < 0 )                                      \
 {                                                             \
   DbEmb::TransRollback();                                     \
-  return 1;                                                   \
+  return (sqlca.sqlcode);                                                   \
 }
 
 // utility class for embedded SQL checking
