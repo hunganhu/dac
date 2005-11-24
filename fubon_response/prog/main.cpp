@@ -6,6 +6,7 @@
 #include <system.hpp>
 #include <time.h>
 #include <math.h>
+#include <String.h>
 
 #pragma hdrstop
 #include "GetOpt.h"
@@ -125,22 +126,32 @@ int main(int argc, char* argv[])
            dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
         case End_of_SQL:
+           if (Debug == 1) {
+              DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
+              dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
+           }
            fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
-           fprintf (stderr, "\nFubon Response Model Profile (%s)\n", target_month);
-           int risk_group, group_count;
+           fprintf (stderr, "\nFubon Response Model Profile \n");
+/*           int score, group_count;
+           String catagory;
            try {
               Query = new TADOQuery(NULL);
               Query->ConnectionString = connect_string;
               Query->Close();
               Query->SQL->Clear();
-              Query->SQL->Add("select risk_group, group_count from credit_card_monthly_profile_riskgroup where cycle_date=:v1 order by risk_group");
-              Query->Parameters->ParamValues["v1"] = target_month;
+              Query->SQL->Add("select catagory, score, count(*) as group_count from Fubon_response_score group by catagory, score order by catagory, score;");
               Query->Open();
               Query->First();
               while (!Query->Eof) {
-                 risk_group = Query->FieldValues["risk_group"];
+          //       catagory = Query->FieldValues["catagory"];
                  group_count = Query->FieldValues["group_count"];
-                 fprintf (stderr, "   Group %3d = %d\n", risk_group, group_count);
+                 if (Query->FieldValues["group_count"].IsNull()) {
+                   fprintf (stderr, "   %20s <null> = %d\n", catagory.c_str(), group_count);
+                 }
+                 else {
+                   score = Query->FieldValues["group_count"];
+                   fprintf (stderr, "    %20s %6d = %d\n", catagory.c_str(), score, group_count);
+                 }
                  Query->Next();
               }
            }
@@ -149,6 +160,7 @@ int main(int argc, char* argv[])
                delete dbhandle;
                return (false);
            }
+*/
            break;
         default:
            DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);
