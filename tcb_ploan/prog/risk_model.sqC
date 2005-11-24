@@ -1020,7 +1020,7 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn)
   EXEC SQL
     update pdaco_cal p
        set revolving_amt = revolving_amt +
-           (select sum(loan_amt + pass_due_amt)
+           (select sum(loan_amt + pass_due_amt) * 1000.0
             from bam086_dedup s
             where account_code = 'Y'
               and p.case_sn = s.case_sn

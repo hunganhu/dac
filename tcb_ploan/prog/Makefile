@@ -87,7 +87,7 @@ risk_model.o: risk_model.sqC risk_model.h
 	$(EMBPREP) risk_model $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c risk_model.C
 
-loan_app.o: loan_app.sqC loan_app.h
+loan_app.o: loan_app.sqC loan_app.h error.h
 	$(EMBPREP) loan_app $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c loan_app.C
 

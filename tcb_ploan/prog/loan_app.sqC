@@ -5,7 +5,6 @@
 ** All Rights Reserved.
 **
 *****************************************************************************
-**
 ** SOURCE FILE NAME: LoanApp.sqC
 **
 **
@@ -22,7 +21,29 @@
    #include <iostream.h>
 #endif
 #include "loan_app.h"
+#include "error.h"
+
 extern char MESSAGE[1024];
+Invalid_Msg tcbMsg[] = {
+   {1001, "生日超出有效範圍"},
+   {1002, "年所得收入超出999萬"}, 
+   {1003, "現址已居住年數超出99年"}, 
+   {1004, "車籍資料(年份)超出有效範圍"}, 
+   {1005, "服務年資超出99年"}, 
+   {1006, "利率 (第一期)超出12%"}, 
+   {1007, "利率 (第二期)超出12%"}, 
+   {1008, "利率 (第三期)超出12%"}, 
+   {1009, "期數 (第一期)超出84個月"}, 
+   {1010, "期數 (第二期)超出84個月"}, 
+   {1011, "期數 (第三期)超出84個月"}, 
+   {1012, "寬限期大於總期數"}, 
+   {1013, "申貸金額超出200萬"}, 
+   {1014, "開辦費 (金額)超出99萬"}, 
+   {2001, "申貸編號不存在於APP_INFO"}, 
+   {2002, "申貸編號不存在於APP_RESULT"}, 
+   {2003, "撥貸金額必須大於零"}
+};
+
 
 LoanApp::LoanApp(char *caseSN)
 {
@@ -32,34 +53,171 @@ LoanApp::LoanApp(char *caseSN)
 int LoanApp::initial()
 {
   EXEC SQL BEGIN DECLARE SECTION;
-    char Case_Sn[20];
-    char Applicant_Id[12];
-    char Guantantor_Id[12];
-    short GID_ind;
-  EXEC SQL END DECLARE SECTION;
-  struct sqlca sqlca;
+    /*app_info fields*/
+    char iCase_Sn[20];
+    char iApplicant_Id[12];
+    char iGuantantor_Id[12];
+    long iLoan_purpose;
+    long iEducation;
+    char iBirthday[8];
+    long iMarriage_status;
+    long iAnnual_Income;
+    long iHome_ownership;
+    long iYear_at_current_address;
+    long iYear_at_current_job;
+    long iCar_year;
+    long iProduct_type_code;
+    long iApp_amt;
+    long iTerm_1;
+    long iTerm_2;
+    long iTerm_3;
+    float iAPR_1;
+    float iAPR_2;
+    float iAPR_3;
+    long iGrace_period;
+    long iFee_1;
+    float iFee_2;
 
-  strcpy (Case_Sn, case_sn);
-//  strcpy (Idn, idn);
+    /*indicators*/
+    short GID_ind;
+    short Loan_purpose_ind;
+    short Education_ind;
+    short Birthday_ind;
+    short Marriage_status_ind;
+    short Annual_Income_ind;
+    short Home_ownership_ind;
+    short Year_at_current_address_ind;
+    short Year_at_current_job_ind;
+    short Car_year_ind;
+    short Product_type_code_ind;
+    short App_amt_ind;
+    short Term_1_ind;
+    short Term_2_ind;
+    short Term_3_ind;
+    short APR_1_ind;
+    short APR_2_ind;
+    short APR_3_ind;
+    short Grace_period_ind;
+    short Fee_1_ind;
+    short Fee_2_ind;
+ EXEC SQL END DECLARE SECTION;
+  struct sqlca sqlca;
+  int code;
+
+  strcpy (iCase_Sn, case_sn);
   Debug("Enter LoanApp.initial()");
 
   EXEC SQL
-     select applicant_id, guanrantor_id
-     into :Applicant_Id, :Guantantor_Id:GID_ind
+     select Applicant_ID, Guarantor_ID, Loan_purpose, education, Birthday, Marriage_status, Car_year,
+            Annual_Income, Home_ownership, Year_at_current_address, Year_at_current_job,
+            Product_type_code, App_amt, Term_1, Term_2, Term_3, APR_1, APR_2, APR_3, grace_period,
+            Fee_1, Fee_2
+     into :iApplicant_Id, :iGuantantor_Id:GID_ind, :iLoan_purpose:Loan_purpose_ind, :iEducation:Education_ind,
+          :iBirthday:Birthday_ind, :iMarriage_status:Marriage_status_ind, :iCar_year:Car_year_ind,
+          :iAnnual_Income:Annual_Income_ind, :iHome_ownership:Home_ownership_ind, 
+          :iYear_at_current_address:Year_at_current_address_ind, :iYear_at_current_job:Year_at_current_job_ind,
+          :iProduct_type_code:Product_type_code_ind, :iApp_amt:App_amt_ind, :iTerm_1:Term_1_ind,
+          :iTerm_2:Term_2_ind, :iTerm_3:Term_3_ind, :iAPR_1:APR_1_ind, :iAPR_2:APR_2_ind, :iAPR_3:APR_3_ind,
+          :iGrace_period:Grace_period_ind, :iFee_1:Fee_1_ind, :iFee_2:Fee_2_ind
      from db2inst1.app_info
-     where case_sn = :Case_Sn;
+     where case_sn = :iCase_Sn;
   EMB_SQL_CHECK("Select appInfo.");
 
-  if (sqlca.sqlcode != 100) {
-   strcpy (aID, Applicant_Id);
-   if (GID_ind == 1)
-      strcpy(gID, "");
-   else
-      strcpy (gID, Guantantor_Id);
-  } else {
-    strcpy(MESSAGE, "申貸編號不存在於APP_INFO");
-    return(2001);
+  if (sqlca.sqlcode == 100) {
+     strcpy(MESSAGE, "申貸編號不存在於APP_INFO");
+     return(2001);
   }
+  strcpy (aID, iApplicant_Id);
+
+  if (GID_ind == 1) strcpy(gID, "");
+  else strcpy (gID, iGuantantor_Id);
+  
+  if (Birthday_ind == 1) strcpy(Birthday, "");
+  else strcpy (Birthday, iBirthday);
+  if (!validate_date(Birthday)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1001)); code = DataErrorCode(DATA_ERR_1001);}
+
+  if (Annual_Income_ind == 1) Annual_Income = 0;
+  else Annual_Income = iAnnual_Income;
+
+  if ((Annual_Income < 0) || (Annual_Income > 9990000)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1002)); code = DataErrorCode(DATA_ERR_1002);}
+     
+  if (Year_at_current_address_ind == 1) Year_at_current_address = 0;
+  else Year_at_current_address = iYear_at_current_address;
+
+  if ((Year_at_current_address < 0) || (Year_at_current_address > 99)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1003)); code = DataErrorCode(DATA_ERR_1003);}
+
+  if (Year_at_current_job_ind == 1) Year_at_current_job = 0;
+  else Year_at_current_job = iYear_at_current_job;
+
+  if ((Year_at_current_job < 0) || (Year_at_current_job > 99)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1005)); code = DataErrorCode(DATA_ERR_1005);}
+
+  if (Car_year_ind == 1) Car_year = 0;
+  else Car_year = iCar_year;
+
+  if ((Car_year < 0) || (Car_year > 999)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1004)); code = DataErrorCode(DATA_ERR_1004);}
+
+  if (App_amt_ind == 1) App_amt = 0;
+  else App_amt = iApp_amt;
+
+  if ((App_amt <= 0) || (App_amt > 2000000)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1013)); code = DataErrorCode(DATA_ERR_1013);}
+
+  if (Term_1_ind == 1) Term_1 = 0;
+  else Term_1 = iTerm_1;
+
+  if (Term_2_ind == 1) Term_2 = 0;
+  else Term_2 = iTerm_2;
+
+  if (Term_3_ind == 1) Term_3 = 0;
+  else Term_3 = iTerm_3;
+  
+  if ((Term_1 < 1) || (Term_1 > 84)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1009)); code = DataErrorCode(DATA_ERR_1009);}
+
+  if ((Term_2 < 0) || (Term_2 > 84)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1010)); code = DataErrorCode(DATA_ERR_1010);}
+
+  if ((Term_3 < 0) || (Term_3 > 84)) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1011)); code = DataErrorCode(DATA_ERR_1011);}
+
+  if (APR_1_ind == 1) APR_1 = 0.0;
+  else APR_1 = iAPR_1 / 100.0;
+
+  if (APR_2_ind == 1) APR_2 = 0.0;
+  else APR_2 = iAPR_2 / 100.0;
+
+  if (APR_3_ind == 1) APR_3 = 0.0;
+  else APR_3 = iAPR_3 / 100.0;
+  
+  if ( (APR_1 < 0.0) || (APR_1 > 0.12) ) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1006)); code = DataErrorCode(DATA_ERR_1006);}
+  
+  if ((APR_2 < 0.0) || (APR_2 > 0.12) ) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1007)); code = DataErrorCode(DATA_ERR_1007);}
+
+  if ((APR_3 < 0.0) || (APR_3 > 0.12) ) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
+
+  if (Grace_period_ind == 1) Grace_period = 0;
+  else Grace_period = iGrace_period;
+  
+  if ((Grace_period < 0) || (Grace_period >= (Term_1 + Term_2 + Term_3))) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1012)); code = DataErrorCode(DATA_ERR_1012);}
+
+  if (Fee_1_ind == 1) Fee_1 = 0;
+  else Fee_1 = iFee_1;
+  
+  if (Fee_2_ind == 1) Fee_2 = 0.0;
+  else Fee_2 = iFee_2 / 100.0;
+  
+  if ((Fee_1 + App_amt * Fee_2) > 990000) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1014)); code = DataErrorCode(DATA_ERR_1014);}
+
   Debug("Exit LoanApp.initial()");
   return(0);
 }
@@ -81,6 +239,7 @@ char * LoanApp::Guanrantor_id()
 int LoanApp::validate()
 {
   Debug("Enter LoanApp.validate()");
+  
 /*
      if (!validate_date(app_date)) {
         Message += TF_Messages[App_error_314]; code = 314;}
@@ -147,4 +306,29 @@ int LoanApp::validate()
 */
   Debug("Exit LoanApp.validate()");
   return (0);
+}
+
+static char daytab[2][13] = {
+ {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+ {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+};
+
+int validate_date(char *date)  //format of date is yyymmdd
+{
+ int year, month, day, idate;
+ int leap;
+
+ if (date[0] == '\0') return 0;
+ 
+ idate = atoi(date);
+ year = idate / 10000;
+ month = (idate % 10000) / 100;
+ day = idate % 100;
+ year += 1911;
+ 
+ leap = (year%4 == 0 && year%100 != 0 || year%400 == 0);
+ if (month > 12) return 0;
+ if (day > daytab[leap][month]) return 0;
+
+ return(1);
 }
