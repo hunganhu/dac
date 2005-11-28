@@ -39,22 +39,22 @@ class LoanApp {
     int   Term_1;			//期數(第一期)
     int   Term_2;			//期數(第二期)
     int   Term_3;			//期數(第三期)
-    float APR_1;			//利率(第一期)
-    float APR_2;			//利率(第二期)
-    float APR_3;			//利率(第三期
+    double APR_1;			//利率(第一期)
+    double APR_2;			//利率(第二期)
+    double APR_3;			//利率(第三期
     int   Grace_period;			//寬限期
     int   Fee_1;			//開辦費(固定金額部分)
-    float Fee_2;			//開辦費(百分比部分)
+    double Fee_2;			//開辦費(百分比部分)
 
     /* Financial Information*/
-    float Fund_deposit_pct;		//資金來源來自存款百分比
-    float Fund_bank_pct;		//資金來源來自同業拆款百分比
-    float Fund_self_pct;		//資金來源自有百分比
-    float Fund_free_pct;		//資金來源無息百分比
-    float COF_deposit;			//存款平均利率
-    float COF_bank;			//同業拆款利率
-    float ROE;				//股東權益報酬率
-    float Commission;			//業務獎金
+    double Fund_deposit_pct;		//資金來源來自存款百分比
+    double Fund_bank_pct;		//資金來源來自同業拆款百分比
+    double Fund_self_pct;		//資金來源自有百分比
+    double Fund_free_pct;		//資金來源無息百分比
+    double COF_deposit;			//存款平均利率
+    double COF_bank;			//同業拆款利率
+    double ROE;				//股東權益報酬率
+    double Commission;			//業務獎金
 
     int record_count;               // number of app_info records read
     int trial_count;                // number of Loan records read
@@ -66,11 +66,12 @@ class LoanApp {
     int application_fee;            // 開辦費 (新台幣元)
     int risk_mgmt_fee;              // 每期風險管理費用(新台幣元)
     double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
+    double cutpoint;                // PB cut point
 
     /* NPV variables */
-    float applicantPB;
-    float guarantorPB;
-    float applicantPB_adjust;
+    double applicantPB;
+    double guarantorPB;
+    double applicantPB_adjust;
     int   ps_code_a;
     char  ps_msg_a[128];
     int   ps_code_g;
@@ -84,14 +85,15 @@ class LoanApp {
     char * Applicant_id();
     char * Guanrantor_id();
     int  get_product_type();
-    float get_max_apr();
+    double get_max_apr();
     int get_periods();
     int get_apply_amount();
 
-    void set_applicant_pb(float pb);
-    void set_guarantor_pb(float pb);
-    void set_applicant_pb_adj(float pb);
+    void set_applicant_pb(double pb);
+    void set_guarantor_pb(double pb);
+    void set_applicant_pb_adj(double pb);
     void set_guarantor_pass(int flag);
+    void set_cutpoint(double cut);
     void set_ps_status_a(int code, char *msg);
     void set_ps_status_g(int code, char *msg);
     int  write_result_prescreen_failed();

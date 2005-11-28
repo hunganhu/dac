@@ -23,7 +23,7 @@ public class Dac {
 	
 		Dac ploan = new Dac();
 		error_message = ploan.dac_pl_cal(case_sn, alias, uid, upw);
-		if (error_message.substring(0,1) != "0")
+		if (error_message.substring(0,4) != "0000")
 			System.out.println("Message: " + error_message);
 	}
 }

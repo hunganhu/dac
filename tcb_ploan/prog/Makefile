@@ -20,12 +20,13 @@
 DB2PATH = /home/db2inst1/sqllib
 DB2INC = $(DB2PATH)/include
 DB2LIB = $(DB2PATH)/lib
+DESDIR = /home/ejcicap1/lib
 
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG
-#EXTRA_CFLAG= -g -Wno-deprecated
+#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG
+EXTRA_CFLAG= -g -Wno-deprecated
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
@@ -57,7 +58,7 @@ Dac.h: Dac.class
 dacploan.o: dacploan.c 
 	gcc -g $(EXTRA_CFLAG) -I/usr/java131/include -c dacploan.c
 
-main: main.o utilemb.o risk_model.o dac_pl_cal.o loan_app.o
+main: main.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o main -ldb2 -L$(DB2PATH)/lib \
 	 main.o $(DLL_OBJ)
 
@@ -100,3 +101,7 @@ functions.o: functions.cpp functions.h
 clean :
 	$(ERASE) *.o *.so *.bak *~
 	$(ERASE) *.bnd *.C
+
+install: libdac.so
+	 cp -f $? $(DESDIR)
+	 touch install

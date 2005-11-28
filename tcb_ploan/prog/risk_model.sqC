@@ -674,6 +674,7 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
   int rc = 0;
   struct sqlca sqlca;
 
+  memset(MESSAGE, '\0', sizeof(MESSAGE));
   strcpy (pfCase_Sn, case_sn);
   strcpy (pfIdn, idn);
 
@@ -691,32 +692,32 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     return(2004);
   }
 
+ ps_code = 0; // initialize to 0
  if (krm001_hit ==0 || krm023_hit == 0 || ind001 == 1) {
-    strcpy(MESSAGE, "人工審核 [JCIC資料不足]");
-    rc = 3102;
+    strcpy(MESSAGE, "人工審核 [JCIC資料不足]。");
+    ps_code = 3102;
  }
  else if (jas002_defect > 0) {
-    strcpy(MESSAGE, "拒絕 [三年內有強停、拒往、退票、授信異常情況者]");
-    rc = 3103;
+    strcpy(MESSAGE, "拒絕 [三年內有強停、拒往、退票、授信異常情況者]。");
+    ps_code = 3103;
  }
  else if (max_bucket > 3) {
-    strcpy(MESSAGE, "拒絕 [信用卡繳款異常連續三個月以上]");
-    rc = 3104;
+    strcpy(MESSAGE, "拒絕 [信用卡繳款異常連續三個月以上]。");
+    ps_code = 3104;
  }
  else if (fs044 > 0 || fs334 > 3) {
-    strcpy(MESSAGE, "拒絕 [非信用卡貸款有延遲繳款金額或連續三個月繳款異常]");
-    rc = 3105;
+    strcpy(MESSAGE, "拒絕 [非信用卡貸款有延遲繳款金額或連續三個月繳款異常]。");
+    ps_code = 3105;
  }
  else if (cash_max_bucket >= 0.5 || cash_utilization >= 1) {
-    strcpy(MESSAGE, "拒絕 [最近一個月現金卡繳款異常或使用率超過100%(含) ]");
-    rc = 3106;
+    strcpy(MESSAGE, "拒絕 [最近一個月現金卡繳款異常或使用率超過100%(含) ]。");
+    ps_code = 3106;
  }
  else if (revolving_amt > 500000) {
-    strcpy(MESSAGE, "拒絕 [最近一個月現金卡加信用卡循環金額大於五十萬(不含)]");
-    rc = 3107;
+    strcpy(MESSAGE, "拒絕 [最近一個月現金卡加信用卡循環金額大於五十萬(不含)]。");
+    ps_code = 3107;
  }
 
- ps_code = rc;
  strcpy(ps_msg, MESSAGE);
  EXEC SQL
     update pdaco_cal
@@ -725,7 +726,7 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     where case_sn = :pfCase_Sn and idn = :pfIdn;
  EMB_SQL_CHECK("update prescreen status.");
 
- return(rc);
+ return(ps_code);
 }
 int RiskModel::GenerateScreenVars(char *case_sn, char *idn)
 {
@@ -1698,24 +1699,24 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
   EXEC SQL
   insert into pdaco_result(
      case_sn, idn, inquiry_date, now, age, jas002_defect, krm001_hit, krm023_hit, max_bucket,
-     fs044, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
+     fs044, fs334, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
      ft102_42_r, ft102_42_r_tran, fs031, fs031_tran, fs005_1k_3m, fs005_1k_3m_q, fs005_1k_3m_q_tran,
      fs059_1k_3m, fs059_1k_6m, fs059_1k_9m, ft059_1k_43, ft059_1k_43_r, ft059_1k_43_r_tran,
      ft059_1k_42, ft059_1k_42_q, ft059_1k_42_q_tran, fs051, fs051_tran, fs016_3m, fs101_3m, int015_3,
      int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
      ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
      int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
-     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg)
+     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg, cut)
   select
      case_sn, idn, inquiry_date, now, age, jas002_defect, krm001_hit, krm023_hit, max_bucket,
-     fs044, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
+     fs044, fs334, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
      ft102_42_r, ft102_42_r_tran, fs031, fs031_tran, fs005_1k_3m, fs005_1k_3m_q, fs005_1k_3m_q_tran,
      fs059_1k_3m, fs059_1k_6m, fs059_1k_9m, ft059_1k_43, ft059_1k_43_r, ft059_1k_43_r_tran,
      ft059_1k_42, ft059_1k_42_q, ft059_1k_42_q_tran, fs051, fs051_tran, fs016_3m, fs101_3m, int015_3,
      int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
      ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
      int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
-     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg
+     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg, cut
   from pdaco_cal
   where case_sn = :ssCase_Sn and idn = :ssIdn;
   EMB_SQL_CHECK("Save result");
@@ -1739,7 +1740,7 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn)
   rc = CleanTables(case_sn, idn);
   if (rc != 0)  return rc;
 
-  // Calculate PB of applicant
+  // Calculate PB of an applicant or a guarantor
   rc = PrepareJcicTables(case_sn, idn);
   if (rc != 0)  return rc;
 
@@ -1747,18 +1748,17 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn)
   if (rc != 0)  return rc;
 
   rc = Prescreen(case_sn, idn);
-/*
+
   if (rc != 0)  return rc;
 
-*/
   rc = GeneratePdacoScore(case_sn, idn);
   if (rc != 0)  return rc;
 
   rc = SaveScore(case_sn, idn);
   if (rc != 0)  return rc;
 
-  rc = CleanTables(case_sn, idn);
-  if (rc != 0)  return rc;
+//  rc = CleanTables(case_sn, idn);
+//  if (rc != 0)  return rc;
 
   Debug("Exit Calculate_PB()");
   return 0;

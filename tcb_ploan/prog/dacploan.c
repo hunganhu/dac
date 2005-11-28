@@ -69,12 +69,12 @@ JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
      strcpy(c_upw, userPW);
      (*env)->ReleaseStringUTFChars(env, upw, userPW);
      errMsg[0] = '\0';
-
+/*
      printf ("C: Case_sn=%s\n", c_case_sn);
      printf ("C: Alias = %s\n", c_alias);
      printf ("C: User ID=%s\n", c_uid);
      printf ("C: User PW=%s\n", c_upw);
-
+*/
      rc = dac_pl_cal(c_case_sn, c_alias, c_uid, c_upw, errMsg);
 /*
 	fp = fopen("case_list", "r");
@@ -87,7 +87,7 @@ JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
               printf("%s:(%d)%s.\n", CurrTime() , rc, errMsg);
 	}
 */
-     sprintf (c_error_msg, "%04d%s", -rc, errMsg);
+     sprintf (c_error_msg, "%04d%s", rc, errMsg);
 
   Class_java_lang_String = (*env)->FindClass(env, "java/lang/String");
   MID_String_init = (*env)->GetMethodID(env, Class_java_lang_String,
