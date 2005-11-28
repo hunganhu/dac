@@ -24,8 +24,8 @@ DB2LIB = $(DB2PATH)/lib
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG
-EXTRA_CFLAG= -g -Wno-deprecated
+EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG
+#EXTRA_CFLAG= -g -Wno-deprecated
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
@@ -36,7 +36,7 @@ PWD=ejcicap1
 
 ERASE=rm -f
 
-DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o
+DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o
 
 #****************************************************************************
 #		   2a - make all (srv + all_client)
@@ -59,7 +59,7 @@ dacploan.o: dacploan.c
 
 main: main.o utilemb.o risk_model.o dac_pl_cal.o loan_app.o
 	$(CPP) $(EXTRA_CFLAG) -o main -ldb2 -L$(DB2PATH)/lib \
-	 main.o utilemb.o risk_model.o dac_pl_cal.o loan_app.o
+	 main.o $(DLL_OBJ)
 
 mainl: main.o 
 	$(CPP) $(EXTRA_CFLAG) -o mainl main.o -ldac -L. -ldb2 -L$(DB2PATH)/lib
@@ -91,6 +91,8 @@ loan_app.o: loan_app.sqC loan_app.h error.h
 	$(EMBPREP) loan_app $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c loan_app.C
 
+functions.o: functions.cpp functions.h
+	$(CPP) $(EXTRA_CFLAG) -c functions.cpp
 #****************************************************************************
 # make clean
 #****************************************************************************

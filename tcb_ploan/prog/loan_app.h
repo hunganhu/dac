@@ -8,10 +8,10 @@
 **
 ** SOURCE FILE NAME: LoanApp.h
 **
-** SAMPLE:  header file for LoanApp.sqC 
+** SAMPLE:  header file for LoanApp.sqC
 **
-**         This is the header file for the LoanApp.sqC 
-**         file. 
+**         This is the header file for the LoanApp.sqC
+**         file.
 **
 ****************************************************************************/
 #ifndef LoanApp_H
@@ -46,35 +46,59 @@ class LoanApp {
     int   Fee_1;			//開辦費(固定金額部分)
     float Fee_2;			//開辦費(百分比部分)
 
+    /* Financial Information*/
+    float Fund_deposit_pct;		//資金來源來自存款百分比
+    float Fund_bank_pct;		//資金來源來自同業拆款百分比
+    float Fund_self_pct;		//資金來源自有百分比
+    float Fund_free_pct;		//資金來源無息百分比
+    float COF_deposit;			//存款平均利率
+    float COF_bank;			//同業拆款利率
+    float ROE;				//股東權益報酬率
+    float Commission;			//業務獎金
+
     int record_count;               // number of app_info records read
     int trial_count;                // number of Loan records read
     int code;                       // prescreen code
     /* loan information */
     double principal;               // 貸款金額(新台幣元)
     double int_rate;                // 年利率 (e.g. 18% 為 0.18)
-    double teaser_rate;             // 優惠年利率 (e.g. 18% 為 0.18)
     int periods;                    // 貸款期數(月數)
-    int teaser_period;              // 優惠期 (月數)
-    int grace_period;               // 寬限期(月數)
     int application_fee;            // 開辦費 (新台幣元)
-    int credit_checking_fee;        // 徵信查詢費(新台幣元)
     int risk_mgmt_fee;              // 每期風險管理費用(新台幣元)
     double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
 
-    /* Null indicator for each application feature */
-
-
+    /* NPV variables */
+    float applicantPB;
+    float guarantorPB;
+    float applicantPB_adjust;
+    int   ps_code_a;
+    char  ps_msg_a[128];
+    int   ps_code_g;
+    char  ps_msg_g[128];
+    int   Guarantor_pass;
   public:
-
-
     LoanApp (char *caseSN);
     ~LoanApp();
     int initial();
-    int validate();
+    int get_fin_info();
     char * Applicant_id();
     char * Guanrantor_id();
+    int  get_product_type();
+    float get_max_apr();
+    int get_periods();
+    int get_apply_amount();
+
+    void set_applicant_pb(float pb);
+    void set_guarantor_pb(float pb);
+    void set_applicant_pb_adj(float pb);
+    void set_guarantor_pass(int flag);
+    void set_ps_status_a(int code, char *msg);
+    void set_ps_status_g(int code, char *msg);
+    int  write_result_prescreen_failed();
+    int  write_result_others();
+    int  write_result_declined();
+    int  write_result_approved();
 };
 
-int validate_date(char *date);  // format of date is yyymmdd
 
 #endif  //LoanApp_H

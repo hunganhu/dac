@@ -8,11 +8,11 @@
 **
 ** SOURCE FILE NAME: risk_model.h
 **
-** SAMPLE:  header file for risk_model.sqC 
+** SAMPLE:  header file for risk_model.sqC
 **
 **         This is the header file for the risk_model.sqC utility
-**         file. The risk_model.sqC file is compiled and linked in as an object 
-**         module with embedded SQL sample programs by the supplied makefile 
+**         file. The risk_model.sqC file is compiled and linked in as an object
+**         module with embedded SQL sample programs by the supplied makefile
 **         and build files.
 **
 **
@@ -27,11 +27,11 @@ extern "C"
 #endif
 
 extern float risk_cut[12][5][21];  // loan_amt, term, apr
-	
+
 // classes and methods
 class RiskModel
 {
-	
+
   public:
     int CreateWorkingTables();
     int PrepareJcicTables(char *case_sn, char *idn);
@@ -40,7 +40,9 @@ class RiskModel
     int GeneratePdacoScore(char *case_sn, char *idn);
     int SaveScore(char *case_sn, char *idn);
     int CleanTables(char *case_sn, char *idn);
-    float get_risk_cut_point(float apr, int term, int loan_amt);
+    int Calculate_PB(char *case_sn, char *idn);
+    int get_pb(char *case_sn, char *idn, float *pb);
+    int get_prescreen_status (char *case_sn, char *idn, int *code, char *msg);
     void print_cut_point();
 };
 

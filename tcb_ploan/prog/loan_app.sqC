@@ -22,25 +22,26 @@
 #endif
 #include "loan_app.h"
 #include "error.h"
+#include "functions.h"
 
 extern char MESSAGE[1024];
 Invalid_Msg tcbMsg[] = {
    {1001, "生日超出有效範圍"},
-   {1002, "年所得收入超出999萬"}, 
-   {1003, "現址已居住年數超出99年"}, 
-   {1004, "車籍資料(年份)超出有效範圍"}, 
-   {1005, "服務年資超出99年"}, 
-   {1006, "利率 (第一期)超出12%"}, 
-   {1007, "利率 (第二期)超出12%"}, 
-   {1008, "利率 (第三期)超出12%"}, 
-   {1009, "期數 (第一期)超出84個月"}, 
-   {1010, "期數 (第二期)超出84個月"}, 
-   {1011, "期數 (第三期)超出84個月"}, 
-   {1012, "寬限期大於總期數"}, 
-   {1013, "申貸金額超出200萬"}, 
-   {1014, "開辦費 (金額)超出99萬"}, 
-   {2001, "申貸編號不存在於APP_INFO"}, 
-   {2002, "申貸編號不存在於APP_RESULT"}, 
+   {1002, "年所得收入超出999萬"},
+   {1003, "現址已居住年數超出99年"},
+   {1004, "車籍資料(年份)超出有效範圍"},
+   {1005, "服務年資超出99年"},
+   {1006, "利率 (第一期)超出12%"},
+   {1007, "利率 (第二期)超出12%"},
+   {1008, "利率 (第三期)超出12%"},
+   {1009, "期數 (第一期)超出84個月"},
+   {1010, "期數 (第二期)超出84個月"},
+   {1011, "期數 (第三期)超出84個月"},
+   {1012, "寬限期大於總期數"},
+   {1013, "申貸金額超出200萬"},
+   {1014, "開辦費 (金額)超出99萬"},
+   {2001, "申貸編號不存在於APP_INFO"},
+   {2002, "申貸編號不存在於APP_RESULT"},
    {2003, "撥貸金額必須大於零"}
 };
 
@@ -114,7 +115,7 @@ int LoanApp::initial()
             Fee_1, Fee_2
      into :iApplicant_Id, :iGuantantor_Id:GID_ind, :iLoan_purpose:Loan_purpose_ind, :iEducation:Education_ind,
           :iBirthday:Birthday_ind, :iMarriage_status:Marriage_status_ind, :iCar_year:Car_year_ind,
-          :iAnnual_Income:Annual_Income_ind, :iHome_ownership:Home_ownership_ind, 
+          :iAnnual_Income:Annual_Income_ind, :iHome_ownership:Home_ownership_ind,
           :iYear_at_current_address:Year_at_current_address_ind, :iYear_at_current_job:Year_at_current_job_ind,
           :iProduct_type_code:Product_type_code_ind, :iApp_amt:App_amt_ind, :iTerm_1:Term_1_ind,
           :iTerm_2:Term_2_ind, :iTerm_3:Term_3_ind, :iAPR_1:APR_1_ind, :iAPR_2:APR_2_ind, :iAPR_3:APR_3_ind,
@@ -129,53 +130,53 @@ int LoanApp::initial()
   }
   strcpy (aID, iApplicant_Id);
 
-  if (GID_ind == 1) strcpy(gID, "");
+  if (GID_ind == -1) strcpy(gID, "");
   else strcpy (gID, iGuantantor_Id);
-  
-  if (Birthday_ind == 1) strcpy(Birthday, "");
+
+  if (Birthday_ind == -1) strcpy(Birthday, "");
   else strcpy (Birthday, iBirthday);
   if (!validate_date(Birthday)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1001)); code = DataErrorCode(DATA_ERR_1001);}
 
-  if (Annual_Income_ind == 1) Annual_Income = 0;
+  if (Annual_Income_ind == -1) Annual_Income = 0;
   else Annual_Income = iAnnual_Income;
 
   if ((Annual_Income < 0) || (Annual_Income > 9990000)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1002)); code = DataErrorCode(DATA_ERR_1002);}
-     
-  if (Year_at_current_address_ind == 1) Year_at_current_address = 0;
+
+  if (Year_at_current_address_ind == -1) Year_at_current_address = 0;
   else Year_at_current_address = iYear_at_current_address;
 
   if ((Year_at_current_address < 0) || (Year_at_current_address > 99)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1003)); code = DataErrorCode(DATA_ERR_1003);}
 
-  if (Year_at_current_job_ind == 1) Year_at_current_job = 0;
+  if (Year_at_current_job_ind == -1) Year_at_current_job = 0;
   else Year_at_current_job = iYear_at_current_job;
 
   if ((Year_at_current_job < 0) || (Year_at_current_job > 99)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1005)); code = DataErrorCode(DATA_ERR_1005);}
 
-  if (Car_year_ind == 1) Car_year = 0;
+  if (Car_year_ind == -1) Car_year = 0;
   else Car_year = iCar_year;
 
   if ((Car_year < 0) || (Car_year > 999)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1004)); code = DataErrorCode(DATA_ERR_1004);}
 
-  if (App_amt_ind == 1) App_amt = 0;
+  if (App_amt_ind == -1) App_amt = 0;
   else App_amt = iApp_amt;
 
   if ((App_amt <= 0) || (App_amt > 2000000)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1013)); code = DataErrorCode(DATA_ERR_1013);}
 
-  if (Term_1_ind == 1) Term_1 = 0;
+  if (Term_1_ind == -1) Term_1 = 0;
   else Term_1 = iTerm_1;
 
-  if (Term_2_ind == 1) Term_2 = 0;
+  if (Term_2_ind == -1) Term_2 = 0;
   else Term_2 = iTerm_2;
 
-  if (Term_3_ind == 1) Term_3 = 0;
+  if (Term_3_ind == -1) Term_3 = 0;
   else Term_3 = iTerm_3;
-  
+
   if ((Term_1 < 1) || (Term_1 > 84)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1009)); code = DataErrorCode(DATA_ERR_1009);}
 
@@ -185,36 +186,41 @@ int LoanApp::initial()
   if ((Term_3 < 0) || (Term_3 > 84)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1011)); code = DataErrorCode(DATA_ERR_1011);}
 
-  if (APR_1_ind == 1) APR_1 = 0.0;
+  periods = Term_1 + Term_2 + Term_3;
+
+  if (APR_1_ind == -1) APR_1 = 0.0;
   else APR_1 = iAPR_1 / 100.0;
 
-  if (APR_2_ind == 1) APR_2 = 0.0;
+  if (APR_2_ind == -1) APR_2 = 0.0;
   else APR_2 = iAPR_2 / 100.0;
 
-  if (APR_3_ind == 1) APR_3 = 0.0;
+  if (APR_3_ind == -1) APR_3 = 0.0;
   else APR_3 = iAPR_3 / 100.0;
-  
+
   if ( (APR_1 < 0.0) || (APR_1 > 0.12) ) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1006)); code = DataErrorCode(DATA_ERR_1006);}
-  
+
   if ((APR_2 < 0.0) || (APR_2 > 0.12) ) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1007)); code = DataErrorCode(DATA_ERR_1007);}
 
   if ((APR_3 < 0.0) || (APR_3 > 0.12) ) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
 
-  if (Grace_period_ind == 1) Grace_period = 0;
+  max_apr = ((APR_1 ) > (APR_2) ? (APR_1) : (APR_2));
+  max_apr = ((max_apr) > (APR_3) ? (max_apr) : (APR_3));
+
+  if (Grace_period_ind == -1) Grace_period = 0;
   else Grace_period = iGrace_period;
-  
+
   if ((Grace_period < 0) || (Grace_period >= (Term_1 + Term_2 + Term_3))) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1012)); code = DataErrorCode(DATA_ERR_1012);}
 
-  if (Fee_1_ind == 1) Fee_1 = 0;
+  if (Fee_1_ind == -1) Fee_1 = 0;
   else Fee_1 = iFee_1;
-  
-  if (Fee_2_ind == 1) Fee_2 = 0.0;
+
+  if (Fee_2_ind == -1) Fee_2 = 0.0;
   else Fee_2 = iFee_2 / 100.0;
-  
+
   if ((Fee_1 + App_amt * Fee_2) > 990000) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1014)); code = DataErrorCode(DATA_ERR_1014);}
 
@@ -236,99 +242,332 @@ char * LoanApp::Guanrantor_id()
  return(gID);
 }
 
-int LoanApp::validate()
+int LoanApp::get_fin_info()
 {
-  Debug("Enter LoanApp.validate()");
-  
-/*
-     if (!validate_date(app_date)) {
-        Message += TF_Messages[App_error_314]; code = 314;}
-     if (!validate_date(jcic_date)) {
-        Message += TF_Messages[App_error_315]; code = 315;}
+  EXEC SQL BEGIN DECLARE SECTION;
+    /*Financial fields*/
+    float iFund_deposit_pct;
+    float iFund_bank_pct;
+    float iFund_self_pct;
+    float iFund_free_pct;
+    float iCOF_deposit;
+    float iCOF_bank;
+    float iROE;
+    float iCommission;
+ EXEC SQL END DECLARE SECTION;
+  struct sqlca sqlca;
+  int code;
 
-     if ((alien_ind == -1) || (alien < 0) || (alien > 1)) {
-        Message += TF_Messages[App_error_301]; code = 301;}
+  Debug("Enter LoanApp.get_fin_info()");
 
-     if ((age_ind == -1) || (age < 0) || (age > 1)) {
-        Message += TF_Messages[App_error_302]; code = 302;}
+  EXEC SQL
+     select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit,
+            COF_bank, ROE, Commission
+     into :iFund_deposit_pct, :iFund_bank_pct, :iFund_self_pct, :iFund_free_pct, :iCOF_deposit,
+          :iCOF_bank, :iROE, :iCommission
+     from db2inst1.TCB_FIN_INFO;
+  EMB_SQL_CHECK("Select TCB_FIN_INFO .");
 
-     if ((cashcard_lock_ind == -1) || (cashcard_lock < 0) || (cashcard_lock > 1)) {
-        Message += TF_Messages[App_error_303]; code = 303;}
+  if (sqlca.sqlcode == 100) {
+     strcpy(MESSAGE, "TCB_FIN_INFO 無資料");
+     return(2001);
+  }
 
-     if ((gender_ind == -1) || (gender < 0) || (gender > 1)) {
-        Message += TF_Messages[App_error_304]; code = 304;}
-   
-     if ((product_type_ind == -1) || (product_type < 1) || (product_type > 2)) {
-        Message += TF_Messages[App_error_305]; code = 305;}
+  Fund_deposit_pct = iFund_deposit_pct;
+  Fund_bank_pct    = iFund_bank_pct;
+  Fund_self_pct    = iFund_self_pct;
+  Fund_free_pct    = iFund_free_pct;
+  COF_deposit      = iCOF_deposit;
+  COF_bank         = iCOF_bank;
+  ROE              = iROE;
+  Commission       = iCommission;
 
-     if ( validZIP(zip.c_str()) == 0) {
-        Message += TF_Messages[App_error_306];  code = 306;}
-
-     if ((secretive_ind == -1) || (secretive < 0) || (secretive > 1)) {
-        Message += TF_Messages[App_error_307]; code = 307;}
-   
-     if ((marriage_status_ind == -1) || (marriage_status < 1) || (marriage_status > 4)) {
-        Message += TF_Messages[App_error_308];  code = 308;}
-   
-     if ((edu_ind == -1) || (edu < 1) || (edu > 6)) {
-        Message += TF_Messages[App_error_309]; code = 309;}
-
-     // if commission is null then calculate ourselves, otherwise get it from this field
-     if ((commission_ind == 0) && (commission < 0)) {
-        Message += TF_Messages[App_error_310]; code = 310;}
-
-     if ((sales_channel_ind == -1) || (sales_channel < "001") || (sales_channel > "009") ) {
-        Message += TF_Messages[App_error_311]; code = 311;}
-   
-     if ((risk_level_ind == -1) || (risk_level < 1) || (risk_level > 2) ) {
-        Message += TF_Messages[App_error_312]; code = 312;}
-   
-     if ((roe_ind == -1) || (roe <= 0.0)) {
-        Message += TF_Messages[Fin_error_321]; code = 321;}
-
-     if ((cof_ind == -1) || (cof <= 0.0)) {
-        Message += TF_Messages[Fin_error_322]; code = 322;}
-   
-     if ((ts_tax_rate_ind == -1) || (ts_tax_rate <= 0.0)) {
-        Message += TF_Messages[Fin_error_323]; code = 323;}
-
-     if ((tf_tax_rate_ind == -1) || (tf_tax_rate <= 0.0)) {
-        Message += TF_Messages[Fin_error_324]; code = 324;}
-
-     if ((info_processing_cost_ind == -1) || (info_processing_cost < 0.0)) {
-        Message += TF_Messages[Fin_error_325]; code = 325;}
-   
-     if ((operation_cost_ind == -1) || (operation_cost < 0.0)) {
-        Message += TF_Messages[Fin_error_326]; code = 326;}
-   
-     if ((hr_cost_ind == -1) || (hr_cost < 0.0)) {
-        Message += TF_Messages[Fin_error_327]; code = 327;}
-*/
-  Debug("Exit LoanApp.validate()");
+  Debug("Exit LoanApp.get_fin_info()");
   return (0);
 }
 
-static char daytab[2][13] = {
- {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
- {0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-};
-
-int validate_date(char *date)  //format of date is yyymmdd
+void LoanApp::set_applicant_pb(float pb)
 {
- int year, month, day, idate;
- int leap;
+ applicantPB = pb;
+} //LoanApp::set_applicant_pb()
 
- if (date[0] == '\0') return 0;
- 
- idate = atoi(date);
- year = idate / 10000;
- month = (idate % 10000) / 100;
- day = idate % 100;
- year += 1911;
- 
- leap = (year%4 == 0 && year%100 != 0 || year%400 == 0);
- if (month > 12) return 0;
- if (day > daytab[leap][month]) return 0;
+void LoanApp::set_guarantor_pb(float pb)
+{
+ guarantorPB = pb;
+} //LoanApp::set_guarantor_pb()
 
- return(1);
-}
+void LoanApp::set_applicant_pb_adj(float pb)
+{
+ applicantPB_adjust = pb;
+} //LoanApp::set_applicant_pb_adj()
+
+void LoanApp::set_guarantor_pass(int flag)
+{
+ Guarantor_pass = flag;
+} //LoanApp::set_guarantor_pass()
+
+void LoanApp::set_ps_status_a(int code, char *msg)
+{
+ ps_code_a = code;
+ strcpy (ps_msg_a, msg);
+} //LoanApp::set_ps_status_a()
+
+void LoanApp::set_ps_status_g(int code, char *msg)
+{
+ ps_code_g = code;
+ strcpy (ps_msg_g, msg);
+} //LoanApp::set_ps_status_g()
+
+int LoanApp::get_product_type()
+{
+ return(Product_type_code);
+} //LoanApp::get_product_type()
+
+int LoanApp::get_apply_amount()
+{
+ return(App_amt);
+} //LoanApp::get_apply_amount()
+
+int LoanApp::get_periods()
+{
+ return(periods);
+} //LoanApp::get_periods()
+
+float LoanApp::get_max_apr()
+{
+ return(max_apr);
+} //LoanApp::get_max_apr()
+
+  EXEC SQL BEGIN DECLARE SECTION;
+    /*app_result fields*/
+    char  oCase_SN[13];
+    char  osystem_time[14];
+    float oApplicant_PB;
+    float oGuarantor_PB;
+    float oApplicant_PB_adj;
+    long  oNPV;
+    long  oPS_code;
+    char  oPS_msg[257];
+    long  oPS_code_g;
+    char  oPS_msg_g[257];
+    long  oGuarantor_pass;
+    long  oApproval_code;
+    char  oApproval_msg[513];
+    float oLowest_Rate_1;
+    float oLowest_Rate_2;
+    float oLowest_Rate_3;
+ EXEC SQL END DECLARE SECTION;
+
+int LoanApp::write_result_prescreen_failed()
+{
+  struct sqlca sqlca;
+  
+  strcpy(oCase_SN, case_sn);
+  strcpy(osystem_time, CurrTime_MinGuo());
+//  oNPV = 0;
+  oPS_code = ps_code_a;
+  strcpy(oPS_msg, ps_msg_a);
+  oApproval_code = 0;
+//  get_decision_msg(Approval_msg);
+  
+  EXEC SQL
+     insert into db2inst1.app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
+                 Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                 Commission, Approval_code) 
+        values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,
+                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                 :oApproval_code);
+  EMB_SQL_CHECK("Write PS failure.");
+
+  EXEC SQL
+     update db2inst1.app_result
+        set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+             COF_deposit, COF_bank, ROE, Commission) = 
+             (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+		     COF_deposit, COF_bank, ROE, Commission
+	      from db2inst1.TCB_FIN_INFO)
+	where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update Financial.");
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+  return (0);
+} //LoanApp::write_result_prescreen_failed()
+
+int LoanApp::write_result_others()
+{
+  struct sqlca sqlca;
+
+  strcpy(oCase_SN, case_sn);
+  strcpy(osystem_time, CurrTime_MinGuo());
+  oApplicant_PB = applicantPB;
+  oApplicant_PB_adj = applicantPB_adjust;
+//  oNPV = 0;
+  oPS_code = ps_code_a;
+  strcpy(oPS_msg, ps_msg_a);
+  oGuarantor_pass = Guarantor_pass;
+  oApproval_code = 0;
+//  get_decision_msg(Approval_msg);
+
+  if (gID[0] != '\0') {
+     oGuarantor_PB = guarantorPB;
+     oPS_code_g = ps_code_g;
+     strcpy(oPS_msg_g, ps_msg_g);  
+     EXEC SQL
+        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
+                   :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   :oApproval_code);
+     EMB_SQL_CHECK("Write others1.");
+  } 
+  else {
+     EXEC SQL
+        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
+                    :oPS_code, :oPS_msg, :oGuarantor_pass,
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    :oApproval_code);
+     EMB_SQL_CHECK("Write others2.");
+  }
+  
+  EXEC SQL
+     update db2inst1.app_result
+        set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+             COF_deposit, COF_bank, ROE, Commission) = 
+             (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+		     COF_deposit, COF_bank, ROE, Commission
+	      from db2inst1.TCB_FIN_INFO)
+	where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update Financial.");
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+
+  return (0);
+} //LoanApp::write_result_others()
+
+int LoanApp::write_result_declined()
+{
+  struct sqlca sqlca;
+
+  strcpy(oCase_SN, case_sn);
+  strcpy(osystem_time, CurrTime_MinGuo());
+  oApplicant_PB = applicantPB;
+  oApplicant_PB_adj = applicantPB_adjust;
+//  oNPV = 0;
+  oPS_code = ps_code_a;
+  strcpy(oPS_msg, ps_msg_a);
+  oGuarantor_pass = Guarantor_pass;
+  oApproval_code = 0;
+//  get_decision_msg(Approval_msg);
+
+  if (gID[0] != '\0') {
+     oGuarantor_PB = guarantorPB;
+     oPS_code_g = ps_code_g;
+     strcpy(oPS_msg_g, ps_msg_g);  
+     EXEC SQL
+        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
+                   :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   :oApproval_code);
+     EMB_SQL_CHECK("Write declined1.");
+  } 
+  else {
+     EXEC SQL
+        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
+                    :oPS_code, :oPS_msg, :oGuarantor_pass,
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    :oApproval_code);
+     EMB_SQL_CHECK("Write declined2.");
+  }
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+
+  EXEC SQL
+     update db2inst1.app_result
+        set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+             COF_deposit, COF_bank, ROE, Commission) = 
+             (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+		     COF_deposit, COF_bank, ROE, Commission
+	      from db2inst1.TCB_FIN_INFO)
+	where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update Financial.");
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+  return (0);
+} //LoanApp::write_result_declined()
+
+int LoanApp::write_result_approved()
+{
+  struct sqlca sqlca;
+
+  strcpy(oCase_SN, case_sn);
+  strcpy(osystem_time, CurrTime_MinGuo());
+  oApplicant_PB = applicantPB;
+  oApplicant_PB_adj = applicantPB_adjust;
+//  oNPV = 0;
+  oPS_code = ps_code_a;
+  strcpy(oPS_msg, ps_msg_a);
+  oGuarantor_pass = Guarantor_pass;
+  oApproval_code = 0;
+//  get_decision_msg(Approval_msg);
+
+  if (gID[0] != '\0') {
+     oGuarantor_PB = guarantorPB;
+     oPS_code_g = ps_code_g;
+     strcpy(oPS_msg_g, ps_msg_g);  
+     EXEC SQL
+        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
+                   :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   :oApproval_code);
+     EMB_SQL_CHECK("Write approved1.");
+  } 
+  else {
+     EXEC SQL
+        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
+                    :oPS_code, :oPS_msg, :oGuarantor_pass,
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    :oApproval_code);
+     EMB_SQL_CHECK("Write approved2.");
+  }
+
+  EXEC SQL
+     update db2inst1.app_result
+        set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+             COF_deposit, COF_bank, ROE, Commission) = 
+             (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
+		     COF_deposit, COF_bank, ROE, Commission
+	      from db2inst1.TCB_FIN_INFO)
+	where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update Financial.");
+
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+
+  return (0);
+} //LoanApp::write_result_approved()

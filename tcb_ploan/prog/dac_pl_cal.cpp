@@ -29,6 +29,7 @@
 #include "dac_pl_cal.h"
 #include "risk_model.h"
 #include "loan_app.h"
+#include "functions.h"
 char MESSAGE[1024];
 
 int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_message)
@@ -36,19 +37,23 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   DbEmb db;
   RiskModel rm;
   LoanApp app = LoanApp(case_sn);
-  int rc = 0;
-  char idn[12];
+  int rc = 0, qualified_guarantor = 0;
+  char aID[12], gID[12];
+  float aPB, gPB, cut_point;
+  int periods, app_amount, productType;
+  float max_apr;
+  int  ps_code;
+  char ps_msg[128];
 
+/*
   Info("Enter dac_pl_cal()\n");
   Info("DB name= %s\n", alias);
   Info("User ID= %s\n", uid);
   Info("User PW= %s\n", upw);
   Info("Case SN= %s\n", case_sn);
+*/
   memset(MESSAGE, '\0', sizeof(MESSAGE));
 
-//  rm.print_cut_point();
-//  return(0);
-  
   db.setDb(alias, uid, upw);
   rc = db.Connect();
   if (rc != 0)  {
@@ -61,83 +66,78 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      strcpy (error_message, MESSAGE);
      return rc;
   }
-  rc = app.validate();
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
-
-  strcpy(idn, app.Applicant_id());
-  Info("Case SN= %s\n", case_sn);
-  Info("IDN= %s\n", idn);
-
-  rc = rm.CleanTables(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
 /*
-  rc = rm.CreateWorkingTables();
+  rc = app.get_fin_info();
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
   }
 */
-  // Calculate PB of applicant
-//  strcpy(idn, "V248994754");
-  rc = rm.PrepareJcicTables(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
-  rc = rm.GenerateScreenVars(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
-  rc = rm.Prescreen(case_sn, idn);
-  if (rc != 0)  {
+  strcpy(aID, app.Applicant_id());
+  Info("Case SN= %s\n", case_sn);
+  Info("IDN= %s\n", aID);
+
+  rc = rm.Calculate_PB(case_sn, aID);
+  if (rc < 0)  {
      strcpy (error_message, MESSAGE);
      return rc;
   }
 
-  rc = rm.GeneratePdacoScore(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
+  rc = rm.get_prescreen_status(case_sn, aID, &ps_code, ps_msg);
+  app.set_ps_status_a(ps_code,ps_msg);
+  if (rc > 0) {
+    // decline & output result
+    app.write_result_prescreen_failed();
+    strcpy (error_message, MESSAGE);
+    return rc;
   }
 
-  rc = rm.SaveScore(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
+  rc = rm.get_pb(case_sn, aID, &aPB);
+  Info("pb= %f\n", aPB);
+  app.set_applicant_pb(aPB);
 
-  rc = rm.CleanTables(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
-
-  /*
   // Calculate PB of guanrantor
-  strcpy(idn, app.Guanrantor_id());
-  rc = rm.PrepareJcicTables(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
+  strcpy(gID, app.Guanrantor_id());
+
+  if (gID[0] == '\0')
+     qualified_guarantor = 0;
+  else {
+     rc = rm.Calculate_PB(case_sn, gID);
+     if (rc < 0)  {
+        strcpy (error_message, MESSAGE);
+        return rc;
+     }
+     rc = rm.get_prescreen_status(case_sn, gID, &ps_code, ps_msg);
+     app.set_ps_status_g(ps_code,ps_msg);
+     if (rc > 0) {
+       qualified_guarantor = 0;
+     } else {  //rc ==0
+       rc = rm.get_pb(case_sn, gID, &gPB);
+       app.set_guarantor_pb(gPB);
+       if (gPB <= 0.02)
+          qualified_guarantor = 1;
+     }
   }
-  rc = rm.Prescreen(case_sn, idn);
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
+
+  app.set_guarantor_pass(qualified_guarantor);
+  if (qualified_guarantor) {
+     aPB = aPB /2.0;
+     app.set_applicant_pb_adj(aPB);
   }
-  rc = rm.GeneratePdacoScore();
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
+  max_apr = app.get_max_apr();
+  periods = app.get_periods();
+  app_amount = app.get_apply_amount();
+  if ((productType = app.get_product_type())== 4) {
+     app.write_result_others();
+  } else {
+    cut_point = get_risk_cut_point(max_apr, periods, app_amount);
+    if (aPB >= cut_point) {
+       app.write_result_declined();
+    } else {
+       app.write_result_approved();
+    }
   }
-  */
+
 
   rc = db.Disconnect();
   if (rc != 0)

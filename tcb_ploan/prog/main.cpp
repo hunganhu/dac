@@ -47,8 +47,10 @@ int main(int argc, char *argv[])
   strcpy (alias, "dacdb");
   strcpy (uid, "ejcicap1");
   strcpy (upw, "ejcicap1");
-  //strcpy (case_sn, "003000016373");
+  strcpy (case_sn, "003000016373");
 
+  rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
+/*
   while (!infile.eof()) { 
      infile.getline(case_sn, 16);
      index++;
@@ -56,7 +58,7 @@ int main(int argc, char *argv[])
      rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
      if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
   }
-
+*/
 /*
   db.setDb(alias, uid, upw);
   rc = db.Connect();
