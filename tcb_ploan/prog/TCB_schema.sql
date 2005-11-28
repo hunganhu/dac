@@ -1,59 +1,6 @@
-connect to dacpl user ejcicap1 using ejcicap1;
+connect to ESCORE user escorap1 using escorap1;
 
-/* JCIC tables
-組合五：被查詢紀錄
-            被查詢紀錄(STM001)	2點
-組合六：票據退票及拒絕往來資訊
-            主體連帶退票摘要紀錄(DAS006) 	4點
-            拒絕往來明細(DAM203)	2點
-組合七：授信異常紀錄
-            授信異常紀錄(三年內逾催或五年內呆帳)(BAS001)	2點
-組合十三：自然人姓名, 身分證冒用
-            自然人姓名,身分證冒用(AAS001)	0點
-組合十四：授信資料明細—行庫別
-            授信資料明細及還款紀錄資訊—行庫別(BAM086)	10點
-            授信保證資料(B31之共同債務資料)(BAM302)	2點
-            授信保證資料(B31之從債務資料)(BAM303)	2點
-            授信保證資料(B31之其他債務資料)(BAM304)	1點
-組合二十三：自然人個人資料
-            自然人個人資料(APS001) 	1點
-組合-二十四：信用卡資訊
-            信用卡資訊(KRM001)	8點
-組合-二十八：信用卡戶繳款資訊
-            信用卡戶繳款資訊(KRM023)
-*/
-/* create database */
-/*
-CREATE DATABASE DACPL ON C: USING CODESET big5 TERRITORY TW COLLATE 
-USING SYSTEM WITH "TCB ploan DB";
-*/
-
-/* create JCIC tables */  
-create table AAS001 (
-	CASE_SN		    char(12) not null,
-	inquiry_date	    char(10) not null,
-	IDN		    char(10) not null,
-	PNAME               Char(40),
-	IS_LOST             Char(1),
-	IS_WANTED           Char(1),
-	IS_NOTE             Char(1),
-	NOTELIST            Char(9),
-	NULL3               Char(10)
-);
-create index i_aas001 on AAS001(CASE_SN, IDN);
-	
-COMMENT ON TABLE AAS001 IS '自然人姓名,身分證補發,通報,補充註記 (單筆, 取代AAS001)';
-COMMENT ON COLUMN AAS001.CASE_SN	IS '申請編號';
-COMMENT ON COLUMN AAS001.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
-COMMENT ON COLUMN AAS001.IDN 		IS '身分證號';
-COMMENT ON COLUMN AAS001.PNAME		IS '中文姓名';
-COMMENT ON COLUMN AAS001.IS_LOST	IS '是否有身分證補發 YN';
-COMMENT ON COLUMN AAS001.IS_WANTED	IS '通報案件紀錄 YN';
-COMMENT ON COLUMN AAS001.IS_NOTE	IS '是否有補充註記 YN';
-COMMENT ON COLUMN AAS001.NOTELIST	IS '補充註記';
-COMMENT ON COLUMN AAS001.NULL3		IS '空白';
-
-/*
+-- create JCIC tables   
 create table AAS001 (
 	CASE_SN		    char(12) not null,
 	inquiry_date	    char(10) not null,
@@ -64,6 +11,7 @@ create table AAS001 (
 	IS_FAKE_DATE        Char(1),
 	FAKE_DATE           Char(7)
 );
+create index i_AAS001 on AAS001(CASE_SN, IDN);
 	
 COMMENT ON TABLE AAS001 IS '自然人姓名,身分證冒用 (單筆)';
 COMMENT ON COLUMN AAS001.CASE_SN	IS '申請編號';
@@ -74,7 +22,6 @@ COMMENT ON COLUMN AAS001.IS_LOST	IS '是否有身分證補發 YN';
 COMMENT ON COLUMN AAS001.NULL2		IS '空白';
 COMMENT ON COLUMN AAS001.IS_FAKE_DATE	IS '是否有身分證冒用 YN';
 COMMENT ON COLUMN AAS001.FAKE_DATE	IS '身分證冒用日期';
-*/
 
 create table APS001 (
 	CASE_SN		    char(12) not null,
@@ -341,7 +288,7 @@ COMMENT ON COLUMN DAM203.CASE_SN	IS '申請編號';
 COMMENT ON COLUMN DAM203.IDN 		IS '身分證號';
 COMMENT ON COLUMN DAM203.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
 COMMENT ON COLUMN DAM203.BEG_DATE	IS '拒往開始日期';
-COMMENT ON COLUMN DAM203.END_DATE	IS '拒往解除日期  有日期或七個'0'表示已解除';
+COMMENT ON COLUMN DAM203.END_DATE	IS '拒往解除日期  有日期或七個 0 表示已解除';
 COMMENT ON COLUMN DAM203.RSN		IS '拒往解除理由  1:清償解除 2:暫予解除';
 COMMENT ON COLUMN DAM203.SOURCE		IS '資料來源  1:當事人申請 2:票交所公告';
 COMMENT ON COLUMN DAM203.UPD_DATE	IS '資料更新日期';
@@ -429,8 +376,8 @@ create table KRM023 (
 	CASE_SN		char(12) not null,
 	inquiry_date	char(10) not null,
 	IDN		char(10) not null,
-	Yrmon 		char (5) not null,
-	Issue 		char (3) not null,
+	Yrmon 		char (5),
+	Issue 		char (3),
 	Issue_Name 	char (40),
 	KR_Code 	char (7),
 	Limit 		char (5),
@@ -438,7 +385,7 @@ create table KRM023 (
 	Cash 		char (1),
 	Pay_code 	char (1)
 );
-alter table KRM023 add constraint p_krm023 primary key (CASE_SN, IDN, Yrmon, Issue); 
+create index i_krm023 on KRM023(CASE_SN, IDN);
 
 COMMENT ON TABLE KRM023	IS '信用卡戶繳款資訊（最近１２月） (多筆 K23)';
 COMMENT ON COLUMN KRM023.CASE_SN	IS '申請編號';
@@ -463,7 +410,7 @@ create table STM001 (
 	Bank_Name 	char(40),
 	Item_List 	char(10)
 );
-create index i_stm001 on STM001(idn, inquiry_date);
+create index i_stm001 on STM001(CASE_SN, IDN);
 
 COMMENT ON TABLE STM001 IS '被查詢紀錄 (多筆)';
 COMMENT ON COLUMN STM001.CASE_SN	IS '申請編號';
@@ -474,9 +421,9 @@ COMMENT ON COLUMN STM001.BANK_CODE	IS '查詢單位代號';
 COMMENT ON COLUMN STM001.BANK_NAME	IS '查詢單位名稱';
 COMMENT ON COLUMN STM001.ITEM_LIST	IS '查詢項目串列 B:授信 D:票信 K:信用卡等';
 
-/* create INPUT tables */
+-- create INPUT tables 
 create table app_info (
-	Case_SN		char(12),
+	Case_SN		char(12) not null,
 	system_date	char(7),
 	system_time	char(6),
 	Applicant_ID	char(10),
@@ -573,9 +520,9 @@ COMMENT ON COLUMN app_info.CI_branch	IS '業務人員所屬分行';
 COMMENT ON COLUMN app_info.branch	IS '經辦分行';
 COMMENT ON COLUMN app_info.agent	IS '經辦行員姓名';
 
-/* create OUTPUT tables */	
+-- create OUTPUT tables 	
 create table app_result (
-	Case_SN		char(12),
+	Case_SN		char(12) not null,
 	system_time	char(13),
 	Applicant_PB	decimal(7,4),
 	Guarantor_PB	decimal(7,4),
@@ -593,7 +540,7 @@ create table app_result (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Comission	decimal(7,4),
+	Commission	decimal(7,4),
 	Approval_code	int,
 	Approval_msg	varchar(512),
 	Lowest_Rate_1	decimal(7,4),
@@ -621,14 +568,14 @@ COMMENT ON COLUMN app_result.Fund_free_pct	IS '資金來源無息百分比';
 COMMENT ON COLUMN app_result.COF_deposit	IS '存款平均利率';
 COMMENT ON COLUMN app_result.COF_bank	IS '同業拆款利率';
 COMMENT ON COLUMN app_result.ROE	IS 'ROE';
-COMMENT ON COLUMN app_result.Comission	IS '業務獎金(% of loan Amt)';
+COMMENT ON COLUMN app_result.Commission	IS '業務獎金(% of loan Amt)';
 COMMENT ON COLUMN app_result.Approval_code	IS '模組准駁建議碼';
 COMMENT ON COLUMN app_result.Approval_msg	IS '模組准駁建議訊息';
 COMMENT ON COLUMN app_result.Lowest_Rate_1	IS '最低可承作利率(第一期)';
 COMMENT ON COLUMN app_result.Lowest_Rate_2	IS '最低可承作利率(第二期)';
 COMMENT ON COLUMN app_result.Lowest_Rate_3	IS '最低可承作利率(第三期)';
 
-/* create FINICIAL tables */
+-- create FINANCIAL tables 
 create table TCB_FIN_INFO (
 	Fund_deposit_pct	decimal(7,4),
 	Fund_bank_pct	decimal(7,4),
@@ -637,19 +584,13 @@ create table TCB_FIN_INFO (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Comission	decimal(7,4)
+	Commission	decimal(7,4)
 );
-alter table TCB_FIN_INFO add constraint c_Fund_deposit_pct check (Fund_deposit_pct between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_Fund_bank_pct check (Fund_bank_pct between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_Fund_self_pct check (Fund_self_pct between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_Fund_free_pct check (Fund_free_pct between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_COF_deposit check (COF_deposit between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_COF_bank check (COF_bank between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_ROE check (ROE between 0.0 and 100.0); 
-alter table TCB_FIN_INFO add constraint c_Comission check (Comission between 0.0 and 100.0); 
+-- insert into TCB_FIN_INFO (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct,
+--                             Fund_free_pct, COF_deposit, COF_bank, ROE, Commission)
+--      values (80.0, 14.0, 3.0, 3.0, 1.26, 1.38, 1.68, 0.0);
 
 COMMENT ON TABLE TCB_FIN_INFO	IS 'DAC個人信貸模組財務資訊';
-COMMENT ON COLUMN TCB_FIN_INFO.Guarantor_pass	IS '保證人符合信用標準';
 COMMENT ON COLUMN TCB_FIN_INFO.Fund_deposit_pct	IS '資金來源來自存款百分比';
 COMMENT ON COLUMN TCB_FIN_INFO.Fund_bank_pct	IS '資金來源來自同業拆款百分比';
 COMMENT ON COLUMN TCB_FIN_INFO.Fund_self_pct	IS '資金來源自有百分比';
@@ -657,7 +598,7 @@ COMMENT ON COLUMN TCB_FIN_INFO.Fund_free_pct	IS '資金來源無息百分比';
 COMMENT ON COLUMN TCB_FIN_INFO.COF_deposit	IS '存款平均利率';
 COMMENT ON COLUMN TCB_FIN_INFO.COF_bank		IS '同業拆款利率';
 COMMENT ON COLUMN TCB_FIN_INFO.ROE		IS 'ROE';
-COMMENT ON COLUMN TCB_FIN_INFO.Comission	IS '業務獎金';
+COMMENT ON COLUMN TCB_FIN_INFO.Commission	IS '業務獎金';
 
 
 create table TCB_FIN_INFO_LOG (
@@ -670,13 +611,12 @@ create table TCB_FIN_INFO_LOG (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Comission	decimal(7,4)
+	Commission	decimal(7,4)
 );
 
 COMMENT ON TABLE TCB_FIN_INFO_LOG	IS 'DAC個人信貸模組財務資訊修改紀錄';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.user_id		IS '使用者ID';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.system_time	IS '更改資料之系統時間';
-COMMENT ON COLUMN TCB_FIN_INFO_LOG.Guarantor_pass	IS '保證人符合信用標準';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.Fund_deposit_pct	IS '資金來源來自存款百分比';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.Fund_bank_pct	IS '資金來源來自同業拆款百分比';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.Fund_self_pct	IS '資金來源自有百分比';
@@ -684,39 +624,12 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.Fund_free_pct	IS '資金來源無息百分比';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.COF_deposit	IS '存款平均利率';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.COF_bank		IS '同業拆款利率';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.ROE		IS 'ROE';
-COMMENT ON COLUMN TCB_FIN_INFO_LOG.Comission	IS '業務獎金';
+COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
 
-/* Trigger for table TCB_FIN_INFO_LOG need to be added here */
+-- Trigger for table TCB_FIN_INFO_LOG need to be added here 
 
-/*
-create trigger trigger_TCB_FIN_INFO_delete
-  instead of delete on TCB_FIN_INFO
-  begin atomic
-     print 'Sorry - you cannot delete this data';
-  end
 
-create trigger trigger_TCB_FIN_INFO_insert
-  instead of insert on TCB_FIN_INFO
-  begin atomic 
-     print 'Sorry - you cannot insert this data';
-  end
-
-create trigger trigger_TCB_FIN_INFO_update
-  after update on TCB_FIN_INFO
-  referencing old as old_rows
-  begin atomic
-    insert into TCB_FIN_INFO_LOG 
-      (system_time, user_id, Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
-       COF_deposit, COF_bank, ROE, Comission)
-    select CURRENT TIMESTAMP, USER, Fund_deposit_pct, oFund_bank_pct, Fund_self_pct, Fund_free_pct,
-       COF_deposit, COF_bank, ROE, Comission
-    from old_rows;
-  end
-
-*/
-
-/* Create Permanent Working Tables */
-/* If the working tables are created as temporary tables, they are declared in the module */
+-- Create Permanent Working Tables 
  create table bam086_dedup (
  	case_sn		char(12),
  	idn		char(11),
@@ -951,60 +864,4 @@ create trigger trigger_TCB_FIN_INFO_update
     mob		int
  );
  create index i_latest_line on latest_line(CASE_SN);
-
-
-/*grant privileges to ibm (ejcic)*/
-grant select, insert, delete, update on app_info to ejcic;
-grant select on app_result to ejcic;
-grant select on TCB_FIN_INFO to ejcic;
-
-grant select, insert, delete, update on AAS001 to ejcic;
-grant select, insert, delete, update on APS001 to ejcic;
-grant select, insert, delete, update on BAM086 to ejcic;
-grant select, insert, delete, update on BAM302 to ejcic;
-grant select, insert, delete, update on BAM303 to ejcic;
-grant select, insert, delete, update on BAM304 to ejcic;
-grant select, insert, delete, update on BAS001 to ejcic;
-grant select, insert, delete, update on DAM103 to ejcic;
-grant select, insert, delete, update on DAM203 to ejcic;
-grant select, insert, delete, update on DAS006 to ejcic;
-grant select, insert, delete, update on KRM001 to ejcic;
-grant select, insert, delete, update on KRM023 to ejcic;
-grant select, insert, delete, update on STM001 to ejcic;
-
-/*grant privileges to dac (ejcicap1)*/
-grant select on app_info to ejcicap1;
-grant update(npv_final) on app_info to ejcicap1;
-grant select, insert, delete, update on app_result to ejcicap1;
-grant select on TCB_FIN_INFO to ejcicap1;
-
-grant select on AAS001 to ejcicap1;
-grant select on APS001 to ejcicap1;
-grant select on BAM086 to ejcicap1;
-grant select on BAM302 to ejcicap1;
-grant select on BAM303 to ejcicap1;
-grant select on BAM304 to ejcicap1;
-grant select on BAS001 to ejcicap1;
-grant select on DAM103 to ejcicap1;
-grant select on DAM203 to ejcicap1;
-grant select on DAS006 to ejcicap1;
-grant select on KRM001 to ejcicap1;
-grant select on KRM023 to ejcicap1;
-grant select on STM001 to ejcicap1;
-
-grant select, insert, delete, update on bam086_dedup to ejcicap1;
-grant select, insert, delete, update on krm001_dedup to ejcicap1;
-grant select, insert, delete, update on krm023_dedup to ejcicap1;
-grant select, insert, delete, update on stm001_dedup to ejcicap1;
-grant select, insert, delete, update on jas002_t to ejcicap1;
-grant select, insert, delete, update on jas002_t_dedup to ejcicap1;
-grant select, insert, delete, update on pdaco_cal to ejcicap1;
-grant select, insert, delete, update on t1 to ejcicap1;
-grant select, insert, delete, update on open_card to ejcicap1;
-grant select, insert, delete, update on open_line to ejcicap1;
-grant select, insert, delete, update on latest_stmt_mon to ejcicap1;
-grant select, insert, delete, update on latest_line to ejcicap1;
-
-
-
 
