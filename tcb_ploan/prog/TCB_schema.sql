@@ -468,7 +468,8 @@ create table app_info (
 	CI_name		varchar(30),
 	CI_branch	varchar(20),
 	branch		varchar(20),
-	agent		varchar(30)	
+	agent		varchar(30),
+	errcode		char(4)
 );
 alter table app_info add constraint p_app_info primary key (CASE_SN); 
 	
@@ -519,6 +520,7 @@ COMMENT ON COLUMN app_info.CI_name	IS '業務人員姓名';
 COMMENT ON COLUMN app_info.CI_branch	IS '業務人員所屬分行';
 COMMENT ON COLUMN app_info.branch	IS '經辦分行';
 COMMENT ON COLUMN app_info.agent	IS '經辦行員姓名';
+COMMENT ON COLUMN app_info.errcode	IS '案件查詢結果';
 
 -- create OUTPUT tables 	
 create table app_result (
@@ -574,6 +576,15 @@ COMMENT ON COLUMN app_result.Approval_msg	IS '模組准駁建議訊息';
 COMMENT ON COLUMN app_result.Lowest_Rate_1	IS '最低可承作利率(第一期)';
 COMMENT ON COLUMN app_result.Lowest_Rate_2	IS '最低可承作利率(第二期)';
 COMMENT ON COLUMN app_result.Lowest_Rate_3	IS '最低可承作利率(第三期)';
+
+create table COUNTER (
+	SEQ_TYPE	char(01) not null,
+	SEQ_NO		numeric(10) not null
+);
+COMMENT ON TABLE  COUNTER		IS '序號資料表';
+COMMENT ON COLUMN COUNTER.SEQ_TYPE	IS '序號類型, W:WEB';
+COMMENT ON COLUMN COUNTER.SEQ_NO	IS '序號值';
+
 
 -- create FINANCIAL tables 
 create table TCB_FIN_INFO (
