@@ -99,6 +99,7 @@ class DbEmb: public Db
 {
   public:
     static void TransRollback();
+    int TransCommit();
     int Connect();
     int Disconnect();
 };

@@ -88,6 +88,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         select case_sn, idn, inquiry_date, 'D', data_yyymmdd
         from db2inst1.bas001
         where (data_yyymmdd is not null or rtrim(ltrim(data_yyymmdd)) <> '')
+          and EVER_DELINQUENT='Y'
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Insert-Select 5.");
 
@@ -497,7 +498,7 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
 }
 
 //--------------------------------------------------------------------------------------------------
-int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday)
+int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char *sysdate)
 {
   struct sqlca sqlca;
 
@@ -689,7 +690,7 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday)
   EMB_SQL_CHECK("Update revolving Amt.");
 
   /*----age----*/
-  psAge = age(birthday);
+  psAge = age(sysdate, birthday);
   EXEC SQL
      update pdaco_cal
         set age = :psAge
@@ -1508,7 +1509,7 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
 } //RiskModel::SaveScore()
 
 //--------------------------------------------------------------------------------------------------
-int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday)
+int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday, char *sysdate)
 {
   int rc = 0;
 
@@ -1521,19 +1522,23 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday)
   rc = PrepareJcicTables(case_sn, idn);
   if (rc != 0)  return rc;
 
-  rc = GenerateScreenVars(case_sn, idn, birthday);
+  rc = GenerateScreenVars(case_sn, idn, birthday, sysdate);
   if (rc != 0)  return rc;
 
   rc = Prescreen(case_sn, idn);
 
   if (rc != 0) {
+#ifdef TRACE
      if (trace) SaveScore(case_sn, idn);
+#endif
      return rc;
   }
   rc = GeneratePdacoScore(case_sn, idn);
   if (rc != 0)  return rc;
 
+#ifdef TRACE
   if (trace) SaveScore(case_sn, idn);
+#endif
 
 //  rc = CleanTables(case_sn, idn);
 //  if (rc != 0)  return rc;

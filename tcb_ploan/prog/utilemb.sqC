@@ -53,6 +53,15 @@ void DbEmb::TransRollback()
 
 } //DbEmb::TransRollback
 
+int DbEmb::TransCommit()
+{
+  struct sqlca sqlca;
+
+  // rollback the transaction
+  EXEC SQL COMMIT;
+  EMB_SQL_CHECK("COMMIT");
+} //DbEmb::TransCommit
+
 int DbEmb::Connect()
 {
   struct sqlca sqlca;

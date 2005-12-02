@@ -290,7 +290,7 @@ int validate_date(char *date)  //format of date is yyymmdd
 }
 
 //--------------------------------------------------------------------------------------------------
-int is_future(char *date)  //format of date is yyymmdd
+int is_future0(char *date)  //format of date is yyymmdd
 {
  time_t timer;
  struct tm *tblock;
@@ -320,8 +320,36 @@ int is_future(char *date)  //format of date is yyymmdd
 
 }
 
+int is_future(char *sysdate, char *date)  //format of date is yyymmdd
+{
+ time_t timer;
+ struct tm *tblock;
+ int year, month, day, idate;
+ int leap;
+ int curr_year, curr_mon, curr_day;
+
+ if (date[0] == '\0') return 0;
+
+ idate = atoi(date);
+ year = idate / 10000;
+ month = (idate % 10000) / 100;
+ day = idate % 100;
+
+ idate = atoi(sysdate);
+ curr_year = idate / 10000;
+ curr_mon  = (idate % 10000) / 100;
+ curr_day  = idate % 100;
+
+ if (year > curr_year) return (1);
+ else if (year < curr_year) return (0);
+ else if (month > curr_mon) return (1);
+ else if (month < curr_mon) return (0);
+ else if (day > curr_day) return (1);
+ else return (0);
+
+}
 //--------------------------------------------------------------------------------------------------
-int is_future_year(int year)  //format of year is yyy
+int is_future_year0(int year)  //format of year is yyy
 {
  time_t timer;
  struct tm *tblock;
@@ -335,6 +363,19 @@ int is_future_year(int year)  //format of year is yyy
  else return (0);
 }
 
+//--------------------------------------------------------------------------------------------------
+int is_future_year(char *sysdate, int year)  //format of year is yyy
+{
+ time_t timer;
+ struct tm *tblock;
+ int curr_year, idate;
+
+ idate = atoi(sysdate);
+ curr_year = idate / 10000;
+
+ if (year > curr_year) return (1);
+ else return (0);
+}
 //--------------------------------------------------------------------------------------------------
 char *CurrTime_MinGuo ()
 {
@@ -350,7 +391,7 @@ char *CurrTime_MinGuo ()
 }
 
 //--------------------------------------------------------------------------------------------------
-int age (char *date)
+int age0 (char *date)
 {
  time_t timer;
  struct tm *tblock;
@@ -383,6 +424,44 @@ int age (char *date)
     year = curr_year - birth_year - 1;
  else
     year = curr_year - birth_year;
+
+ return (year);
+}
+
+//--------------------------------------------------------------------------------------------------
+int age (char *sysdate, char *date)
+{
+ static char buf[20];
+ int curr_year, curr_mon, curr_day;
+ int birth_year, birth_mon, birth_day, idate;
+ int year, month, day;
+
+ if (date[0] == '\0') return -1000;
+
+ idate = atoi(date);
+ birth_year = idate / 10000;
+ birth_mon = (idate % 10000) / 100;
+ birth_day = idate % 100;
+// printf ("birth year=%d, month=%d, day=%d.\n", birth_year, birth_mon, birth_day);
+
+ idate = atoi(sysdate);
+
+ curr_year = idate / 10000;
+ curr_mon  = (idate % 10000) / 100;
+ curr_day  = idate % 100;
+// printf ("current year=%d, month=%d, day=%d.\n", curr_year, curr_mon, curr_day);
+ day = curr_day - birth_day;
+
+ if (day < 0)
+    month = curr_mon - birth_mon - 1;
+ else
+    month = curr_mon - birth_mon;
+
+ if (month < 0)
+    year = curr_year - birth_year - 1;
+ else
+    year = curr_year - birth_year;
+// printf ("year=%d, month=%d, day=%d.\n", year, month, day);
 
  return (year);
 }

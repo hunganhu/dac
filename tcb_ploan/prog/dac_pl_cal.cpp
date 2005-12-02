@@ -66,7 +66,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   db.setDb(alias, uid, upw);
   rc = db.Connect();
   if (rc != 0)  {
-     strcpy (error_message, "與資料庫連線失敗。");
+     strcpy (error_message, MESSAGE);
      return 1;
   }
 
@@ -75,17 +75,17 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      strcpy (error_message, MESSAGE);
      return 1;
   } 
-/*
   else if (rc > 0) {
      strcpy (error_message, MESSAGE);
+     db.Disconnect();
      return rc;
   }
-*/
+
   strcpy(aID, app.Applicant_id());
   Info("Case SN= %s\n", case_sn);
   Info("IDN= %s\n", aID);
 
-  rc = rm.Calculate_PB(case_sn, aID, app.get_birthday());
+  rc = rm.Calculate_PB(case_sn, aID, app.get_birthday(), app.get_sysdate());
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      return 1;
@@ -126,6 +126,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   }
   Info("pb= %f\n", aPB);
   app.set_applicant_pb(aPB);
+  
   rc = rm.CleanTables(case_sn, aID);
   if (rc != 0)  return rc;
 
@@ -136,7 +137,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   if (gID[0] == '\0' || gID[0] == ' ')
      qualified_guarantor = 0;
   else {
-     rc = rm.Calculate_PB(case_sn, gID, ""); // set birthday to "" cause no such info for guarantor
+     rc = rm.Calculate_PB(case_sn, gID, "", app.get_sysdate()); // set birthday to "" cause no such info for guarantor
      if (rc < 0) {
         strcpy (error_message, MESSAGE);
         return 1;
@@ -200,11 +201,12 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return rc;
   }
 
+//  db.TransCommit();
 
   rc = db.Disconnect();
   if (rc != 0)
   {
-    strcpy (error_message, "切斷資料庫連線失敗。");
+    strcpy (error_message, MESSAGE);
     return 1;
   }
 

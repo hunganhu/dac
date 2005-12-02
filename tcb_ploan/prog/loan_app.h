@@ -34,6 +34,7 @@ class LoanApp {
     char  case_sn[20];			//案件編號
     char  aID[12];			//申請人身分證號
     char  gID[12];			//保證人身分證號
+    char  System_date[8];		//系統日期
     char  aName[31];			//申請人姓名
     int   Loan_purpose;			//資金用途
     int   Education;			//教育程度
@@ -99,6 +100,7 @@ class LoanApp {
     int get_periods();
     int get_apply_amount();
     char * get_birthday();
+    char * get_sysdate();
 
     void set_applicant_pb(double pb);
     void set_guarantor_pb(double pb);

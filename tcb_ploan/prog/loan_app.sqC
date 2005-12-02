@@ -101,6 +101,7 @@ int LoanApp::initial()
     char iApplicant_Id[12];
     char iGuarantor_Id[12];
     char iApplicant_name[31];
+    char iSystem_date[8];
     long iLoan_purpose;
     long iEducation;
     char iBirthday[8];
@@ -153,11 +154,11 @@ int LoanApp::initial()
   Debug("Enter LoanApp.initial()");
 
   EXEC SQL
-     select Applicant_ID, Guarantor_ID, Applicant_name, Loan_purpose, education, Birthday, Marriage_status, Car_year,
+     select System_date, Applicant_ID, Guarantor_ID, Applicant_name, Loan_purpose, education, Birthday, Marriage_status, Car_year,
             Annual_Income, Home_ownership, Year_at_current_address, Year_at_current_job,
             Product_type_code, App_amt, Term_1, Term_2, Term_3, APR_1, APR_2, APR_3, grace_period,
             Fee_1, Fee_2
-     into :iApplicant_Id, :iGuarantor_Id:GID_ind, :iApplicant_name:App_name_ind, :iLoan_purpose:Loan_purpose_ind, :iEducation:Education_ind,
+     into :iSystem_date, :iApplicant_Id, :iGuarantor_Id:GID_ind, :iApplicant_name:App_name_ind, :iLoan_purpose:Loan_purpose_ind, :iEducation:Education_ind,
           :iBirthday:Birthday_ind, :iMarriage_status:Marriage_status_ind, :iCar_year:Car_year_ind,
           :iAnnual_Income:Annual_Income_ind, :iHome_ownership:Home_ownership_ind,
           :iYear_at_current_address:Year_at_current_address_ind, :iYear_at_current_job:Year_at_current_job_ind,
@@ -173,6 +174,8 @@ int LoanApp::initial()
      return(2001);
   }
   strcpy (aID, iApplicant_Id);
+  strcpy (System_date, iSystem_date);
+//  printf("system_date=%s.\n", System_date);
   if (GID_ind == -1) strcpy(gID, "");
   else strcpy (gID, iGuarantor_Id);
   Info("Guarantor ID=%s.\n", gID);
@@ -200,7 +203,7 @@ int LoanApp::initial()
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1002)); code = DataErrorCode(DATA_ERR_1002);}
   else strcpy (Birthday, iBirthday);
   
-  if (!validate_date(Birthday) || is_future(Birthday)) {
+  if (!validate_date(Birthday) || is_future(System_date, Birthday)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1003)); code = DataErrorCode(DATA_ERR_1003);}
 /*
   // check marrage status "1: 已婚 2: 其他"
@@ -213,7 +216,7 @@ int LoanApp::initial()
   // check annual income 新台幣萬元，最多三位數 (999)
   if (Annual_Income_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1004)); code = DataErrorCode(DATA_ERR_1004);}
-  else Annual_Income = iAnnual_Income * 10000;
+  else Annual_Income = iAnnual_Income;
 
   if ((Annual_Income < 0) || (Annual_Income > 9990000)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1005)); code = DataErrorCode(DATA_ERR_1005);}
@@ -246,7 +249,7 @@ int LoanApp::initial()
   if (Car_year_ind == -1) Car_year = 0;
   else Car_year = iCar_year;
 
-  if (is_future_year(Car_year)) {
+  if (is_future_year(System_date, Car_year)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1010)); code = DataErrorCode(DATA_ERR_1010);}
 /*
   // check product_type_code "1: 簡易小額信貸 2: 個人信貸產品A 3: 個人信貸產品B 4: 其他(只算壞帳機率)"
@@ -484,6 +487,11 @@ char * LoanApp::get_birthday()
  return (Birthday);
 } //LoanApp::get_birthday()
 
+//--------------------------------------------------------------------------------------------------
+char * LoanApp::get_sysdate()
+{
+ return (System_date);
+} //LoanApp::get_sysdate()
 //--------------------------------------------------------------------------------------------------
   EXEC SQL BEGIN DECLARE SECTION;
     /*app_result fields*/
