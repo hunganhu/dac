@@ -25,8 +25,8 @@ DESDIR = /home/ejcicap1/lib
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG
-EXTRA_CFLAG= -g -Wno-deprecated
+#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE
+EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
@@ -66,9 +66,17 @@ mainl: main.o
 	$(CPP) $(EXTRA_CFLAG) -o mainl main.o -ldac -L. -ldb2 -L$(DB2PATH)/lib
 
 main.o: main.cpp
-#	$(EMBPREP) main $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c main.cpp
 
+cutpoint: cutpoint.o $(DLL_OBJ)
+	$(CPP) $(EXTRA_CFLAG) -o cutpoint -ldb2 -L$(DB2PATH)/lib \
+	 cutpoint.o $(DLL_OBJ)
+#	gcc  -o cutpoint cutpoint.o functions.o
+
+cutpoint.o: cutpoint.cpp
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c cutpoint.cpp
+#	gcc -g  -c cutpoint.c
+	
 libdac.so: $(DLL_OBJ)
 	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac.so $(DLL_OBJ)
 

@@ -19,12 +19,22 @@
 
 #include <string>
 
+enum DecisionCodes {
+	TYPE_I,
+	TYPE_II,
+	TYPE_III,
+	TYPE_IV,
+	TYPE_V
+};
+
+
 class LoanApp {
   private:
     /* application information */
     char  case_sn[20];			//案件編號
     char  aID[12];			//申請人身分證號
     char  gID[12];			//保證人身分證號
+    char  aName[31];			//申請人姓名
     int   Loan_purpose;			//資金用途
     int   Education;			//教育程度
     char  Birthday[8];			//申請人生日
@@ -83,11 +93,12 @@ class LoanApp {
     int initial();
     int get_fin_info();
     char * Applicant_id();
-    char * Guanrantor_id();
+    char * Guarantor_id();
     int  get_product_type();
     double get_max_apr();
     int get_periods();
     int get_apply_amount();
+    char * get_birthday();
 
     void set_applicant_pb(double pb);
     void set_guarantor_pb(double pb);
@@ -97,9 +108,10 @@ class LoanApp {
     void set_ps_status_a(int code, char *msg);
     void set_ps_status_g(int code, char *msg);
     int  write_result_prescreen_failed();
-    int  write_result_others();
-    int  write_result_declined();
-    int  write_result_approved();
+//    int  write_result_others(int decision);
+//    int  write_result_declined(int decision);
+//    int  write_result_approved(int decision);
+    int  write_result(int decision);
 };
 
 

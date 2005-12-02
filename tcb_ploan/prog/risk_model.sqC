@@ -27,265 +27,16 @@
    #include <iostream.h>
 #endif
 #include "risk_model.h"
+#include "functions.h"
+#ifdef TRACE
+#define trace 1
+#else
+#define trace 0
+#endif
 
 extern char MESSAGE[1024];
 
-
-int RiskModel::CreateWorkingTables()
-{
-  struct sqlca sqlca;
-
-  Debug("Enter CreateWorkingTables()");
-/* create working tables */
-  EXEC SQL
-     create table bam086_dedup (
-     	case_sn		char(12),
-     	idn		char(11),
-    	inquiry_date	char(10),
-     	data_yyy	char(3),
-     	data_mm		char(2),
-     	bank_code	char(7),
-     	bank_name	char(40),
-     	account_code	char(1),
-     	account_code2	char(1),
-     	purpose_code	char(1),
-     	contract_amt	numeric(10),
-     	loan_amt	numeric(10),
-     	pass_due_amt	numeric(10),
-     	pay_code_12	char(12),
-     	co_loan		char(1),
-    	un_mark         char(1),
-    	u_yyymmdd       char(8),
-    	u_rate          numeric(3),
-    	ib_mark         char(1),
-    	iab_ban         char(8),
-    	iab_name        char(60),
-    	r_yyymmdd       char(7),
-    	refund_amt      numeric(10),
-    	ck_ref          char(1),
-     	bank_code2	char(3),
-	mon_since	int,
-	cycle		int,
-    	now		int,
-     	cnt		int
-     );
-  EMB_SQL_CHECK("Create Table bam086_dedup.");
-
-  EXEC SQL
-     create table bam086_bucket (
-     	case_sn		char(12),
-     	idn		char(11),
-    	bank_code	char(7),
-    	mon_since	int,
-    	bucket		float
-      );
-  EMB_SQL_CHECK("Create Table bam086_bucket.");
-
-  EXEC SQL
-     create table krm001_dedup (
-     	case_sn		char(12),
-     	idn		char(11),
-    	inquiry_date	char(10),
-     	card_brand	char(1),
-     	card_type	char(1),
-     	issue		char(3),
-     	issue_name	char(40),
-     	start_date	char(7),
-     	stop_date	char(7),
-     	stop_code	char(1),
-     	ab_code		char(1),
-     	m_s		char(1),
-     	limit		char(6),
-    	limit_type	char(1),
-    	usage_type	char(1),
-    	secure		char(1),
-     	start_mon_since int,
-     	end_mon_since	int,
-    	now		int,
-     	cnt		int
-     );
-  EMB_SQL_CHECK("Create Table krm001_dedup.");
-
-  EXEC SQL
-     create table krm023_dedup (
-     	case_sn		char(12),
-     	idn		char(11),
-    	inquiry_date	char(10),
-     	yrmon		char(5),
-     	issue		char(3),
-     	issue_name	char(40),
-     	kr_code		char(7),
-     	limit		char(5),
-     	payment		char(3),
-     	cash		char(1),
-     	pay_code	char(1),
-     	mon_since	int,
-     	payment_amt	float,
-     	bucket_def_1k	int default 0,
-     	bucket_ef_1k	int default 0,
-     	bucket_f_1k	int default 0,
-    	now		int,
-	curr_inqmon	int,
-     	cnt		int
-     );
-  EMB_SQL_CHECK("Create Table krm023_dedup.");
-
-  EXEC SQL
-     create table stm001_dedup (
-     	case_sn		char(12),
-     	idn		char(11),
-    	inquiry_date	char(10),
-     	query_date	char(7),
-     	bank_code	char(7),
-     	bank_name	char(40),
-     	item_list	char(10),
-     	query_mon_since int,
-    	now		int,
-     	cnt		int
-     );
-  EMB_SQL_CHECK("Create Table stm001_dedup.");
-
-  EXEC SQL
-     create table jas002_t (
-     	case_sn		char(12),
-     	idn		char(11),
-    	inquiry_date	char(10),
-     	reason		char(1),
-     	date_happen	char(7),
-     	mon_since	int
-     );
-  EMB_SQL_CHECK("Create Table 5.");
-
-  EXEC SQL
-     create table jas002_t_dedup (
-     	case_sn		char(12),
-     	idn		char(11),
-    	inquiry_date	char(10),
-     	reason		char(1),
-     	date_happen	char(7),
-     	mon_since	int,
-    	now		int,
-     	cnt		int
-     );
-  EMB_SQL_CHECK("Create Table jas002_t_dedup.");
-
-  EXEC SQL
-     create table pdaco_cal (
-	case_sn		char(12),
-	idn		char(11),
-	inquiry_date	char(10),
-	now		int,
-	age		int,
-	jas002_defect	int default 0,
-	krm001_hit	int default 0,
-	krm023_hit	int default 0,
-	max_bucket	int default 0,
-	fs044		int default 0,
-	fs334		int default 0,
-	cash_max_bucket	int default 0,
-	cash_utilization int default 0,
-	ind001		int default 0,
-	revolving_amt	int default 0,
-	fs102_3m	decimal(16,8),
-	fs102_6m	decimal(16,8),
-	fs102_9m	decimal(16,8),
-	ft102_42	decimal(16,8),
-	ft102_42_r	decimal(16,8),
-	ft102_42_r_tran	decimal(16,8),
-	fs031		decimal(16,8),
-	fs031_tran	decimal(16,8),
-	fs005_1k_3m	decimal(16,8),
-	fs005_1k_3m_q	decimal(16,8),
-	fs005_1k_3m_q_tran	decimal(16,8),
-	fs059_1k_3m	decimal(16,8),
-	fs059_1k_6m	decimal(16,8),
-	fs059_1k_9m	decimal(16,8),
-	ft059_1k_43	decimal(16,8),
-	ft059_1k_43_r	decimal(16,8),
-	ft059_1k_43_r_tran	decimal(16,8),
-	ft059_1k_42	decimal(16,8),
-	ft059_1k_42_q	decimal(16,8),
-	ft059_1k_42_q_tran	decimal(16,8),
-	fs051		decimal(16,8),
-	fs051_tran	decimal(16,8),
-	fs016_3m	decimal(16,8),
-	fs101_3m	decimal(16,8),
-	int015_3	decimal(16,8),
-	int015_3_tran	decimal(16,8),
-	fs205_1k_3m	decimal(16,8),
-	fs205_1k_3m_q	decimal(16,8),
-	fs205_1k_3m_q_tran	decimal(16,8),
-	fs212_1k_3m	decimal(16,8),
-	fs212_1k_6m	decimal(16,8),
-	ft212_1k_43	decimal(16,8),
-	ft212_1k_43_q	decimal(16,8),
-	ft212_1k_43_q_tran	decimal(16,8),
-	ms117_6m	decimal(16,8),
-	fs014_9m	decimal(16,8),
-	fs101_9m	decimal(16,8),
-	int028_9	decimal(16,8),
-	int028_9_tran	decimal(16,8),
-	sex		int,
-	sex_tran	int,
-	app_last_month_bucket	int,
-	app_last_month_bucket_tran	int,
-	pdaco_score	decimal(16,8),
-	pdaco_twen	decimal(16,8),
-	pb_in		decimal(16,8),
-	npv		decimal(16,2),
-	ps_code		int,
-	ps_msg		varchar(128)
-       );
-  EMB_SQL_CHECK("Create Table pdaco_cal.");
-
-  EXEC SQL
-     create table t1 (
-        case_sn   char(12),
-        mon	  int,
-        deliquent_line int);
-  EMB_SQL_CHECK("Create Table t1.");
-
-  EXEC SQL
-     create table open_card (
-        case_sn char(12),
-        issue char(3),
-        now int,
-        mon int);
-  EMB_SQL_CHECK("Create Table open_card.");
-
-  EXEC SQL
-     create table open_line (
-        case_sn char(12),
-        issue char(3),
-        mon int,
-        now int,
-        cards int,
-        bucket int);
-  EMB_SQL_CHECK("Create Table open_line.");
-
-  EXEC SQL
-     create table latest_stmt_mon (
-        case_sn char(12),
-        issue char(3),
-        mon int);
-  EMB_SQL_CHECK("Create Table latest_stmt_mon.");
-
-  EXEC SQL
-     create table latest_line (
-        case_sn char(12),
-        issue char(3),
-        mon int,
-        mob int);
-  EMB_SQL_CHECK("Create Table latest_line.");
-
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT.");
-
-  Debug("Exit CreateWorkingTables()");
-  return 0;
-
-} // RiskModel::CreateWorkingTables()
-
+//--------------------------------------------------------------------------------------------------
 int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 {
   EXEC SQL BEGIN DECLARE SECTION;
@@ -452,10 +203,10 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      			when left(stop_date, 1) = '*' then null
      			else cast(left(stop_date, 3) as int) * 12 + cast(right(left(stop_date, 5), 2) as int)
      		     end),
-            now = (case when substr(inquiry_date, 7,2) > '15' then
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+            now = (case when substr(inquiry_date, 6, 2) > '15' then
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int)
                    else
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int) -1
                    end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 16.");
@@ -482,10 +233,10 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         		  when left(ltrim(date_happen),1) = '*' then null
         		  else cast(left(ltrim(date_happen), 3) as int)* 12 + cast(right(left(rtrim(date_happen), 5), 2) as int)
       	  	         end),
-            now = (case when substr(inquiry_date, 7,2) > '15' then
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+            now = (case when substr(inquiry_date, 6, 2) > '15' then
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int)
                    else
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int) -1
                    end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 19.");
@@ -505,12 +256,12 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      		   when left(yrmon,1) = '*' then null
      		   else cast(left(yrmon, 3) as int) * 12 + cast(right(left(yrmon, 5), 2) as int)
      		 end),
-            now = (case when substr(inquiry_date, 7,2) > '15' then
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+            now = (case when substr(inquiry_date, 6, 2) > '15' then
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int)
                    else
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int) -1
                    end),
-            curr_inqmon = (case when substr(inquiry_date, 7,2) > '15' then 1
+            curr_inqmon = (case when substr(inquiry_date, 6, 2) > '15' then 1
                            else 0 end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 21.");
@@ -530,10 +281,10 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      			when left(query_date,1) = '*' then null
      			else cast(left(query_date, 3) as int) * 12 + cast(right(left(query_date, 5), 2) as int)
      		       end),
-            now = (case when substr(inquiry_date, 7,2) > '15' then
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int)
+            now = (case when substr(inquiry_date, 6, 2) > '15' then
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int)
                    else
-                      (cast(substr(inquiry_date,1,4) as int)-1911)*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,4,2) as int) -1
                    end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 23.");
@@ -572,13 +323,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
                          else 0 end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 27.");
-/*
-  EXEC SQL
-     create index i_k23_dedup_k on krm023_dedup(case_sn, issue, mon_since);
-  EMB_SQL_CHECK();
-  cout << "Create Index 27-1." << endl;
 
-*/
   strcpy (pjtSqlStmt,
          "update krm023_dedup p "
          " set  p.bucket_ef_1k= "
@@ -653,11 +398,13 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   return 0;
 } // RiskModel::PrepareJcicTables()
 
+//--------------------------------------------------------------------------------------------------
 int RiskModel::Prescreen(char *case_sn, char *idn)
 {
   EXEC SQL BEGIN DECLARE SECTION;
     char pfCase_Sn[20];
     char pfIdn[12];
+    long  age;
     long  jas002_defect;
     long  krm001_hit;
     long  krm023_hit;
@@ -669,10 +416,11 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     long  ind001;
     long  revolving_amt;
     long  ps_code;
-    char  ps_msg[1024];
+    char  ps_msg[257];
   EXEC SQL END DECLARE SECTION;
   int rc = 0;
   struct sqlca sqlca;
+  int cust_age, cust_foreigner;
 
   memset(MESSAGE, '\0', sizeof(MESSAGE));
   strcpy (pfCase_Sn, case_sn);
@@ -680,9 +428,9 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
 
   EXEC SQL
      select jas002_defect, krm001_hit, krm023_hit, max_bucket, fs044, fs334, cash_max_bucket,
-            cash_max_bucket, cash_utilization, ind001, revolving_amt
+            cash_max_bucket, cash_utilization, ind001, revolving_amt, age
      into :jas002_defect, :krm001_hit, :krm023_hit, :max_bucket, :fs044, :fs334, :cash_max_bucket,
-          :cash_max_bucket, :cash_utilization, :ind001, :revolving_amt
+          :cash_max_bucket, :cash_utilization, :ind001, :revolving_amt, :age
      from pdaco_cal
      where case_sn = :pfCase_Sn and idn = :pfIdn;
   EMB_SQL_CHECK("Select Pdaco_cal.");
@@ -692,30 +440,49 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     return(2004);
   }
 
+ cust_foreigner = foreigner(idn);
+ 
  ps_code = 0; // initialize to 0
- if (krm001_hit ==0 || krm023_hit == 0 || ind001 == 1) {
-    strcpy(MESSAGE, "人工審核 [JCIC資料不足]。");
+ 
+ if (age > 60) {
+    strcpy(MESSAGE, "年齡 > 60 歲，建議婉拒。");
+    ps_code = 3101;
+ }
+ else if (age < 20 && age != -1000) {
+    strcpy(MESSAGE, "年齡 < 20 歲，建議婉拒。");
     ps_code = 3102;
  }
- else if (jas002_defect > 0) {
-    strcpy(MESSAGE, "拒絕 [三年內有強停、拒往、退票、授信異常情況者]。");
+ else if (cust_foreigner == 1) {
+    strcpy(MESSAGE, "外籍人士，建議婉拒。");
     ps_code = 3103;
  }
- else if (max_bucket > 3) {
-    strcpy(MESSAGE, "拒絕 [信用卡繳款異常連續三個月以上]。");
+ else if (krm001_hit ==0 || krm023_hit == 0) {
+    strcpy(MESSAGE, "聯徵中心資料不全、或查無資料者，模組無法評分，請人工授信。");
     ps_code = 3104;
  }
- else if (fs044 > 0 || fs334 > 3) {
-    strcpy(MESSAGE, "拒絕 [非信用卡貸款有延遲繳款金額或連續三個月繳款異常]。");
+ else if (jas002_defect > 0) {
+    strcpy(MESSAGE, "三年內有強停、拒往、退票、授信異常情況者，建議婉拒。");
     ps_code = 3105;
  }
- else if (cash_max_bucket >= 0.5 || cash_utilization >= 1) {
-    strcpy(MESSAGE, "拒絕 [最近一個月現金卡繳款異常或使用率超過100%(含) ]。");
+ else if (max_bucket > 3) {
+    strcpy(MESSAGE, "信用卡繳款異常連續三個月以上，建議婉拒。");
     ps_code = 3106;
  }
- else if (revolving_amt > 500000) {
-    strcpy(MESSAGE, "拒絕 [最近一個月現金卡加信用卡循環金額大於五十萬(不含)]。");
+ else if (fs044 > 0 || fs334 >= 3) {
+    strcpy(MESSAGE, "非信用卡貸款有延遲繳款金額或連續三個月繳款異常，建議婉拒。");
     ps_code = 3107;
+ }
+ else if (cash_max_bucket >= 0.5 || cash_utilization >= 1) {
+    strcpy(MESSAGE, "最近一個月現金卡繳款異常或使用率超過100%(含)，建議婉拒。");
+    ps_code = 3108;
+ }
+ else if (revolving_amt > 500000) {
+    strcpy(MESSAGE, "最近一個月現金卡加信用卡循環金額大於五十萬(不含)，建議婉拒。");
+    ps_code = 3109;
+ }
+ else if (ind001 == 1) {
+    strcpy(MESSAGE, "無信用卡開卡超過六個月以上者，模組無法評分，請人工授信。");
+    ps_code = 3110;
  }
 
  strcpy(ps_msg, MESSAGE);
@@ -728,13 +495,16 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
 
  return(ps_code);
 }
-int RiskModel::GenerateScreenVars(char *case_sn, char *idn)
+
+//--------------------------------------------------------------------------------------------------
+int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday)
 {
   struct sqlca sqlca;
 
   EXEC SQL BEGIN DECLARE SECTION;
     char psCase_Sn[20];
     char psIdn[12];
+    long psAge;
   EXEC SQL END DECLARE SECTION;
 
   strcpy (psCase_Sn, case_sn);
@@ -916,7 +686,15 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn)
                         and mon_since <= now - curr_inqmon
                      )
           and case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update 12.");
+  EMB_SQL_CHECK("Update revolving Amt.");
+
+  /*----age----*/
+  psAge = age(birthday);
+  EXEC SQL
+     update pdaco_cal
+        set age = :psAge
+        where case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update age.");
 
   EXEC SQL COMMIT;
   EMB_SQL_CHECK("COMMIT");
@@ -924,6 +702,7 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn)
   return 0;
 } //RiskModel::Prescreen()
 
+//--------------------------------------------------------------------------------------------------
 int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
 {
   EXEC SQL BEGIN DECLARE SECTION;
@@ -1633,7 +1412,7 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
   return 0;
 } //RiskModel::GeneratePdacoSore()
 
-
+//--------------------------------------------------------------------------------------------------
 int RiskModel::CleanTables(char *case_sn, char *idn)
 {
   EXEC SQL BEGIN DECLARE SECTION;
@@ -1683,7 +1462,7 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   return 0;
 } //RiskModel::CleanTables()
 
-
+//--------------------------------------------------------------------------------------------------
 int RiskModel::SaveScore(char *case_sn, char *idn)
 {
   EXEC SQL BEGIN DECLARE SECTION;
@@ -1728,10 +1507,8 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
   return 0;
 } //RiskModel::SaveScore()
 
-
-
-
-int RiskModel::Calculate_PB(char *case_sn, char *idn)
+//--------------------------------------------------------------------------------------------------
+int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday)
 {
   int rc = 0;
 
@@ -1744,18 +1521,19 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn)
   rc = PrepareJcicTables(case_sn, idn);
   if (rc != 0)  return rc;
 
-  rc = GenerateScreenVars(case_sn, idn);
+  rc = GenerateScreenVars(case_sn, idn, birthday);
   if (rc != 0)  return rc;
 
   rc = Prescreen(case_sn, idn);
 
-  if (rc != 0)  return rc;
-
+  if (rc != 0) {
+     if (trace) SaveScore(case_sn, idn);
+     return rc;
+  }
   rc = GeneratePdacoScore(case_sn, idn);
   if (rc != 0)  return rc;
 
-  rc = SaveScore(case_sn, idn);
-  if (rc != 0)  return rc;
+  if (trace) SaveScore(case_sn, idn);
 
 //  rc = CleanTables(case_sn, idn);
 //  if (rc != 0)  return rc;
@@ -1764,6 +1542,7 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn)
   return 0;
 } //RiskModel::Calculate_PB()
 
+//--------------------------------------------------------------------------------------------------
 int RiskModel::get_pb(char *case_sn, char *idn, float *pb)
 {
   EXEC SQL BEGIN DECLARE SECTION;
@@ -1792,13 +1571,14 @@ int RiskModel::get_pb(char *case_sn, char *idn, float *pb)
 
 } //RiskModel::get_pb()
 
+//--------------------------------------------------------------------------------------------------
 int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *msg)
 {
   EXEC SQL BEGIN DECLARE SECTION;
      char sCase_Sn[20];
      char sIdn[12];
      long  PS_code;
-     char PS_msg[128];
+     char PS_msg[257];
   EXEC SQL END DECLARE SECTION;
   struct sqlca sqlca;
 
@@ -1821,4 +1601,27 @@ int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *
   return(0);
 
 } //RiskModel::get_prescreen_status()
+/*
+int RiskModel::set_birthday(char *case_sn, char *idn, char *date)
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+     char sbCase_Sn[20];
+     char sbIdn[12];
+     char sbDate[10];
+  EXEC SQL END DECLARE SECTION;
+  struct sqlca sqlca;
 
+  strcpy (sbCase_Sn, case_sn);
+  strcpy (sbIdn, idn);
+  strcpy (sbDate, date);
+
+  EXEC SQL
+     update pdaco_cal
+        set inquiry_date = :sbDate
+        where case_sn = :sbCase_Sn and idn = :sbIdn;
+  EMB_SQL_CHECK("Set Birthday.");
+
+  return(0);
+
+} //RiskModel::set_birthday()
+*/

@@ -47,11 +47,14 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   char aID[12], gID[12];
   float aPB, gPB, cut_point;
   int periods, app_amount, productType;
-  float max_apr;
+  double max_apr;
   int  ps_code;
-  char ps_msg[128];
+  char ps_msg[257];
 
 /*
+  print_cut_point();
+  return(0);
+
   Info("Enter dac_pl_cal()\n");
   Info("DB name= %s\n", alias);
   Info("User ID= %s\n", uid);
@@ -78,18 +81,11 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return rc;
   }
 */
-/*
-  rc = app.get_fin_info();
-  if (rc != 0)  {
-     strcpy (error_message, MESSAGE);
-     return rc;
-  }
-*/
   strcpy(aID, app.Applicant_id());
   Info("Case SN= %s\n", case_sn);
   Info("IDN= %s\n", aID);
 
-  rc = rm.Calculate_PB(case_sn, aID);
+  rc = rm.Calculate_PB(case_sn, aID, app.get_birthday());
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      return 1;
@@ -97,13 +93,13 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
 
   rc = rm.get_prescreen_status(case_sn, aID, &ps_code, ps_msg);
   app.set_ps_status_a(ps_code,ps_msg);
-
+/*
   max_apr = app.get_max_apr();
   periods = app.get_periods();
   app_amount = app.get_apply_amount();
-  cut_point = get_risk_cut_point(max_apr, periods, app_amount);
+  cut_point = get_risk_cut_point(app_amount, periods, max_apr);
   app.set_cutpoint(cut_point);
-
+*/
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      return 1;
@@ -133,13 +129,14 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   rc = rm.CleanTables(case_sn, aID);
   if (rc != 0)  return rc;
 
-  // Calculate PB of guanrantor
-  strcpy(gID, app.Guanrantor_id());
+  // Calculate PB of guarantor
+  strcpy(gID, app.Guarantor_id());
+  Info("gID=%s.\n", gID);
 
-  if (gID[0] == '\0')
+  if (gID[0] == '\0' || gID[0] == ' ')
      qualified_guarantor = 0;
   else {
-     rc = rm.Calculate_PB(case_sn, gID);
+     rc = rm.Calculate_PB(case_sn, gID, ""); // set birthday to "" cause no such info for guarantor
      if (rc < 0) {
         strcpy (error_message, MESSAGE);
         return 1;
@@ -172,18 +169,27 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   max_apr = app.get_max_apr();
   periods = app.get_periods();
   app_amount = app.get_apply_amount();
-  cut_point = get_risk_cut_point(max_apr, periods, app_amount);
+  cut_point = get_risk_cut_point(app_amount, periods, max_apr);
   app.set_cutpoint(cut_point);
   
   if ((productType = app.get_product_type())== 4) {
-     rc = app.write_result_others();
+     rc = app.write_result(TYPE_V); // for product type 4
   } else {
-    if (aPB >= cut_point) {
-       rc = app.write_result_declined();
-    } else {
-       rc = app.write_result_approved();
-    }
-  }
+     if (aPB >= cut_point) {
+        rc = app.write_result(TYPE_II); // declined
+     } else {
+        if (app_amount <= 800000) {   // apply amount <= 800000
+           rc = app.write_result(TYPE_I);  // approved
+        } else if (app_amount <= 1600000) {  // 800000 < apply amount <= 1600000
+           if (qualified_guarantor)
+              rc = app.write_result(TYPE_I); //approved
+           else
+              rc = app.write_result(TYPE_III); // reference, no qualified quarantor
+        } else { // 1600000 < apply amount 
+           rc = app.write_result(TYPE_IV); // reference, app amount > 1.6M
+        }
+     }
+  }     
   
   if (rc < 0) {
      strcpy (error_message, MESSAGE);

@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   strcpy (case_sn, "000000002950");
 
 //  rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
-  if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
+//  if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
 
   while (!infile.eof()) { 
      infile.getline(case_sn, 16);
