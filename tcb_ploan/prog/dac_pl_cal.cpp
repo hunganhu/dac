@@ -111,8 +111,10 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
        strcpy (error_message, MESSAGE);
        return 1;
     }
-    strcpy (error_message, MESSAGE);
-    return rc;
+    rc = rm.CleanTables(case_sn, aID);
+    if (rc != 0)  return rc;
+//    strcpy (error_message, MESSAGE);
+    return 0;
   }
 
   rc = rm.get_pb(case_sn, aID, &aPB);
@@ -158,8 +160,10 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
        if (gPB <= 0.02)
           qualified_guarantor = 1;
      }
+
      rc = rm.CleanTables(case_sn, gID);
      if (rc != 0)  return rc;
+
   }
 
   app.set_guarantor_pass(qualified_guarantor);

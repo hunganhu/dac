@@ -26,39 +26,39 @@
 
 extern char MESSAGE[1024];
 Invalid_Msg tcbMsg[] = {
-	{1001, "申請人姓名需填寫。"},
-	{1002, "申請人生日需填寫。"},
-	{1003, "生日大於輸入日期。"},
-	{1004, "申請人所得需填寫。"},
-	{1005, "申請人所得超出999萬。"},
-	{1006, "申請人現址已居住年數需填寫。"},
-	{1007, "申請人現址已居住年數超出99年。"},
-	{1008, "車籍資料(年份)大於輸入日期。"},
-	{1009, "申請人服務年資需填寫。"},
-	{1010, "申請人服務年資超出99年。"},
-	{1011, "利率 (第一期)需填寫。"},
-	{1012, "利率 (第一期)超出12%。"},
-	{1013, "利率 (第二期)超出12%。"},
-	{1014, "利率 (第三期)超出12%。"},
-	{1015, "貸款期數 (第一期)需填寫。"},
-	{1016, "貸款期數 (第一期)需大於 0。"},
-	{1017, "貸款期數 (第一期)超出84個月。"},
-	{1018, "貸款期數 (第二期)超出84個月。"},
-	{1019, "貸款期數 (第三期)超出84個月。"},
-	{1020, "貸款期數一、二、三，加起來需>=6個月。"},
-	{1021, "貸款期數一、二、三，加起來需<=84個月。"},
-	{1022, "寬限期需填寫。"},
-	{1023, "寬限期超出24個月。"},
-	{1024, "寬限期大於總期數。"},
-	{1025, "申貸金額需填寫。"},
-	{1026, "申貸金額超出200萬。"},
-	{1027, "開辦費 (金額) 超出台幣99,999元。"},
-	{1028, "開辦費 (百分比) 超出100%。"},
-	{2001, "申貸編號不存在於APP_INFO。"},
-	{2002, "申貸編號不存在於APP_RESULT。"},
-	{2003, "撥貸金額必須大於零。"},
-	{2004, "最終准駁 / 撥款決定需輸入。"},
-	{2005, "撥款帳號需輸入。"}   
+	{1001, "申請人姓名需填寫 "},
+	{1002, "申請人生日需填寫 "},
+	{1003, "生日大於輸入日期 "},
+	{1004, "申請人所得需填寫 "},
+	{1005, "申請人所得超出999萬 "},
+	{1006, "申請人現址已居住年數需填寫 "},
+	{1007, "申請人現址已居住年數超出99年 "},
+	{1008, "車籍資料(年份)大於輸入日期 "},
+	{1009, "申請人服務年資需填寫 "},
+	{1010, "申請人服務年資超出99年 "},
+	{1011, "利率 (第一期)需填寫 "},
+	{1012, "利率 (第一期)超出12% "},
+	{1013, "利率 (第二期)超出12% "},
+	{1014, "利率 (第三期)超出12% "},
+	{1015, "貸款期數 (第一期)需填寫 "},
+	{1016, "貸款期數 (第一期)需大於 0 "},
+	{1017, "貸款期數 (第一期)超出84個月 "},
+	{1018, "貸款期數 (第二期)超出84個月 "},
+	{1019, "貸款期數 (第三期)超出84個月 "},
+	{1020, "貸款期數一、二、三，加起來需>=6個月 "},
+	{1021, "貸款期數一、二、三，加起來需<=84個月 "},
+	{1022, "寬限期需填寫 "},
+	{1023, "寬限期超出24個月 "},
+	{1024, "寬限期大於總期數 "},
+	{1025, "申貸金額需填寫 "},
+	{1026, "申貸金額超出200萬 "},
+	{1027, "開辦費 (金額) 超出台幣99,999元 "},
+	{1028, "開辦費 (百分比) 超出100% "},
+	{2001, "申貸編號不存在於APP_INFO "},
+	{2002, "申貸編號不存在於APP_RESULT "},
+	{2003, "撥貸金額必須大於零 "},
+	{2004, "最終准駁 / 撥款決定需輸入 "},
+	{2005, "撥款帳號需輸入 "}   
 };
 char *decisionMsg[] = {
 /*Type I message*/
@@ -148,7 +148,9 @@ int LoanApp::initial()
     short Fee_2_ind;
  EXEC SQL END DECLARE SECTION;
   struct sqlca sqlca;
-  int code = 0;
+  int code = 0;       // initial to a success status
+  int term_code = -1; // initial to a failed status
+     
 
   strcpy (iCase_Sn, case_sn);
   Debug("Enter LoanApp.initial()");
@@ -186,40 +188,44 @@ int LoanApp::initial()
 /*
   // check loan purpose in 1: 其他家計週轉金; 2: 消費性支出
   if (Loan_purpose_ind == -1) Loan_purpose = -1;
-  else Loan_purpose = iLoan_purpose;
-
-  if ((Loan_purpose_ind == -1) || (Loan_purpose < 1) || (Loan_purpose > 2)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1029)); code = DataErrorCode(DATA_ERR_1029);}
-     
+  else {
+     Loan_purpose = iLoan_purpose;
+     if ((Loan_purpose_ind == -1) || (Loan_purpose < 1) || (Loan_purpose > 2)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1029)); code = DataErrorCode(DATA_ERR_1029);}
+  }   
   // check education in "1: 研究所以上 2: 大學 3: 專科 4: 高中職 5: 中學以下 6: 其他"
   if (Education_ind == -1) Education = -1;
-  else Education = iEducation;
-
-  if ((Education_ind == -1) || (Education < 1) || (Education > 6)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1030)); code = DataErrorCode(DATA_ERR_1030);}
+  else {
+     Education = iEducation;
+     if ((Education_ind == -1) || (Education < 1) || (Education > 6)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1030)); code = DataErrorCode(DATA_ERR_1030);}
+  }
 */
   // check birthday 民國 yyymmdd
   if (Birthday_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1002)); code = DataErrorCode(DATA_ERR_1002);}
-  else strcpy (Birthday, iBirthday);
-  
-  if (!validate_date(Birthday) || is_future(System_date, Birthday)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1003)); code = DataErrorCode(DATA_ERR_1003);}
+  else {
+     strcpy (Birthday, iBirthday);
+     if (!validate_date(Birthday) || is_future(System_date, Birthday)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1003)); code = DataErrorCode(DATA_ERR_1003);}
+  }
 /*
   // check marrage status "1: 已婚 2: 其他"
   if (Marriage_status_ind == -1) Marriage_status = -1;
-  else Marriage_status = iMarriage_status;
-
-  if ((Marriage_status_ind == -1) || (Marriage_status < 1) || (Marriage_status > 2)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1031)); code = DataErrorCode(DATA_ERR_1031);}
+  else {
+     Marriage_status = iMarriage_status;
+     if ((Marriage_status_ind == -1) || (Marriage_status < 1) || (Marriage_status > 2)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1031)); code = DataErrorCode(DATA_ERR_1031);}
+  }
 */
   // check annual income 新台幣萬元，最多三位數 (999)
   if (Annual_Income_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1004)); code = DataErrorCode(DATA_ERR_1004);}
-  else Annual_Income = iAnnual_Income;
-
-  if ((Annual_Income < 0) || (Annual_Income > 9990000)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1005)); code = DataErrorCode(DATA_ERR_1005);}
+  else {
+     Annual_Income = iAnnual_Income;
+     if ((Annual_Income < 0) || (Annual_Income > 9990000)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1005)); code = DataErrorCode(DATA_ERR_1005);}
+  }
 /*
   // check Home_ownership  "1: 自有(無設定) 2: 自有(設定予本行) 3: 自有(設定予他行) 4: 親屬所有
   // 5: 宿舍 6: 租賃 7: 其他"
@@ -232,52 +238,54 @@ int LoanApp::initial()
   // check Year_at_current_address現址已居住年數 最多二位數 (99)
   if (Year_at_current_address_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1006)); code = DataErrorCode(DATA_ERR_1006);}
-  else Year_at_current_address = iYear_at_current_address;
-
-  if ((Year_at_current_address < 0) || (Year_at_current_address > 99)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1007)); code = DataErrorCode(DATA_ERR_1007);}
-
+  else {
+     Year_at_current_address = iYear_at_current_address;
+     if ((Year_at_current_address < 0) || (Year_at_current_address > 99)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1007)); code = DataErrorCode(DATA_ERR_1007);}
+  }
   // check Year_at_current_job 服務年資 最多二位數 (99)
   if (Year_at_current_job_ind == -1)  {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
-  else Year_at_current_job = iYear_at_current_job;
-
-  if ((Year_at_current_job < 0) || (Year_at_current_job > 99)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1009)); code = DataErrorCode(DATA_ERR_1009);}
+  else {
+     Year_at_current_job = iYear_at_current_job;
+     if ((Year_at_current_job < 0) || (Year_at_current_job > 99)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1010)); code = DataErrorCode(DATA_ERR_1010);}
+  }
      
   // check car year 民國 (1 ~ 999)
   if (Car_year_ind == -1) Car_year = 0;
   else Car_year = iCar_year;
 
   if (is_future_year(System_date, Car_year)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1010)); code = DataErrorCode(DATA_ERR_1010);}
-/*
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
+
   // check product_type_code "1: 簡易小額信貸 2: 個人信貸產品A 3: 個人信貸產品B 4: 其他(只算壞帳機率)"
-  if (Product_type_code_ind == -1) Product_type_code = -1;
+  if (Product_type_code_ind == -1) Product_type_code = 4;
   else Product_type_code = iProduct_type_code;
 
-  if ((Product_type_code == -1) || (Product_type_code < 1) || (Product_type_code > 4)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1033)); code = DataErrorCode(DATA_ERR_1033);}
-*/
+//  if ((Product_type_code == -1) || (Product_type_code < 1) || (Product_type_code > 4)) {
+//     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1033)); code = DataErrorCode(DATA_ERR_1033);}
+
   
   // check apr_1, 0~12, 6.99% as 6.99   
   if (APR_1_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1011)); code = DataErrorCode(DATA_ERR_1011);}
-  else APR_1 = iAPR_1 / 100.0;
+  else {
+     APR_1 = iAPR_1 / 100.0;
+     if ( (APR_1 < 0.0) || (APR_1 > 0.12) ) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1012)); code = DataErrorCode(DATA_ERR_1012);}
+  }
 
   // check apr_2, 0~12, 6.99% as 6.99   
   if (APR_2_ind == -1) APR_2 = 0.0;
   else APR_2 = iAPR_2 / 100.0;
 
+  if ((APR_2 < 0.0) || (APR_2 > 0.12) ) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1013)); code = DataErrorCode(DATA_ERR_1013);}
+
   // check apr_2, 0~12, 6.99% as 6.99   
   if (APR_3_ind == -1) APR_3 = 0.0;
   else APR_3 = iAPR_3 / 100.0;
-
-  if ( (APR_1 < 0.0) || (APR_1 > 0.12) ) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1012)); code = DataErrorCode(DATA_ERR_1012);}
-
-  if ((APR_2 < 0.0) || (APR_2 > 0.12) ) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1013)); code = DataErrorCode(DATA_ERR_1013);}
 
   if ((APR_3 < 0.0) || (APR_3 > 0.12) ) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1014)); code = DataErrorCode(DATA_ERR_1014);}
@@ -288,63 +296,75 @@ int LoanApp::initial()
   // check term_1  1~84，月
   if (Term_1_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1015)); code = DataErrorCode(DATA_ERR_1015);}
-  else Term_1 = iTerm_1;
+  else {
+     term_code = 0;
+     Term_1 = iTerm_1;
+     if (Term_1 < 1) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1016));
+        term_code = code = DataErrorCode(DATA_ERR_1016);
+     }
+     if (Term_1 > 84) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1017));
+        term_code = code = DataErrorCode(DATA_ERR_1017);
+     }
 
-  // check term_2  0~84，月
-  if (Term_2_ind == -1) Term_2 = 0;
-  else Term_2 = iTerm_2;
-
-  // check term_3  0~84，月 (期數一、二、三，加起來需>=6 & <=84)
-  if (Term_3_ind == -1) Term_3 = 0;
-  else Term_3 = iTerm_3;
-
-  if (Term_1 < 1) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1016)); code = DataErrorCode(DATA_ERR_1016);}
-  if (Term_1 > 84) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1017)); code = DataErrorCode(DATA_ERR_1017);}
-
-  if ((Term_2 < 0) || (Term_2 > 84)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1018)); code = DataErrorCode(DATA_ERR_1018);}
-
-  if ((Term_3 < 0) || (Term_3 > 84)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1019)); code = DataErrorCode(DATA_ERR_1019);}
-
-  periods = Term_1 + Term_2 + Term_3;
-
-  if (periods < 6) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1020)); code = DataErrorCode(DATA_ERR_1020);}
-  if (periods > 84) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1021)); code = DataErrorCode(DATA_ERR_1021);}
+     // check term_2  0~84，月
+     if (Term_2_ind == -1) Term_2 = 0;
+     else Term_2 = iTerm_2;
+     if ((Term_2 < 0) || (Term_2 > 84)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1018));
+        term_code = code = DataErrorCode(DATA_ERR_1018);
+     }
+   
+     // check term_3  0~84，月 (期數一、二、三，加起來需>=6 & <=84)
+     if (Term_3_ind == -1) Term_3 = 0;
+     else Term_3 = iTerm_3;
+     if ((Term_3 < 0) || (Term_3 > 84)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1019));
+        term_code = code = DataErrorCode(DATA_ERR_1019);
+     }
+     if (term_code == 0) {
+        periods = Term_1 + Term_2 + Term_3;
+        if (periods < 6) {
+           strcat(MESSAGE, DataErrorMsg(DATA_ERR_1020)); code = DataErrorCode(DATA_ERR_1020);}
+        if (periods > 84) {
+           strcat(MESSAGE, DataErrorMsg(DATA_ERR_1021)); code = DataErrorCode(DATA_ERR_1021);}
+     }   
+  }
 
  // check grace period  <= 24
   if (Grace_period_ind == -1)  {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1022)); code = DataErrorCode(DATA_ERR_1022);}
-  else Grace_period = iGrace_period;
-
-  if ((Grace_period < 0) || (Grace_period >24)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1023)); code = DataErrorCode(DATA_ERR_1023);}
-  if (Grace_period >= periods) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1024)); code = DataErrorCode(DATA_ERR_1024);}
+  else {
+     Grace_period = iGrace_period;
+     if (term_code == 0) {
+        if ((Grace_period < 0) || (Grace_period >24)) {
+           strcat(MESSAGE, DataErrorMsg(DATA_ERR_1023)); code = DataErrorCode(DATA_ERR_1023);}
+        if (Grace_period >= periods) {
+           strcat(MESSAGE, DataErrorMsg(DATA_ERR_1024)); code = DataErrorCode(DATA_ERR_1024);}
+     }
+  }
 
   // check apply amount 0~200，新台幣萬元
   if (App_amt_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1025)); code = DataErrorCode(DATA_ERR_1025);}
-  else App_amt = iApp_amt;  
-
-  if ((App_amt <= 0) || (App_amt > 2000000)) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1026)); code = DataErrorCode(DATA_ERR_1026);}
-
+  else {
+     App_amt = iApp_amt;  
+     if ((App_amt <= 0) || (App_amt > 2000000)) {
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1026)); code = DataErrorCode(DATA_ERR_1026);}
+  }
   //check Fee_1 開辦費 (金額) 新台幣元，最多五位數
   if (Fee_1_ind == -1) Fee_1 = 0;
   else Fee_1 = iFee_1;
+
+  if (Fee_1  >= 100000) {
+     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1027)); code = DataErrorCode(DATA_ERR_1027);}
 
   //check Fee_2 開辦費 (百分比) <= 100%
   if (Fee_2_ind == -1) Fee_2 = 0.0;
   else Fee_2 = iFee_2 / 100.0;
 
-  if (Fee_1  >= 100000) {
-     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1027)); code = DataErrorCode(DATA_ERR_1027);}
-  if (Fee_2 > 1) {
+  if (Fee_2 > 1.0) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1028)); code = DataErrorCode(DATA_ERR_1028);}
 
   Debug("Exit LoanApp.initial()");
@@ -568,23 +588,36 @@ int LoanApp::write_result(int decision)
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
   oApproval_code = decisionCode[decision];
-  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB*100);
+  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100);
 //  oCut = cutpoint;
 
   if (gID[0] != '\0' && gID[0] != ' ') {
-     oGuarantor_PB = guarantorPB;
      oPS_code_g = ps_code_g;
      strcpy(oPS_msg_g, ps_msg_g);  
-     EXEC SQL
-        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
-                    PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
-                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                    Commission, Approval_code, Approval_msg) 
-           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
-                   :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
-                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                   :oApproval_code, :oApproval_msg);
-     EMB_SQL_CHECK("Write Reference1.");
+     if (oPS_code_g == 0) {
+        oGuarantor_PB = guarantorPB;
+        EXEC SQL
+           insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
+                       PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                       Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                       Commission, Approval_code, Approval_msg) 
+              values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
+                      :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      :oApproval_code, :oApproval_msg);
+        EMB_SQL_CHECK("Write Result1.");
+     }
+     else 
+        EXEC SQL
+           insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+                       PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                       Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                       Commission, Approval_code, Approval_msg) 
+              values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
+                      :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      :oApproval_code, :oApproval_msg);
+        EMB_SQL_CHECK("Write Result2.");
   } 
   else {
      EXEC SQL
@@ -596,7 +629,7 @@ int LoanApp::write_result(int decision)
                     :oPS_code, :oPS_msg, :oGuarantor_pass,
                     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                     :oApproval_code, :oApproval_msg);
-     EMB_SQL_CHECK("Write Reference2.");
+     EMB_SQL_CHECK("Write Result3.");
   }
 
   EXEC SQL
