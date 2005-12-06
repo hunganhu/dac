@@ -167,7 +167,7 @@ int LoanApp::initial()
           :iProduct_type_code:Product_type_code_ind, :iApp_amt:App_amt_ind, :iTerm_1:Term_1_ind,
           :iTerm_2:Term_2_ind, :iTerm_3:Term_3_ind, :iAPR_1:APR_1_ind, :iAPR_2:APR_2_ind, :iAPR_3:APR_3_ind,
           :iGrace_period:Grace_period_ind, :iFee_1:Fee_1_ind, :iFee_2:Fee_2_ind
-     from db2inst1.app_info
+     from  app_info
      where case_sn = :iCase_Sn;
   EMB_SQL_CHECK("Select appInfo.");
 
@@ -412,7 +412,7 @@ int LoanApp::get_fin_info()
             COF_bank, ROE, Commission
      into :iFund_deposit_pct, :iFund_bank_pct, :iFund_self_pct, :iFund_free_pct, :iCOF_deposit,
           :iCOF_bank, :iROE, :iCommission
-     from db2inst1.TCB_FIN_INFO;
+     from  TCB_FIN_INFO;
   EMB_SQL_CHECK("Select TCB_FIN_INFO .");
 
   if (sqlca.sqlcode == 100) {
@@ -548,7 +548,7 @@ int LoanApp::write_result_prescreen_failed()
 //  oCut = cutpoint;
   
   EXEC SQL
-     insert into db2inst1.app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
+     insert into  app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
                  Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                  Commission, Approval_code, Approval_msg) 
         values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,
@@ -557,12 +557,12 @@ int LoanApp::write_result_prescreen_failed()
   EMB_SQL_CHECK("Write PS failure.");
 
   EXEC SQL
-     update db2inst1.app_result
+     update  app_result
         set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
              COF_deposit, COF_bank, ROE, Commission) = 
              (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
 		     COF_deposit, COF_bank, ROE, Commission
-	      from db2inst1.TCB_FIN_INFO)
+	      from  TCB_FIN_INFO)
 	where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Update Financial.");
 
@@ -597,7 +597,7 @@ int LoanApp::write_result(int decision)
      if (oPS_code_g == 0) {
         oGuarantor_PB = guarantorPB;
         EXEC SQL
-           insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
+           insert into  app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
                        PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                        Commission, Approval_code, Approval_msg) 
@@ -609,7 +609,7 @@ int LoanApp::write_result(int decision)
      }
      else 
         EXEC SQL
-           insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+           insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
                        PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                        Commission, Approval_code, Approval_msg) 
@@ -621,7 +621,7 @@ int LoanApp::write_result(int decision)
   } 
   else {
      EXEC SQL
-        insert into db2inst1.app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+        insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
                     PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
                     Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                     Commission, Approval_code, Approval_msg) 
@@ -633,12 +633,12 @@ int LoanApp::write_result(int decision)
   }
 
   EXEC SQL
-     update db2inst1.app_result
+     update  app_result
         set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
              COF_deposit, COF_bank, ROE, Commission) = 
              (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
 		     COF_deposit, COF_bank, ROE, Commission
-	      from db2inst1.TCB_FIN_INFO)
+	      from  TCB_FIN_INFO)
 	where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Update Financial.");
 

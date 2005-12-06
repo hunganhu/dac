@@ -54,7 +54,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into krm001_dedup (case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, cnt)
         select case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit, count(*)
-        from db2inst1.krm001
+        from krm001
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
   EMB_SQL_CHECK("Insert-Select 1.");
@@ -62,7 +62,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
         select case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
-        from db2inst1.krm023
+        from krm023
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
   EMB_SQL_CHECK("Insert-Select 2.");
@@ -70,7 +70,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into stm001_dedup (case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, cnt)
         select case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, count(*)
-        from db2inst1.stm001
+        from stm001
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
   EMB_SQL_CHECK("Insert-Select 3.");
@@ -78,7 +78,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
     insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
        select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, cast(contract_amt as int), cast(loan_amt as int), cast(pass_due_amt as int), pay_code_12, co_loan, count(*)
-       from db2inst1.bam086
+       from bam086
        where case_sn = :pjtCase_Sn and idn = :pjtIdn
        group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
   EMB_SQL_CHECK("Insert-Select 4.");
@@ -86,7 +86,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
         select case_sn, idn, inquiry_date, 'D', data_yyymmdd
-        from db2inst1.bas001
+        from bas001
         where (data_yyymmdd is not null or rtrim(ltrim(data_yyymmdd)) <> '')
           and EVER_DELINQUENT='Y'
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
@@ -95,7 +95,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
         select case_sn, idn, inquiry_date, 'B', ck_date
-        from db2inst1.dam103
+        from dam103
         where (ck_date is not null or rtrim(ltrim(ck_date)) <> '')
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Insert-Select 6.");
@@ -103,7 +103,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
         select case_sn, idn, inquiry_date, 'R', beg_date
-        from db2inst1.dam203
+        from dam203
         where (beg_date is not null or rtrim(ltrim(beg_date)) <> '')
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Insert-Select 7.");
@@ -111,7 +111,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
         select case_sn, idn, inquiry_date, 'S', stop_date
-        from db2inst1.krm001
+        from krm001
         where stop_code = '3'
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Insert-Select 8.");

@@ -20,7 +20,7 @@
 DB2PATH = /home/db2inst1/sqllib
 DB2INC = $(DB2PATH)/include
 DB2LIB = $(DB2PATH)/lib
-DESDIR = /home/ejcicap1/lib
+DESDIR = /home/escorap1/lib
 
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
@@ -30,10 +30,10 @@ EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-ALIAS=dacdb
+ALIAS=escore
 # Set UID and PWD if neccesary
-UID=ejcicap1
-PWD=ejcicap1
+UID=escorap1
+PWD=escorap1
 
 ERASE=rm -f
 

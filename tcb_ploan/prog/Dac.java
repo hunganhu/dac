@@ -17,9 +17,9 @@ public class Dac {
 		String error_message;
 		
 		case_sn = "002000008587";
-		alias = "dacdb";
-		uid = "ejcicap1";
-		upw = "ejcicap1";
+		alias = "escore";
+		uid = "escorap1";
+		upw = "escorap1";
 	
 		Dac ploan = new Dac();
 		error_message = ploan.dac_pl_cal(case_sn, alias, uid, upw);
