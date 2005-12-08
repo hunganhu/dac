@@ -132,7 +132,7 @@ void SqlInfo::SqlInfoPrint(struct sqlca *pSqlca,
     // get error message
     rc = sqlaintp(errorMsg, 1024, 80, pSqlca);
     if (rc > 0)
-      sprintf(MESSAGE,"SQL(%s:%d):SQLCODE(%ld)-%s", file, line, pSqlca->sqlcode, errorMsg);
+      sprintf(MESSAGE,"SQL(%s:%d):%s", file, line, errorMsg);
   } //endif
 
 } //SqlInfo::SqlInfoPrint

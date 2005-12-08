@@ -52,8 +52,6 @@ Dac.class: Dac.java
 	javac Dac.java
 Dac.h: Dac.class
 	javah -jni Dac
-#libdacploan.so: dacploan.o
-#	gcc -shared -o libdacploan.so dacploan.o
 
 dacploan.o: dacploan.c 
 	gcc -g $(EXTRA_CFLAG) -I/usr/java131/include -c dacploan.c
@@ -80,13 +78,13 @@ cutpoint.o: cutpoint.cpp
 libdac.so: $(DLL_OBJ)
 	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac.so $(DLL_OBJ)
 
-#libdac.a: dac_pl_cal.o utilemb.o risk_model.o
+#libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
-#	ar cq $@ dac_pl_cal.o utilemb.o risk_model.o
+#	ar cq $@ $(DLL_OBJ)
 
-dac_pl_cal.o: dac_pl_cal.cpp dac_pl_cal.h
-#	$(EMBPREP) dac_pl_cal $(ALIAS) $(UID) $(PWD)
-	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c dac_pl_cal.cpp
+dac_pl_cal.o: dac_pl_cal.sqC dac_pl_cal.h
+	$(EMBPREP) dac_pl_cal $(ALIAS) $(UID) $(PWD)
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c dac_pl_cal.C
 
 utilemb.o: utilemb.sqC utilemb.h
 	$(EMBPREP) utilemb $(ALIAS) $(UID) $(PWD)

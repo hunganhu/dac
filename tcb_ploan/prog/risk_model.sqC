@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Licensed Materials - Property of DAC
 **
-** (C) COPYRIGHT Decision Analytics Consulting 2004
+** (C) COPYRIGHT Decision Analytics Consulting 2005
 ** All Rights Reserved.
 **
 *****************************************************************************
@@ -392,8 +392,8 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      EMB_SQL_CHECK("Update 29.");
   }
 
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT");
+//  EXEC SQL COMMIT;
+//  EMB_SQL_CHECK("COMMIT");
   Debug("Exit PrepareJcicTables()");
 
   return 0;
@@ -697,8 +697,8 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
         where case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update age.");
 
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT");
+//  EXEC SQL COMMIT;
+//  EMB_SQL_CHECK("COMMIT");
   Debug("Exit Prescreen()");
   return 0;
 } //RiskModel::Prescreen()
@@ -1407,8 +1407,8 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
   EMB_SQL_CHECK("PDACO Update 39.");
 
 
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT");
+//  EXEC SQL COMMIT;
+//  EMB_SQL_CHECK("COMMIT");
   Debug("Exit GeneratePdacoScore()");
   return 0;
 } //RiskModel::GeneratePdacoSore()
@@ -1456,8 +1456,8 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   EXEC SQL delete from t1 where case_sn = :delCase_Sn;
   EMB_SQL_CHECK("delete t1.");
 
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT");
+//  EXEC SQL COMMIT;
+//  EMB_SQL_CHECK("COMMIT");
 
   Debug("Exit CleanTables()");
   return 0;
@@ -1501,8 +1501,8 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
   where case_sn = :ssCase_Sn and idn = :ssIdn;
   EMB_SQL_CHECK("Save result");
 
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT");
+//  EXEC SQL COMMIT;
+//  EMB_SQL_CHECK("COMMIT");
 
   Debug("Exit SaveScore()");
   return 0;
@@ -1544,8 +1544,8 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday, char *sysd
 //  rc = CleanTables(case_sn, idn);
 //  if (rc != 0)  return rc;
 
-  EXEC SQL COMMIT;
-  EMB_SQL_CHECK("COMMIT");
+//  EXEC SQL COMMIT;
+//  EMB_SQL_CHECK("COMMIT");
 
   Debug("Exit Calculate_PB()");
   return 0;
