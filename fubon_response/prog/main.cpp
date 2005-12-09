@@ -28,6 +28,8 @@ int main(int argc, char* argv[])
   TADOHandler *dbhandle;
   TADOQuery *Query;
 
+  int twentile, group_count;
+  String segment;
 
   target_month = config_file = user = password = source = database = (char *) NULL;
   while ((option_char = getopt ()) != EOF)
@@ -104,6 +106,7 @@ int main(int argc, char* argv[])
  dbhandle = new TADOHandler();
  dbhandle->OpenDatabase(connect_string);
  fprintf(stderr, "%s: Calculating Response Model Ver.1 started.\n", CurrDateTime());
+ Query = new TADOQuery(NULL);
 
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
@@ -126,41 +129,32 @@ int main(int argc, char* argv[])
            dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
         case End_of_SQL:
-           if (Debug == 1) {
-              DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
-              dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
-           }
+//           if (Debug == 1) {
+//              DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
+//              dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
+//           }
            fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
            fprintf (stderr, "\nFubon Response Model Profile \n");
-/*           int score, group_count;
-           String catagory;
-           try {
-              Query = new TADOQuery(NULL);
-              Query->ConnectionString = connect_string;
-              Query->Close();
-              Query->SQL->Clear();
-              Query->SQL->Add("select catagory, score, count(*) as group_count from Fubon_response_score group by catagory, score order by catagory, score;");
-              Query->Open();
-              Query->First();
-              while (!Query->Eof) {
-          //       catagory = Query->FieldValues["catagory"];
-                 group_count = Query->FieldValues["group_count"];
-                 if (Query->FieldValues["group_count"].IsNull()) {
-                   fprintf (stderr, "   %20s <null> = %d\n", catagory.c_str(), group_count);
-                 }
-                 else {
-                   score = Query->FieldValues["group_count"];
-                   fprintf (stderr, "    %20s %6d = %d\n", catagory.c_str(), score, group_count);
-                 }
-                 Query->Next();
+
+           Query->ConnectionString = connect_string;
+           Query->Close();
+           Query->SQL->Clear();
+           Query->SQL->Add("select segment, twentile, count(*) as group_count from Fubon_response_score group by segment, twentile order by segment, twentile;");
+           Query->Open();
+           Query->First();
+           while (!Query->Eof) {
+              segment = Query->FieldValues["segment"];
+              group_count = Query->FieldValues["group_count"];
+              if (Query->FieldValues["twentile"].IsNull()) {
+                 fprintf (stderr, "   %10s <null> = %d\n", segment.c_str(), group_count);
               }
+              else {
+                 twentile = Query->FieldValues["twentile"];
+                 fprintf (stderr, "    %10s %6d = %d\n", segment.c_str(), twentile, group_count);
+              }
+              Query->Next();
            }
-           catch (Exception &E){
-               fprintf(stderr,"Error: %s, %s\n", AnsiString(E.ClassName()), E.Message);
-               delete dbhandle;
-               return (false);
-           }
-*/
+
            break;
         default:
            DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);

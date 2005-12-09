@@ -99,18 +99,17 @@ int step[] = {
         Drop_Proc_Get_Prev_Stmt_Info,
         Create_Proc_Get_Prev_Stmt_Info,
         Execute_Proc_Get_Prev_Stmt_Info,
-//        Drop_Proc_Update_Max_Cycle,
+        Drop_Proc_Update_Max_Cycle,
 	Cal_Stmt_Flag,
 	Insert_Stmt_3,
 	Create_Index_Stmt_3,
 	Insert_Stmt_6,
 	Create_Index_Stmt_6,
-*/
+
         Drop_Proc_Cal_BucketM_on_Stmt_6,
         Create_Proc_Cal_BucketM_on_Stmt_6,
         Execute_Proc_Cal_BucketM_on_Stmt_6,
-//        Drop_Proc_Cal_BucketM_on_Stmt_6,
-/*
+        Drop_Proc_Cal_BucketM_on_Stmt_6,
 	Insert_Stmt_9,
 	Create_Index_Stmt_9,
 
@@ -125,9 +124,8 @@ int step[] = {
 	Update_Insurance_Flag,
 	Update_Close_Flag,
 	Update_Card,
-*/
+
 	Cal_FS003,
-/*
 	Cal_FS072,
 	Cal_FS089,
 	Cal_FS096,
@@ -149,8 +147,10 @@ int step[] = {
 
 	Transform_N1_Vars,
 	Cal_N1_Score_Twentile,
+
         Generate_Output_Table,
-*/
+//        Duplicate_Working_Table,
+ */
  	End_of_SQL
 };
 
@@ -1043,40 +1043,41 @@ char *SQLCommands[] = {
 " if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[Fubon_response_score]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
 "   begin"
 "      create table Fubon_response_score ("
-"	Primary_Cardholder_ID	char(11),"
-"	catagory		varchar(20),"
-"	score			int"
+"	Primary_Cardholder_ID	char(11) not null,"
+"	segment		varchar(20),"
+"	twentile    	int,"
+"	score		int"
 "      );"
 "     alter table Fubon_response_score add constraint p_id primary key (Primary_Cardholder_ID);"
 "   end"
 " delete from Fubon_response_score;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'REVOLVERS', twentile_r1"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '循環信用', twentile_r1, rscore_r1"
+"    from response_model"
 "    where card=4;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'REVOLVERS', NULL"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '循環信用', NULL, NULL"
+"    from response_model"
 "    where card=40;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'REVOLVERS', 21"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '循環信用', 21, NULL"
+"    from response_model"
 "    where card=0;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'TRANSACTORS', twentile_t1"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '刷卡消費', twentile_t1, rscore_t1"
+"    from response_model"
 "    where card=2;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'TRANSACTORS', NULL"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '刷卡消費', NULL, NULL"
+"    from response_model"
 "    where card=3;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'NO-BEHAVIORS', twentile_n1"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '關戶/不動', twentile_n1, rscore_n1"
+"    from response_model"
 "    where card=1;"
-" insert into Fubon_response_score(Primary_Cardholder_ID,catagory,score)"
-"    select Primary_Cardholder_ID, 'NO-BEHAVIORS', NULL"
-"    from #response_model"
+" insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
+"    select Primary_Cardholder_ID, '關戶/不動', NULL, NULL"
+"    from response_model"
 "    where card=10;",
 
 /*Duplicate_Working_Table*/
