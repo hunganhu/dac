@@ -108,8 +108,8 @@ int step[] = {
  Create_Proc_Generate_Score,
  Execute_Proc_Generate_Score,
  Drop_Proc_Generate_Score,
- Drop_Input_Table,
- Drop_Vars_Table,
+// Drop_Input_Table,
+// Drop_Vars_Table,
  End_of_SQL
 };
 
@@ -2022,29 +2022,29 @@ char *SQLCommands[] = {
 
 /* Update_Risk_Group */
 "update vars_adv"
-"  set risk_group ="
-"    (case"
-"        when pd is null and flag in (0,1,2,3,4,5,6,8) then 97"
-"        when pd is null and flag in (7) then 99"
-"        when pd is null and flag = 9 then 98"
-"        when pd is null and flag in (10,11,12) then 99"
-"        when pd <= 0.0011 and flag = 11 then 1"
-"        when pd <= 0.0011 and flag = 10 then 2"
-"        when pd <= 0.0011 and flag = 12 then 3"
-"        when pd <= 0.0047 then 4"
-"        when pd <= 0.0100 then 5"
-"        when pd <= 0.0180 then 6"
-"        when pd <= 0.0340 then 7"
-"        when pd <= 0.0440 then 8"
-"        when pd <= 0.0530 then 9"
-"        when pd <= 0.0660 then 10"
-"        when pd <= 0.0810 then 11"
-"        when pd <= 0.1000 then 12"
-"        when pd <= 0.1400 then 13"
-"        when pd <= 0.2300 then 14"
-"        when pd <= 0.3600 then 15"
-"        else 16"
-"     end)",
+"   set risk_group = "
+"     (case  "
+"         when pd is null and flag in (0,1,2,3,4,5,6,8) then 97 "
+"         when pd is null and flag in (7) then 99 "
+"         when pd is null and flag = 9 then 98 "
+"         when pd is null and flag in(10,11,12) then 99 "
+"         when pd <= 0.0011 and flag = 11 then 1 "
+"         when pd <= 0.0011 and flag = 10 then 2 "
+"         when pd <= 0.0011 and flag = 12 then 3 "
+"         when pd <= 0.0028 then 4 "
+"         when pd <= 0.0047 then 5 "
+"         when pd <= 0.0075 then 6 "
+"         when pd <= 0.0100 then 7 "
+"         when pd <= 0.0180 then 8 "
+"         when pd <= 0.0340 then 9 "
+"         when pd <= 0.0440 then 10 "
+"         when pd <= 0.0530 then 11 "
+"         when pd <= 0.0660 then 12 "
+"         when pd <= 0.0810 then 13 "
+"         when pd <= 0.1400 then 14 "
+"         when pd <= 0.3600 then 15 "
+"         else 16 "
+"      end);",
 
 /*The risk level L/M/H is replaced by risk group. */
 /* Update_Risk_Level_For_Flag_10_11_12 */
