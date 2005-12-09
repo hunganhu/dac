@@ -151,7 +151,6 @@ int LoanApp::initial()
   int code = 0;       // initial to a success status
   int term_code = -1; // initial to a failed status
      
-
   strcpy (iCase_Sn, case_sn);
   Debug("Enter LoanApp.initial()");
 
@@ -172,8 +171,8 @@ int LoanApp::initial()
   EMB_SQL_CHECK("Select appInfo.");
 
   if (sqlca.sqlcode == 100) {
-     strcpy(MESSAGE, "申貸編號不存在於APP_INFO");
-     return(2001);
+     strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_2001));
+     return(DataErrorCode(EXIST_ERR_2001));
   }
   strcpy (aID, iApplicant_Id);
   strcpy (System_date, iSystem_date);
@@ -431,7 +430,80 @@ int LoanApp::get_fin_info()
 
   Debug("Exit LoanApp.get_fin_info()");
   return (0);
-}
+} //LoanApp::get_fin_info()
+
+//--------------------------------------------------------------------------------------------------
+int LoanApp::get_loan_info()
+{
+  EXEC SQL BEGIN DECLARE SECTION;
+    char lCase_Sn[20];
+    /*Final loan fields*/
+    char iSystem_date_final[8];
+    char iSystem_time_final[7];
+    long iApproval_final;
+    char iAccount_No[21];
+    char iOpen_date[8];
+    long iLoan_amt;
+    double iLoan_APR;
+    long iLoan_term;
+    long iFee_1_final;
+    double iFee_2_final;
+
+    short System_date_final_ind;
+    short System_time_final_ind;
+    short Approval_final_ind;
+    short Account_No_ind;
+    short Open_date_ind;
+    short Loan_amt_ind;
+    short Loan_APR_ind;
+    short Loan_term_ind;
+    short Fee_1_final_ind;
+    short Fee_2_final_ind;
+ EXEC SQL END DECLARE SECTION;
+  struct sqlca sqlca;
+  int code = 0;
+
+  Debug("Enter LoanApp.get_loan_info()");
+  strcpy (lCase_Sn, case_sn);
+
+  EXEC SQL
+     select System_date_final, System_time_final, Approval_final, Account_No,
+            Open_date, Loan_amt, Loan_APR, Loan_term, Fee_1, Fee_2
+     into :iSystem_date_final:System_date_final_ind, :iSystem_time_final:System_time_final_ind,
+          :iApproval_final:Approval_final_ind, :iAccount_No:Account_No_ind,
+          :iOpen_date:Open_date_ind, :iLoan_amt:Loan_amt_ind, :iLoan_APR:Loan_APR_ind,
+          :iLoan_term:Loan_term_ind, :iFee_1_final:Fee_1_final_ind, :iFee_2_final:Fee_2_final_ind
+     from  app_info
+     where case_sn = :lCase_Sn;
+  EMB_SQL_CHECK("Select appInfo.");
+
+  if (sqlca.sqlcode == 100) {
+     strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_2001));
+     return(DataErrorCode(EXIST_ERR_2001));
+  }
+
+  if (System_date_final_ind == -1) strcpy(System_date_final, "");
+  else strcpy (System_date_final, iSystem_date_final);
+  
+  if (System_time_final_ind == -1) strcpy(System_time_final, "");
+  else strcpy (System_time_final, iSystem_time_final);
+
+  if (Approval_final_ind == -1) {
+     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_2004)); code = DataErrorCode(EXIST_ERR_2004);}
+  else Approval_final = iApproval_final;
+
+  if (Account_No_ind == -1) {
+     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_2005)); code = DataErrorCode(EXIST_ERR_2005);}
+  else strcpy(Account_No, iAccount_No);
+
+  if (Loan_amt_ind == -1) Loan_amt = 0;
+  else Loan_amt = iLoan_amt;
+  if (Loan_amt <= 0) {
+     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_2003)); code = DataErrorCode(EXIST_ERR_2003);}
+
+  Debug("Exit LoanApp.get_loan_info()");
+  return (0);
+}//LoanApp::get_loan_info()
 
 //--------------------------------------------------------------------------------------------------
 void LoanApp::set_applicant_pb(double pb)
@@ -535,6 +607,25 @@ char * LoanApp::get_sysdate()
  EXEC SQL END DECLARE SECTION;
 
 //--------------------------------------------------------------------------------------------------
+int LoanApp::update_final_npv()
+{
+  struct sqlca sqlca;
+  
+  Debug("Enter LoanApp.update_final_npv()");
+
+  strcpy(oCase_SN, case_sn);
+// check if case_sn exist in the table app_result
+  EXEC SQL
+     update app_info
+        set NPV_final=8888
+        where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update NPV.");
+
+  Debug("Exit LoanApp.update_final_npv()");
+  return (0);
+} //LoanApp::update_final_npv()
+
+//--------------------------------------------------------------------------------------------------
 int LoanApp::write_result_prescreen_failed()
 {
   struct sqlca sqlca;
@@ -554,33 +645,15 @@ int LoanApp::write_result_prescreen_failed()
      EXEC SQL delete from  app_result where case_sn = :oCase_SN;
      EMB_SQL_CHECK("Delete PS failure..");
   }
-/*
-     EXEC SQL
-        update app_result
-           set system_time = :osystem_time,
-               Applicant_PB = NULL,
-               Guarantor_PB = NULL,
-               Applicant_PB_adj = NULL,
-               PS_code = :oPS_code,
-               PS_msg = :oPS_msg,
-               PS_code_g = NULL,
-               PS_msg_g = NULL,
-               Guarantor_pass = NULL,
-               Approval_code = :oPS_code,
-               Approval_msg = :oPS_msg
-           where case_sn = :oCase_SN;
-     EMB_SQL_CHECK("Update PS failure."); 
-  } else { // case_sn does NOT exists in app_result, use insert command
-*/
-     EXEC SQL
-        insert into app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
-                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                    Commission, Approval_code, Approval_msg) 
-           values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,
-                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    :oPS_code, :oPS_msg);
-     EMB_SQL_CHECK("Write PS failure.");
-//  }  
+
+  EXEC SQL
+     insert into app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
+                 Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                 Commission, Approval_code, Approval_msg) 
+        values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,
+                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                 :oPS_code, :oPS_msg);
+  EMB_SQL_CHECK("Write PS failure.");
 
   EXEC SQL
      update  app_result
@@ -625,105 +698,48 @@ int LoanApp::write_result(int decision)
      EXEC SQL delete from  app_result where case_sn = :oCase_SN;
      EMB_SQL_CHECK("Delete Result.");
   }
-/*
-     if (gID[0] != '\0' && gID[0] != ' ') {
-        oPS_code_g = ps_code_g;
-        strcpy(oPS_msg_g, ps_msg_g);  
-        if (oPS_code_g == 0) {
-           oGuarantor_PB = guarantorPB;
-           EXEC SQL
-              update app_result
-                 set system_time = :osystem_time,
-                     Applicant_PB = :oApplicant_PB,
-                     Guarantor_PB = :oGuarantor_PB,
-                     Applicant_PB_adj = :oApplicant_PB_adj,
-                     PS_code = :oPS_code,
-                     PS_msg = :oPS_msg,
-                     PS_code_g = :oPS_code_g,
-                     PS_msg_g = :oPS_msg_g,
-                     Guarantor_pass = :oGuarantor_pass,
-                     Approval_code = :oApproval_code,
-                     Approval_msg = :oApproval_msg
-                 where case_sn = :oCase_SN;
-           EMB_SQL_CHECK("Update Result1.");
-        }
-        else 
-           EXEC SQL
-              update app_result
-                 set system_time = :osystem_time,
-                     Applicant_PB = :oApplicant_PB,
-                     Guarantor_PB = NULL,
-                     Applicant_PB_adj = :oApplicant_PB_adj,
-                     PS_code = :oPS_code,
-                     PS_msg = :oPS_msg,
-                     PS_code_g = :oPS_code_g,
-                     PS_msg_g = :oPS_msg_g,
-                     Guarantor_pass = :oGuarantor_pass,
-                     Approval_code = :oApproval_code,
-                     Approval_msg = :oApproval_msg
-                 where case_sn = :oCase_SN;
-           EMB_SQL_CHECK("Update Result2.");
-     } 
-     else {
+
+  if (gID[0] != '\0' && gID[0] != ' ') {
+     oPS_code_g = ps_code_g;
+     strcpy(oPS_msg_g, ps_msg_g);  
+     if (oPS_code_g == 0) {
+        oGuarantor_PB = guarantorPB;
         EXEC SQL
-              update app_result
-                 set system_time = :osystem_time,
-                     Applicant_PB = :oApplicant_PB,
-                     Guarantor_PB = NULL,
-                     Applicant_PB_adj = :oApplicant_PB_adj,
-                     PS_code = :oPS_code,
-                     PS_msg = :oPS_msg,
-                     PS_code_g = NULL,
-                     PS_msg_g = NULL,
-                     Guarantor_pass = :oGuarantor_pass,
-                     Approval_code = :oApproval_code,
-                     Approval_msg = :oApproval_msg
-                 where case_sn = :oCase_SN;
-        EMB_SQL_CHECK("Update Result3.");
+           insert into  app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
+                       PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                       Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                       Commission, Approval_code, Approval_msg) 
+              values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
+                      :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      :oApproval_code, :oApproval_msg);
+        EMB_SQL_CHECK("Write Result1.");
      }
-  } else { // case_sn does NOT exists in app_result, use insert command
-*/
-     if (gID[0] != '\0' && gID[0] != ' ') {
-        oPS_code_g = ps_code_g;
-        strcpy(oPS_msg_g, ps_msg_g);  
-        if (oPS_code_g == 0) {
-           oGuarantor_PB = guarantorPB;
-           EXEC SQL
-              insert into  app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
-                          PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
-                          Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                          Commission, Approval_code, Approval_msg) 
-                 values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
-                         :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
-                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                         :oApproval_code, :oApproval_msg);
-           EMB_SQL_CHECK("Write Result1.");
-        }
-        else 
-           EXEC SQL
-              insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
-                          PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
-                          Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                          Commission, Approval_code, Approval_msg) 
-                 values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
-                         :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
-                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                         :oApproval_code, :oApproval_msg);
-           EMB_SQL_CHECK("Write Result2.");
-     } 
      else {
         EXEC SQL
            insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
-                       PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
+                       PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                        Commission, Approval_code, Approval_msg) 
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
-                       :oPS_code, :oPS_msg, :oGuarantor_pass,
-                       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                       :oApproval_code, :oApproval_msg);
-        EMB_SQL_CHECK("Write Result3.");
-     }
-//  }
+                      :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
+                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      :oApproval_code, :oApproval_msg);
+        EMB_SQL_CHECK("Write Result2.");
+     } 
+  }   
+  else {
+     EXEC SQL
+        insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
+                    PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
+                    Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                    Commission, Approval_code, Approval_msg) 
+           values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
+                    :oPS_code, :oPS_msg, :oGuarantor_pass,
+                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    :oApproval_code, :oApproval_msg);
+     EMB_SQL_CHECK("Write Result3.");
+  }
 
   EXEC SQL
      update  app_result

@@ -10,9 +10,6 @@
 **
 ** SAMPLE:  header file for LoanApp.sqC
 **
-**         This is the header file for the LoanApp.sqC
-**         file.
-**
 ****************************************************************************/
 #ifndef LoanApp_H
 #define LoanApp_H
@@ -79,20 +76,32 @@ class LoanApp {
     double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
     double cutpoint;                // PB cut point
 
+    char System_date_final[8];		// 結案輸入系統日期yyymmdd
+    char System_time_final[7];		// 結案輸入系統時間hhmiss
+    int Approval_final;			// 最終准駁/撥款決定
+    char Account_No[21];		// 撥款帳號
+    char Open_date[8];			// 撥款日期
+    int Loan_amt;			// 撥款金額
+    double Loan_APR;			// 撥款利率
+    int Loan_term;			// 最終貸款期數
+    int Fee_1_final;			// 實收開辦費(固定金額部分)
+    double Fee_2_final;			// 實收開辦費(百分比部分)
+
     /* NPV variables */
-    double applicantPB;
-    double guarantorPB;
-    double applicantPB_adjust;
-    int   ps_code_a;
-    char  ps_msg_a[128];
-    int   ps_code_g;
-    char  ps_msg_g[128];
-    int   Guarantor_pass;
+    double applicantPB;			// 
+    double guarantorPB;			// 
+    double applicantPB_adjust;		// 
+    int   ps_code_a;			// 
+    char  ps_msg_a[128];		// 
+    int   ps_code_g;			// 
+    char  ps_msg_g[128];		// 
+    int   Guarantor_pass;		// 
   public:
     LoanApp (char *caseSN);
     ~LoanApp();
     int initial();
     int get_fin_info();
+    int get_loan_info();
     char * Applicant_id();
     char * Guarantor_id();
     int  get_product_type();
@@ -109,6 +118,7 @@ class LoanApp {
     void set_cutpoint(double cut);
     void set_ps_status_a(int code, char *msg);
     void set_ps_status_g(int code, char *msg);
+    int  update_final_npv();
     int  write_result_prescreen_failed();
 //    int  write_result_others(int decision);
 //    int  write_result_declined(int decision);

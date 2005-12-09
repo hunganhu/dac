@@ -1573,7 +1573,7 @@ int RiskModel::get_pb(char *case_sn, char *idn, float *pb)
 
   if (sqlca.sqlcode == 100) {
      strcpy(MESSAGE, "申貸編號不存在於 PDACO_CAL");
-     return(5001);
+     return(sqlca.sqlcode);
   }
   *pb = pbPB;
   return(0);
@@ -1603,7 +1603,7 @@ int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *
 
   if (sqlca.sqlcode == 100) {
      strcpy(MESSAGE, "申貸編號不存在於 PDACO_CAL");
-     return(5001);
+     return(sqlca.sqlcode);
   }
   *code = PS_code;
   strcpy (msg, PS_msg);
