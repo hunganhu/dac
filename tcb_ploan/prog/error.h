@@ -15,6 +15,8 @@
 #define DataErrorMsg(x)  tcbMsg[(x)].msg
 #define DataErrorCode(x) tcbMsg[(x)].code
 
+#define SYSTEM_ERROR 1999
+
 typedef struct _invalid_msg {
 	int code;
 	char msg[128];
@@ -49,11 +51,11 @@ enum ErrorCodes {
 	DATA_ERR_1026,
 	DATA_ERR_1027,
 	DATA_ERR_1028,
-	EXIST_ERR_2001,
-	EXIST_ERR_2002,
-	EXIST_ERR_2003,
-	EXIST_ERR_2004,
-	EXIST_ERR_2005
+	EXIST_ERR_1101,
+	EXIST_ERR_1102,
+	EXIST_ERR_1103,
+	EXIST_ERR_1104,
+	EXIST_ERR_1105
 };
 
 #endif  //Error_H

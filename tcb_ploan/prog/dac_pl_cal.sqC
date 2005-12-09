@@ -36,6 +36,7 @@
 #include "risk_model.h"
 #include "loan_app.h"
 #include "functions.h"
+#include "error.h"
 #ifdef DEBUG
 #define debug 1
 #else
@@ -75,14 +76,14 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   rc = db.Connect();
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
-     return 1;
+     return SYSTEM_ERROR;
   }
 
   rc = app.initial();
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
-     return 1;
+     return SYSTEM_ERROR;
   } 
   else if (rc > 0) {
      strcpy (error_message, MESSAGE);
@@ -98,14 +99,14 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
-     return 1;
+     return SYSTEM_ERROR;
   } 
 
   rc = rm.get_prescreen_status(case_sn, aID, &ps_code, ps_msg);
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
-     return 1;
+     return SYSTEM_ERROR;
   } 
   app.set_ps_status_a(ps_code, ps_msg);
   if (ps_code > 0) { // prescreen fails
@@ -114,13 +115,13 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
     if (rc < 0)  {
        strcpy (error_message, MESSAGE);
        db.Disconnect();
-       return 1;
+       return SYSTEM_ERROR;
     }
     rc = rm.CleanTables(case_sn, aID);
     if (rc < 0)  {
        strcpy (error_message, MESSAGE);
        db.Disconnect();
-       return 1;
+       return SYSTEM_ERROR;
     }
     EXEC SQL COMMIT;
     EMB_SQL_CHECK("COMMIT");
@@ -133,12 +134,12 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      if (rc < 0) {
         strcpy (error_message, MESSAGE);
         db.Disconnect();
-        return 1;
+        return SYSTEM_ERROR;
      } 
-     else if (rc > 0) {
+     else if (rc == 100) {
         strcpy (error_message, MESSAGE);
         db.Disconnect();
-        return (2001);
+        return (EXIST_ERR_1101);
      }
      Info("pb= %f\n", aPB);
      app.set_applicant_pb(aPB);
@@ -147,7 +148,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      if (rc < 0)  {
         strcpy (error_message, MESSAGE);
         db.Disconnect();
-        return 1;
+        return SYSTEM_ERROR;
      }
    
      // Calculate PB of guarantor
@@ -161,14 +162,14 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
         if (rc < 0) {
            strcpy (error_message, MESSAGE);
            db.Disconnect();
-           return 1;
+           return SYSTEM_ERROR;
         } 
    
         rc = rm.get_prescreen_status(case_sn, gID, &ps_code, ps_msg);
         if (rc < 0) {
            strcpy (error_message, MESSAGE);
            db.Disconnect();
-           return 1;
+           return SYSTEM_ERROR;
         } 
         app.set_ps_status_g(ps_code, ps_msg);
    
@@ -185,7 +186,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
         if (rc < 0) {
            strcpy (error_message, MESSAGE);
            db.Disconnect();
-           return 1;
+           return SYSTEM_ERROR;
         } 
    
      }
@@ -222,7 +223,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      if (rc < 0) {
         strcpy (error_message, MESSAGE);
         rc = db.Disconnect();
-        return 1;
+        return SYSTEM_ERROR;
      } 
      else if (rc > 0) {
         strcpy (error_message, MESSAGE);
@@ -237,7 +238,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   rc = db.Disconnect();
   if (rc != 0) {
     strcpy (error_message, MESSAGE);
-    return 1;
+    return SYSTEM_ERROR;
   }
 
   Info("Exit dac_pl_cal()\n");
@@ -266,7 +267,7 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   rc = db.Connect();
   if (rc != 0)  {
      strcpy (error_message, MESSAGE);
-     return 1;
+     return SYSTEM_ERROR;
   }
 
   // get application information
@@ -274,7 +275,7 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
-     return 1;
+     return SYSTEM_ERROR;
   } 
   else if (rc > 0) {
      strcpy (error_message, MESSAGE);
@@ -286,7 +287,7 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
-     return 1;
+     return SYSTEM_ERROR;
   } 
   else if (rc > 0) {
      strcpy (error_message, MESSAGE);
@@ -299,7 +300,7 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
-     return 1;
+     return SYSTEM_ERROR;
   } 
 
   EXEC SQL COMMIT;
@@ -308,7 +309,7 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   rc = db.Disconnect();
   if (rc != 0) {
     strcpy (error_message, MESSAGE);
-    return 1;
+    return SYSTEM_ERROR;
   }
 
   Info("Exit dac_pl_fnl()\n");

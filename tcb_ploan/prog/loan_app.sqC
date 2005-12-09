@@ -54,11 +54,11 @@ Invalid_Msg tcbMsg[] = {
 	{1026, "申貸金額超出200萬 "},
 	{1027, "開辦費 (金額) 超出台幣99,999元 "},
 	{1028, "開辦費 (百分比) 超出100% "},
-	{2001, "申貸編號不存在於APP_INFO "},
-	{2002, "申貸編號不存在於APP_RESULT "},
-	{2003, "撥貸金額必須大於零 "},
-	{2004, "最終准駁 / 撥款決定需輸入 "},
-	{2005, "撥款帳號需輸入 "}   
+	{1101, "申貸編號不存在於APP_INFO "},
+	{1102, "申貸編號不存在於APP_RESULT "},
+	{1103, "撥貸金額必須大於零 "},
+	{1104, "最終准駁 / 撥款決定需輸入 "},
+	{1105, "撥款帳號需輸入 "}   
 };
 char *decisionMsg[] = {
 /*Type I message*/
@@ -171,8 +171,8 @@ int LoanApp::initial()
   EMB_SQL_CHECK("Select appInfo.");
 
   if (sqlca.sqlcode == 100) {
-     strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_2001));
-     return(DataErrorCode(EXIST_ERR_2001));
+     strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_1101));
+     return(DataErrorCode(EXIST_ERR_1101));
   }
   strcpy (aID, iApplicant_Id);
   strcpy (System_date, iSystem_date);
@@ -349,7 +349,7 @@ int LoanApp::initial()
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1025)); code = DataErrorCode(DATA_ERR_1025);}
   else {
      App_amt = iApp_amt;  
-     if ((App_amt <= 0) || (App_amt > 2000000)) {
+     if ((App_amt < 0) || (App_amt > 2000000)) {
         strcat(MESSAGE, DataErrorMsg(DATA_ERR_1026)); code = DataErrorCode(DATA_ERR_1026);}
   }
   //check Fee_1 開辦費 (金額) 新台幣元，最多五位數
@@ -416,7 +416,7 @@ int LoanApp::get_fin_info()
 
   if (sqlca.sqlcode == 100) {
      strcpy(MESSAGE, "TCB_FIN_INFO 無資料");
-     return(2001);
+     return(EXIST_ERR_1101);
   }
 
   Fund_deposit_pct = iFund_deposit_pct;
@@ -478,8 +478,8 @@ int LoanApp::get_loan_info()
   EMB_SQL_CHECK("Select appInfo.");
 
   if (sqlca.sqlcode == 100) {
-     strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_2001));
-     return(DataErrorCode(EXIST_ERR_2001));
+     strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_1101));
+     return(DataErrorCode(EXIST_ERR_1101));
   }
 
   if (System_date_final_ind == -1) strcpy(System_date_final, "");
@@ -489,17 +489,17 @@ int LoanApp::get_loan_info()
   else strcpy (System_time_final, iSystem_time_final);
 
   if (Approval_final_ind == -1) {
-     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_2004)); code = DataErrorCode(EXIST_ERR_2004);}
+     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1104)); code = DataErrorCode(EXIST_ERR_1104);}
   else Approval_final = iApproval_final;
 
   if (Account_No_ind == -1) {
-     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_2005)); code = DataErrorCode(EXIST_ERR_2005);}
+     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1105)); code = DataErrorCode(EXIST_ERR_1105);}
   else strcpy(Account_No, iAccount_No);
 
   if (Loan_amt_ind == -1) Loan_amt = 0;
   else Loan_amt = iLoan_amt;
   if (Loan_amt <= 0) {
-     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_2003)); code = DataErrorCode(EXIST_ERR_2003);}
+     strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1103)); code = DataErrorCode(EXIST_ERR_1103);}
 
   Debug("Exit LoanApp.get_loan_info()");
   return (0);
@@ -617,7 +617,7 @@ int LoanApp::update_final_npv()
 // check if case_sn exist in the table app_result
   EXEC SQL
      update app_info
-        set NPV_final=8888
+        set NPV_final=16888
         where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Update NPV.");
 

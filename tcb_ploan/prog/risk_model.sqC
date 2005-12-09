@@ -28,6 +28,7 @@
 #endif
 #include "risk_model.h"
 #include "functions.h"
+#include "error.h"
 #ifdef TRACE
 #define trace 1
 #else
@@ -438,14 +439,14 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
 
   if (sqlca.sqlcode == 100) {
     strcpy(MESSAGE, "申貸編號不存在於 pdaco_cal");
-    return(2004);
+    return(EXIST_ERR_1101);
   }
 
  cust_foreigner = foreigner(idn);
  
  ps_code = 0; // initialize to 0
  
- if (age > 60) {
+ if (age >= 60) {
     strcpy(MESSAGE, "年齡 > 60 歲，建議婉拒。");
     ps_code = 3101;
  }
