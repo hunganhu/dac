@@ -78,7 +78,6 @@ enum SQLCodes { Create_Source_Table,
                 End_of_SQL};
 
 int step[] = {
-/*
 	Create_Source_Table,
 	Insert_Source_Table,
         Select_Close_Account,
@@ -139,18 +138,19 @@ int step[] = {
 	Cal_FS204,
 	Transform_T1_Vars,
 	Cal_T1_Score_Twentile,
-
+// Generate score for card T2, set to null in delivery
+/*
 	Cal_MS023,
 	Cal_FS197,
 	Transform_T2_Vars,
 	Cal_T2_Score_Twentile,
-
+*/
 	Transform_N1_Vars,
 	Cal_N1_Score_Twentile,
 
         Generate_Output_Table,
-//        Duplicate_Working_Table,
- */
+        Duplicate_Working_Table,
+
  	End_of_SQL
 };
 
@@ -341,7 +341,7 @@ char *SQLCommands[] = {
 "	stmt_6		int default 0,"
 "	stmt_9		int default 0,"
 "	stmt_12		int default 0,"
-"	card		int,"
+"	card		varchar(2),"
 "	gender		int,"
 "	age		int,"
 "	edu		int,"
@@ -694,19 +694,19 @@ char *SQLCommands[] = {
 */
 /*Update_Card*/
 "update #response_model"
-"   set card = 0"
+"   set card = 'C'"
 "   where cashADV_ind = 1;"
 "update #response_model"
-"   set card = (case when Vintage_ind < 12 then 40 else 4 end)"
+"   set card = (case when Vintage_ind < 12 then 'R2' else 'R1' end)"
 "   where cashADV_ind = 0"
 "     and revINT_ind = 1;"
 "update #response_model"
-"   set card = (case when Vintage_ind < 12 then 3 else 2 end)"
+"   set card = (case when Vintage_ind < 12 then 'T2' else 'T1' end)"
 "   where cashADV_ind = 0"
 "     and revINT_ind = 0"
 "     and expAMT_ind = 1;"
 "update #response_model"
-"   set card = (case when wm_flag = 1 and ins_flag =0 then 10 else 1 end)"
+"   set card = (case when wm_flag = 1 and ins_flag =0 then 'N2' else 'N1' end)"
 "   where cashADV_ind = 0"
 "     and revINT_ind = 0"
 "     and expAMT_ind = 0;"
@@ -830,7 +830,7 @@ char *SQLCommands[] = {
 "        FS096_12_n_t_r1	 *	0.07503	+"
 "        FS072_9_n_t_r1	 *     -0.04747	+"
 "        FS003_6_n_r_t_r1 *	0.02337"
-"     where card = 4;"
+"     where card = 'R1';"
 " update #response_model"
 "    set twentile_r1 = (case when rscore_r1 is null then 0"
 "                            when rscore_r1 <= -0.00459 then 1"
@@ -853,7 +853,7 @@ char *SQLCommands[] = {
 "                            when rscore_r1 <= 0.21221 then 18"
 "                            when rscore_r1 <= 0.23687 then 19"
 "                            else 20 end)"
-"     where card = 4;",
+"     where card = 'R1';",
 
 //-- FS191  消費款減少>=20%
 /*Cal_FS191*/
@@ -905,7 +905,7 @@ char *SQLCommands[] = {
 "        FS204_t_t1	  *	0.02252	+"
 "        AGE		  *	0.00173	+"
 "        edu_t_t1	  *	0.0525"
-"     where card = 2;"
+"     where card = 'T1';"
 " update #response_model"
 "    set twentile_t1 = (case when rscore_t1 is null then 0"
 "                            when rscore_t1 <= 0.02284 then 1"
@@ -928,7 +928,7 @@ char *SQLCommands[] = {
 "                            when rscore_t1 <= 0.12002 then 18"
 "                            when rscore_t1 <= 0.13365 then 19"
 "                            else 20 end)"
-"     where card = 2;",
+"     where card = 'T1';",
 
 //-- MS023	average open to buy
 /*Cal_MS023*/
@@ -968,7 +968,7 @@ char *SQLCommands[] = {
 "        ms023_12_1k_t2	*   -0.00096186	+"
 "        age		*	0.00542	+"
 "        FS197_9_n_t_t2	*	-0.3683"
-"     where card = 3;"
+"     where card = 'T2';"
 " update #response_model"
 "    set twentile_t2 = (case when rscore_t2 is null then 0"
 "                            when rscore_t2 <= -0.03093 then 1"
@@ -991,7 +991,7 @@ char *SQLCommands[] = {
 "                            when rscore_t2 <= 0.17981  then 18"
 "                            when rscore_t2 <= 0.21463  then 19"
 "                            else 20 end)"
-"     where card = 3;",
+"     where card = 'T2';",
 
 /*Transform_N1_Vars*/
 "update #response_model"
@@ -1014,7 +1014,7 @@ char *SQLCommands[] = {
 "        fs204_t_n1	* 0.01605  +"
 "        gender		* 0.02327  +"
 "        index7		* -0.01884"
-"     where card = 1;"
+"     where card = 'N1';"
 " update #response_model"
 "    set twentile_n1 = (case when rscore_n1 is null then 0"
 "                            when rscore_n1 <= 0.02095 then 1"
@@ -1037,7 +1037,7 @@ char *SQLCommands[] = {
 "                            when rscore_n1 <= 0.15567 then 18"
 "                            when rscore_n1 <= 0.17368 then 19"
 "                            else 20 end)"
-"     where card = 1;",
+"     where card = 'N1';",
 
 /*Generate_Output_Table*/
 " if  NOT exists (select * from dbo.sysobjects where id = object_id(N'[Fubon_response_score]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
@@ -1053,38 +1053,38 @@ char *SQLCommands[] = {
 " delete from Fubon_response_score;"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '循環信用', twentile_r1, rscore_r1"
-"    from response_model"
-"    where card=4;"
+"    from #response_model"
+"    where card='R1';"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '循環信用', NULL, NULL"
-"    from response_model"
-"    where card=40;"
+"    from #response_model"
+"    where card='R2';"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '循環信用', 21, NULL"
-"    from response_model"
-"    where card=0;"
+"    from #response_model"
+"    where card='C';"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '刷卡消費', twentile_t1, rscore_t1"
-"    from response_model"
-"    where card=2;"
+"    from #response_model"
+"    where card='T1';"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '刷卡消費', NULL, NULL"
-"    from response_model"
-"    where card=3;"
+"    from #response_model"
+"    where card='T2';"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '關戶/不動', twentile_n1, rscore_n1"
-"    from response_model"
-"    where card=1;"
+"    from #response_model"
+"    where card='N1';"
 " insert into Fubon_response_score(Primary_Cardholder_ID, segment, twentile, score)"
 "    select Primary_Cardholder_ID, '關戶/不動', NULL, NULL"
-"    from response_model"
-"    where card=10;",
+"    from #response_model"
+"    where card='N2';",
 
 /*Duplicate_Working_Table*/
 " if exists (select * from dbo.sysobjects where id = object_id(N'[Fubon_response_model]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)"
 "    drop table Fubon_response_model;"
 " select *"
-" into Fubon_response_score"
+" into Fubon_response_model"
 " from #response_model;"
 
  };

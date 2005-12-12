@@ -75,7 +75,7 @@ bool TADOHandler::ExecSQLCmd(char * CmdString)
 {
  try {
     ADOCommand->CommandText = CmdString;
-    ADOCommand->CommandTimeout = 300;    // 300 seconds
+    ADOCommand->CommandTimeout = 36000;    // 10 hours
     ADOCommand->CommandType = cmdText;
     ADOCommand->Execute();
  }
@@ -98,7 +98,7 @@ bool TADOHandler::ExecSQLCmd (char * CmdString, const Variant *Parameters,
 {
  try {
     ADOCommand->CommandText = CmdString;
-    ADOCommand->CommandTimeout = 300;    // 300 seconds
+    ADOCommand->CommandTimeout = 36000;    // 10 hours
     ADOCommand->CommandType = cmdText;
     ADOCommand->Execute(VarArrayOf(Parameters, index));
  }

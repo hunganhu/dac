@@ -146,11 +146,11 @@ int main(int argc, char* argv[])
               segment = Query->FieldValues["segment"];
               group_count = Query->FieldValues["group_count"];
               if (Query->FieldValues["twentile"].IsNull()) {
-                 fprintf (stderr, "   %10s <null> = %d\n", segment.c_str(), group_count);
+                 fprintf (stderr, "   %s\tµLªkµû¤À = %d\n", segment.c_str(), group_count);
               }
               else {
                  twentile = Query->FieldValues["twentile"];
-                 fprintf (stderr, "    %10s %6d = %d\n", segment.c_str(), twentile, group_count);
+                 fprintf (stderr, "    %s\t%8d = %d\n", segment.c_str(), twentile, group_count);
               }
               Query->Next();
            }
