@@ -1,7 +1,5 @@
 connect to ESCORE user escorap1 using escorap1;
 
-
-
 -- drop table aas001;
 -- drop table aps001;
 -- drop table bas001;
@@ -19,7 +17,7 @@ connect to ESCORE user escorap1 using escorap1;
 -- drop table app_info;
 
 
--- create JCIC tables   
+-- create JCIC tables
 create table AAS001 (
 	CASE_SN		    char(12) not null,
 	inquiry_date	    char(10) not null,
@@ -32,7 +30,7 @@ create table AAS001 (
 	FAKE_DATE           Char(7)
 ) IN "ESCORETABSP";
 create index i_AAS001 on AAS001(CASE_SN, IDN);
-	
+
 COMMENT ON TABLE AAS001 IS '自然人姓名,身分證冒用 (單筆)';
 COMMENT ON COLUMN AAS001.CASE_SN	IS '申請編號';
 COMMENT ON COLUMN AAS001.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
@@ -103,10 +101,10 @@ create table BAM086 (
 	IAB_NAME            Char(60),
 	R_YYYMMDD           Char(7),
 	REFUND_AMT          char(10),
-	CK_REF              Char(1) 
+	CK_REF              Char(1)
 ) IN "ESCORETABSP";
 create index i_BAM086 on BAM086(CASE_SN, IDN);
-	
+
 COMMENT ON TABLE BAM086 IS '授信資料明細及還款紀錄資訊-行庫別 (多筆 B32,B63-B64)';
 COMMENT ON COLUMN BAM086.CASE_SN	IS '申請編號';
 COMMENT ON COLUMN BAM086.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
@@ -153,7 +151,7 @@ create table BAM302 (
 	PASS_DUE_AMT        char(10)
 ) IN "ESCORETABSP";
 create index i_BAM302 on BAM302(CASE_SN, IDN);
-	
+
 
 COMMENT ON TABLE BAM302 IS '授信保證資料(B31之共同債務資料 (多筆 B31-B33)';
 COMMENT ON COLUMN BAM302.CASE_SN	IS '申請編號';
@@ -194,7 +192,7 @@ create table BAM303 (
 	PASS_DUE_AMT        char(10)
 ) IN "ESCORETABSP";
 create index i_BAM303 on BAM303(CASE_SN, IDN);
-	
+
 COMMENT ON TABLE BAM303	IS '授信保證資料(B31之共同債務資料 (多筆 B31-B33)';
 COMMENT ON COLUMN BAM303.CASE_SN	IS '申請編號';
 COMMENT ON COLUMN BAM303.IDN	 	IS '申請人身分證號';
@@ -335,7 +333,6 @@ create table DAS006 (
 	IDN_LATEST_WRITEOFF Char(7)
 ) IN "ESCORETABSP";
 create index i_DAS006 on DAS006(CASE_SN, IDN);
-	
 
 COMMENT ON TABLE DAS006 IS '主體連帶退票摘要紀錄 (單筆摘要)';
 COMMENT ON COLUMN DAS006.CASE_SN	IS '申請編號';
@@ -354,6 +351,34 @@ COMMENT ON COLUMN DAS006.IDN_WRITEOFF_AMT	IS '連帶退票已清償註記總金額 (千元)';
 COMMENT ON COLUMN DAS006.IDN_WRITEOFF_CNT 	IS '連帶退未已清償註記票總張數';
 COMMENT ON COLUMN DAS006.IDN_LATEST_WRITEOFF	IS '連帶最近一次已清償註記註銷日期';
 
+create table jas002 (
+	CASE_SN		char(12) not null,
+	inquiry_date	char(10) not null,
+	IDN		char(10) not null,
+	ever_delinquent char(1),
+	delinquent_date char(7),
+	ever_bad_check  char(1),
+	bad_check_date  char(7),
+	ever_reject     char(1),
+	reject_date     char(7),
+	ever_stop_card  char(1),
+	stop_card_date  char(7)
+) IN "ESCORETABSP";
+create index i_jas002 on jas002(CASE_SN, IDN);
+
+COMMENT ON TABLE  jas002	IS '信用異常紀錄 (B, D, K)';
+COMMENT ON COLUMN jas002.CASE_SN	IS '申請編號';
+COMMENT ON COLUMN jas002.IDN	 	IS '申請人身分證號'; 
+COMMENT ON COLUMN jas002.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+COMMENT ON COLUMN jas002.ever_delinquent	IS '授信異常 YN';
+COMMENT ON COLUMN jas002.delinquent_date	IS '最近授信異常日期';
+COMMENT ON COLUMN jas002.ever_bad_check	IS '退票異常 YN';
+COMMENT ON COLUMN jas002.bad_check_date	IS '最近退票異常日期';
+COMMENT ON COLUMN jas002.ever_reject	IS '拒絕往來記錄 YN';
+COMMENT ON COLUMN jas002.reject_date	IS '拒絕往來日期  拒絕往來記錄N本欄位有日期為該戶拒往已解除本欄位日期為拒絕往來日期';
+COMMENT ON COLUMN jas002.ever_stop_card	IS '強制停卡異常 YN';
+COMMENT ON COLUMN jas002.stop_card_date	IS '最近強制停卡日期';
+
 create table KRM001 (
 	CASE_SN		char(12) not null,
 	inquiry_date	char(10) not null,
@@ -370,7 +395,7 @@ create table KRM001 (
 	Limit 		char (6),
 	LIMIT_TYPE	char (1),
 	USAGE_TYPE	char (1),
-	SECURE		char (1)		
+	SECURE		char (1)
 ) IN "ESCORETABSP";
 create index i_krm001 on KRM001(CASE_SN, IDN);
 
@@ -422,6 +447,56 @@ COMMENT ON COLUMN KRM023.CASH 		IS '預借現金有無(YN)';
 COMMENT ON COLUMN KRM023.PAY_CODE	IS '繳款狀況代號  (對照表)';
 
 
+create table KRM037 (
+	CASE_SN		char(12) not null,
+	inquiry_date	char(10) not null,
+	IDN		char(10) not null,
+	idn_ban		char(10),
+	bill_date	char(7),
+	issue		char(3),
+	issue_name 	char(24),
+	card_type 	char(7),
+	perm_limit 	char(7),
+	temp_limit 	char(7),
+	cash_limit 	char(7),
+	payable 	char(3),
+	cash_lent 	char(8),
+	last_paya 	char(3),
+	revol_bal 	char(9),
+	pay_stat 	char(1),
+	pay_code 	char(1),
+	revol_rate 	char(4),
+	pre_owed 	char(8),
+	debt_code 	char(1),
+	close_code 	char(1),
+	clear_date 	char(7)
+) IN "ESCORETABSP";
+create index i_krm037 on krm037(CASE_SN, IDN);
+
+COMMENT ON TABLE KRM037	IS '信用卡戶帳款及循環比率資訊（最近１２月）(多筆 K33,遇額度合計時,其他文字性欄位空白,數值欄位置0)';
+COMMENT ON COLUMN KRM037.CASE_SN	IS '申請編號';
+COMMENT ON COLUMN KRM037.IDN 		IS '申請人身分證號';
+COMMENT ON COLUMN KRM037.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+COMMENT ON COLUMN KRM037.idn_ban 	IS '繳款人ID';
+COMMENT ON COLUMN KRM037.bill_date	IS '結帳日';
+COMMENT ON COLUMN KRM037.issue		IS '發卡機構代號';
+COMMENT ON COLUMN KRM037.issue_name	IS '發卡機構名稱';
+COMMENT ON COLUMN KRM037.card_type	IS '信用卡別';
+COMMENT ON COLUMN KRM037.perm_limit	IS '永久額度  單位:千元';
+COMMENT ON COLUMN KRM037.temp_limit	IS '臨時額度  單位:千元';
+COMMENT ON COLUMN KRM037.cash_limit	IS '預借現金額度  單位:千元';
+COMMENT ON COLUMN KRM037.payable	IS '本期應付帳款(級距)';
+COMMENT ON COLUMN KRM037.cash_lent	IS '本期預借現金  單位:元';
+COMMENT ON COLUMN KRM037.last_paya 	IS '上期應付帳款(級距)';
+COMMENT ON COLUMN KRM037.revol_bal	IS '上期循環信用  單位:元';
+COMMENT ON COLUMN KRM037.pay_stat	IS '上期繳款狀況代號(金額)  (對照表)';
+COMMENT ON COLUMN KRM037.pay_code	IS '上期繳款狀況代號(時間)  (對照表)';
+COMMENT ON COLUMN KRM037.revol_rate	IS '上期循環比率REVOL_BAL/PERM_LIMIT,精確度至小數點後2位(四捨五入),非百分比';
+COMMENT ON COLUMN KRM037.pre_owed	IS '未到期分期償還待付金額,未到期代墊消費款金額(格式22欄項)+未到期分期償還預借現金金額(格式23欄項),不包括本期新增餘額代償(18欄)';
+COMMENT ON COLUMN KRM037.debt_code 	IS '債權狀態註記';
+COMMENT ON COLUMN KRM037.close_code	IS '債權結案註記  (對照表)';
+COMMENT ON COLUMN KRM037.clear_date	IS '不良債權結案日期';
+
 create table STM001 (
 	CASE_SN		char(12) not null,
 	inquiry_date	char(10) not null,
@@ -457,8 +532,19 @@ create table VAM102 (
 ) IN "ESCORETABSP";
 create index i_vam102 on VAM102(CASE_SN, IDN);
 
+COMMENT ON TABLE VAM102 IS '補充/註記資訊';
+COMMENT ON COLUMN VAM102.CASE_SN	IS '申請編號';
+COMMENT ON COLUMN VAM102.IDN		IS '申請人身分證號';
+COMMENT ON COLUMN VAM102.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+COMMENT ON COLUMN VAM102.IDN_BAN	IS '統編/身分證號';
+COMMENT ON COLUMN VAM102.DATA_DATE	IS '訊息登錄日期';
+COMMENT ON COLUMN VAM102.MAINCODE	IS '訊息種類大項代碼  (對照表)';
+COMMENT ON COLUMN VAM102.MAINNOTE	IS '訊息種類大項';
+COMMENT ON COLUMN VAM102.SUBCODE	IS '訊息種類細項代碼  (對照表)';
+COMMENT ON COLUMN VAM102.SUBNOTE	IS '訊息種類細項';
+COMMENT ON COLUMN VAM102.NOTE		IS '訊息內容';
 
--- create INPUT tables 
+-- create INPUT tables
 create table app_info (
 	Case_SN		char(12) not null,
 	system_date	char(7) not null,
@@ -508,8 +594,8 @@ create table app_info (
 	agent		varchar(30) not null,
 	errcode		char(4)
 ) IN "ESCORETABSP";
-alter table app_info add constraint p_app_info primary key (CASE_SN); 
-	
+alter table app_info add constraint p_app_info primary key (CASE_SN);
+
 COMMENT ON TABLE app_info	IS 'DAC個人信貸表格';
 COMMENT ON COLUMN app_info.CASE_SN	IS '申請編號(不可重複)';
 COMMENT ON COLUMN app_info.system_date	IS '申請輸入系統日期';
@@ -559,7 +645,7 @@ COMMENT ON COLUMN app_info.branch	IS '經辦分行';
 COMMENT ON COLUMN app_info.agent	IS '經辦行員姓名';
 COMMENT ON COLUMN app_info.errcode	IS '案件查詢結果';
 
--- create OUTPUT tables 	
+-- create OUTPUT tables
 create table app_result (
 	Case_SN		char(12) not null,
 	system_time	char(13),
@@ -586,7 +672,7 @@ create table app_result (
 	Lowest_Rate_2	decimal(7,4),
 	Lowest_Rate_3	decimal(7,4)
 ) IN "ESCORETABSP";
-alter table app_result add constraint p_app_result primary key (CASE_SN); 
+alter table app_result add constraint p_app_result primary key (CASE_SN);
 
 COMMENT ON TABLE app_result	IS 'DAC個人信貸模組結果表格';
 COMMENT ON COLUMN app_result.CASE_SN	IS '申請編號(不可重複)';
@@ -623,7 +709,7 @@ COMMENT ON COLUMN COUNTER.SEQ_TYPE	IS '序號類型, W:WEB';
 COMMENT ON COLUMN COUNTER.SEQ_NO	IS '序號值';
 
 
--- create FINANCIAL tables 
+-- create FINANCIAL tables
 create table TCB_FIN_INFO (
 	Fund_deposit_pct	decimal(7,4),
 	Fund_bank_pct	decimal(7,4),
@@ -674,10 +760,10 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.COF_bank		IS '同業拆款利率';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.ROE		IS 'ROE';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
 
--- Trigger for table TCB_FIN_INFO_LOG need to be added here 
+-- Trigger for table TCB_FIN_INFO_LOG need to be added here
 
 
--- Create Permanent Working Tables 
+-- Create Permanent Working Tables
  create table bam086_dedup (
  	case_sn		char(12),
  	IDN		char(11),
@@ -867,7 +953,8 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
 	pb_in		decimal(16,8),
 	npv		decimal(16,2),
 	ps_code		int,
-	ps_msg		varchar(128)
+	ps_msg		varchar(128),
+	cut		decimal(16,8)
  ) IN "ESCORETABSP";
  create index i_pdaco_cal on pdaco_cal(CASE_SN, IDN);
 
@@ -914,69 +1001,69 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
  create index i_latest_line on latest_line(CASE_SN);
 
  create table pdaco_result  (
-    case_sn char(12), 
-    idn char(10), 
-    inquiry_date char(10), 
-    now integer, 
-    age integer, 
-    jas002_defect integer with default 0, 
-    krm001_hit integer with default 0, 
-    krm023_hit integer with default 0, 
-    max_bucket integer with default 0, 
-    fs044 integer with default 0, 
-    fs334 integer with default 0, 
-    cash_max_bucket integer with default 0, 
-    cash_utilization integer with default 0, 
-    ind001 integer with default 0, 
-    revolving_amt integer with default 0, 
-    fs102_3m decimal(16,8), 
-    fs102_6m decimal(16,8), 
-    fs102_9m decimal(16,8), 
-    ft102_42 decimal(16,8), 
-    ft102_42_r decimal(16,8), 
-    ft102_42_r_tran decimal(16,8), 
-    fs031 decimal(16,8), 
-    fs031_tran decimal(16,8), 
-    fs005_1k_3m decimal(16,8), 
-    fs005_1k_3m_q decimal(16,8), 
-    fs005_1k_3m_q_tran decimal(16,8), 
-    fs059_1k_3m decimal(16,8), 
-    fs059_1k_6m decimal(16,8), 
-    fs059_1k_9m decimal(16,8), 
-    ft059_1k_43 decimal(16,8), 
-    ft059_1k_43_r decimal(16,8), 
-    ft059_1k_43_r_tran decimal(16,8), 
-    ft059_1k_42 decimal(16,8), 
-    ft059_1k_42_q decimal(16,8), 
-    ft059_1k_42_q_tran decimal(16,8), 
-    fs051 decimal(16,8), 
-    fs051_tran decimal(16,8), 
-    fs016_3m decimal(16,8), 
-    fs101_3m decimal(16,8), 
-    int015_3 decimal(16,8), 
-    int015_3_tran decimal(16,8), 
-    fs205_1k_3m decimal(16,8), 
-    fs205_1k_3m_q decimal(16,8), 
-    fs205_1k_3m_q_tran decimal(16,8), 
-    fs212_1k_3m decimal(16,8), 
-    fs212_1k_6m decimal(16,8), 
-    ft212_1k_43 decimal(16,8), 
-    ft212_1k_43_q decimal(16,8), 
-    ft212_1k_43_q_tran decimal(16,8), 
-    ms117_6m decimal(16,8), 
-    fs014_9m decimal(16,8), 
-    fs101_9m decimal(16,8), 
-    int028_9 decimal(16,8), 
-    int028_9_tran decimal(16,8), 
-    sex integer, 
-    sex_tran integer, 
-    app_last_month_bucket integer, 
-    app_last_month_bucket_tran integer, 
-    pdaco_score decimal(16,8), 
-    pdaco_twen decimal(16,8), 
-    pb_in decimal(16,8), 
-    npv decimal(16,2), 
-    ps_code integer, 
-    ps_msg varchar(128), 
-    cut decimal(16,8) )   
-    IN "ESCORETABSP"; 
+    case_sn char(12),
+    idn char(10),
+    inquiry_date char(10),
+    now integer,
+    age integer,
+    jas002_defect integer with default 0,
+    krm001_hit integer with default 0,
+    krm023_hit integer with default 0,
+    max_bucket integer with default 0,
+    fs044 integer with default 0,
+    fs334 integer with default 0,
+    cash_max_bucket integer with default 0,
+    cash_utilization integer with default 0,
+    ind001 integer with default 0,
+    revolving_amt integer with default 0,
+    fs102_3m decimal(16,8),
+    fs102_6m decimal(16,8),
+    fs102_9m decimal(16,8),
+    ft102_42 decimal(16,8),
+    ft102_42_r decimal(16,8),
+    ft102_42_r_tran decimal(16,8),
+    fs031 decimal(16,8),
+    fs031_tran decimal(16,8),
+    fs005_1k_3m decimal(16,8),
+    fs005_1k_3m_q decimal(16,8),
+    fs005_1k_3m_q_tran decimal(16,8),
+    fs059_1k_3m decimal(16,8),
+    fs059_1k_6m decimal(16,8),
+    fs059_1k_9m decimal(16,8),
+    ft059_1k_43 decimal(16,8),
+    ft059_1k_43_r decimal(16,8),
+    ft059_1k_43_r_tran decimal(16,8),
+    ft059_1k_42 decimal(16,8),
+    ft059_1k_42_q decimal(16,8),
+    ft059_1k_42_q_tran decimal(16,8),
+    fs051 decimal(16,8),
+    fs051_tran decimal(16,8),
+    fs016_3m decimal(16,8),
+    fs101_3m decimal(16,8),
+    int015_3 decimal(16,8),
+    int015_3_tran decimal(16,8),
+    fs205_1k_3m decimal(16,8),
+    fs205_1k_3m_q decimal(16,8),
+    fs205_1k_3m_q_tran decimal(16,8),
+    fs212_1k_3m decimal(16,8),
+    fs212_1k_6m decimal(16,8),
+    ft212_1k_43 decimal(16,8),
+    ft212_1k_43_q decimal(16,8),
+    ft212_1k_43_q_tran decimal(16,8),
+    ms117_6m decimal(16,8),
+    fs014_9m decimal(16,8),
+    fs101_9m decimal(16,8),
+    int028_9 decimal(16,8),
+    int028_9_tran decimal(16,8),
+    sex integer,
+    sex_tran integer,
+    app_last_month_bucket integer,
+    app_last_month_bucket_tran integer,
+    pdaco_score decimal(16,8),
+    pdaco_twen decimal(16,8),
+    pb_in decimal(16,8),
+    npv decimal(16,2),
+    ps_code integer,
+    ps_msg varchar(128),
+    cut decimal(16,8) )
+    IN "ESCORETABSP";
