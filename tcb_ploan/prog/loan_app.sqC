@@ -484,25 +484,31 @@ int LoanApp::get_loan_info()
 
   if (System_date_final_ind == -1) strcpy(System_date_final, "");
   else strcpy (System_date_final, iSystem_date_final);
-  
+//  printf ("System_date_final=%s.\n", System_date_final);
+    
   if (System_time_final_ind == -1) strcpy(System_time_final, "");
   else strcpy (System_time_final, iSystem_time_final);
-
+//  printf ("System_time_final=%s.\n", System_time_final);
+  
   if (Approval_final_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1104)); code = DataErrorCode(EXIST_ERR_1104);}
   else Approval_final = iApproval_final;
+//  if (code == 0) printf ("Approval_final=%d.\n", Approval_final);
 
   if (Account_No_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1105)); code = DataErrorCode(EXIST_ERR_1105);}
   else strcpy(Account_No, iAccount_No);
+//  if (code == 0) printf ("Account_No=%s.\n", Account_No);
 
   if (Loan_amt_ind == -1) Loan_amt = 0;
   else Loan_amt = iLoan_amt;
   if (Loan_amt <= 0) {
      strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1103)); code = DataErrorCode(EXIST_ERR_1103);}
-
+     
+//  printf ("Loan_amt=%d.\n", Loan_amt);
+//  printf ("code=%d, msg=%s.\n", code, MESSAGE);
   Debug("Exit LoanApp.get_loan_info()");
-  return (0);
+  return (code);
 }//LoanApp::get_loan_info()
 
 //--------------------------------------------------------------------------------------------------
