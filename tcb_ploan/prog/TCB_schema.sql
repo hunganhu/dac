@@ -494,7 +494,7 @@ COMMENT ON COLUMN KRM037.pay_code	IS '上期繳款狀況代號(時間)  (對照表)';
 COMMENT ON COLUMN KRM037.revol_rate	IS '上期循環比率REVOL_BAL/PERM_LIMIT,精確度至小數點後2位(四捨五入),非百分比';
 COMMENT ON COLUMN KRM037.pre_owed	IS '未到期分期償還待付金額,未到期代墊消費款金額(格式22欄項)+未到期分期償還預借現金金額(格式23欄項),不包括本期新增餘額代償(18欄)';
 COMMENT ON COLUMN KRM037.debt_code 	IS '債權狀態註記';
-COMMENT ON COLUMN KRM037.close_code	IS '債權結案註記  (對照表)';
+COMMENT ON COLUMN KRM037.close_code	IS '債權結案註記(對照表)';
 COMMENT ON COLUMN KRM037.clear_date	IS '不良債權結案日期';
 
 create table STM001 (
