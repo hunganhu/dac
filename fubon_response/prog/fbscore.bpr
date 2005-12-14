@@ -97,7 +97,7 @@ c:\program files\borland\cbuilder6\Bin\dclite60.bpl=Borland Integrated Translati
 DebugSourceDirs=$(BCB)\source\vcl
 
 [Parameters]
-RunParams=-g -m 20050604 -u oliver -p oliver -s giza -d oliver
+RunParams=-g -m 20050604 -u jcic -p jcic -s giza -d fubon_ploan_test_2005
 Launcher=
 UseLauncher=0
 DebugCWD=

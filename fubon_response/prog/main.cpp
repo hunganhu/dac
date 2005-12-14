@@ -26,7 +26,8 @@ int main(int argc, char* argv[])
   int now, yyyymm;
   Variant hostVars[10];
   TADOHandler *dbhandle;
-  TADOQuery *Query;
+//  TADOQuery *Query;
+  TADODataSet *ds;
 
   int twentile, group_count;
   String segment;
@@ -106,7 +107,8 @@ int main(int argc, char* argv[])
  dbhandle = new TADOHandler();
  dbhandle->OpenDatabase(connect_string);
  fprintf(stderr, "%s: Calculating Response Model Ver.1 started.\n", CurrDateTime());
- Query = new TADOQuery(NULL);
+// Query = new TADOQuery(NULL);
+  ds = new TADODataSet(NULL);
 
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
@@ -129,30 +131,49 @@ int main(int argc, char* argv[])
            dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
         case End_of_SQL:
-//           if (Debug == 1) {
-//              DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
-//              dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
-//           }
+           if (Debug == 1) {
+              DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
+              dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
+           }
            fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
            fprintf (stderr, "\nFubon Response Model Profile \n");
-
+/*
            Query->ConnectionString = connect_string;
            Query->Close();
            Query->SQL->Clear();
            Query->SQL->Add("select segment, twentile, count(*) as group_count from Fubon_response_score group by segment, twentile order by segment, twentile;");
            Query->Open();
            Query->First();
+           fprintf (stderr, "     類    別\t評    分   總  數\n");
+           fprintf (stderr, "    =========\t========  =======\n");
            while (!Query->Eof) {
               segment = Query->FieldValues["segment"];
               group_count = Query->FieldValues["group_count"];
               if (Query->FieldValues["twentile"].IsNull()) {
-                 fprintf (stderr, "   %s\t無法評分 = %d\n", segment.c_str(), group_count);
+                 fprintf (stderr, "    %s\t無法評分 = %d\n", segment.c_str(), group_count);
               }
               else {
                  twentile = Query->FieldValues["twentile"];
                  fprintf (stderr, "    %s\t%8d = %d\n", segment.c_str(), twentile, group_count);
               }
               Query->Next();
+           }
+*/
+           dbhandle->ExecSQLQry(SQLCommands[Generate_Summary], ds);
+           ds->First();
+           fprintf (stderr, "     類    別\t評    分   總  數\n");
+           fprintf (stderr, "    =========\t========  =======\n");
+           while (!ds->Eof) {
+              segment = ds->FieldValues["segment"];
+              group_count = ds->FieldValues["group_count"];
+              if (ds->FieldValues["twentile"].IsNull()) {
+                 fprintf (stderr, "    %s\t無法評分 = %d\n", segment.c_str(), group_count);
+              }
+              else {
+                 twentile = ds->FieldValues["twentile"];
+                 fprintf (stderr, "    %s\t%8d = %d\n", segment.c_str(), twentile, group_count);
+              }
+              ds->Next();
            }
 
            break;

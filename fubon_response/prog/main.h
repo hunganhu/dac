@@ -74,6 +74,7 @@ enum SQLCodes { Create_Source_Table,
                 Cal_N1_Score_Twentile,
                 Generate_Output_Table,
                 Duplicate_Working_Table,
+                Generate_Summary,
 
                 End_of_SQL};
 
@@ -138,18 +139,18 @@ int step[] = {
 	Cal_FS204,
 	Transform_T1_Vars,
 	Cal_T1_Score_Twentile,
+
 // Generate score for card T2, set to null in delivery
-/*
-	Cal_MS023,
-	Cal_FS197,
-	Transform_T2_Vars,
-	Cal_T2_Score_Twentile,
-*/
+//	Cal_MS023,
+//	Cal_FS197,
+//	Transform_T2_Vars,
+//	Cal_T2_Score_Twentile,
+
 	Transform_N1_Vars,
 	Cal_N1_Score_Twentile,
 
         Generate_Output_Table,
-        Duplicate_Working_Table,
+//        Duplicate_Working_Table,
 
  	End_of_SQL
 };
@@ -218,7 +219,8 @@ char *SQLNames[]= {"Create_Source_Table",
                 "Transform_N1_Vars",
                 "Cal_N1_Score_Twentile",
                 "Generate_Output_Table",
-                "Duplicate_Working_Table"
+                "Duplicate_Working_Table",
+                "Generate_Summary"
  };
 
 
@@ -1085,8 +1087,11 @@ char *SQLCommands[] = {
 "    drop table Fubon_response_model;"
 " select *"
 " into Fubon_response_model"
-" from #response_model;"
+" from #response_model;",
 
+/*Generate_Summary*/
+" select segment, twentile, count(*) as group_count from Fubon_response_score "
+" group by segment, twentile order by segment, twentile; "
  };
 
 #endif
