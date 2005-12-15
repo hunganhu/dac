@@ -1,17 +1,31 @@
 /****************************************************************************
 ** Licensed Materials - Property of DAC
 **
-** (C) COPYRIGHT Decision Analytics Consulting 2004
+** (C) COPYRIGHT Decision Analytics Consulting 2005
 ** All Rights Reserved.
 **
 *****************************************************************************
 **
 ** SOURCE FILE NAME: function.cpp
-**
-** Description:
-**
-**
-**
+** Description: Common C++ functions used by others functions
+**              1. get_risk_cut_point(): Get cutting poing (min. PB) by loan amount, term, and APR
+**              2. float risk_cut[12][7][21]: cutting poing lookup table // loan_amt, term, apr
+**              3. validate_date(): check if correct date format. The format is yyyymmdd(MinGuo).
+**              4. is_future0(): check the date is greater than current date. The format is yyymmdd(MinGuo)
+**                               current date is system date.
+**              5. is_future(): check the date is greater than current date. The format is yyymmdd(MinGuo)
+**                               current date is the field system_date from table app_info.
+**              6. is_future_year0(): check the year is greater than current year. The format is yyy(MinGuo)
+**                               current date is system date.
+**              7. is_future_year(): check the year is greater than current year. The format is yyy(MinGuo)
+**                               current year is the field system_date from table app_info.
+**              8. CurrTime_MinGuo(): Return system date in MinGuo format yyymmdd.
+**              9. age0(): calculate age from current date. current date is system date.
+**                               
+**              10. age(): calculate age from current date.
+**                               current date is the field system_date from table app_info.
+**              11. foreigner(): If id is not valid ID format then it is a foreigner.
+**              12. check_expiration(int lock): Check if current date greater than the lock date.
 **
 ****************************************************************************/
 #include <string.h>
@@ -475,4 +489,30 @@ int foreigner(char *idn)
     return(1);
 }
 
+//---------------------------------------------------------------------------
+/*
+ * Function: check_expiration(int lock)
+ * Description: Check if current date greater than the lock date.
+ */
+int check_expiration(long lock)
+{
+  int year;
+  int month;
+  int day;
+  long current;
+  tm *today;
+  time_t ltime;
+
+  ltime = time( NULL );
+  today = localtime( &ltime );
+  year = today->tm_year + 1900;
+  month = today->tm_mon + 1;
+  day = today->tm_mday;
+  current = (year * 100 + month) * 100 + day;
+
+  if (current > lock)
+     return (-1);
+  else
+     return (0);
+}
 //--------------------------------------------------------------------------------------------------

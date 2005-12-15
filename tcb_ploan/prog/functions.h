@@ -10,10 +10,6 @@
 **
 ** SAMPLE:  header file for functions.cpp
 **
-**         This is the header file for the functions.cpp utility
-**         file.
-**
-**
 ****************************************************************************/
 
 #ifndef FUNCTIONS_H
@@ -34,6 +30,7 @@ char *CurrTime_MinGuo();
 int age0 (char *birthday);
 int age (char *sysdate, char *date);
 int foreigner(char *idn);
+int check_expiration(long lock);
 
 #ifdef __cplusplus
 }

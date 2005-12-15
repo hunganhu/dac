@@ -43,6 +43,9 @@
 #define debug 0
 #endif
 
+const int EXPIRATION_DATE = 20060131; // expiration date of this module
+const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
+
 char MESSAGE[1024];
 
 //--------------------------------------------------------------------------------------------------
@@ -70,6 +73,11 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   Info("User PW= %s\n", upw);
   Info("Case SN= %s\n", case_sn);
 */
+  if (check_expiration(EXPIRATION_DATE) == -1) {
+     strcpy (error_message, EXPIRATION_MSG);
+     return SYSTEM_ERROR;
+  }
+
   memset(MESSAGE, '\0', sizeof(MESSAGE));
 
   db.setDb(alias, uid, upw);
@@ -261,6 +269,10 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   char ps_msg[257];
   struct sqlca sqlca;
 
+  if (check_expiration(EXPIRATION_DATE) == -1) {
+     strcpy (error_message, EXPIRATION_MSG);
+     return SYSTEM_ERROR;
+  }
   memset(MESSAGE, '\0', sizeof(MESSAGE));
 
   db.setDb(alias, uid, upw);
