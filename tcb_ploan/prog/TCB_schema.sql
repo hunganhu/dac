@@ -518,6 +518,31 @@ COMMENT ON COLUMN STM001.BANK_NAME	IS '查詢單位名稱';
 COMMENT ON COLUMN STM001.ITEM_LIST	IS '查詢項目串列 B:授信 D:票信 K:信用卡等';
 
 
+create table STM007 (
+	CASE_SN		char(12) not null,
+	inquiry_date	char(10) not null,
+	IDN		char(10) not null,
+	query_date 	char(7),
+ 	bank_code 	char(7),
+	bank_name 	char(40),
+	item_list 	char(10),
+	inq_purpose_1	char(1),
+	inq_purpose	char(30)
+
+) IN "ESCORETABSP";
+create index i_stm007 on STM007(CASE_SN, IDN);
+
+COMMENT ON TABLE STM007 IS '最近三個月內非Z類產品被查詢紀錄 (多筆)';
+COMMENT ON COLUMN STM007.CASE_SN	IS '申請編號';
+COMMENT ON COLUMN STM007.IDN		IS '申請人身分證號';
+COMMENT ON COLUMN STM007.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+COMMENT ON COLUMN STM007.query_date	IS '查詢日期';
+COMMENT ON COLUMN STM007.bank_code	IS '查詢單位代號';
+COMMENT ON COLUMN STM007.bank_name	IS '查詢單位名稱';
+COMMENT ON COLUMN STM007.item_list	IS '查詢項目串列 B:授信 D:票信 K:信用卡等';
+COMMENT ON COLUMN STM007.inq_purpose_1	IS '查詢理由碼';
+COMMENT ON COLUMN STM007.inq_purpose 	IS '查詢理由碼(中文註解)1:新業務申請2:原業務往來3:新業務申請及原業務往來';
+
 create table VAM102 (
 	CASE_SN		char(12) not null,
 	inquiry_date	char(10) not null,
@@ -853,6 +878,40 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
  ) IN "ESCORETABSP";
  create index i_krm023_dedup on krm023_dedup(CASE_SN, IDN, issue, mon_since);
 
+ create table KRM037_dedup (
+ 	CASE_SN		char(12) not null,
+ 	inquiry_date	char(10) not null,
+ 	IDN		char(10) not null,
+ 	idn_ban		char(10),
+ 	bill_date	char(7),
+ 	issue		char(3),
+ 	issue_name 	char(24),
+ 	card_type 	char(7),
+ 	perm_limit 	char(7),
+ 	temp_limit 	char(7),
+ 	cash_limit 	char(7),
+ 	payable 	char(3),
+ 	cash_lent 	char(8),
+ 	last_paya 	char(3),
+ 	revol_bal 	char(9),
+ 	pay_stat 	char(1),
+ 	pay_code 	char(1),
+ 	revol_rate 	char(4),
+ 	pre_owed 	char(8),
+ 	debt_code 	char(1),
+ 	close_code 	char(1),
+ 	clear_date 	char(7),
+ 	mon_since	int,
+ 	payment_amt	float,
+ 	bucket_def_1k	int default 0,
+ 	bucket_ef_1k	int default 0,
+ 	bucket_f_1k	int default 0,
+	now		int,
+	curr_inqmon	int,
+ 	cnt		int
+ ) IN "ESCORETABSP";
+ create index i_krm037_dedup on krm037_dedup(CASE_SN, IDN);
+ 
  create table stm001_dedup (
  	case_sn		char(12),
  	idn		char(11),
@@ -866,6 +925,22 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
  	cnt		int
  ) IN "ESCORETABSP";
  create index i_stm001_dedup on stm001_dedup(CASE_SN, IDN);
+
+create table stm007_dedup (
+	CASE_SN		char(12) not null,
+	IDN		char(10) not null,
+	inquiry_date	char(10) not null,
+	query_date 	char(7),
+ 	bank_code 	char(7),
+	bank_name 	char(40),
+	item_list 	char(10),
+	inq_purpose_1	char(1),
+	inq_purpose	char(30),
+ 	query_mon_since int,
+	now		int,
+ 	cnt		int
+) IN "ESCORETABSP";
+create index i_stm007_dedup on stm007_dedup(CASE_SN, IDN);
 
  create table jas002_t (
  	case_sn		char(12),
