@@ -745,9 +745,20 @@ create table TCB_FIN_INFO (
 	ROE		decimal(7,4),
 	Commission	decimal(7,4)
 ) IN "ESCORETABSP";
--- insert into TCB_FIN_INFO (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct,
---                             Fund_free_pct, COF_deposit, COF_bank, ROE, Commission)
---      values (80.0, 14.0, 3.0, 3.0, 1.26, 1.38, 1.68, 0.0);
+
+insert into TCB_FIN_INFO (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct,
+                             Fund_free_pct, COF_deposit, COF_bank, ROE, Commission)
+      values (80.0, 14.0, 3.0, 3.0, 1.26, 1.38, 1.68, 0.0);
+CREATE TRIGGER TCB_FIN_UPDATE
+  AFTER UPDATE ON TCB_FIN_INFO
+  REFERENCING OLD AS O
+  FOR EACH ROW MODE DB2SQL
+  INSERT INTO TCB_FIN_INFO_LOG
+    (SYSTEM_TIME, USER_ID, FUND_DEPOSIT_PCT, FUND_BANK_PCT, FUND_SELF_PCT, FUND_FREE_PCT,
+     COF_DEPOSIT, COF_BANK, ROE, COMMISSION)
+  VALUES (CURRENT TIMESTAMP, USER, O.FUND_DEPOSIT_PCT, O.FUND_BANK_PCT, O.FUND_SELF_PCT, O.FUND_FREE_PCT,
+    O.COF_DEPOSIT, O.COF_BANK, O.ROE, O.COMMISSION)
+
 
 COMMENT ON TABLE TCB_FIN_INFO	IS 'DAC個人信貸模組財務資訊';
 COMMENT ON COLUMN TCB_FIN_INFO.Fund_deposit_pct	IS '資金來源來自存款百分比';
