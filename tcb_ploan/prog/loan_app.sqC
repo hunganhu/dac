@@ -339,7 +339,7 @@ int LoanApp::initial()
      if (term_code == 0) {
         if ((Grace_period < 0) || (Grace_period >24)) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1023)); code = DataErrorCode(DATA_ERR_1023);}
-        if (Grace_period >= periods) {
+        if (Grace_period > periods) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1024)); code = DataErrorCode(DATA_ERR_1024);}
      }
   }
