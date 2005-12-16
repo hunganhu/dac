@@ -15,6 +15,7 @@ load from /home/escorap1/archive_prod/krm001.del of del replace into krm001;
 load from /home/escorap1/archive_prod/krm023.del of del replace into krm023;
 load from /home/escorap1/archive_prod/krm037.del of del replace into krm037;
 load from /home/escorap1/archive_prod/stm001.del of del replace into stm001;
+load from /home/escorap1/archive_prod/stm007.del of del replace into stm007;
 load from /home/escorap1/archive_prod/vam102.del of del replace into vam102;
 load from /home/escorap1/archive_prod/app_info.del of del replace into app_info;
 load from /home/escorap1/archive_prod/app_result.del of del replace into app_result;

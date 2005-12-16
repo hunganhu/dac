@@ -15,6 +15,7 @@ export to /home/escorap1/archive_prod/krm001.del of del select * from krm001;
 export to /home/escorap1/archive_prod/krm023.del of del select * from krm023;
 export to /home/escorap1/archive_prod/krm037.del of del select * from krm037;
 export to /home/escorap1/archive_prod/stm001.del of del select * from stm001;
+export to /home/escorap1/archive_prod/stm007.del of del select * from stm007;
 export to /home/escorap1/archive_prod/vam102.del of del select * from vam102;
 export to /home/escorap1/archive_prod/app_info.del of del select * from app_info;
 export to /home/escorap1/archive_prod/app_result.del of del select * from app_result;
