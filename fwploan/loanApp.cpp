@@ -422,11 +422,12 @@ void Loan::calculate_pd(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_PD], ds);
     ds->First();
     if (!ds->Eof) {
-       rscore = ds->FieldValues["rscore"];
+       rscore = ds->FieldValues["riskscore"];
        pd = ds->FieldValues["pd"];
     }
 
  } catch (Exception &E) {
+
      throw;
    }
 }
@@ -1009,9 +1010,4 @@ double Loan::get_pd(char *idn, TADOHandler *handler)
  }
  return (pb);
 
-/*
- pd = 0.01;
- rscore = 0.02;
- return (pd);
-*/
 }

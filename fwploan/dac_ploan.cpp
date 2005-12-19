@@ -178,7 +178,7 @@ int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *retur
      }
      delete ptrLoan;
      dbhandle->CloseDatabase();
-     delete dbhandle;
+     delete dbhandle;                          
      return (-RE.pb);
  } catch (Exception &E) {
      strcpy (return_msg, E.Message.c_str());
@@ -209,8 +209,8 @@ int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
     ptrLoan = new Loan(case_sn, idn, dac_sn, dbhandle);
     ptrLoan->validate();
     ptrLoan->Init_Maintenance(dbhandle);
-//    ptrLoan->calculate_pd(dbhandle);
-    ptrLoan->get_pd(idn, dbhandle);
+    ptrLoan->calculate_pd(dbhandle);
+//    ptrLoan->get_pd(idn, dbhandle);
     ptrLoan->calculate_npv();
     ptrLoan->postFilter();
 /*******  First check NPV, then check principal is in valid range.
@@ -315,7 +315,7 @@ int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
     /* Drop all temporary tables before closing a connection to avoid connection creep problem.
        Without droping temp tables will not release system resource after connection is closed.
     */
-//    dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
+    dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
 
  } catch (Loan::DataEx &DE){
      strcpy (return_msg, DE.message.c_str());
@@ -325,12 +325,12 @@ int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
      return (-1);
  } catch (Loan::RiskEx &RE){
      strcpy (return_msg, RE.message.c_str());
-//     if (DEBUG)
-//        dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+     if (DEBUG)
+        dbhandle->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
      /* Drop all temporary tables before closing a connection to avoid connection creep problem.
         Without droping temp tables will not release system resource after connection is closed.
      */
-//     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
+     dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
      int exCode = static_cast <int> (RE.pb);
      switch (exCode) {
         case 101:
