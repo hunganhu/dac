@@ -143,6 +143,15 @@ Loan::Loan (char * caseNo, char* pid, int seq, TADOHandler *handler):
           early_closing_period = ds->FieldByName("early_close_period")->AsInteger;
        else
           early_closing_period_ind = -1;
+
+       if (! ds->FieldValues["ever_bad_check"].IsNull())
+          ever_bad_check = ds->FieldByName("ever_bad_check")->AsInteger;
+       else
+          ever_bad_check = 0;
+       if (! ds->FieldValues["ever_reject"].IsNull())
+          ever_reject = ds->FieldByName("ever_reject")->AsInteger;
+       else
+          ever_reject = 0;
     }
     handler->ExecSQLQry(SQLCommands[Get_AppI_Record], hostVars, 2, ds);
 
@@ -433,7 +442,7 @@ void Loan::calculate_pd(TADOHandler *handler)
 }
 void Loan::postFilter()
 {
- if (jas002_defect > 0)
+ if (jas002_defect > 0 || ever_bad_check != 0 || ever_reject != 0)
     throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
  else if (max_bucket >= 4)
     throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));

@@ -58,6 +58,8 @@ class Loan {
     int acct_mgmt_fee;              // 帳戶管理費 (新台幣元)
     int bt_fee;                     // 代償費(新台幣元)
     int early_closing_period;       // 提早還款期間
+    int ever_bad_check;             // 退票異常
+    int ever_reject;                // 拒絕往來記錄
     double max_apr;                 // max. of apr among each interest preiod
     TADODataSet *ds;
 
