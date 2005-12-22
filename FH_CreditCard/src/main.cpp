@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     return (1);
  }
 
- fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 started.\n", CurrDateTime());
+ fprintf(stderr, "%s: Calculating Behavior Score Ver. 3.1 started.\n", CurrDateTime());
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
         case Execute_Proc_Load_Input_Table:
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
            }
            break;
         case End_of_SQL:
-           fprintf(stderr, "%s: Calculating Behavior Score Ver. 3 completed.\n", CurrDateTime());
+           fprintf(stderr, "%s: Calculating Behavior Score Ver. 3.1 completed.\n", CurrDateTime());
            fprintf (stderr, "\nFuHwa Holding Credit Card Risk Monthly Profile (%s)\n", target_month);
            int risk_group, group_count;
            try {

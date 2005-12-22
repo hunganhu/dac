@@ -108,8 +108,8 @@ int step[] = {
  Create_Proc_Generate_Score,
  Execute_Proc_Generate_Score,
  Drop_Proc_Generate_Score,
-// Drop_Input_Table,
-// Drop_Vars_Table,
+ Drop_Input_Table,
+ Drop_Vars_Table,
  End_of_SQL
 };
 
