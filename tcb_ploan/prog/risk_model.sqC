@@ -95,9 +95,10 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
-        select case_sn, idn, inquiry_date, 'B', ck_date
-        from dam103
-        where (ck_date is not null or rtrim(ltrim(ck_date)) <> '')
+        select case_sn, idn, inquiry_date, 'B', latest_bounce
+        from das006
+        where (latest_bounce is not null or rtrim(ltrim(latest_bounce)) <> '')
+          and rtrim(ltrim(latest_bounce)) <> 'N'
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Insert-Select 6.");
 
