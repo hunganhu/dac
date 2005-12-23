@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
   int now, yyyymm;
   Variant hostVars[10];
   TADOHandler *dbhandle;
-  TADODataSet *ds;
+//  TADODataSet *ds;
 
   int twentile, group_count;
   String segment;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
          default:
            fprintf (stderr,"使用方式: fbscore -m target_date ");
            fprintf (stderr,"-u user -p password -s source -d database\n\n");
-           fprintf (stderr,"\ttarget_date: 用來計算分數的起始日期.\n");
+           fprintf (stderr,"\tdata_date: :資料取得之日期.\n");
            fprintf (stderr,"\tuser: 連結SQL資料庫的使用者名稱.\n");
            fprintf (stderr,"\tpassword: 連結SQL資料庫的使用者密碼.\n");
            fprintf (stderr,"\tsource: SQL資料庫所在的伺服器名稱.\n");
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
      fprintf (stderr,"所有的命令選項皆為必要項目.\n");
      fprintf (stderr,"usage: fbscore -m target_date ");
      fprintf (stderr,"-u user -p password -s source -d database\n\n");
-     fprintf (stderr,"\ttarget_date: 用來計算分數的起始日期.\n");
+     fprintf (stderr,"\tdata_date: :資料取得之日期.\n");
      fprintf (stderr,"\tuser: 連結SQL資料庫的使用者名稱.\n");
      fprintf (stderr,"\tpassword: 連結SQL資料庫的使用者密碼.\n");
      fprintf (stderr,"\tsource: SQL資料庫所在的伺服器名稱.\n");
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
  dbhandle = new TADOHandler();
  dbhandle->OpenDatabase(connect_string);
  fprintf(stderr, "%s: Calculating Response Model Ver.1 started.\n", CurrDateTime());
- ds = new TADODataSet(NULL);
+// ds = new TADODataSet(NULL);
 
  for (i = 0; i < NSTEPS; i++) {
      switch (step[i]) {
@@ -133,6 +133,7 @@ int main(int argc, char* argv[])
               DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
               dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
            }
+           /*
            fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
            fprintf (stderr, "\nFubon Response Model Profile \n");
            dbhandle->ExecSQLQry(SQLCommands[Generate_Summary], ds);
@@ -151,7 +152,7 @@ int main(int argc, char* argv[])
               }
               ds->Next();
            }
-
+           */
            break;
         default:
            DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);

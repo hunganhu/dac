@@ -150,7 +150,7 @@ int step[] = {
 	Cal_N1_Score_Twentile,
 
         Generate_Output_Table,
-//        Duplicate_Working_Table,
+        Duplicate_Working_Table,
 
  	End_of_SQL
 };
@@ -1048,7 +1048,7 @@ char *SQLCommands[] = {
 "	Primary_Cardholder_ID	char(11) not null,"
 "	segment		varchar(20),"
 "	twentile    	int,"
-"	score		int"
+"	score		float"
 "      );"
 "     alter table Fubon_response_score add constraint p_id primary key (Primary_Cardholder_ID);"
 "   end"
