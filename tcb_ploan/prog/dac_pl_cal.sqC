@@ -43,7 +43,7 @@
 #define debug 0
 #endif
 
-const int EXPIRATION_DATE = 20060131; // expiration date of this module
+const int EXPIRATION_DATE = 20060430; // expiration date of this module
 const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
 
 char MESSAGE[1024];
