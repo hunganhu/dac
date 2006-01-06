@@ -12,7 +12,7 @@ cd c:\escorap1
 >>script.ftp ECHO mget *.del
 >>script.ftp ECHO quit
 :: Use the temporary script for unattended FTP
-FTP -v -s:script.ftp 10.0.5.47
+FTP -v -s:script.ftp 10.0.31.71
 :: For the paranoid: overwrite the temporary file before deleting it
 TYPE NUL >script.ftp
 DEL script.ftp

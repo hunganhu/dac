@@ -1,5 +1,5 @@
 #!/bin/sh
-HOST_FROM='10.0.5.47'
+HOST_FROM='10.0.31.71'
 HOST_TO='10.0.5.47'
 USER='escorap1'
 PASSWD='escorap1'
