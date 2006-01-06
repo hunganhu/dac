@@ -150,7 +150,7 @@ int step[] = {
 	Cal_N1_Score_Twentile,
 
         Generate_Output_Table,
-        Duplicate_Working_Table,
+//        Duplicate_Working_Table,
 
  	End_of_SQL
 };
