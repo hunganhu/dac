@@ -32,9 +32,6 @@ if exists (select * from sysobjects where id = object_id(N'bu_customer_security_
 if exists (select * from sysobjects where id = object_id(N'bu_customer_security_brokage') and OBJECTPROPERTY(id, N'IsUserTable') = 1)
    drop table bu_customer_security_brokage;
 
-if exists (select * from sysobjects where id = object_id(N'card_life') and OBJECTPROPERTY(id, N'IsUserTable') = 1)
-   drop table card_life;
-
 if exists (select * from sysobjects where id = object_id(N'cc_acct_credit_card') and OBJECTPROPERTY(id, N'IsUserTable') = 1)
    drop table cc_acct_credit_card;
 
@@ -49,7 +46,7 @@ if exists (select * from sysobjects where id = object_id(N'rd_card_type_code') a
 
 if exists (select * from sysobjects where id = object_id(N'rd_credit_card_product_id') and OBJECTPROPERTY(id, N'IsUserTable') = 1)
    drop table rd_credit_card_product_id
-
+/*
 CREATE TABLE Fubon_response_model (
 	Primary_Cardholder_ID char(11),
 	start_date datetime,
@@ -121,7 +118,7 @@ CREATE TABLE Fubon_response_model (
 	rscore_n1 float,
 	twentile_n1 float 
 );
-
+*/
 CREATE TABLE Fubon_response_score (
 	Primary_Cardholder_ID char(11) NOT NULL,
 	segment varchar(20),
@@ -136,165 +133,73 @@ CREATE TABLE bu_customer_bank_bond (
 create index i_bank_bond on bu_customer_bank_bond(customer_id);
 
 CREATE TABLE bu_customer_bank_fund (
-	customer_id varchar(11),
-	Acct_Open_Date datetime,
-	Most_Current_Outstanding_Bal decimal(18, 0) 
+	customer_id varchar(11)
 );
 create index i_bank_fund on bu_customer_bank_fund(customer_id);
 
 CREATE TABLE bu_customer_futures (
-	customer_id varchar(11),
-	Acct_Open_Date datetime,
-	Acct_Cancel_Date datetime,
-	activity_ind char(1),
-	position_ind char(1) 
+	customer_id varchar(11)
 );
 create index i_futures on bu_customer_futures(customer_id);
 
 CREATE TABLE bu_customer_insurance_group (
-	customer_id varchar(11),
-	acct_open_date datetime,
-	acct_close_date datetime,
-	Group_Policy_Catery_Code char(1),
-	Product_Level3_Code char(7) 
+	customer_id varchar(11)
 );
 create index i_insurance_group on bu_customer_insurance_group(customer_id);
 
 CREATE TABLE bu_customer_insurance_life (
-	customer_id varchar(11),
-	acct_open_date datetime,
-	acct_close_date datetime,
-	Life_Insurance_Product_Code char(4),
-	Product_Level3_Code char(7) 
+	customer_id varchar(11)
 );
 create index i_insurance_life on bu_customer_insurance_life(customer_id);
 
 CREATE TABLE bu_customer_investment_trust (
-	customer_id varchar(11),
-	Most_Current_Outstanding_Bal decimal(18, 2) 
+	customer_id varchar(11)
 );
 create index i_investment_trust on bu_customer_investment_trust(customer_id);
 
 CREATE TABLE bu_customer_property_insure (
-	customer_id varchar(11),
-	Acct_Open_Date datetime,
-	Acct_Close_Date datetime,
-	Acct_Type_Code char(2),
-	Product_Level3_Code char(7) 
+	customer_id varchar(11)
 );
 create index i_property_insure on bu_customer_property_insure(customer_id);
 
 CREATE TABLE bu_customer_security_bond (
-	customer_id varchar(11),
-	Acct_Open_Date datetime,
-	most_current_outstanding_bal decimal(18, 2) 
+	customer_id varchar(11)
 );
 create index i_security_bond on bu_customer_security_bond (customer_id);
 
 CREATE TABLE bu_customer_security_brokage (
-	customer_id varchar(11),
-	Acct_Open_Date datetime,
-	Acct_Close_Date datetime,
-	Activity_Ind char(1),
-	margin_loan_ind char(1),
-	treasury_stock_ind char(1) 
+	customer_id varchar(11)
 );
 create index i_security_brokage on bu_customer_security_brokage(customer_id);
 
 CREATE TABLE cc_acct_credit_card (
-	Acct_Nbr varchar(11),
 	Acct_Status_Code char(1),
-	Campaign_Strategy_ID varchar(11),
-	Card_Activate_Ind char(1),
 	Card_Cancel_Date datetime,
-	Card_Cancel_Reason_Code char(2),
 	Card_Issue_Date datetime,
-	Card_Reissue_Reason_Code char(1),
 	Card_Type_Code char(4),
-	Cash_Advance_Daily_Limit_Amt int,
-	Cash_Advance_Daily_Limit_Cnt smallint,
-	Cash_Advance_Monthly_Limit_Amt int,
-	Cash_Advance_Monthly_Limit_Cnt smallint,
-	Cash_Advance_Single_Txn_Limit int,
-	Credit_Card_Level_Code char(1),
-	Customer_ID varchar(11),
-	Daily_Limit_Amt int,
-	Daily_Single_Txn_Limit_Amt int,
-	Daily_Txn_Limit_Cnt smallint,
-	Last_Txn_Date datetime,
-	Monthly_Limit_Amt int,
-	Monthly_Txn_Limit_Cnt smallint,
-	Nbr_of_Year_Effective char(1),
-	Next_Annual_Fee_Payment_Date datetime,
 	Primary_Cardholder_ID varchar(11),
-	Primary_Credit_Card_Nbr varchar(25),
-	Primary_Relation_Type_Code char(2),
-	Product_ID varchar(12),
-	Secondary_Card_Ind char(1),
-	Short_Message_Ind char(1) 
+	Product_ID varchar(12)
 );
 create index i_cc_account on cc_acct_credit_card(Primary_Cardholder_ID);
 
 CREATE TABLE cc_credit_card_statements (
-	ATM_Fee_Refunded_Ind char(1),
-	Annual_Fee int,
-	Auto_TFR_Payment_Type_Code char(1),
 	Billing_Close_Date datetime,
-	Card_Lost_Service_Fee int,
-	Cardholder_Level_Type_Code char(1),
-	Cardholder_Status_Code char(1),
-	Cash_Advance_Daily_Limit_Amt int,
-	Cash_Advance_Daily_Limit_Cnt smallint,
-	Cash_Advance_Monthly_Limit_Amt int,
-	Cash_Advance_Monthly_Limit_Cnt smallint,
-	Cash_Advance_Single_Txn_Limit int,
-	Credit_Card_Interest_Code char(1),
-	Credit_Cycle_Limit_Amt int,
-	Credit_Rating_Date datetime,
-	Dailiy_Limit_Amt int,
-	Daily_Txn_Limit_Cnt smallint,
-	Force_Payment_Ind char(1),
-	Last_Late_Payment_Interest_Amt int,
 	Last_Payment_Amt int,
-	Last_Revolving_Interest_Amt int,
-	Last_Service_Fee int,
-	Last_Unpaid_Expenditure_Amt int,
-	Late_Payment_Interest_Amt int,
-	Min_Payment_Ratio decimal(5, 2),
 	Monthly_Limit_Amt int,
-	Monthly_Txn_Limit_Cnt smallint,
-	Payment_GT_Min_Amt_Ind char(1),
 	Primary_Cardholder_ID varchar(11),
 	Revolving_Interest_Amt int,
-	Service_Fee int,
-	Single_Txn_Limit_Amt int,
-	This_Term_Credit_Amt int,
-	This_Term_Credit_Rating_Nbr char(2),
 	This_Term_Expenditure_Amt int,
 	This_Term_Min_Payment int,
 	This_Term_Total_Amt_Receivable int,
-	This_Term_Cash_Advance_Amt int,
-	This_Term_Cash_Advance_cnt smallint 
+	This_Term_Cash_Advance_Amt int
 );
 create index i_cc_statement on cc_credit_card_statements(Primary_Cardholder_ID);
 
 CREATE TABLE cc_party_bank_credit_card (
-	Adjust_Credit_Limit_Ind char(1),
-	Annual_Fee_Waiver_Ind char(1),
-	Annual_Income_Amt int,
-	Cardholder_Job_Level_Code char(2),
-	Cardholder_Occupation_Code char(2),
-	Checking_Reject_Ind char(1),
-	Cross_Selling_Ind char(1),
 	DOB datetime,
 	Education_Code char(1),
-	Exception_Ind char(1),
 	Gender_Code char(1),
-	Mail_DM_Ind char(1),
-	Mail_Statement_Ind char(1),
-	Marital_Status_Code char(1),
-	Party_ID varchar(11),
-	ROC_Citizen_Ind char(1) 
+	Party_ID varchar(11)
 );
 create index i_cc_partyID on cc_party_bank_credit_card(Party_ID);
 

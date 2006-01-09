@@ -140,7 +140,7 @@ int step[] = {
 	Transform_T1_Vars,
 	Cal_T1_Score_Twentile,
 
-// Generate score for card T2, set to null in delivery
+// Generate score for card T2, set to null for delivery
 //	Cal_MS023,
 //	Cal_FS197,
 //	Transform_T2_Vars,
@@ -150,7 +150,7 @@ int step[] = {
 	Cal_N1_Score_Twentile,
 
         Generate_Output_Table,
-//        Duplicate_Working_Table,
+        Duplicate_Working_Table,
 
  	End_of_SQL
 };
@@ -274,10 +274,10 @@ char *SQLCommands[] = {
 "   );",
 
 /*Insert_Source_Table*/
-" insert into  #fubon_cc_stmts(billing_close_date, idn, cardholder_status_code, last_payment_amt,"
+" insert into  #fubon_cc_stmts(billing_close_date, idn, last_payment_amt,"
 "  monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt, this_term_min_payment,"
 "  this_term_total_amt_receivable, this_term_cash_advance_amt)"
-" select billing_close_date, primary_cardholder_id, cardholder_status_code, last_payment_amt,"
+" select billing_close_date, primary_cardholder_id, last_payment_amt,"
 "  monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt, this_term_min_payment,"
 "  this_term_total_amt_receivable, this_term_cash_advance_amt"
 " from cc_credit_card_statements",
