@@ -52,7 +52,7 @@ class Loan {
     int num_int_period;             // 利率時段個數，必須是1, 2 或3
     String appropriation;           // 撥款方式(1: 一次撥貸; 3: 分次撥貸; 4: 循環)，本次專案不包含3 和 4
     String zip;                     // 三位郵遞區號
-    String segment;                 // 客層 "01"~"09", "99"
+    String segment;                 // 客層 "00"~"08", "99"
     int application_fee;            // 手續費+查詢費(新台幣元)
     int risk_mgmt_fee;              // 風險管理費(新台幣元)
     int acct_mgmt_fee;              // 帳戶管理費 (新台幣元)

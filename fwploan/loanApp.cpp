@@ -231,7 +231,7 @@ void Loan::validate()
      success = false;
   }
   if ((segment_ind == -1) || ((segment != "99") && ((segment < "00") ||(segment > "08")))) {
-     Message += "客層錯誤，必須是01 ~ 08 或99。";
+     Message += "客層錯誤，必須是00 ~ 08 或99。";
      success = false;
   }
 
