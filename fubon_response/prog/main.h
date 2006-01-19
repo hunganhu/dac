@@ -150,8 +150,6 @@ int step[] = {
 	Cal_N1_Score_Twentile,
 
         Generate_Output_Table,
-        Duplicate_Working_Table,
-
  	End_of_SQL
 };
 
@@ -448,7 +446,8 @@ char *SQLCommands[] = {
 " set now = (substring(max_cycle, 1, 4) - 1911) * 12 + substring(max_cycle, 5, 2);",
 
 /*Create_Index_on_Stmt*/
-"create index i_idn on #fubon_cc_stmts(idn);",
+" create index i_idn on #fubon_cc_stmts(idn);"
+" create index i_idn2 on #fubon_cc_stmts(idn, mon_since);",
 
 /* Execute_Proc_Get_Prev_Stmt_Info */
 "EXEC Get_Prev_Stmt_Info :v0",
@@ -873,7 +872,7 @@ char *SQLCommands[] = {
 "update #response_model"
 "   set fs204 = t1.cnt"
 "   from (select a.primary_cardholder_id, count(*) as cnt"
-"         from cc_acct_credit_card_100k a,"
+"         from cc_acct_credit_card a,"
 "              rd_card_type_code b,"
 "              rd_credit_card_product_id c"
 "         where a.card_type_code = b.code"

@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
          case 'm':
          case 'M':
            target_month = getopt.optarg;
-           DEBUG (stderr,"cycle_date: %s\n", target_month); break;
+           DEBUG (stderr,"data_date: %s\n", target_month); break;
          case 'U':
          case 'u':
            user = getopt.optarg;
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
          case 'h':
          case '?':
          default:
-           fprintf (stderr,"使用方式: fbscore -m target_date ");
+           fprintf (stderr,"使用方式: fbscore -m data_date ");
            fprintf (stderr,"-u user -p password -s source -d database\n\n");
            fprintf (stderr,"\tdata_date: :資料取得之日期.\n");
            fprintf (stderr,"\tuser: 連結SQL資料庫的使用者名稱.\n");
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
  if (target_month == (char*) NULL || password == (char*) NULL ||
     user == (char*) NULL || database == (char*) NULL || source == (char*) NULL) {
      fprintf (stderr,"所有的命令選項皆為必要項目.\n");
-     fprintf (stderr,"usage: fbscore -m target_date ");
+     fprintf (stderr,"usage: fbscore -m data_date ");
      fprintf (stderr,"-u user -p password -s source -d database\n\n");
      fprintf (stderr,"\tdata_date: :資料取得之日期.\n");
      fprintf (stderr,"\tuser: 連結SQL資料庫的使用者名稱.\n");
@@ -133,8 +133,8 @@ int main(int argc, char* argv[])
               DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[Duplicate_Working_Table]);
               dbhandle->ExecSQLCmd(SQLCommands[Duplicate_Working_Table]);
            }
-           /*
            fprintf(stderr, "%s: Calculating Response Model Ver.1 completed.\n", CurrDateTime());
+           /*
            fprintf (stderr, "\nFubon Response Model Profile \n");
            dbhandle->ExecSQLQry(SQLCommands[Generate_Summary], ds);
            ds->First();
