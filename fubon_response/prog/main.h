@@ -95,11 +95,11 @@ int step[] = {
         Drop_Proc_Update_Max_Cycle,
 	Update_Now_on_Output,
 
-	Create_Index_on_Stmt,
-        Drop_Proc_Get_Prev_Stmt_Info,
-        Create_Proc_Get_Prev_Stmt_Info,
+//        Drop_Proc_Get_Prev_Stmt_Info,
+//        Create_Proc_Get_Prev_Stmt_Info,
         Execute_Proc_Get_Prev_Stmt_Info,
-        Drop_Proc_Update_Max_Cycle,
+//        Drop_Proc_Update_Max_Cycle,
+	Create_Index_on_Stmt,
 	Cal_Stmt_Flag,
 	Insert_Stmt_3,
 	Create_Index_Stmt_3,
@@ -224,11 +224,24 @@ char *SQLNames[]= {"Create_Source_Table",
 
 char *SQLCommands[] = {
 /* Create_Source_Table */
+" IF OBJECT_ID('tempdb..#fubon_cc_stmts_del') IS NOT NULL"
+"    drop table #fubon_cc_stmts_del;"
+" create table #fubon_cc_stmts_del ("
+"    billing_close_date datetime,"
+"    idn varchar(11),"
+"    last_payment_amt int,"
+"    monthly_limit_amt int,"
+"    revolving_interest_amt int,"
+"    this_term_expenditure_amt int,"
+"    this_term_min_payment int,"
+"    this_term_total_amt_receivable int,"
+"    this_term_cash_advance_amt int,"
+"    mon_since int"
+"   );"
 " IF OBJECT_ID('tempdb..#fubon_cc_stmts') IS NOT NULL"
 "    drop table #fubon_cc_stmts;"
 " create table #fubon_cc_stmts ("
 "    billing_close_date datetime,"
-"    cardholder_status_code char (1),"
 "    idn varchar(11),"
 "    last_payment_amt int,"
 "    monthly_limit_amt int,"
@@ -272,7 +285,7 @@ char *SQLCommands[] = {
 "   );",
 
 /*Insert_Source_Table*/
-" insert into  #fubon_cc_stmts(billing_close_date, idn, last_payment_amt,"
+" insert into  #fubon_cc_stmts_del(billing_close_date, idn, last_payment_amt,"
 "  monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt, this_term_min_payment,"
 "  this_term_total_amt_receivable, this_term_cash_advance_amt)"
 " select billing_close_date, primary_cardholder_id, last_payment_amt,"
@@ -311,13 +324,13 @@ char *SQLCommands[] = {
 " and   This_Term_Total_Amt_Receivable <= 0;",
 
 /*Delete_Redundant_Statements*/
-" delete #fubon_cc_stmts"
+" delete #fubon_cc_stmts_del"
 " from #FB_invalid_stmts as t1"
-" where #fubon_cc_stmts.idn = t1.Primary_Cardholder_ID"
-"   and #fubon_cc_stmts.billing_close_date = t1.billing_close_date;",
+" where #fubon_cc_stmts_del.idn = t1.Primary_Cardholder_ID"
+"   and #fubon_cc_stmts_del.billing_close_date = t1.billing_close_date;",
 
 /*Update_Month_Since*/
-"update #fubon_cc_stmts"
+"update #fubon_cc_stmts_del"
 "   set mon_since = (cast (substring(convert(char(8),billing_close_date,112),1,4) as int) - 1911) * 12 +"
 "                    cast (substring(convert(char(8),billing_close_date,112),5,2) as int);",
 
@@ -437,7 +450,7 @@ char *SQLCommands[] = {
 "                      else left(convert(char(8),max_date,112), 6) end)"
 " from (select idn,"
 "             max(Billing_Close_Date) as max_date"
-"      from  #fubon_cc_stmts"
+"      from  #fubon_cc_stmts_del"
 "      group by idn) as a"
 " where #response_model.Primary_Cardholder_ID = a.idn;",
 
@@ -446,11 +459,28 @@ char *SQLCommands[] = {
 " set now = (substring(max_cycle, 1, 4) - 1911) * 12 + substring(max_cycle, 5, 2);",
 
 /*Create_Index_on_Stmt*/
-" create index i_idn on #fubon_cc_stmts(idn);"
-" create index i_idn2 on #fubon_cc_stmts(idn, mon_since);",
+" create index i_idn on #fubon_cc_stmts(idn);",
 
 /* Execute_Proc_Get_Prev_Stmt_Info */
-"EXEC Get_Prev_Stmt_Info :v0",
+//"EXEC Get_Prev_Stmt_Info :v0",
+" insert into #fubon_cc_stmts(billing_close_date, idn, last_payment_amt,"
+"     monthly_limit_amt, revolving_interest_amt, this_term_expenditure_amt,"
+"     this_term_min_payment, this_term_total_amt_receivable, this_term_cash_advance_amt,"
+"     mon_since,"
+"     last_balance, last_min_payment, last_expenditure, last_cash_advance, last_revolving_int_amt)"
+" select a.billing_close_date, a.idn, a.last_payment_amt,"
+"        a.monthly_limit_amt, a.revolving_interest_amt, a.this_term_expenditure_amt,"
+"        a.this_term_min_payment, a.this_term_total_amt_receivable, a.this_term_cash_advance_amt,"
+"        a.mon_since,"
+"	b.this_term_total_amt_receivable 	as last_balance,"
+"	b.this_term_min_payment			as last_min_payment,"
+"	b.this_term_expenditure_amt		as last_expenditure,"
+"	b.this_term_cash_advance_amt		as last_cash_advance,"
+"	b.revolving_interest_amt		as last_revolving_int_amt"
+" from	#fubon_cc_stmts_del as a"
+" left join #fubon_cc_stmts_del as b"
+" on 	a.idn = b.idn"
+" and	a.mon_since = b.mon_since + 1;",
 
 /* Drop_Proc_Get_Prev_Stmt_Info */
 "if exists (select * from dbo.sysobjects where id = object_id(N'[Get_Prev_Stmt_Info]')"
@@ -833,7 +863,7 @@ char *SQLCommands[] = {
 "        FS003_6_n_r_t_r1 *	0.02337"
 "     where card = 'R1';"
 " update #response_model"
-"    set twentile_r1 = (case when rscore_r1 is null then 0"
+"    set twentile_r1 = (case when rscore_r1 is null then NULL"
 "                            when rscore_r1 <= -0.00459 then 1"
 "                            when rscore_r1 <= 0.00603 then 2"
 "                            when rscore_r1 <= 0.01403 then 3"
@@ -908,7 +938,7 @@ char *SQLCommands[] = {
 "        edu_t_t1	  *	0.0525"
 "     where card = 'T1';"
 " update #response_model"
-"    set twentile_t1 = (case when rscore_t1 is null then 0"
+"    set twentile_t1 = (case when rscore_t1 is null then NULL"
 "                            when rscore_t1 <= 0.02284 then 1"
 "                            when rscore_t1 <= 0.03128 then 2"
 "                            when rscore_t1 <= 0.03733 then 3"
@@ -971,7 +1001,7 @@ char *SQLCommands[] = {
 "        FS197_9_n_t_t2	*	-0.3683"
 "     where card = 'T2';"
 " update #response_model"
-"    set twentile_t2 = (case when rscore_t2 is null then 0"
+"    set twentile_t2 = (case when rscore_t2 is null then NULL"
 "                            when rscore_t2 <= -0.03093 then 1"
 "                            when rscore_t2 <= -0.00919 then 2"
 "                            when rscore_t2 <= 0.00893  then 3"
@@ -1017,7 +1047,7 @@ char *SQLCommands[] = {
 "        index7		* -0.01884"
 "     where card = 'N1';"
 " update #response_model"
-"    set twentile_n1 = (case when rscore_n1 is null then 0"
+"    set twentile_n1 = (case when rscore_n1 is null then NULL"
 "                            when rscore_n1 <= 0.02095 then 1"
 "                            when rscore_n1 <= 0.03964 then 2"
 "                            when rscore_n1 <= 0.04205 then 3"

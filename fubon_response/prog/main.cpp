@@ -19,7 +19,7 @@
 int main(int argc, char* argv[])
 {
   using namespace std;
-  GetOpt getopt (argc, argv, "m:M:u:U:p:P:s:S:d:D:hHgG");
+  GetOpt getopt (argc, argv, "m:M:u:U:p:P:s:S:d:D:vVhHgG");
   int option_char, i, Debug = 0;
   char *target_month, *config_file, *user, *password, *source, *database;
   char connect_string[128], buf[20], yrmon[10], sqlStatement[256];
@@ -58,6 +58,9 @@ int main(int argc, char* argv[])
          case 'g':
          case 'G':
            Debug=1; DEBUG (stderr,"Debug ON\n"); break;
+         case 'v':
+         case 'V':
+           fprintf (stderr,"fbscore Version 1.0\n(C) Copyright 2006 Decision Analytics Consulting\n"); return(0);
          case 'H':
          case 'h':
          case '?':
@@ -113,19 +116,22 @@ int main(int argc, char* argv[])
         case Update_Vintage:
         case Update_Demographics:
            sprintf (sqlStatement, SQLCommands[step[i]], target_month);
-           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+           fprintf (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+//           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
            dbhandle->ExecSQLCmd(sqlStatement);
            break;
         case Execute_Proc_Update_Max_Cycle:
            hostVars[0] = target_month;
-           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+           fprintf (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+//           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
            dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
         case Execute_Proc_Get_Prev_Stmt_Info:
         case Execute_Proc_Cal_BucketM_on_Stmt_6:
         case Cal_RS001:
            hostVars[0] = now;
-           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+           fprintf (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
+//           DEBUG (stderr, "%s: [Step %d] %s %s\n", CurrDateTime(), i, SQLNames[step[i]], target_month);
            dbhandle->ExecSQLCmd(SQLCommands[step[i]], hostVars, 0);
            break;
         case End_of_SQL:
@@ -155,7 +161,8 @@ int main(int argc, char* argv[])
            */
            break;
         default:
-           DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);
+           fprintf (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);
+//           DEBUG (stderr, "%s: [Step %d] %s\n", CurrDateTime(), i, SQLNames[step[i]]);
            dbhandle->ExecSQLCmd(SQLCommands[step[i]]);
      }
  }
