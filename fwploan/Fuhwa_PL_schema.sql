@@ -1,10 +1,10 @@
 /*
-  The database name is TESTDACDB, It may be changed as you wish.
+  The database name is DACDB, It may be changed as you wish.
 */
-create database TESTDACDB;
+create database DACDB;
 go
 
-use TESTDACDB;
+use DACDB;
 go
 
 create table app_info (
@@ -425,76 +425,88 @@ go
 
 /* create 3 users with different privileges*/
 /*
-  The 3 users defined here are 'dac', 'gssusr1', 'dacusr2'. They may be changed as your wish. The passwords are strongly recommanded
+  The 3 users defined here are 'dacusra', 'gssusra', 'dacusrb'. They may be changed as your wish. The passwords are strongly recommanded
    to be changed.
-  The user dacusr1 is with 'Module execution' privilege. This account is for DAC・s executable code to access the database.
-  The user dacusr2 is with 'MIS report' privilege. This account is for Fuhwa・s business or MIS personnel  to generate
+  The user dacusra is with 'Module execution' privilege. This account is for DAC・s executable code to access the database.
+  The user dacusrb is with 'MIS report' privilege. This account is for Fuhwa・s business or MIS personnel  to generate
       reports from the Module.
-  The user gssusr1 is with 'App-processing access' privilege. This account is for GSS to load necessary data prior to calling
+  The user gssusra is with 'App-processing access' privilege. This account is for GSS to load necessary data prior to calling
       DAC's executable.
  */
 use master
 go
-sp_addlogin @loginame = 'dacusr1', @passwd = 'dacusr1', @defdb = 'TESTDACDB'
+sp_addlogin @loginame = 'dacusra', @passwd = 'dacusra', @defdb = 'DACDB'
 go
-sp_addlogin @loginame = 'gssusr1', @passwd = 'gssusr1', @defdb = 'TESTDACDB'
+sp_addlogin @loginame = 'gssusra', @passwd = 'gssusra', @defdb = 'DACDB'
 go
-sp_addlogin @loginame = 'dacusr2', @passwd = 'dacusr2', @defdb = 'TESTDACDB'
+sp_addlogin @loginame = 'dacusrb', @passwd = 'dacusrb', @defdb = 'DACDB'
 go
 
-/*Grant to access TESTDACDB*/
-use TESTDACDB
+/*Grant to access DACDB*/
+use DACDB
 go
-sp_grantdbaccess 'dacusr1'
+sp_grantdbaccess 'dacusra'
 go
-sp_grantdbaccess 'gssusr1'
+sp_grantdbaccess 'gssusra'
 go
-sp_grantdbaccess 'dacusr2'
+sp_grantdbaccess 'dacusrb'
 go
-/* Grant dac and dacusr2 with ddladmin role*/
-sp_addrolemember 'db_ddladmin', 'dacusr1'
+/* Grant dac and dacusrb with ddladmin role*/
+sp_addrolemember 'db_ddladmin', 'dacusra'
 go
-sp_addrolemember 'db_ddladmin', 'dacusr2'
+sp_addrolemember 'db_ddladmin', 'dacusrb'
 go
 
 /*grant privileges to dac*/
-grant create table, create view to dacusr1;
-grant select on app_info to dacusr1;
-grant select on app_i to dacusr1;
-grant select on app_r to dacusr1;
-grant select, update on krm021 to dacusr1;
-grant select, update on krm023 to dacusr1;
-grant select, update on bam085 to dacusr1;
-grant select, update on bas001 to dacusr1;
-grant select, update on dam103 to dacusr1;
-grant select, update on dam203 to dacusr1;
-grant select, update on stm001 to dacusr1;
-grant select, insert, delete, update on ploan_result to dacusr1;
-grant select, insert, delete, update on intermediate to dacusr1;
-grant select, insert, delete, update on ploan_maintenance to dacusr1;
-grant select, insert, delete, update on ploan_maintenance_history to dacusr1;
+grant create table, create view to dacusra;
+grant select on app_info to dacusra;
+grant select on app_i to dacusra;
+grant select on app_r to dacusra;
+grant select, update on krm021 to dacusra;
+grant select, update on krm023 to dacusra;
+grant select, update on bam085 to dacusra;
+grant select, update on bas001 to dacusra;
+grant select, update on dam103 to dacusra;
+grant select, update on dam203 to dacusra;
+grant select, update on stm001 to dacusra;
+
+grant select, update on stm002 to dacusra;
+grant select, update on stm007 to dacusra;
+grant select, update on krm034 to dacusra;
+grant select, update on krm037 to dacusra;
+
+grant select, insert, delete, update on ploan_result to dacusra;
+grant select, insert, delete, update on intermediate to dacusra;
+grant select, insert, delete, update on ploan_maintenance to dacusra;
+grant select, insert, delete, update on ploan_maintenance_history to dacusra;
 go
 
 /*grant privileges to gss*/
-grant create table to gssusr1;
-grant select, insert, delete, update on app_info to gssusr1;
-grant select, insert, delete, update on app_i to gssusr1;
-grant select, insert, delete, update on krm021 to gssusr1;
-grant select, insert, delete, update on krm023 to gssusr1;
-grant select, insert, delete, update on bam085 to gssusr1;
-grant select, insert, delete, update on bas001 to gssusr1;
-grant select, insert, delete, update on dam103 to gssusr1;
-grant select, insert, delete, update on dam203 to gssusr1;
-grant select, insert, delete, update on stm001 to gssusr1;
-grant select, insert, delete, update on app_r to gssusr1;
-grant select on ploan_result to gssusr1;
+grant create table to gssusra;
+grant select, insert, delete, update on app_info to gssusra;
+grant select, insert, delete, update on app_i to gssusra;
+grant select, insert, delete, update on krm021 to gssusra;
+grant select, insert, delete, update on krm023 to gssusra;
+grant select, insert, delete, update on bam085 to gssusra;
+grant select, insert, delete, update on bas001 to gssusra;
+grant select, insert, delete, update on dam103 to gssusra;
+grant select, insert, delete, update on dam203 to gssusra;
+grant select, insert, delete, update on stm001 to gssusra;
+
+grant select, insert, delete, update on stm002 to gssusra;
+grant select, insert, delete, update on stm007 to gssusra;
+grant select, insert, delete, update on krm034 to gssusra;
+grant select, insert, delete, update on krm037 to gssusra;
+
+grant select, insert, delete, update on app_r to gssusra;
+grant select on ploan_result to gssusra;
 go
 
 /*grant privileges to mis*/
-grant create table, create view to dacusr2;
-grant select on app_info to dacusr2;
-grant select on app_i to dacusr2;
-grant select on app_r to dacusr2;
-grant select on ploan_result to dacusr2;
+grant create table, create view to dacusrb;
+grant select on app_info to dacusrb;
+grant select on app_i to dacusrb;
+grant select on app_r to dacusrb;
+grant select on ploan_result to dacusrb;
 go
  
