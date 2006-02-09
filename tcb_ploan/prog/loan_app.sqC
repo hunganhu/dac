@@ -62,17 +62,17 @@ Invalid_Msg tcbMsg[] = {
 };
 char *decisionMsg[] = {
 /*Type I message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，建議核准。",
+"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，模組預估每年轉壞帳之機率為 %5.2f%%，建議核准。",
 /*Type II message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，建議婉拒。",
+"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，模組預估每年轉壞帳之機率為 %5.2f%%，建議婉拒。",
 /*Type III message*/
-"模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
+"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
 "所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
 /*Type IV message*/
-"模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
+"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
 "請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
 /*Type V message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。"
+"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，模組預估每年轉壞帳之機率為 %5.2f%%。"
 };
 
 int decisionCode[] = {
@@ -679,7 +679,7 @@ int LoanApp::write_result_prescreen_failed()
 } //LoanApp::write_result_prescreen_failed()
 
 //--------------------------------------------------------------------------------------------------
-int LoanApp::write_result(int decision)
+int LoanApp::write_result(int decision, int revolving_amt)
 {
   struct sqlca sqlca;
 
@@ -693,7 +693,7 @@ int LoanApp::write_result(int decision)
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
   oApproval_code = decisionCode[decision];
-  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100);
+  sprintf(oApproval_msg, decisionMsg[decision], System_date, App_amt/10000, revolving_amt, applicantPB_adjust*100);
 //  oCut = cutpoint;
 
 // check if case_sn exist in the table app_result

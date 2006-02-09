@@ -25,19 +25,19 @@ DESDIR = /home/escorap1/lib
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE
-EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
+EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE
+#EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-ALIAS=escore
+ALIAS=dacdb
 # Set UID and PWD if neccesary
-UID=escorap1
-PWD=escorap1
+UID=ejcicap1
+PWD=ejcicap1
 
 ERASE=rm -f
 
-DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o
+DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o finacial.o
 
 #****************************************************************************
 #		   2a - make all (srv + all_client)
@@ -100,6 +100,10 @@ loan_app.o: loan_app.sqC loan_app.h error.h
 
 functions.o: functions.cpp functions.h
 	$(CPP) $(EXTRA_CFLAG) -c functions.cpp
+
+finacial.o: finacial.cpp finacial.h
+	$(CPP) $(EXTRA_CFLAG) -c finacial.cpp
+
 #****************************************************************************
 # make clean
 #****************************************************************************

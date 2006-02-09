@@ -10,12 +10,6 @@
 **
 ** SAMPLE:  header file for risk_model.sqC
 **
-**         This is the header file for the risk_model.sqC utility
-**         file. The risk_model.sqC file is compiled and linked in as an object
-**         module with embedded SQL sample programs by the supplied makefile
-**         and build files.
-**
-**
 ****************************************************************************/
 
 #ifndef RISK_MODEL_H
@@ -39,7 +33,7 @@ class RiskModel
     int CleanTables(char *case_sn, char *idn);
     int Calculate_PB(char *case_sn, char *idn, char *birthday, char *sysdate);
     int get_pb(char *case_sn, char *idn, float *pb);
-    int get_prescreen_status (char *case_sn, char *idn, int *code, char *msg);
+    int get_prescreen_status (char *case_sn, char *idn, int *code, char *msg, int *revolve_bal);
 };
 
 

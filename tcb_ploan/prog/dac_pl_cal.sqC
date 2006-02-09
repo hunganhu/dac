@@ -59,7 +59,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   float aPB, gPB, cut_point;
   int periods, app_amount, productType;
   double max_apr;
-  int  ps_code;
+  int  ps_code, revolving_balance, revolving_balance_g;
   char ps_msg[257];
   struct sqlca sqlca;
 
@@ -110,7 +110,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return SYSTEM_ERROR;
   } 
 
-  rc = rm.get_prescreen_status(case_sn, aID, &ps_code, ps_msg);
+  rc = rm.get_prescreen_status(case_sn, aID, &ps_code, ps_msg, &revolving_balance);
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
@@ -173,7 +173,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
            return SYSTEM_ERROR;
         } 
    
-        rc = rm.get_prescreen_status(case_sn, gID, &ps_code, ps_msg);
+        rc = rm.get_prescreen_status(case_sn, gID, &ps_code, ps_msg, &revolving_balance_g);
         if (rc < 0) {
            strcpy (error_message, MESSAGE);
            db.Disconnect();
@@ -211,20 +211,20 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      app.set_cutpoint(cut_point);
      
      if ((productType = app.get_product_type())== 4) {
-        rc = app.write_result(TYPE_V); // for product type 4
+        rc = app.write_result(TYPE_V, revolving_balance); // for product type 4
      } else {
         if (aPB >= cut_point) {
-           rc = app.write_result(TYPE_II); // declined
+           rc = app.write_result(TYPE_II, revolving_balance); // declined
         } else {
            if (app_amount <= 800000) {   // apply amount <= 800000
-              rc = app.write_result(TYPE_I);  // approved
+              rc = app.write_result(TYPE_I, revolving_balance);  // approved
            } else if (app_amount <= 1600000) {  // 800000 < apply amount <= 1600000
               if (qualified_guarantor)
-                 rc = app.write_result(TYPE_I); //approved
+                 rc = app.write_result(TYPE_I, revolving_balance); //approved
               else
-                 rc = app.write_result(TYPE_III); // reference, no qualified quarantor
+                 rc = app.write_result(TYPE_III, revolving_balance); // reference, no qualified quarantor
            } else { // 1600000 < apply amount 
-              rc = app.write_result(TYPE_IV); // reference, app amount > 1.6M
+              rc = app.write_result(TYPE_IV, revolving_balance); // reference, app amount > 1.6M
            }
         }
      }          

@@ -645,7 +645,7 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
   EXEC SQL
     update pdaco_cal p
        set ind001 =
-           (select (case when  min(now) - min(start_mon_since) between 1 and 7 then 1 else 0 end)
+           (select (case when  min(now) - min(start_mon_since) between 1 and 6 then 1 else 0 end)
             from krm001_dedup s
             where p.case_sn = s.case_sn
             group by case_sn)
@@ -674,19 +674,20 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
   EXEC SQL
      update pdaco_cal p
         set revolving_amt = revolving_amt +
-            (select sum(payment_amt) * 1000.0
+            (select sum((case right(payment,1) when 'L' then 1 when 'M' then 4 when 'H' then 7
+               else 0 end) * power(10, cast(left(payment,2) as int)-1))
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and pay_code in ('C', 'D', 'E', 'F')
                and mon_since >= now - 1
-               and mon_since <= now - curr_inqmon
+               and mon_since < now 
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and pay_code in ('C', 'D', 'E', 'F')
                         and mon_since >= now - 1
-                        and mon_since <= now - curr_inqmon
+                        and mon_since < now 
                      )
           and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update revolving Amt.");
@@ -1583,13 +1584,14 @@ int RiskModel::get_pb(char *case_sn, char *idn, float *pb)
 } //RiskModel::get_pb()
 
 //--------------------------------------------------------------------------------------------------
-int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *msg)
+int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *msg, int *revolve_bal)
 {
   EXEC SQL BEGIN DECLARE SECTION;
      char sCase_Sn[20];
      char sIdn[12];
      long  PS_code;
      char PS_msg[257];
+     long  Revolving_Amt;
   EXEC SQL END DECLARE SECTION;
   struct sqlca sqlca;
 
@@ -1597,8 +1599,8 @@ int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *
   strcpy (sIdn, idn);
 
   EXEC SQL
-     select ps_code, ps_msg
-        into :PS_code, :PS_msg
+     select ps_code, ps_msg, revolving_amt
+        into :PS_code, :PS_msg, :Revolving_Amt
         from pdaco_cal
         where case_sn = :sCase_Sn and idn = :sIdn;
   EMB_SQL_CHECK("Select Prescreen Status.");
@@ -1608,6 +1610,7 @@ int RiskModel::get_prescreen_status (char *case_sn, char *idn, int *code, char *
      return(sqlca.sqlcode);
   }
   *code = PS_code;
+  *revolve_bal = Revolving_Amt;
   strcpy (msg, PS_msg);
   return(0);
 

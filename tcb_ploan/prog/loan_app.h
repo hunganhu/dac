@@ -123,7 +123,7 @@ class LoanApp {
 //    int  write_result_others(int decision);
 //    int  write_result_declined(int decision);
 //    int  write_result_approved(int decision);
-    int  write_result(int decision);
+    int  write_result(int decision, int revolving_amt);
 };
 
 
