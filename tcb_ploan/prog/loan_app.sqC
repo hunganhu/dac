@@ -62,17 +62,17 @@ Invalid_Msg tcbMsg[] = {
 };
 char *decisionMsg[] = {
 /*Type I message*/
-"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，模組預估每年轉壞帳之機率為 %5.2f%%，建議核准。",
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，建議核准。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type II message*/
-"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，模組預估每年轉壞帳之機率為 %5.2f%%，建議婉拒。",
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，初評未達核准標準。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type III message*/
-"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
-"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
+"模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
+"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type IV message*/
-"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
-"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
+"模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
+"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type V message*/
-"申請日為 %s，模組審核之申貸金額為新台幣 %d 萬元，最近一個月無擔保循環金額為新台幣 %d 元，模組預估每年轉壞帳之機率為 %5.2f%%。"
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)"
 };
 
 int decisionCode[] = {
@@ -679,9 +679,10 @@ int LoanApp::write_result_prescreen_failed()
 } //LoanApp::write_result_prescreen_failed()
 
 //--------------------------------------------------------------------------------------------------
-int LoanApp::write_result(int decision, int revolving_amt)
+int LoanApp::write_result(int decision, int unsecured_amt)
 {
   struct sqlca sqlca;
+  char apply_date[10];
 
   Debug("Enter LoanApp.write_result()");
   strcpy(oCase_SN, case_sn);
@@ -693,7 +694,15 @@ int LoanApp::write_result(int decision, int revolving_amt)
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
   oApproval_code = decisionCode[decision];
-  sprintf(oApproval_msg, decisionMsg[decision], System_date, App_amt/10000, revolving_amt, applicantPB_adjust*100);
+  strcpy(apply_date, System_date); // insert slash '/' as separator
+  apply_date[3] = apply_date[6] = '/';
+  apply_date[4] = System_date[3];
+  apply_date[5] = System_date[4];
+  apply_date[7] = System_date[5];
+  apply_date[8] = System_date[6];
+  apply_date[9] = '\0';
+  
+  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, apply_date, unsecured_amt /10000.0);
 //  oCut = cutpoint;
 
 // check if case_sn exist in the table app_result
