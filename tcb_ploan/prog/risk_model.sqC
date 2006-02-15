@@ -344,7 +344,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 
   EXEC SQL
      update krm023_dedup
-        set payment_amt =
+        set payment_amt = 
               (case right(payment,1) when 'L' then 2 when 'M' then 5 when 'H' then 8
                else 0 end) * power(10, cast(left(payment,2) as int)-1) / 1000.0
         where payment is not null
@@ -357,7 +357,14 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         where payment is null
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 26.");
-
+/*
+  EXEC SQL
+     update krm023_dedup
+        set payment_amt = cast(limit as int)
+        where payment_amt > cast(limit as int)
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Update 26-1.");
+*/
   EXEC SQL
      update  krm023_dedup
         set bucket_def_1k = (case when pay_code in ('D', 'E', 'F') and payment_amt > 1 then 1
@@ -715,7 +722,51 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
        where case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 10-2.");
 
+  /*----unsecured loan amount ----*/
+  EXEC SQL
+     update pdaco_cal p
+        set reserve1 = 0.0
+        where case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("Update unsecured loan-1.");
+
   /*----cash card and credit card last month revolving balance ----*/
+  EXEC SQL delete from t1 where case_sn = :psCase_Sn;
+  EMB_SQL_CHECK("delete t1.");
+  
+  EXEC SQL
+    insert into t1(case_sn, mon)
+       select case_sn, max(mon_since)
+            from krm023_dedup s
+            where case_sn = :psCase_Sn and idn = :psIdn
+            group by case_sn;
+  EMB_SQL_CHECK("set latest month.");
+
+  EXEC SQL
+     update pdaco_cal p
+        set revolving_amt = revolving_amt +
+            (select sum(payment_amt) * 1000
+             from krm023_dedup s, t1 t
+             where p.case_sn = s.case_sn
+               and pay_code in ('C', 'D', 'E', 'F')
+               and s.case_sn = t.case_sn
+               and s.mon_since = t.mon 
+            )
+        where exists (select *
+                      from krm023_dedup s, t1 t
+                      where p.case_sn = s.case_sn
+                        and pay_code in ('C', 'D', 'E', 'F')
+                        and s.case_sn = t.case_sn
+               		and s.mon_since = t.mon 
+                     )
+          and case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("set CC revol amt.");
+
+  EXEC SQL
+     update pdaco_cal p
+        set reserve1 = reserve1 + revolving_amt
+        where case_sn = :psCase_Sn and idn = :psIdn;
+  EMB_SQL_CHECK("set unsecured loan revol. amt.");
+
   EXEC SQL
     update pdaco_cal p
        set revolving_amt = revolving_amt +
@@ -729,35 +780,9 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
                      where account_code = 'Y'
                        and p.case_sn = s.case_sn)
          and case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update 11.");
-
-  EXEC SQL
-     update pdaco_cal p
-        set revolving_amt = revolving_amt +
-            (select sum(payment_amt) * 1000
-             from krm023_dedup s
-             where p.case_sn = s.case_sn
-               and pay_code in ('C', 'D', 'E', 'F')
-               and mon_since >= now - 1
-               and mon_since < now 
-            )
-        where exists (select *
-                      from krm023_dedup s
-                      where p.case_sn = s.case_sn
-                        and pay_code in ('C', 'D', 'E', 'F')
-                        and mon_since >= now - 1
-                        and mon_since < now 
-                     )
-          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update revolving Amt.");
 
   /*----unsecured loan amount ----*/
-  EXEC SQL
-     update pdaco_cal p
-        set reserve1 = 0.0
-        where case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update unsecured loan-1.");
-
   EXEC SQL
     update pdaco_cal p
        set reserve1 = reserve1 +
@@ -775,25 +800,6 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update unsecured loan-2.");
 
-  EXEC SQL
-     update pdaco_cal p
-        set reserve1 = reserve1 +
-            (select sum(payment_amt) * 1000
-             from krm023_dedup s
-             where p.case_sn = s.case_sn
-               and pay_code in ('C', 'D', 'E', 'F')
-               and mon_since >= now - 1
-               and mon_since < now 
-            )
-        where exists (select *
-                      from krm023_dedup s
-                      where p.case_sn = s.case_sn
-                        and pay_code in ('C', 'D', 'E', 'F')
-                        and mon_since >= now - 1
-                        and mon_since < now 
-                     )
-          and case_sn = :psCase_Sn and idn = :psIdn;
-  EMB_SQL_CHECK("Update unsecured loan-3.");
   /*----age----*/
   psAge = age(sysdate, birthday);
   EXEC SQL
@@ -1334,6 +1340,8 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
   EMB_SQL_CHECK("PDACO Update 29.");
 
   // ft212_1k_43_q_tran2	monthly average  of delinqunt lines that are opened less than 6 months
+  EXEC SQL delete from t1 where case_sn = :Case_Sn;
+  EMB_SQL_CHECK("delete t1.");
 
   EXEC SQL
      insert into t1(case_sn, mon, deliquent_line)
@@ -1648,7 +1656,7 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
      int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
      ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
      int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
-     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg, cut)
+     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg, cut, reserve1)
   select
      case_sn, idn, inquiry_date, now, age, jas002_defect, krm001_hit, krm023_hit, max_bucket,
      fs044, fs334, cash_max_bucket, cash_utilization, ind001, revolving_amt, fs102_3m, fs102_6m, fs102_9m, ft102_42,
@@ -1658,7 +1666,7 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
      int015_3_tran, fs205_1k_3m, fs205_1k_3m_q, fs205_1k_3m_q_tran, fs212_1k_3m, fs212_1k_6m,
      ft212_1k_43, ft212_1k_43_q, ft212_1k_43_q_tran, ms117_6m, fs014_9m, fs101_9m,
      int028_9, int028_9_tran, sex, sex_tran, app_last_month_bucket, app_last_month_bucket_tran,
-     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg, cut
+     pdaco_score, pdaco_twen, pb_in, ps_code, ps_msg, cut, reserve1
   from pdaco_cal
   where case_sn = :ssCase_Sn and idn = :ssIdn;
   EMB_SQL_CHECK("Save result");
