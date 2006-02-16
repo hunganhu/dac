@@ -358,7 +358,8 @@ void Loan::calculate_pd(TADOHandler *handler)
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  now = yrmon_to_mon(inquiry_date, false, expire_date);
  curr_month = after_day15(inquiry_date);
- avail_flag = jas002_defect = krm021_hit = krm023_hit = fs044 = 0;
+ avail_flag = -1;
+ jas002_defect = krm021_hit = krm023_hit = fs044 = 0;
  try {
     handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
     hostVars[0] = case_sn;
@@ -392,19 +393,10 @@ void Loan::calculate_pd(TADOHandler *handler)
        cash_utilization = ds->FieldValues["cash_utilization"];
        ind001 = ds->FieldValues["ind001"];
     }
-    if (avail_flag == 0)
+    if (avail_flag == -1)
+        throw (RiskEx ("人工審核 [JCIC資料格式錯誤]", 108));
+    else if (avail_flag == 0)
         throw (RiskEx ("人工審核 [無JCIC資料]", 101));
-/*    else if (jas002_defect > 0)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 103));
-    else if (max_bucket >= 4)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 104));
-    else if (fs044 > 0)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 105));
-    else if (cash_max_bucket >= 0.5)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 106));
-    else if (cash_utilization >= 1)
-        throw (RiskEx ("拒絕 [重大信用瑕疵記錄]", 107));
-*/
     else if (krm021_hit ==0 || krm023_hit == 0 || ind001 == 1)
         throw (RiskEx ("人工審核 [JCIC資料不足]", 102));
 

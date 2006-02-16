@@ -152,6 +152,7 @@ int dac_ploan_ev(char *case_sn, char *idn, int dac_sn, char *ole_db, char *retur
      switch (exCode) {
         case 101:
         case 102:
+        case 108:
              hostVars[0] = case_sn;
              hostVars[1] = idn;
              hostVars[2] = dac_sn;
@@ -335,6 +336,7 @@ int dac_ploan_ev_conn(char *case_sn, char *idn, int dac_sn, char *ole_db,
      switch (exCode) {
         case 101:
         case 102:
+        case 108:
              hostVars[0] = case_sn;
              hostVars[1] = idn;
              hostVars[2] = dac_sn;
