@@ -5,7 +5,7 @@
 
 #include "AdoHandle.h"
 
-const int EXPIRATION_DATE = 20060131; // expiration date of this module
+const int EXPIRATION_DATE = 20060630; // expiration date of this module
 const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
 
 //---------------------------------------------------------------------------
@@ -53,5 +53,6 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
 
 extern "C" __declspec(dllexport)
 int specific_cal_test(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, char *tsn, char *ole_db, char *error_message);
+                char *app_data_time, char *tsn, char *ole_db, char *error_message,
+                TADOHandler *dbhandle);
 #endif

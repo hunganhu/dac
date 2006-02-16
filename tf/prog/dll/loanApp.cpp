@@ -10,7 +10,7 @@
 #include "functions.h"
 #include "economic.h"
 // Constants used in the program.
-const char *expire_date = "21001231";
+//const char *expire_date = "21001231";
 char *TF_Messages[]= {
      "通過 ",                  // Prescreen_0,
      "建議核准 ",              // Normal_1,
@@ -1088,39 +1088,41 @@ double Loan::calculate_pd(int line, TADOHandler *handler)
 double Loan::calculate_pd_test(int line, TADOHandler *handler)
 {
  Variant hostVars[5];
- int    card;
- double ms082, wi001_12m, risk_score;
+// int    card;    //use object member instead
+ double ms082f, wi001_12m, risk_score;
  double pb_original, pb_original_1, pb_original_2, pb_original_3;
  double pb_1, pb_2, pb_3;
  int    ms082_ind;
  TADODataSet *ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
 
+ ms082 = 0; // initial to 0
  try {
     hostVars[0] = app_sn;
     handler->ExecSQLQry(SQLCommands[Get_PB_test], hostVars, 0, ds);
     ds->First();
     if (!ds->Eof) {
        if (product_type == 1) { // product GX
-          card = ds->FieldValues["card"];
+          card = ds->FieldValues["score_card"];
           switch (card) {
              case 0: // screen out
                     break;
              case 1: // A2, full JCIC
-                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    risk_score = ds->FieldValues["full_score"];
                     if (! ds->FieldValues["ms082"].IsNull())
-                       ms082 = ds->FieldValues["ms082"];
+                       ms082f = ds->FieldValues["ms082"];
                     else
-                       ms082 = 0.0;
+                       ms082f = 0.0;
+                    ms082 = ms082f;   // write ms082 to object variable
                     wi001_12m = ds->FieldValues["WI001_12m"];
                     pb_original = cal_GXa2_pb(line, int_rate, periods, risk_score,
-                                           ms082, wi001_12m);
+                                           ms082f, wi001_12m);
                     pb_original_1 = cal_GXa2_pb(AMOUNT_1, int_rate, periods, risk_score,
-                                           ms082, wi001_12m);
+                                           ms082f, wi001_12m);
                     pb_original_2 = cal_GXa2_pb(AMOUNT_2, int_rate, periods, risk_score,
-                                           ms082, wi001_12m);
+                                           ms082f, wi001_12m);
                     pb_original_3 = cal_GXa2_pb(AMOUNT_3, int_rate, periods, risk_score,
-                                           ms082, wi001_12m);
+                                           ms082f, wi001_12m);
                     pb_1 = pb_original_1;
                     pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
                     pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
@@ -1135,23 +1137,24 @@ double Loan::calculate_pd_test(int line, TADOHandler *handler)
                     if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
                     break;
              case 2: // B1 ms080 > 0
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["b1_score"];
                     pd = cal_GXb1_pb(risk_score);
                     break;
              case 3: // B2 ms080 <= 0
-                    risk_score = ds->FieldValues["brmp_score"];
+                    risk_score = ds->FieldValues["b2_score"];
                     if (! ds->FieldValues["ms082"].IsNull())
-                       ms082 = ds->FieldValues["ms082"];
+                       ms082f = ds->FieldValues["ms082"];
                     else
-                       ms082 = 0.0;
+                       ms082f = 0.0;
+                    ms082 = ms082f;   // write ms082 to object variable
                     pb_original = cal_GXb2_pb(line, int_rate, periods, risk_score,
-                                           ms082);
+                                           ms082f);
                     pb_original_1 = cal_GXb2_pb(AMOUNT_1, int_rate, periods, risk_score,
-                                           ms082);
+                                           ms082f);
                     pb_original_2 = cal_GXb2_pb(AMOUNT_2, int_rate, periods, risk_score,
-                                           ms082);
+                                           ms082f);
                     pb_original_3 = cal_GXb2_pb(AMOUNT_3, int_rate, periods, risk_score,
-                                           ms082);
+                                           ms082f);
                     pb_1 = pb_original_1;
                     pb_2 = (pb_original_2 - pb_original_1) * INFLAT_1 + pb_1;
                     pb_3 = (pb_original_3 - pb_original_2) * INFLAT_2 + pb_2;
@@ -1166,7 +1169,7 @@ double Loan::calculate_pd_test(int line, TADOHandler *handler)
                     if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
                     break;
              case 4: // Demographic
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["demo_score"];
                     pd = cal_GXc_pb(risk_score);
                     break;
           } //End of switch
@@ -1177,22 +1180,22 @@ double Loan::calculate_pd_test(int line, TADOHandler *handler)
              case 0: // screen out
                     break;
              case 1: // A2, full JCIC
-                    risk_score = ds->FieldValues["partial_rscore_new"];
+                    risk_score = ds->FieldValues["full_score"];
                     pd = cal_KHJa2_pb(risk_score);
                     if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
                     break;
              case 2: // B1 ms080 > 0
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["b1_score"];
                     pd = cal_KHJb1_pb(risk_score);
                     if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
                     break;
              case 3: // B2 ms080 <= 0
-                    risk_score = ds->FieldValues["brmp_score"];
+                    risk_score = ds->FieldValues["b2_score"];
                     pd = cal_KHJb2_pb(risk_score);
                     if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
                     break;
              case 4: // Demographic
-                    risk_score = ds->FieldValues["rscore_new"];
+                    risk_score = ds->FieldValues["demo_score"];
                     pd = cal_KHJc_pb(risk_score);
                     if (pd > 0.7) pd = 0.7; // cap pd at 100%, 20051003:cap at 70%
                     break;
@@ -1276,7 +1279,7 @@ double Loan::calculate_npv(int line, double pb)
  } catch (Exception &E) {
      throw;
  }
-#ifdef _WRFLOW
+#ifdef _WRNPV
      fstream outf;
      outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
 

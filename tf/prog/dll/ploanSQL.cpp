@@ -120,9 +120,9 @@ char *SQLCommands[] = {
 "  where app_sn = :v0",
 
 /* Get_PB_test */
-"  select card, ms082, WI001_12m, partial_rscore_new, rscore_new, brmp_score"
-"  from tf_score_0913_15day_testcase"
-"  where idn = :v0",
+"  select score_card, ms082, WI001_12m, full_score, b1_score, b2_score, demo_score"
+"  from tf_ploan_cal"
+"  where app_sn = :v0",
 
 /* Write_NPV_Result*/
 "  update #tf_ploan_cal"
@@ -382,7 +382,7 @@ char *SQLCommands[] = {
 "    group by app_sn, data_time, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;"
 " insert into #stm001_dedup (app_sn, data_time, bank_code, bank_name, query_date, item_list, cnt)"
 "    select app_sn, data_time, bank_code, bank_name, query_date, item_list, count(*)"
-"    from stm001"
+"    from stm007"
 "    where app_sn = @app_sn and data_time = @data_time"
 "      and bank_code is not null and bank_code <> ''"
 "    group by app_sn, data_time, bank_code, bank_name, query_date, item_list;"
@@ -1324,8 +1324,7 @@ char *SQLCommands[] = {
 "    set fs031 = 0"
 " update  #tf_ploan_cal"
 "    set fs536_3m = 0.0,"
-"        fs313 = 0.0,"
-"        ms082 = 0.0"
+"        fs313 = 0.0"
 "    from #bam085_dedup a"
 "    where a.app_sn = #tf_ploan_cal.app_sn"
 " /*****************************************************************************************/"
@@ -1405,8 +1404,7 @@ char *SQLCommands[] = {
 "    set fs031 = 0"
 " update  #tf_ploan_cal"
 "    set fs536_3m = 0.0,"
-"        fs314 = 0.0,"
-"        ms082 = 0.0"
+"        fs314 = 0.0"
 "    from #bam085_dedup a"
 "    where a.app_sn = #tf_ploan_cal.app_sn"
 " /*****************************************************************************************/"

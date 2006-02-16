@@ -499,14 +499,11 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
 
 //---------------------------------------------------------------------------
 int specific_cal_test(char *app_sn, char *ts_data_date, char *jcic_data_date,
-                char *app_data_time, char *tsn, char *ole_db, char *error_message)
-/*
-int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                 char *app_data_time, char *tsn, char *ole_db, char *error_message,
                 TADOHandler *dbhandle)
-*/
+
 {
- TADOHandler *dbhandle;  // commemt if past from argument
+// TADOHandler *dbhandle;  // commemt if past from argument
  Loan *ptrLoan;
  Variant hostVars[20];
  char  sqlCommand[256];
@@ -520,8 +517,8 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
     return(-1);
  }
  try {
-    dbhandle = new TADOHandler();    // commemt if past from argument
-    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
+//    dbhandle = new TADOHandler();    // commemt if past from argument
+//    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
     ptrLoan = new Loan (app_sn, app_data_time, ts_data_date, jcic_data_date, tsn);
     errCode = ptrLoan->app_info_validate(app_sn, app_data_time, dbhandle);
     if (errCode == 0)
@@ -549,7 +546,7 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        hostVars[7] = ptrLoan->get_code();
        hostVars[8] = ptrLoan->error();
        dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result_Data_Error], hostVars, 8);
-       dbhandle->CloseDatabase();  // commemt if past from argument
+//       dbhandle->CloseDatabase();  // commemt if past from argument
        delete ptrLoan;
        return (0);
     }
@@ -559,10 +556,11 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
 //    if (errCode == 0 || errCode == 201) {   // No major derug hit or JCIC expires
 //       ptrLoan->calculate_rscore(dbhandle);
        pb = ptrLoan->calculate_pd_test(ptrLoan->get_principal(), dbhandle);
+    if (ptrLoan->get_card() != 0) {   // No major derug hit or JCIC expires
        ptrLoan->calculate_npv(ptrLoan->get_principal(), pb);
        // write_specific result to approval_cal
        hostVars[6] = ptrLoan->get_principal();
-       hostVars[7] = RoundTo(pb, -3);
+       hostVars[7] = pb;
        hostVars[8] = ptrLoan->get_npv();
        if (ptrLoan->get_npv() >= 0){
           reason_code = 1;
@@ -601,7 +599,7 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
        hostVars[10] = Message;
        hostVars[11] = ptrLoan->get_external_monthly_payment();
        dbhandle->ExecSQLCmd(SQLCommands[Write_Specific_Result], hostVars, 11);
-//    }
+    }
 //    else {
 //       // write prescreen result to PRESECREEN
 //       errCode = 1;
@@ -614,17 +612,16 @@ int specific_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
         Without droping temp tables will not release system resource after connection is closed.
      */
 //    dbhandle->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
-    dbhandle->CloseDatabase();  // commemt if past from argument
+//    dbhandle->CloseDatabase();  // commemt if past from argument
  } catch (Exception &E) {
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
  delete ptrLoan;
- delete dbhandle;  // commemt if past from argument
+// delete dbhandle;  // commemt if past from argument
  return(errCode);
 
 }
-
 
 
 
