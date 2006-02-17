@@ -25,15 +25,15 @@ DESDIR = /home/escorap1/lib
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE
-#EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
+#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE
+EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-ALIAS=dacdb
+ALIAS=escore
 # Set UID and PWD if neccesary
-UID=ejcicap1
-PWD=ejcicap1
+UID=escorap1
+PWD=escorap1
 
 ERASE=rm -f
 
@@ -76,8 +76,9 @@ cutpoint.o: cutpoint.cpp
 #	gcc -g  -c cutpoint.c
 	
 libdac.so: $(DLL_OBJ)
-	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac.so $(DLL_OBJ)
-
+	$(ERASE) libdac.so
+	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_1.so $(DLL_OBJ)
+	ln -s libdac_1_1.so libdac.so
 #libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
