@@ -16,13 +16,27 @@
 #if ((__cplusplus >= 199711L) && !defined DB2HP) || \
     (DB2LINUX && (__LP64__ || (__GNUC__ >= 3)) )
    #include <iostream>
-   using namespace std;
+   #include <fstream>
+   #include <string>
+   #include <iomanip>
+   using namespace std; 
 #else
    #include <iostream.h>
+   #include <fstream.h>
+   #include <string.h>
+   #include <iomanip.h>
 #endif
 #include "loan_app.h"
 #include "error.h"
+#include "attrition.h"
 #include "functions.h"
+#include "financial.h"
+#include <math.h>
+#ifdef TRACE
+#define trace 1
+#else
+#define trace 0
+#endif
 
 extern char MESSAGE[1024];
 Invalid_Msg tcbMsg[] = {
@@ -62,17 +76,22 @@ Invalid_Msg tcbMsg[] = {
 };
 char *decisionMsg[] = {
 /*Type I message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，建議核准。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s，"
+"建議核准。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type II message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，初評未達核准標準。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s，"
+"初評未達核准標準。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type III message*/
 "模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
-"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
+"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s。"
+"(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type IV message*/
 "模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
-"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
+"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s。"
+"(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type V message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)"
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s。"
+"(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)"
 };
 
 int decisionCode[] = {
@@ -419,13 +438,13 @@ int LoanApp::get_fin_info()
      return(EXIST_ERR_1101);
   }
 
-  Fund_deposit_pct = iFund_deposit_pct;
-  Fund_bank_pct    = iFund_bank_pct;
-  Fund_self_pct    = iFund_self_pct;
-  Fund_free_pct    = iFund_free_pct;
-  COF_deposit      = iCOF_deposit;
-  COF_bank         = iCOF_bank;
-  ROE              = iROE;
+  Fund_deposit_pct = iFund_deposit_pct / 100.0;
+  Fund_bank_pct    = iFund_bank_pct / 100.0;
+  Fund_self_pct    = iFund_self_pct / 100.0;
+  Fund_free_pct    = iFund_free_pct / 100.0;
+  COF_deposit      = iCOF_deposit / 100.0;
+  COF_bank         = iCOF_bank / 100.0;
+  ROE              = iROE / 100.0;
   Commission       = iCommission;
 
   Debug("Exit LoanApp.get_fin_info()");
@@ -504,7 +523,7 @@ int LoanApp::get_loan_info()
   else Loan_amt = iLoan_amt;
   if (Loan_amt <= 0) {
      strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1103)); code = DataErrorCode(EXIST_ERR_1103);}
-     
+  App_amt = Loan_amt;   
 //  printf ("Loan_amt=%d.\n", Loan_amt);
 //  printf ("code=%d, msg=%s.\n", code, MESSAGE);
   Debug("Exit LoanApp.get_loan_info()");
@@ -590,6 +609,7 @@ char * LoanApp::get_sysdate()
 {
  return (System_date);
 } //LoanApp::get_sysdate()
+
 //--------------------------------------------------------------------------------------------------
   EXEC SQL BEGIN DECLARE SECTION;
     /*app_result fields*/
@@ -606,6 +626,18 @@ char * LoanApp::get_sysdate()
     long  oGuarantor_pass;
     long  oApproval_code;
     char  oApproval_msg[513];
+    double iApplicant_PB_adj;
+    short Applicant_PB_adj_ind;
+
+    double oFund_deposit_pct;
+    double oFund_bank_pct;
+    double oFund_self_pct;
+    double oFund_free_pct;
+    double oCOF_deposit;
+    double oCOF_bank;
+    double oROE;
+    double oCommission;
+
     double oLowest_Rate_1;
     double oLowest_Rate_2;
     double oLowest_Rate_3;
@@ -616,14 +648,31 @@ char * LoanApp::get_sysdate()
 int LoanApp::update_final_npv()
 {
   struct sqlca sqlca;
+  double npv_value;
   
   Debug("Enter LoanApp.update_final_npv()");
 
   strcpy(oCase_SN, case_sn);
+
+  // get PB from app_result
+  EXEC SQL
+     select Applicant_PB_adj
+     into :iApplicant_PB_adj:Applicant_PB_adj_ind
+     from  app_result
+     where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Get PB.");
+
+  if (Applicant_PB_adj_ind == -1) applicantPB_adjust = 0.7;
+  else applicantPB_adjust = iApplicant_PB_adj;
+  
+  /* calculate NPV with no interest rate bias*/
+  npv_value = calculate_npv(0.0);
+  oNPV = static_cast<int>(npv_value);
+  
 // check if case_sn exist in the table app_result
   EXEC SQL
      update app_info
-        set NPV_final=16888
+        set NPV_final=:oNPV
         where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Update NPV.");
 
@@ -651,16 +700,24 @@ int LoanApp::write_result_prescreen_failed()
      EXEC SQL delete from  app_result where case_sn = :oCase_SN;
      EMB_SQL_CHECK("Delete PS failure..");
   }
+  oFund_deposit_pct = Fund_deposit_pct * 100.0;
+  oFund_bank_pct    = Fund_bank_pct * 100.0;
+  oFund_self_pct    = Fund_self_pct * 100.0;
+  oFund_free_pct    = Fund_free_pct * 100.0;
+  oCOF_deposit      = COF_deposit * 100.0;
+  oCOF_bank         = COF_bank * 100.0;
+  oROE              = ROE * 100.0;
+  oCommission       = Commission;
 
   EXEC SQL
      insert into app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
                  Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                  Commission, Approval_code, Approval_msg) 
-        values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,
-                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                 :oPS_code, :oPS_msg);
+        values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,:oFund_deposit_pct,
+                :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
+                :oPS_code, :oPS_msg);
   EMB_SQL_CHECK("Write PS failure.");
-
+/*
   EXEC SQL
      update  app_result
         set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
@@ -670,7 +727,7 @@ int LoanApp::write_result_prescreen_failed()
 	      from  TCB_FIN_INFO)
 	where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Update Financial.");
-
+*/
 //  EXEC SQL COMMIT;
 //  EMB_SQL_CHECK("COMMIT");
 
@@ -679,21 +736,35 @@ int LoanApp::write_result_prescreen_failed()
 } //LoanApp::write_result_prescreen_failed()
 
 //--------------------------------------------------------------------------------------------------
-int LoanApp::write_result(int decision, int unsecured_amt)
+int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
 {
   struct sqlca sqlca;
   char apply_date[10];
+  char apr_msg[64], msg1[24]; 
 
   Debug("Enter LoanApp.write_result()");
   strcpy(oCase_SN, case_sn);
   strcpy(osystem_time, CurrTime_MinGuo());
   oApplicant_PB = applicantPB;
   oApplicant_PB_adj = applicantPB_adjust;
-//  oNPV = 0;
+  oNPV = static_cast<int>(npv_value);
   oPS_code = ps_code_a;
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
   oApproval_code = decisionCode[decision];
+  oLowest_Rate_1 = Lowest_rate_1 * 100;
+  oLowest_Rate_2 = Lowest_rate_2 * 100;
+  oLowest_Rate_3 = Lowest_rate_3 * 100;
+
+  oFund_deposit_pct = Fund_deposit_pct * 100.0;
+  oFund_bank_pct    = Fund_bank_pct * 100.0;
+  oFund_self_pct    = Fund_self_pct * 100.0;
+  oFund_free_pct    = Fund_free_pct * 100.0;
+  oCOF_deposit      = COF_deposit * 100.0;
+  oCOF_bank         = COF_bank * 100.0;
+  oROE              = ROE * 100.0;
+  oCommission       = Commission;
+  
   strcpy(apply_date, System_date); // insert slash '/' as separator
   apply_date[3] = apply_date[6] = '/';
   apply_date[4] = System_date[3];
@@ -701,8 +772,24 @@ int LoanApp::write_result(int decision, int unsecured_amt)
   apply_date[7] = System_date[5];
   apply_date[8] = System_date[6];
   apply_date[9] = '\0';
+// compose lowest interest rate message
+  if (Term_1 > 0) {
+     sprintf(msg1, "，最低承做利率為第一期：%5.3f%%", Lowest_rate_1*100);
+     strcpy (apr_msg, msg1);
+  }
+  if (Term_2 > 0) {
+     sprintf(msg1, "，第二期：%5.3f%%", Lowest_rate_2*100);
+     strcat (apr_msg, msg1);
+  }
+  if (Term_3 > 0) {
+     sprintf(msg1, "，第三期：%5.3f%%", Lowest_rate_3*100);
+     strcat (apr_msg, msg1);
+  }
   
-  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, apply_date, unsecured_amt /10000.0);
+  
+// write output message 
+  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, static_cast<int>(npv_value),
+          apr_msg, apply_date, unsecured_amt /10000.0);
 //  oCut = cutpoint;
 
 // check if case_sn exist in the table app_result
@@ -714,48 +801,48 @@ int LoanApp::write_result(int decision, int unsecured_amt)
      EMB_SQL_CHECK("Delete Result.");
   }
 
-  if (gID[0] != '\0' && gID[0] != ' ') {
+  if (gID[0] != '\0' && gID[0] != ' ') { // with Guarantor
      oPS_code_g = ps_code_g;
      strcpy(oPS_msg_g, ps_msg_g);  
-     if (oPS_code_g == 0) {
+     if (oPS_code_g == 0) { // guarantor prescreen pass
         oGuarantor_PB = guarantorPB;
         EXEC SQL
            insert into  app_result(Case_SN, system_time, Applicant_PB, Guarantor_PB, Applicant_PB_adj,
-                       PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                       NPV, PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                       Commission, Approval_code, Approval_msg) 
+                       Commission, Approval_code, Approval_msg, Lowest_Rate_1, Lowest_Rate_2, Lowest_Rate_3) 
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
-                      :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
-                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                      :oApproval_code, :oApproval_msg);
+                      :oNPV, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
+                      :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
+                      :oApproval_code, :oApproval_msg, :oLowest_Rate_1, :oLowest_Rate_2, :oLowest_Rate_3);
         EMB_SQL_CHECK("Write Result1.");
      }
-     else {
+     else {  // guarantor prescreen fails
         EXEC SQL
            insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
-                       PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
+                       NPV, PS_code, PS_msg, PS_code_g, PS_msg_g, Guarantor_pass, Fund_deposit_pct,
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                       Commission, Approval_code, Approval_msg) 
+                       Commission, Approval_code, Approval_msg, Lowest_Rate_1, Lowest_Rate_2, Lowest_Rate_3) 
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
-                      :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,
-                      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                      :oApproval_code, :oApproval_msg);
+                      :oNPV, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
+                      :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
+                      :oApproval_code, :oApproval_msg, :oLowest_Rate_1, :oLowest_Rate_2, :oLowest_Rate_3);
         EMB_SQL_CHECK("Write Result2.");
      } 
   }   
-  else {
+  else { // No guarantor
      EXEC SQL
         insert into  app_result(Case_SN, system_time, Applicant_PB, Applicant_PB_adj,
-                    PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
+                    NPV, PS_code, PS_msg, Guarantor_pass, Fund_deposit_pct,
                     Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
-                    Commission, Approval_code, Approval_msg) 
+                    Commission, Approval_code, Approval_msg, Lowest_Rate_1, Lowest_Rate_2, Lowest_Rate_3) 
            values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
-                    :oPS_code, :oPS_msg, :oGuarantor_pass,
-                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    :oApproval_code, :oApproval_msg);
+                    :oNPV, :oPS_code, :oPS_msg, :oGuarantor_pass,:oFund_deposit_pct,
+                    :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
+                    :oApproval_code, :oApproval_msg, :oLowest_Rate_1, :oLowest_Rate_2, :oLowest_Rate_3);
      EMB_SQL_CHECK("Write Result3.");
   }
-
+/*
   EXEC SQL
      update  app_result
         set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
@@ -765,7 +852,7 @@ int LoanApp::write_result(int decision, int unsecured_amt)
 	      from  TCB_FIN_INFO)
 	where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Update Financial.");
-
+*/
 //  EXEC SQL COMMIT;
 //  EMB_SQL_CHECK("COMMIT");
 
@@ -773,4 +860,495 @@ int LoanApp::write_result(int decision, int unsecured_amt)
   return (0);
 } //LoanApp::write_result()
 
+//--------------------------------------------------------------------------------------------------
+void LoanApp::npv_init()
+{
+  for (int i = 0; i < TERM + 4; i ++) {
+     apr[i] = 0.0;
+     open_attrition[i] = 0.0;
+     voluntary_attrition[i] = 0.0;
+     involuntary_attrition[i] = 0.0;
+     m1_attrition[i] = 0.0;
+     base_attrition[i] = 0.0;
+     os_principal[i] = 0.0;
+     principal_repayment[i] = 0.0;
+     interest_repayment[i] = 0.0;
+     interest_revenue[i] = 0.0;
+     late_fee[i] = 0.0;
+     early_closing_fee[i] = 0.0;
+     interest_cost[i] = 0.0;
+     account_management_cost[i] = 0.0;
+     precollection_cost[i] = 0.0;
+     collection_cost[i] = 0.0;
+     working_capital[i] = 0.0;
+     credit_loss[i] = 0.0;
+  }
+  district = 1;
+  m1_recovery_ratio = 0.95;            // Late fee recovery ratio - 4 days
+  m1_avg_late_days = 6;             // Average late days - 4 days
+  m1_penalty_rate = 0.1;              // 違約率 - 4 days
+  m6_recovery_ratio = 0.02;            // Late fee recovery ratio - 180+ days
+  m6_avg_late_days = 180;             // Average late days - 180+ days
+  m6_penalty_rate = 0.2;              // 違約率 - 180+ days
+  early_closing_period = 0;         // 提早還款期間 -- move to app_info
+  early_closing_fee_pct = 0.0;        // 提早還款費率
+  early_closing_fee_collectable_ratio = 0.5; //  提早還款費可徵收之比率
+  leverage_ratio = Fund_deposit_pct + Fund_bank_pct + Fund_free_pct; //舉債比率（％）
+  cof = (COF_deposit * Fund_deposit_pct + COF_bank * Fund_bank_pct)/(Fund_deposit_pct + Fund_bank_pct + Fund_free_pct); //資金成本（％）
+  roe = ROE;                          //股東權益報酬（％）
+  acct_mgmt_cost = 3;               //臨櫃繳款
+  short_message_expense = 1.36;      //簡訊費用
+  phone_expense_north = 39.0;          //電話催收費用-北區
+  phone_expense_south = 39.0;          //電話催收費用-南區
+  phone_expense_central = 39.0;        //電話催收費用-中區
+  legal_exec_north = 963.0;         //法務費用-北區（執行名義）支付命令 + 假扣押裁定 + 1.1% * 申貸金額
+  legal_query_north = 618.0;            //法務費用-北區（查詢所得&財產）
+  legal_auction_north = 800.0;         //法務費用-北區（拍賣）
+  legal_staff_north = 1500.0;            //法務費用-北區（法務人員）
+  legal_exec_south= 963.0;             //法務費用-南區（執行名義）
+  legal_query_south = 618.0;            //法務費用-南區（查詢所得&財產）
+  legal_auction_south = 800.0;         //法務費用-南區（拍賣）
+  legal_staff_south = 1500.0;            //法務費用-南區（法務人員）
+  legal_exec_central= 963;           //法務費用-中區（執行名義）
+  legal_query_central = 618.0;          //法務費用-中區（查詢所得&財產）
+  legal_auction_central = 800.0;       //法務費用-中區（拍賣）
+  legal_staff_central = 1500.0;          //法務費用-中區（法務人員）
+  legal_detain_ratio_north = 0.0056;      //假扣押&強制執行-北區 (% of balance)
+  legal_detain_ratio_south = 0.0056;      //假扣押&強制執行-南區 (% of balance)
+  legal_detain_ratio_central = 0.0056;    //假扣押&強制執行-中區 (% of balance)
+  recovery_ratio = 0.75;                 //壞帳回收百分比, (資金損失 % (EAD) )
+  legal_action_period = 12.0;            // Legal action usually lasts 12 months before write-off
+  pd = applicantPB_adjust;
+  principal = App_amt;
+}
+
+//--------------------------------------------------------------------------------------------------
+void LoanApp::set_apr(double delta_apr)
+{
+  int i, j;
+
+  j = 0;
+  apr[j] = 0.0;
+  for (i = 0; i < Term_1; i++) 
+      apr[++j] = (APR_1 + delta_apr < 0 ? 0 : APR_1 + delta_apr) / 12.0;   
+  
+  for (i = 0; i < Term_2; i++)
+      apr[++j] = (APR_2 + delta_apr < 0 ? 0 : APR_2 + delta_apr) / 12.0;   
+  
+  for (i = 0; i < Term_3; i++) 
+      apr[++j] = (APR_3 + delta_apr < 0 ? 0 : APR_3 + delta_apr) / 12.0;   
+
+}
+
+//--------------------------------------------------------------------------------------------------
+void LoanApp::set_attrition(double delta_apr)
+{
+//  double monthly_pd = pd / 12.0;
+  int cat, term;
+  int pd_term;
+
+  if (periods < 48) { // 3 year (4 * 12 month)
+     if ((max_apr + delta_apr) <= 0.05)
+        cat = 0;
+     else if ((max_apr + delta_apr) > 0.05 && (max_apr + delta_apr) <= 0.09)
+        cat = 1;
+     else
+        cat = 2;
+     term = 36; // month
+  } else if (periods >= 48 && periods < 72 ) { // 5 year (4*12 - 6*12 month)
+     if ((max_apr + delta_apr) <= 0.05)
+        cat = 3;
+     else if ((max_apr + delta_apr) > 0.05 && (max_apr + delta_apr) <= 0.09)
+        cat = 4;
+     else
+        cat = 5;
+     term = 60; // month
+  } else { //  7 year
+     if ((max_apr + delta_apr) <= 0.05)
+        cat = 6;
+     else if ((max_apr + delta_apr) > 0.05 && (max_apr + delta_apr) <= 0.09)
+        cat = 7;
+     else
+        cat = 8;
+     term = 120; // month
+  }
+
+  if (periods < 7)
+     pd_term = 0;
+  else if (periods > 84)
+     pd_term = 7;
+  else
+     pd_term = (periods + 6) / 12;     // rounding
+
+  for (int i = 0; i < term; i++)
+      base_attrition[i] = Attrition_Table[cat][i];
+
+  for (int i = 0; i < periods; i++) {
+      if (pd_term == 0)
+          PD_attrition[i] = pd * (i + 1) / (periods + 1) / 6;
+          /* (2*PD*periods)/(12*(periods+1)*(i+1)/periods */
+      else
+         if (i < PDterm_coeff[pd_term][0])
+            PD_attrition[i] = pd * (i + 1) / PDterm_coeff[pd_term][0] / PDterm_coeff[pd_term][1];
+         else
+            PD_attrition[i] = pd * PD_FACTOR / PDterm_coeff[pd_term][1];
+  }    
+
+  open_attrition[0] = 1.0;
+  voluntary_attrition[0] = involuntary_attrition[0] = m1_attrition[0] = 0.0;
+  for (int i = 1; i <= periods; i++) {
+      voluntary_attrition[i] = open_attrition[i-1] * base_attrition[i-1];
+      involuntary_attrition[i] = open_attrition[i-1] * PD_attrition[i-1];
+      open_attrition[i] = open_attrition[i-1] - voluntary_attrition[i] - involuntary_attrition[i];
+      m1_attrition[i] = involuntary_attrition[i] * m1_to_m7_ratio;
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+void LoanApp::set_amortize()
+{
+  os_principal [0] = principal;
+  interest_repayment [0] = 0.0;
+  principal_repayment [0] = 0.0;
+//  monthly_repayment [0] = 0.0;
+  int GracePeriod = ((Grace_period == periods)? Grace_period - 1: Grace_period);
+  double fix_payment = principal / (periods - GracePeriod);
+
+  for (int i = 1; i<= periods; i++) {
+      interest_repayment[i] = os_principal[i-1] * apr[i];
+      if (i > GracePeriod)
+         principal_repayment [i] = fix_payment;
+      else
+         principal_repayment [i] = 0.0;
+      os_principal [i] = os_principal[i-1] - principal_repayment[i];
+//      monthly_repayment[i] = principal_repayment[i] + interest_repayment[i];
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+void LoanApp::set_annuity()
+{
+  int GracePeriod = ((Grace_period == periods)? Grace_period - 1: Grace_period);
+  int after_grace_period = periods - GracePeriod;
+  double repayment = principal / periods;     // assume apr = 0.0%
+  int remaining_period;
+
+  os_principal [0] = principal;
+  interest_repayment [0] = 0.0;
+  principal_repayment [0] = 0.0;
+ 
+  for (int i = 1; i <= periods; i++) {
+     if (apr[i] != apr[i-1]) {
+        remaining_period = periods - i + 1;
+        remaining_period = (remaining_period > after_grace_period ? after_grace_period : remaining_period);
+        if (apr[i] == 0.0)
+           repayment = os_principal[i-1] / remaining_period;
+        else
+           repayment = PMT(apr[i], remaining_period, -os_principal[i-1], 0.0, ptEndOfPeriod);
+     }
+     interest_repayment[i] = os_principal[i-1] * apr[i];
+     if (i > GracePeriod)
+        principal_repayment[i] = repayment - interest_repayment[i];
+     else
+        principal_repayment[i] = 0.0;
+
+     os_principal[i] = os_principal[i-1] - principal_repayment[i];
+
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+double LoanApp::calculate_npv(double delta_apr)
+{
+  double revenue, cost, wc;
+  double Interest_Revenue, Late_Fee, Early_Closing_Fee = 0.0, Application_Fee = 0.0;
+  double Other_Fee = 0.0, Interest_Cost, Acct_Mgmt_Cost, PreCollection_Cost;
+  double Collection_Cost, Working_Capital, Credit_Loss;
+
+  npv_init();
+  set_apr(delta_apr);
+  set_attrition(delta_apr);
+  set_annuity();
+  if (Commission < 0) Commission = 0;
+  Interest_Revenue = set_interest_revenue();
+  Late_Fee = set_late_fee();
+//  Early_Closing_Fee = set_early_closing_fee();
+//  Other_Fee = risk_mgmt_fee + acct_mgmt_fee + bt_fee;
+  Interest_Cost = set_interest_cost();
+  Acct_Mgmt_Cost = set_account_management_cost();
+  PreCollection_Cost = set_precollection_cost();
+  Collection_Cost = set_collection_cost();
+  Working_Capital = set_working_capital();
+  Credit_Loss = set_credit_loss();
+  total_npv = (Interest_Revenue + Late_Fee + Early_Closing_Fee + Application_Fee
+               + Other_Fee)                            // Revenue
+              - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost
+               + Collection_Cost + Commission)         // Cost
+              + (Working_Capital + Credit_Loss);       // Working Capital
+
+#ifdef NPV_FLOWS
+     fstream outf;
+    
+     outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
+    
+     outf << "Case SN: " << case_sn << "   IDN: " << aID << "   NPV: " << total_npv << endl;
+     outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr    M1_Atr  Base_Atr        "
+          << "OsPrinL        P_Repay        I_Repay         IntRev          LateF         "
+          << "EarlyF        IntCost       AcctCost         PreCol        Collect             "
+          << "WC        CreLoss" << endl;
+     outf << "========================================================================================================="
+          << "======================================================================"
+          << "======================================================================" << endl;
+     outf <<  showpoint
+              << setw(79) << setprecision(8) << Application_Fee
+              << setw(15) << setprecision(8) << Other_Fee
+              << setw(15) << setprecision(8) << Commission
+              << setw(15) << setprecision(8) << Interest_Revenue
+              << setw(15) << setprecision(8) << Late_Fee
+              << setw(15) << setprecision(8) << Early_Closing_Fee
+              << setw(15) << setprecision(8) << Interest_Cost
+              << setw(15) << setprecision(8) << Acct_Mgmt_Cost
+              << setw(15) << setprecision(8) << PreCollection_Cost
+              << setw(15) << setprecision(8) << Collection_Cost
+              << setw(15) << setprecision(8) << Working_Capital
+              << setw(15) << setprecision(8) << Credit_Loss
+              << endl;
+     for (int i = 0; i < periods + 4; i++) {
+         outf << setprecision(8) << showpoint
+              << setw(4)  << i
+              << setw(10) << setprecision(4) << apr[i]
+              << setw(10) << setprecision(4) << open_attrition[i]
+              << setw(10) << setprecision(4) << voluntary_attrition[i]
+              << setw(10) << setprecision(4) << involuntary_attrition[i]
+              << setw(10) << setprecision(4) << m1_attrition[i]
+              << setw(10) << setprecision(4) << base_attrition[i]
+              << setw(15) << setprecision(8) << os_principal[i]
+              << setw(15) << setprecision(8) << principal_repayment[i]
+              << setw(15) << setprecision(8) << interest_repayment[i]
+              << setw(15) << setprecision(8) << interest_revenue[i]
+              << setw(15) << setprecision(8) << late_fee[i]
+              << setw(15) << setprecision(8) << early_closing_fee[i]
+              << setw(15) << setprecision(8) << interest_cost[i]
+              << setw(15) << setprecision(8) << account_management_cost[i]
+              << setw(15) << setprecision(8) << precollection_cost[i]
+              << setw(15) << setprecision(8) << collection_cost[i]
+              << setw(15) << setprecision(8) << working_capital[i]
+              << setw(15) << setprecision(8) << credit_loss[i]
+              << endl;
+     }
+#endif
+
+  return (total_npv);
+}
+
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_interest_revenue()
+{
+  for (int i = 1; i <= periods; i++)
+     interest_revenue[i] = os_principal[i-1] * apr[i] * open_attrition[i];
+
+  return (NPV(roe / 12.0, interest_revenue + 1, periods, ptEndOfPeriod)
+          + interest_revenue[0]);
+}
+
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_late_fee()
+{
+  for (int i = 1; i <= periods; i++)
+     late_fee[i] = os_principal[i-1] * apr[i] * YearMonths / YearDays *
+                  (m1_attrition[i] * m1_recovery_ratio * m1_avg_late_days * m1_penalty_rate +
+                   involuntary_attrition[i] * m6_recovery_ratio * m6_avg_late_days * m6_penalty_rate);
+
+  return (NPV(roe / 12.0, late_fee + 1, periods, ptEndOfPeriod)
+          + late_fee[0]);
+}
+
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_early_closing_fee()
+{
+  for (int i = 1; i <= periods; i++)
+     if (i > early_closing_period)
+        early_closing_fee [i] = 0.0;
+     else
+        early_closing_fee [i] = os_principal[i-1] * voluntary_attrition[i] * early_closing_fee_pct
+        		        * early_closing_fee_collectable_ratio;
+
+  return (NPV(roe / 12.0, early_closing_fee + 1, periods, ptEndOfPeriod)
+          + early_closing_fee[0]);
+}
+// Cost
+// Interest Cost:
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_interest_cost()
+{
+  for (int i = 1; i <= periods; i++)
+     interest_cost[i] = os_principal[i-1] * open_attrition[i-1] * leverage_ratio * cof / YearMonths;
+  return (NPV(roe / 12.0, interest_cost + 1, periods, ptEndOfPeriod)
+          + interest_cost[0]);
+}
+
+// Account Management Cost
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_account_management_cost()
+{
+  for (int i = 1; i <= periods; i++)
+     account_management_cost[i] = acct_mgmt_cost * open_attrition[i-1];
+  return (NPV(roe / 12.0, account_management_cost + 1, periods, ptEndOfPeriod)
+          + account_management_cost[0]);
+}
+
+// Pre-collection Cost
+/* 4 days late will send message to customer.
+   30 days late will call to customer.
+   30 days late is 2 payments behind.
+*/
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_precollection_cost()
+{
+  double monthly_pd = pd / YearMonths;
+  double m1Open = monthly_pd * m1_to_m7_ratio;
+  double d4Open = m1Open * m1_to_m7_ratio;
+  double phone_expense;
+
+  switch (district) {
+    case 1: phone_expense =  phone_expense_north;  break;
+    case 2: phone_expense =  phone_expense_central;  break;
+    case 3: phone_expense =  phone_expense_south;  break;
+  }
+  for (int i = 1; i <= periods + 1; i++)
+     if (i < 2)
+        precollection_cost[i] = 0.0;
+     else {
+       if (os_principal[i-2] > 0)
+          precollection_cost[i] = short_message_expense * open_attrition[i-2] * d4Open +
+                             phone_expense * open_attrition[i-2] * m1Open;
+       else
+          precollection_cost[i] = 0.0;
+     }
+  return (NPV(roe / 12.0, precollection_cost + 1, periods+1, ptEndOfPeriod)
+          + precollection_cost[0]);
+}
+// Collection Cost (legal)
+/* 90+ days delinquent will tirgger legal action to collect outstanding principal
+   90+ days delinquent is 4 payments behind
+*/
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_collection_cost()
+{
+  double monthly_pd = pd / YearMonths;
+  double legal_expense;
+  double legal_detain_ratio;
+
+  switch (district) {
+    case 1: legal_expense = legal_exec_north + legal_query_north
+                            + legal_auction_north + legal_staff_north;
+            legal_detain_ratio = legal_detain_ratio_north;
+            break;
+    case 2: legal_expense =  legal_exec_central + legal_query_central
+                            + legal_auction_central + legal_staff_central;
+            legal_detain_ratio = legal_detain_ratio_central;
+            break;
+    case 3: legal_expense =  legal_exec_south + legal_query_south
+                            + legal_auction_south + legal_staff_south;
+            legal_detain_ratio = legal_detain_ratio_south;
+            break;
+  }
+  for (int i = 1; i <= periods + 3 ; i++)
+     if (i < 4)
+        collection_cost [i] = 0.0;
+     else {
+       if (os_principal[i-4] > 0)
+          collection_cost[i] = open_attrition[i-4] * monthly_pd *
+                       (legal_expense + os_principal[i-4] * legal_detain_ratio);
+       else
+          collection_cost[i] = 0.0;
+     }
+  return (NPV(roe / 12.0, collection_cost + 1, periods+3, ptEndOfPeriod)
+          + collection_cost[0]);
+}
+
+// Working Capacital
+/*
+    working_capital [i] = (os_principal[i-1]* open_attrition[i-1] -
+                           os_principal[i] * open_attrition[i]) *
+                           (os_principal[i-1]* open_attrition[i-1] * leverage_ratio -
+                           os_principal[i] * open_attrition[i] * leverage_ratio)
+*/
+//--------------------------------------------------------------------------------------------------
+double LoanApp::set_working_capital()
+{
+ working_capital [0] = -os_principal[0] * (1 - leverage_ratio);
+ for (int i = 1; i <= periods; i++) {
+    working_capital [i] = (os_principal[i-1]* open_attrition[i-1] -
+                           os_principal[i] * open_attrition[i]) *
+                           (1- leverage_ratio);
+ }
+  return (NPV(roe / 12.0, working_capital + 1, periods, ptEndOfPeriod)
+          + working_capital[0]);
+}
+
+// Credit loss:
+double LoanApp::set_credit_loss()
+{
+ double discount_rate = 1 / pow((1 + roe / YearMonths),legal_action_period);
+ credit_loss [0] = 0.0;
+ for (int i = 1; i <= periods; i++) {
+    credit_loss [i] = -os_principal[i-1]* involuntary_attrition[i] *
+                      (1 - (1 - recovery_ratio) * discount_rate);
+ }
+  return (NPV(roe / 12.0, credit_loss + 1, periods, ptEndOfPeriod)
+          + credit_loss[0]);
+}
+//--------------------------------------------------------------------------------------------------
+double LoanApp::get_npv ()
+{
+ return total_npv;
+}
+//--------------------------------------------------------------------------------------------------
+double LoanApp::find_lowest_rate (double offset, double delta_r)
+{
+ double npv, target_r, offset_r;
+  
+ target_r = offset + delta_r;
+ npv = calculate_npv(target_r);
+
+ if (1) {
+     fstream outf;
+    
+     outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
+     outf << "Case SN: " << case_sn << " offset: " << offset 
+          << " delta: " << delta_r << " NPV: " << npv << endl;
+ }
+ if (npv > (ApprovedNPV + 1)) {
+    if (delta_r > 0)
+       offset_r = offset;
+    else
+       offset_r = offset + delta_r;
+    return (find_lowest_rate(offset_r, delta_r / 2.0));
+ }
+ else if(npv < ApprovedNPV) {
+    if (delta_r > 0)
+       offset_r = offset + delta_r;
+    else
+       offset_r = offset;
+    return (find_lowest_rate(offset_r, delta_r / 2.0));
+ }
+ else
+    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
+}
+//--------------------------------------------------------------------------------------------------
+void LoanApp::set_npv (double npv_value)
+{
+ total_npv = npv_value;
+}
+//--------------------------------------------------------------------------------------------------
+void LoanApp::set_lowest_rate (double delta_rate)
+{
+ if (Term_1 > 0)
+    Lowest_rate_1 = (APR_1 + delta_rate < 0 ? 0 : APR_1 + delta_rate);
+ if (Term_2 > 0)
+    Lowest_rate_2 = (APR_2 + delta_rate < 0 ? 0 : APR_2 + delta_rate);
+ if (Term_3 > 0)
+    Lowest_rate_3 = (APR_3 + delta_rate < 0 ? 0 : APR_3 + delta_rate);
+}
 //--------------------------------------------------------------------------------------------------

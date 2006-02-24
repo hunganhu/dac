@@ -25,25 +25,34 @@ DESDIR = /home/escorap1/lib
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
 CPP=g++
-#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE
+###
+#  3 compiler options are used to show debug information 
+#  -DDEBUG: trace risk model steps
+#  -DTRACE: save risk model variables to permanent table
+#  -DNPV_FLOWS: print cash flows of every term when calculating NPV
+#EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE -DNPV_FLOWS
 EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
+#EXTRA_CFLAG= -g -Wno-deprecated 
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-ALIAS=escore
+ALIAS=dacdb
+#ALIAS=escore
 # Set UID and PWD if neccesary
-UID=escorap1
-PWD=escorap1
+UID=ejcicap1
+PWD=ejcicap1
+#UID=escorap1
+#PWD=escorap1
 
 ERASE=rm -f
 
-DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o finacial.o
+DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o financial.o
 
 #****************************************************************************
 #		   2a - make all (srv + all_client)
 #****************************************************************************
 
-all : libdac.so java  main 
+all : libdac_1_2.so java  main 
 .PHONY : all
 	
 java: Dac.class 
@@ -54,7 +63,7 @@ Dac.h: Dac.class
 	javah -jni Dac
 
 dacploan.o: dacploan.c 
-	gcc -g $(EXTRA_CFLAG) -I/usr/java131/include -c dacploan.c
+	gcc -g -I/usr/java131/include -c dacploan.c
 
 main: main.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o main -ldb2 -L$(DB2PATH)/lib \
@@ -75,10 +84,9 @@ cutpoint.o: cutpoint.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c cutpoint.cpp
 #	gcc -g  -c cutpoint.c
 	
-libdac.so: $(DLL_OBJ)
-	$(ERASE) libdac.so
-	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_1.so $(DLL_OBJ)
-	ln -s libdac_1_1.so libdac.so
+libdac_1_2.so: $(DLL_OBJ)
+	$(ERASE) libdac_1_2.so
+	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_2.so $(DLL_OBJ)
 #libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
@@ -95,15 +103,15 @@ risk_model.o: risk_model.sqC risk_model.h
 	$(EMBPREP) risk_model $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c risk_model.C
 
-loan_app.o: loan_app.sqC loan_app.h error.h
+loan_app.o: loan_app.sqC loan_app.h error.h attrition.h
 	$(EMBPREP) loan_app $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c loan_app.C
 
 functions.o: functions.cpp functions.h
 	$(CPP) $(EXTRA_CFLAG) -c functions.cpp
 
-finacial.o: finacial.cpp finacial.h
-	$(CPP) $(EXTRA_CFLAG) -c finacial.cpp
+financial.o: financial.cpp financial.h
+	$(CPP) $(EXTRA_CFLAG) -c financial.cpp
 
 #****************************************************************************
 # make clean
@@ -113,6 +121,8 @@ clean :
 	$(ERASE) *.o *.so *.bak *~
 	$(ERASE) *.bnd *.C
 
-install: libdac.so
-	 cp -f $? $(DESDIR)
+install: libdac_1_2.so
+	 cp -f libdac_1_2.so $(DESDIR)
 	 touch install
+	 cd $(DESDIR)
+	 ln -f -s libdac_1_2.so libdac.so

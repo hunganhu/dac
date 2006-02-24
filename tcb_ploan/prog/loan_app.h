@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Licensed Materials - Property of DAC
 **
-** (C) COPYRIGHT Decision Analytics Consulting 2005
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
 ** All Rights Reserved.
 **
 *****************************************************************************
@@ -23,7 +23,11 @@ enum DecisionCodes {
 	TYPE_IV,
 	TYPE_V
 };
-
+const int TERM = 120;
+const double m1_to_m7_ratio = 5.0;
+const double YearMonths = 12.0;
+const double YearDays = 365.0;
+const double ApprovedNPV = 2000.0;
 
 class LoanApp {
   private:
@@ -49,10 +53,13 @@ class LoanApp {
     int   Term_3;			//期數(第三期)
     double APR_1;			//利率(第一期)
     double APR_2;			//利率(第二期)
-    double APR_3;			//利率(第三期
+    double APR_3;			//利率(第三期)
     int   Grace_period;			//寬限期
     int   Fee_1;			//開辦費(固定金額部分)
     double Fee_2;			//開辦費(百分比部分)
+    double Lowest_rate_1;               //最低可承做利率(第一期)
+    double Lowest_rate_2;               //最低可承做利率(第二期)
+    double Lowest_rate_3;               //最低可承做利率(第三期)
 
     /* Financial Information*/
     double Fund_deposit_pct;		//資金來源來自存款百分比
@@ -96,6 +103,87 @@ class LoanApp {
     int   ps_code_g;			// 
     char  ps_msg_g[128];		// 
     int   Guarantor_pass;		// 
+
+    /* cash flow arrays to calculate NPV */
+    double pd;
+    double rscore;
+    double total_npv;
+    double apr[TERM+4];
+    double open_attrition[TERM+4];
+    double PD_attrition[TERM+4];
+    double voluntary_attrition[TERM+4];
+    double involuntary_attrition[TERM+4];
+    double m1_attrition[TERM+4];
+    double base_attrition[TERM+4];
+    double os_principal[TERM+4];
+    double principal_repayment[TERM+4];
+    double interest_repayment[TERM+4];
+    double interest_revenue[TERM+4];
+    double late_fee[TERM+4];
+    double early_closing_fee[TERM+4];
+    double interest_cost[TERM+4];
+    double account_management_cost[TERM+4];
+    double precollection_cost[TERM+4];
+    double collection_cost[TERM+4];
+    double working_capital[TERM+4];
+    double credit_loss[TERM+4];
+
+    /* maintenance variables*/
+    int district;
+    double m1_recovery_ratio;            // Late fee recovery ratio - 4 days
+    int    m1_avg_late_days;             // Average late days - 4 days
+    double m1_penalty_rate;              // 違約率 - 4 days
+    double m6_recovery_ratio;            // Late fee recovery ratio - 180+ days
+    int    m6_avg_late_days;             // Average late days - 180+ days
+    double m6_penalty_rate;              // 違約率 - 180+ days
+    int    early_closing_period;         // 提早還款期間 -- move to app_info
+    double early_closing_fee_pct;        // 提早還款費率
+    double early_closing_fee_collectable_ratio; //  提早還款費可徵收之比率
+    double leverage_ratio;               //舉債比率（％）
+    double cof;                          //資金成本（％）
+    double roe;                          //股東權益報酬（％）
+    double query_fee;                    //查詢費、文件費
+    double commission_ratio;             //25~50%of 手續費
+    double acquisition_data_cost;        //Cost of Jcic data acquisition  提早還款期間
+    double acct_mgmt_cost;               //臨櫃繳款
+    double short_message_expense;        //簡訊費用
+    double phone_expense_north;          //電話催收費用-北區
+    double phone_expense_south;          //電話催收費用-南區
+    double phone_expense_central;        //電話催收費用-中區
+    double legal_exec_north;         //法務費用-北區（執行名義）支付命令 + 假扣押裁定 + 1.1% * 申貸金額
+    double legal_query_north;            //法務費用-北區（查詢所得&財產）
+    double legal_auction_north;          //法務費用-北區（拍賣）
+    double legal_staff_north;            //法務費用-北區（法務人員）
+    double legal_exec_south;             //法務費用-南區（執行名義）
+    double legal_query_south;            //法務費用-南區（查詢所得&財產）
+    double legal_auction_south;          //法務費用-南區（拍賣）
+    double legal_staff_south;            //法務費用-南區（法務人員）
+    double legal_exec_central;           //法務費用-中區（執行名義）
+    double legal_query_central;          //法務費用-中區（查詢所得&財產）
+    double legal_auction_central;        //法務費用-中區（拍賣）
+    double legal_staff_central;          //法務費用-中區（法務人員）
+    double legal_detain_ratio_north;     //假扣押&強制執行-北區 (% of balance)
+    double legal_detain_ratio_south;     //假扣押&強制執行-南區 (% of balance)
+    double legal_detain_ratio_central;   //假扣押&強制執行-中區 (% of balance)
+    double recovery_ratio;               //壞帳回收百分比, (資金損失 % (EAD) )
+    double legal_action_period;          // Legal action usually lasts 12 months before write-off
+
+    /* functions to calculate cash flows */
+    void npv_init();
+    void set_apr(double delta_apr);
+    void set_attrition(double delta_apr);
+    void set_amortize();
+    void set_annuity();
+    double set_interest_revenue();
+    double set_late_fee();
+    double set_early_closing_fee();
+    double set_interest_cost();
+    double set_account_management_cost();
+    double set_precollection_cost();
+    double set_collection_cost();
+    double set_working_capital();
+    double set_credit_loss();
+
   public:
     LoanApp (char *caseSN);
     ~LoanApp();
@@ -110,6 +198,7 @@ class LoanApp {
     int get_apply_amount();
     char * get_birthday();
     char * get_sysdate();
+    double get_npv();
 
     void set_applicant_pb(double pb);
     void set_guarantor_pb(double pb);
@@ -118,12 +207,17 @@ class LoanApp {
     void set_cutpoint(double cut);
     void set_ps_status_a(int code, char *msg);
     void set_ps_status_g(int code, char *msg);
+    void set_npv(double npv_value);
     int  update_final_npv();
     int  write_result_prescreen_failed();
 //    int  write_result_others(int decision);
 //    int  write_result_declined(int decision);
 //    int  write_result_approved(int decision);
-    int  write_result(int decision, int revolving_amt);
+    int  write_result(int decision, double npv_value, int unsecured_amt);
+    double calculate_npv(double delta_apr);
+    double find_lowest_rate (double offset, double delta_r);
+    void set_lowest_rate (double delta_rate);
+
 };
 
 

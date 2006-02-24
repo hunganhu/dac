@@ -58,7 +58,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from krm001
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
-  EMB_SQL_CHECK("Insert-Select 1.");
+  EMB_SQL_CHECK("Insert-KRM001.");
 
   EXEC SQL
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
@@ -66,7 +66,40 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from krm023
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
-  EMB_SQL_CHECK("Insert-Select 2.");
+  EMB_SQL_CHECK("Insert-KRM023.");
+/*
+  EXEC SQL
+     insert into krm037_dedup (CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue, issue_name, card_type, perm_limit,
+      temp_limit, cash_limit, payable, cash_lent, last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed,
+      debt_code, close_code, clear_date, cnt)
+        select CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue, issue_name, card_type, perm_limit,
+               temp_limit, cash_limit, payable, cash_lent, last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed,
+               debt_code, close_code, clear_date, count(*)
+        from krm037
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          and issue != 'TOT' 
+        group by CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue, issue_name, card_type, perm_limit,
+                 temp_limit, cash_limit, payable, cash_lent, last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed,
+                 debt_code, close_code, clear_date; 
+  EMB_SQL_CHECK("Dedup-KRM037.");
+  
+  EXEC SQL
+     insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
+        select case_sn, idn, inquiry_date, issue, issue_name, right(perm_limit,5), left(bill_date,5), card_type, last_paya,
+               (case when cast(cash_lent as int) > 0 then 'Y' else 'N' end),
+               (case when pay_stat = 'X' and pay_code = 'X' then 'X' 
+                     when pay_stat = '1' and pay_code = 'N' then 'A' 
+                     when pay_stat = '1' and pay_code = '0' then 'B' 
+                     when pay_stat = '2' and pay_code = 'N' then 'C' 
+                     when pay_stat = '2' and pay_code = '0' then 'D' 
+                     when pay_stat = '3'                    then 'E' 
+                     when pay_stat = '4'                    then 'F' 
+                     when debt_code in ('A', 'B')           then 'F' 
+                end), cnt
+        from krm037_dedup
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Insert-KRM037.");
+*/  
 /*
   EXEC SQL
      insert into stm001_dedup (case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, cnt)
@@ -74,7 +107,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from stm001
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
-  EMB_SQL_CHECK("Insert-Select 3.");
+  EMB_SQL_CHECK("Insert-STM001.");
 */
  //remove comment when JCIC changed
   EXEC SQL
@@ -83,7 +116,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from stm007
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
-  EMB_SQL_CHECK("Insert-Select 3.");
+  EMB_SQL_CHECK("Insert-STM007.");
 
   EXEC SQL
     insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
@@ -91,7 +124,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
        from bam086
        where case_sn = :pjtCase_Sn and idn = :pjtIdn
        group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
-  EMB_SQL_CHECK("Insert-Select 4.");
+  EMB_SQL_CHECK("Insert-BAM086.");
 /*
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -134,7 +167,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from jas002
         where (delinquent_date is not null and ltrim(delinquent_date) <> '')
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 5.");
+  EMB_SQL_CHECK("Insert-JAS002-D.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -142,7 +175,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from jas002
         where (bad_check_date is not null and ltrim(bad_check_date) <> '')
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 6.");
+  EMB_SQL_CHECK("Insert-JAS002-B.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -150,7 +183,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from jas002
         where (reject_date is not null and ltrim(reject_date) <> '')
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 7.");
+  EMB_SQL_CHECK("Insert-JAS002-R.");
 
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
@@ -158,7 +191,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         from jas002
         where (stop_card_date is not null and ltrim(stop_card_date) <> '')
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 8.");
+  EMB_SQL_CHECK("Insert-JAS002-S.");
 
   EXEC SQL
      insert into jas002_t_dedup (case_sn, idn, inquiry_date, reason, date_happen, cnt)
@@ -1610,6 +1643,8 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   EMB_SQL_CHECK("delete krm001_dedup");
   EXEC SQL delete from krm023_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete krm023_dedup");
+  EXEC SQL delete from krm037_dedup where case_sn= :delCase_Sn and idn = :delIdn;
+  EMB_SQL_CHECK("delete krm037_dedup");
   EXEC SQL delete from bam086_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete bam086_dedup");
   EXEC SQL delete from bam086_bucket where case_sn= :delCase_Sn and idn = :delIdn;
