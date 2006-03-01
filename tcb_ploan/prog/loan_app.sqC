@@ -641,6 +641,9 @@ char * LoanApp::get_sysdate()
     double oLowest_Rate_1;
     double oLowest_Rate_2;
     double oLowest_Rate_3;
+    short oLowest_Rate_1_ind;
+    short oLowest_Rate_2_ind;
+    short oLowest_Rate_3_ind;
     double oCut;
  EXEC SQL END DECLARE SECTION;
 
@@ -662,7 +665,7 @@ int LoanApp::update_final_npv()
      where case_sn = :oCase_SN;
   EMB_SQL_CHECK("Get PB.");
 
-  if (Applicant_PB_adj_ind == -1) applicantPB_adjust = 0.7;
+  if (Applicant_PB_adj_ind == -1) return(0);    // if PB not set, we cannot calculate NPV
   else applicantPB_adjust = iApplicant_PB_adj;
   
   /* calculate NPV with no interest rate bias*/
@@ -752,9 +755,6 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
   oApproval_code = decisionCode[decision];
-  oLowest_Rate_1 = Lowest_rate_1 * 100;
-  oLowest_Rate_2 = Lowest_rate_2 * 100;
-  oLowest_Rate_3 = Lowest_rate_3 * 100;
 
   oFund_deposit_pct = Fund_deposit_pct * 100.0;
   oFund_bank_pct    = Fund_bank_pct * 100.0;
@@ -774,18 +774,29 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
   apply_date[9] = '\0';
 // compose lowest interest rate message
   if (Term_1 > 0) {
+     oLowest_Rate_1 = Lowest_rate_1 * 100;
+     oLowest_Rate_1_ind = 0;
      sprintf(msg1, "，最低承做利率為第一期：%5.3f%%", Lowest_rate_1*100);
      strcpy (apr_msg, msg1);
   }
+  else 
+     oLowest_Rate_1_ind = -1;
   if (Term_2 > 0) {
+     oLowest_Rate_2 = Lowest_rate_2 * 100;
+     oLowest_Rate_2_ind = 0;
      sprintf(msg1, "，第二期：%5.3f%%", Lowest_rate_2*100);
      strcat (apr_msg, msg1);
   }
+  else 
+     oLowest_Rate_2_ind = -1;
   if (Term_3 > 0) {
+     oLowest_Rate_3 = Lowest_rate_3 * 100;
+     oLowest_Rate_3_ind = 0;
      sprintf(msg1, "，第三期：%5.3f%%", Lowest_rate_3*100);
      strcat (apr_msg, msg1);
   }
-  
+  else 
+     oLowest_Rate_3_ind = -1;
   
 // write output message 
   sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, static_cast<int>(npv_value),
@@ -814,7 +825,8 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
                       :oNPV, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
                       :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
-                      :oApproval_code, :oApproval_msg, :oLowest_Rate_1, :oLowest_Rate_2, :oLowest_Rate_3);
+                      :oApproval_code, :oApproval_msg, :oLowest_Rate_1:oLowest_Rate_1_ind,
+                      :oLowest_Rate_2:oLowest_Rate_2_ind, :oLowest_Rate_3:oLowest_Rate_3_ind);
         EMB_SQL_CHECK("Write Result1.");
      }
      else {  // guarantor prescreen fails
@@ -826,7 +838,8 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
                       :oNPV, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
                       :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
-                      :oApproval_code, :oApproval_msg, :oLowest_Rate_1, :oLowest_Rate_2, :oLowest_Rate_3);
+                      :oApproval_code, :oApproval_msg, :oLowest_Rate_1:oLowest_Rate_1_ind,
+                      :oLowest_Rate_2:oLowest_Rate_2_ind, :oLowest_Rate_3:oLowest_Rate_3_ind);
         EMB_SQL_CHECK("Write Result2.");
      } 
   }   
@@ -839,7 +852,8 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
            values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
                     :oNPV, :oPS_code, :oPS_msg, :oGuarantor_pass,:oFund_deposit_pct,
                     :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
-                    :oApproval_code, :oApproval_msg, :oLowest_Rate_1, :oLowest_Rate_2, :oLowest_Rate_3);
+                    :oApproval_code, :oApproval_msg, :oLowest_Rate_1:oLowest_Rate_1_ind,
+                      :oLowest_Rate_2:oLowest_Rate_2_ind, :oLowest_Rate_3:oLowest_Rate_3_ind);
      EMB_SQL_CHECK("Write Result3.");
   }
 /*
@@ -1073,7 +1087,8 @@ double LoanApp::calculate_npv(double delta_apr)
   Interest_Revenue = set_interest_revenue();
   Late_Fee = set_late_fee();
 //  Early_Closing_Fee = set_early_closing_fee();
-//  Other_Fee = risk_mgmt_fee + acct_mgmt_fee + bt_fee;
+  Application_Fee = Fee_1;
+  Other_Fee = Fee_2 * principal;
   Interest_Cost = set_interest_cost();
   Acct_Mgmt_Cost = set_account_management_cost();
   PreCollection_Cost = set_precollection_cost();
@@ -1310,16 +1325,20 @@ double LoanApp::find_lowest_rate (double offset, double delta_r)
  double npv, target_r, offset_r;
   
  target_r = offset + delta_r;
+
  npv = calculate_npv(target_r);
 
- if (1) {
+ if (trace) {
      fstream outf;
     
      outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
      outf << "Case SN: " << case_sn << " offset: " << offset 
           << " delta: " << delta_r << " NPV: " << npv << endl;
  }
- if (npv > (ApprovedNPV + 1)) {
+ if ((delta_r < 0.000001 && delta_r > -0.000001) ||            // abs(delta_r) < 0.000001
+     (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance)))  // or  2000 =< npv <= 2010
+    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
+ else if (npv > (ApprovedNPV + Allowance)) {
     if (delta_r > 0)
        offset_r = offset;
     else
@@ -1333,8 +1352,6 @@ double LoanApp::find_lowest_rate (double offset, double delta_r)
        offset_r = offset;
     return (find_lowest_rate(offset_r, delta_r / 2.0));
  }
- else
-    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
 }
 //--------------------------------------------------------------------------------------------------
 void LoanApp::set_npv (double npv_value)
@@ -1346,9 +1363,15 @@ void LoanApp::set_lowest_rate (double delta_rate)
 {
  if (Term_1 > 0)
     Lowest_rate_1 = (APR_1 + delta_rate < 0 ? 0 : APR_1 + delta_rate);
+ else 
+    Lowest_rate_1 = 0.0;
  if (Term_2 > 0)
     Lowest_rate_2 = (APR_2 + delta_rate < 0 ? 0 : APR_2 + delta_rate);
+ else 
+    Lowest_rate_2 = 0.0;
  if (Term_3 > 0)
     Lowest_rate_3 = (APR_3 + delta_rate < 0 ? 0 : APR_3 + delta_rate);
+ else 
+    Lowest_rate_3 = 0.0;
 }
 //--------------------------------------------------------------------------------------------------

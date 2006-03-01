@@ -226,12 +226,12 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
 
      /* find the lowest rate to make NPV > Approved_line (2000) */
      app.set_npv(npv_value);
-     if (npv_value > (ApprovedNPV+1)) {
+     if (npv_value > (ApprovedNPV + Allowance)) {
         delta_apr = 0.0 - max_apr;
         lowest_delta = app.find_lowest_rate(0.0, delta_apr);
      }
      else if (npv_value < ApprovedNPV) {
-        delta_apr = 1.0 - max_apr;
+        delta_apr = max_apr + 0.3;
         lowest_delta = app.find_lowest_rate(0.0, delta_apr);
      }   
      else
@@ -242,7 +242,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      if ((productType = app.get_product_type())== 4) {
         rc = app.write_result(TYPE_V, npv_value, unsecured_balance); // for product type 4
      } else {
-        if (aPB >= cut_point) {
+        if (npv_value < ApprovedNPV) {
            rc = app.write_result(TYPE_II, npv_value, unsecured_balance); // declined
         } else {
            if (app_amount <= 800000) {   // apply amount <= 800000
