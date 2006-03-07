@@ -76,21 +76,21 @@ Invalid_Msg tcbMsg[] = {
 };
 char *decisionMsg[] = {
 /*Type I message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s，"
-"建議核准。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
+"建議核准。%s。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type II message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s，"
-"初評未達核准標準。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
+"初評未達核准標準。%s。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type III message*/
 "模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
-"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s。"
+"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。"
 "(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type IV message*/
 "模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
-"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s。"
+"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。"
 "(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
 /*Type V message*/
-"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元%s。"
+"模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。"
 "(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)"
 };
 
@@ -135,9 +135,9 @@ int LoanApp::initial()
     long iTerm_1;
     long iTerm_2;
     long iTerm_3;
-    double iAPR_1;
-    double iAPR_2;
-    double iAPR_3;
+    float iAPR_1;
+    float iAPR_2;
+    float iAPR_3;
     long iGrace_period;
     long iFee_1;
     double iFee_2;
@@ -411,14 +411,14 @@ int LoanApp::get_fin_info()
 {
   EXEC SQL BEGIN DECLARE SECTION;
     /*Financial fields*/
-    double iFund_deposit_pct;
-    double iFund_bank_pct;
-    double iFund_self_pct;
-    double iFund_free_pct;
-    double iCOF_deposit;
-    double iCOF_bank;
-    double iROE;
-    double iCommission;
+    float iFund_deposit_pct;
+    float iFund_bank_pct;
+    float iFund_self_pct;
+    float iFund_free_pct;
+    float iCOF_deposit;
+    float iCOF_bank;
+    float iROE;
+    float iCommission;
  EXEC SQL END DECLARE SECTION;
   struct sqlca sqlca;
   int code;
@@ -463,10 +463,10 @@ int LoanApp::get_loan_info()
     char iAccount_No[21];
     char iOpen_date[8];
     long iLoan_amt;
-    double iLoan_APR;
+    float iLoan_APR;
     long iLoan_term;
     long iFee_1_final;
-    double iFee_2_final;
+    float iFee_2_final;
 
     short System_date_final_ind;
     short System_time_final_ind;
@@ -615,9 +615,9 @@ char * LoanApp::get_sysdate()
     /*app_result fields*/
     char  oCase_SN[13];
     char  osystem_time[14];
-    double oApplicant_PB;
-    double oGuarantor_PB;
-    double oApplicant_PB_adj;
+    float oApplicant_PB;
+    float oGuarantor_PB;
+    float oApplicant_PB_adj;
     long  oNPV;
     long  oPS_code;
     char  oPS_msg[257];
@@ -626,21 +626,21 @@ char * LoanApp::get_sysdate()
     long  oGuarantor_pass;
     long  oApproval_code;
     char  oApproval_msg[513];
-    double iApplicant_PB_adj;
+    float iApplicant_PB_adj;
     short Applicant_PB_adj_ind;
 
-    double oFund_deposit_pct;
-    double oFund_bank_pct;
-    double oFund_self_pct;
-    double oFund_free_pct;
-    double oCOF_deposit;
-    double oCOF_bank;
-    double oROE;
-    double oCommission;
+    float oFund_deposit_pct;
+    float oFund_bank_pct;
+    float oFund_self_pct;
+    float oFund_free_pct;
+    float oCOF_deposit;
+    float oCOF_bank;
+    float oROE;
+    float oCommission;
 
-    double oLowest_Rate_1;
-    double oLowest_Rate_2;
-    double oLowest_Rate_3;
+    float oLowest_Rate_1;
+    float oLowest_Rate_2;
+    float oLowest_Rate_3;
     short oLowest_Rate_1_ind;
     short oLowest_Rate_2_ind;
     short oLowest_Rate_3_ind;
@@ -776,7 +776,7 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
   if (Term_1 > 0) {
      oLowest_Rate_1 = Lowest_rate_1 * 100;
      oLowest_Rate_1_ind = 0;
-     sprintf(msg1, "，最低承做利率為第一期：%5.3f%%", Lowest_rate_1*100);
+     sprintf(msg1, "最低承做利率為第一期：%5.2f%%", Lowest_rate_1*100);
      strcpy (apr_msg, msg1);
   }
   else 
@@ -784,7 +784,7 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
   if (Term_2 > 0) {
      oLowest_Rate_2 = Lowest_rate_2 * 100;
      oLowest_Rate_2_ind = 0;
-     sprintf(msg1, "，第二期：%5.3f%%", Lowest_rate_2*100);
+     sprintf(msg1, "，第二期：%5.2f%%", Lowest_rate_2*100);
      strcat (apr_msg, msg1);
   }
   else 
@@ -792,15 +792,19 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
   if (Term_3 > 0) {
      oLowest_Rate_3 = Lowest_rate_3 * 100;
      oLowest_Rate_3_ind = 0;
-     sprintf(msg1, "，第三期：%5.3f%%", Lowest_rate_3*100);
+     sprintf(msg1, "，第三期：%5.2f%%", Lowest_rate_3*100);
      strcat (apr_msg, msg1);
   }
   else 
      oLowest_Rate_3_ind = -1;
   
 // write output message 
-  sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, static_cast<int>(npv_value),
+  if (decision <= TYPE_II)
+     sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, static_cast<int>(npv_value),
           apr_msg, apply_date, unsecured_amt /10000.0);
+  else
+     sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100,
+          apply_date, unsecured_amt /10000.0);
 //  oCut = cutpoint;
 
 // check if case_sn exist in the table app_result

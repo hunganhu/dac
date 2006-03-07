@@ -28,7 +28,7 @@ const double m1_to_m7_ratio = 5.0;
 const double YearMonths = 12.0;
 const double YearDays = 365.0;
 const double ApprovedNPV = 2000.0;
-const double Allowance = 10.0;
+const double Allowance = 1.0;
 
 class LoanApp {
   private:
