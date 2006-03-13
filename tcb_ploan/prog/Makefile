@@ -31,6 +31,7 @@ CPP=g++
 #  -DTRACE: save risk model variables to permanent table
 #  -DNPV_FLOWS: print cash flows of every term when calculating NPV
 #EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE -DNPV_FLOWS
+#EXTRA_CFLAG= -g -Wno-deprecated -DTRACE -DNPV_FLOWS
 EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 #EXTRA_CFLAG= -g -Wno-deprecated 
 
@@ -91,7 +92,7 @@ libdac_1_2.so: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
 
-dac_pl_cal.o: dac_pl_cal.sqC dac_pl_cal.h
+dac_pl_cal.o: dac_pl_cal.sqC dac_pl_cal.h loan_app.h error.h functions.h financial.h
 	$(EMBPREP) dac_pl_cal $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c dac_pl_cal.C
 
@@ -99,11 +100,11 @@ utilemb.o: utilemb.sqC utilemb.h
 	$(EMBPREP) utilemb $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c utilemb.C
 
-risk_model.o: risk_model.sqC risk_model.h
+risk_model.o: risk_model.sqC risk_model.h functions.h error.h
 	$(EMBPREP) risk_model $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c risk_model.C
 
-loan_app.o: loan_app.sqC loan_app.h error.h attrition.h
+loan_app.o: loan_app.sqC loan_app.h error.h attrition.h functions.h financial.h
 	$(EMBPREP) loan_app $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c loan_app.C
 

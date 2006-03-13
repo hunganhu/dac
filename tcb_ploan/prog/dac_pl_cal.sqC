@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <sqlenv.h>
 #include <sqlutil.h>
+#include <math.h>
 #include "utilemb.h"
 
 #if ((__cplusplus >= 199711L) && !defined DB2HP) || \
@@ -59,7 +60,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   float aPB, gPB, cut_point;
   int periods, app_amount, productType;
   double max_apr, npv_value, lowest_delta, delta_apr;
-  int  ps_code, unsecured_balance, unsecured_balance_g;
+  int  ps_code, unsecured_balance, unsecured_balance_g, round_npv;
   char ps_msg[257];
   struct sqlca sqlca;
 
@@ -236,24 +237,26 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      }   
      else
         lowest_delta = 0.0;
+     
      app.set_lowest_rate(lowest_delta);     
+     round_npv = static_cast<int>(rint(npv_value / 100) * 100);
 
      /* make decision*/
      if ((productType = app.get_product_type())== 4) {
-        rc = app.write_result(TYPE_V, npv_value, unsecured_balance); // for product type 4
+        rc = app.write_result(TYPE_V, round_npv, unsecured_balance); // for product type 4
      } else {
-        if (npv_value < ApprovedNPV) {
-           rc = app.write_result(TYPE_II, npv_value, unsecured_balance); // declined
+        if (round_npv < ApprovedNPV) {
+           rc = app.write_result(TYPE_II, round_npv, unsecured_balance); // declined
         } else {
            if (app_amount <= 800000) {   // apply amount <= 800000
-              rc = app.write_result(TYPE_I, npv_value, unsecured_balance);  // approved
+              rc = app.write_result(TYPE_I, round_npv, unsecured_balance);  // approved
            } else if (app_amount <= 1600000) {  // 800000 < apply amount <= 1600000
               if (qualified_guarantor)
-                 rc = app.write_result(TYPE_I, npv_value, unsecured_balance); //approved
+                 rc = app.write_result(TYPE_I, round_npv, unsecured_balance); //approved
               else
-                 rc = app.write_result(TYPE_III, npv_value, unsecured_balance); // reference, no qualified quarantor
+                 rc = app.write_result(TYPE_III, round_npv, unsecured_balance); // reference, no qualified quarantor
            } else { // 1600000 < apply amount 
-              rc = app.write_result(TYPE_IV, npv_value, unsecured_balance); // reference, app amount > 1.6M
+              rc = app.write_result(TYPE_IV, round_npv, unsecured_balance); // reference, app amount > 1.6M
            }
         }
      }          

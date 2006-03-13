@@ -75,23 +75,40 @@ Invalid_Msg tcbMsg[] = {
 	{1105, "撥款帳號需輸入 "}   
 };
 char *decisionMsg[] = {
-/*Type I message*/
+/*
+//Type I message//
 "模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
 "建議核准。%s。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
-/*Type II message*/
+//Type II message//
 "模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
 "初評未達核准標準。%s。(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
-/*Type III message*/
+//Type III message//
 "模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
 "所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。"
 "(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
-/*Type IV message*/
+//Type IV message//
 "模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
 "請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。"
 "(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)",
-/*Type V message*/
+//Type V message//
 "模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。"
 "(申請日為 %s，申貸戶最近一個月聯徵紀錄顯示之總無擔保放款餘額為新台幣 %5.1f 萬元)"
+*/
+
+/*Type I message*/
+"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
+"建議核准。%s。",
+/*Type II message*/
+"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
+"初評未達核准標準。%s。",
+/*Type III message*/
+"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
+"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
+/*Type IV message*/
+"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
+"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
+/*Type V message*/
+"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。"
 };
 
 int decisionCode[] = {
@@ -670,7 +687,7 @@ int LoanApp::update_final_npv()
   
   /* calculate NPV with no interest rate bias*/
   npv_value = calculate_npv(0.0);
-  oNPV = static_cast<int>(npv_value);
+  oNPV = static_cast<int>(rint(npv_value / 100) * 100);
   
 // check if case_sn exist in the table app_result
   EXEC SQL
@@ -739,7 +756,7 @@ int LoanApp::write_result_prescreen_failed()
 } //LoanApp::write_result_prescreen_failed()
 
 //--------------------------------------------------------------------------------------------------
-int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
+int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
 {
   struct sqlca sqlca;
   char apply_date[10];
@@ -750,7 +767,7 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
   strcpy(osystem_time, CurrTime_MinGuo());
   oApplicant_PB = applicantPB;
   oApplicant_PB_adj = applicantPB_adjust;
-  oNPV = static_cast<int>(npv_value);
+  oNPV = npv_value;
   oPS_code = ps_code_a;
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
@@ -799,12 +816,19 @@ int LoanApp::write_result(int decision, double npv_value, int unsecured_amt)
      oLowest_Rate_3_ind = -1;
   
 // write output message 
+/*
   if (decision <= TYPE_II)
-     sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, static_cast<int>(npv_value),
+     sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100, npv_value,
           apr_msg, apply_date, unsecured_amt /10000.0);
   else
      sprintf(oApproval_msg, decisionMsg[decision], App_amt/10000, applicantPB_adjust*100,
           apply_date, unsecured_amt /10000.0);
+*/
+  if (decision <= TYPE_II)
+     sprintf(oApproval_msg, decisionMsg[decision], apply_date, App_amt/10000, applicantPB_adjust*100, npv_value,
+          apr_msg);
+  else
+     sprintf(oApproval_msg, decisionMsg[decision], apply_date, App_amt/10000, applicantPB_adjust*100);
 //  oCut = cutpoint;
 
 // check if case_sn exist in the table app_result
@@ -1341,7 +1365,8 @@ double LoanApp::find_lowest_rate (double offset, double delta_r)
  }
  if ((delta_r < 0.000001 && delta_r > -0.000001) ||            // abs(delta_r) < 0.000001
      (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance)))  // or  2000 =< npv <= 2010
-    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
+    return (ceil(target_r * 100000) / 100000.0); // carry to 4th decimal
+//    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
  else if (npv > (ApprovedNPV + Allowance)) {
     if (delta_r > 0)
        offset_r = offset;

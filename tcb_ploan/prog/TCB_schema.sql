@@ -887,7 +887,9 @@ CREATE TRIGGER TCB_FIN_UPDATE
  	bucket_f_1k	int default 0,
 	now		int,
 	curr_inqmon	int,
- 	cnt		int
+ 	cnt		int,
+	revol_bal 	int,
+	pre_owed 	int
  ) IN "ESCORETABSP";
  create index i_krm023_dedup on krm023_dedup(CASE_SN, IDN, issue, mon_since);
 

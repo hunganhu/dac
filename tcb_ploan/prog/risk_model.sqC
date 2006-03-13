@@ -59,7 +59,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, card_brand, card_type, issue, issue_name, start_date, stop_date, stop_code, ab_code, m_s, limit;
   EMB_SQL_CHECK("Insert-KRM001.");
-
+/*
   EXEC SQL
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
         select case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
@@ -67,39 +67,121 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
         group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
   EMB_SQL_CHECK("Insert-KRM023.");
-/*
-  EXEC SQL
-     insert into krm037_dedup (CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue, issue_name, card_type, perm_limit,
-      temp_limit, cash_limit, payable, cash_lent, last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed,
-      debt_code, close_code, clear_date, cnt)
-        select CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue, issue_name, card_type, perm_limit,
-               temp_limit, cash_limit, payable, cash_lent, last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed,
-               debt_code, close_code, clear_date, count(*)
-        from krm037
-        where case_sn = :pjtCase_Sn and idn = :pjtIdn
-          and issue != 'TOT' 
-        group by CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue, issue_name, card_type, perm_limit,
-                 temp_limit, cash_limit, payable, cash_lent, last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed,
-                 debt_code, close_code, clear_date; 
-  EMB_SQL_CHECK("Dedup-KRM037.");
-  
+*/
+//start of convert krm037 to krm023  
   EXEC SQL
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
-        select case_sn, idn, inquiry_date, issue, issue_name, right(perm_limit,5), left(bill_date,5), card_type, last_paya,
-               (case when cast(cash_lent as int) > 0 then 'Y' else 'N' end),
-               (case when pay_stat = 'X' and pay_code = 'X' then 'X' 
-                     when pay_stat = '1' and pay_code = 'N' then 'A' 
-                     when pay_stat = '1' and pay_code = '0' then 'B' 
-                     when pay_stat = '2' and pay_code = 'N' then 'C' 
-                     when pay_stat = '2' and pay_code = '0' then 'D' 
-                     when pay_stat = '3'                    then 'E' 
-                     when pay_stat = '4'                    then 'F' 
-                     when debt_code in ('A', 'B')           then 'F' 
-                end), cnt
+        select case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
+        from krm023
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          and cast(yrmon as int) <= 9412
+        group by case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code;
+  EMB_SQL_CHECK("Insert-KRM023.");
+
+  EXEC SQL
+     insert into krm037_dedup(CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue,
+        issue_name, card_type, perm_limit, temp_limit, cash_limit, payable, cash_lent, 
+        last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed, debt_code,
+        close_code, clear_date, cnt)
+     select CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue,
+        issue_name, card_type, perm_limit, temp_limit, cash_limit, payable, cash_lent, 
+        last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed, debt_code,
+        close_code, clear_date, count(*)
+     from krm037
+     where case_sn = :pjtCase_Sn and idn = :pjtIdn
+       and issue != 'TOT'
+     group by CASE_SN, inquiry_date, IDN, idn_ban, bill_date, issue,
+        issue_name, card_type, perm_limit, temp_limit, cash_limit, payable, cash_lent, 
+        last_paya, revol_bal, pay_stat, pay_code, revol_rate, pre_owed, debt_code,
+        close_code, clear_date;
+  EMB_SQL_CHECK("Dedup-KRM037.");
+/*     
+  EXEC SQL
+     update krm037_dedup
+       set bill_date  = (case when ltrim(bill_date)  = '' then null else ltrim(rtrim(bill_date)) end),
+           issue      = (case when ltrim(issue)      = '' then null else issue end),
+           issue_name = (case when ltrim(issue_name) = '' then null else issue_name end),
+           card_type  = (case when ltrim(card_type)  = '' then null else card_type end),
+           perm_limit = (case when ltrim(perm_limit) = '' then null else perm_limit end),
+           temp_limit = (case when ltrim(temp_limit) = '' then null else temp_limit end),
+           cash_limit = (case when ltrim(cash_limit) = '' then null else cash_limit end),
+           payable    = (case when ltrim(payable)    = '' then null else payable end),
+           cash_lent  = (case when ltrim(cash_lent)  = '' then null else cash_lent end),
+           last_paya  = (case when ltrim(last_paya)  = '' then null else last_paya end),
+           revol_bal  = (case when ltrim(revol_bal)  = '' then null else revol_bal end),
+           pay_stat   = (case when ltrim(pay_stat)   = '' then null else pay_stat end),
+           pay_code   = (case when ltrim(pay_code)   = '' then null else pay_code end),
+           revol_rate = (case when ltrim(revol_rate) = '' then null else revol_rate end),
+           pre_owed   = (case when ltrim(pre_owed)   = '' then null else pre_owed end),
+           debt_code  = (case when ltrim(debt_code)  = '' then null else debt_code end),
+           close_code = (case when ltrim(close_code) = '' then null else close_code end),
+           clear_date = (case when ltrim(clear_date) = '' then null else clear_date end)
+       where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Clean-KRM037.");
+*/     
+  EXEC SQL
+     update krm037_dedup
+       set mon_since = (case when length(bill_date) = 4 and left(bill_date,1) between '1' and '9'
+                                  then cast(left(bill_date, 2) as int) * 12 + cast(right(bill_date, 2) as int)
+                             when length(bill_date) = 7 and cast(right(bill_date,2) as int) >= 15
+                                  then cast(left(bill_date, 3)as int) * 12 + cast(substr(bill_date, 4, 2) as int)
+                             when length(bill_date) = 7 then cast(left(bill_date, 3) as int) * 12 + cast(substr(bill_date, 4, 2) as int) - 1
+                             else null end)
+       where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Update-KRM037-mon_since.");
+     
+  EXEC SQL
+     insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment, revol_bal, pre_owed, cash, pay_code, mon_since)
+        select CASE_SN, inquiry_date, IDN, issue, issue_name, cast(cast(perm_limit as int) as char(5)), card_type, last_paya, 
+               cast(revol_bal as int), cast(pre_owed as int), 'N',
+               (case when pay_stat = 'X' and pay_code = 'X' then 'X'
+                     when pay_stat = '1' and pay_code = 'N' then 'A'
+                     when pay_stat = '1' and pay_code = '0' then 'B'
+                     when pay_stat = '2' and pay_code = 'N' then 'C'
+                     when pay_stat = '2' and pay_code = '0' then 'D'
+                     when pay_stat = '3' and pay_code between '1' and '7' then 'E'
+                     when pay_stat = '4' and pay_code between '1' and '7' then 'F'
+                     when debt_code in ('A', 'B') then 'F' else null end), mon_since
         from krm037_dedup
-        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-KRM037.");
-*/  
+        where mon_since > 1140
+          and issue != '021'
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Convert-KRM037-1.");
+  
+  EXEC SQL
+     insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment, revol_bal, pre_owed, cash, pay_code, mon_since)
+        select CASE_SN, inquiry_date, IDN,
+               (case when card_type='V' then 'CTV'
+                     when card_type='M' then 'CTM'
+                     else issue),
+               issue_name, cast(cast(perm_limit as int) as char(5)), card_type, last_paya, 
+               cast(revol_bal as int), cast(pre_owed as int), 'N',
+               (case when pay_stat = 'X' and pay_code = 'X' then 'X'
+                     when pay_stat = '1' and pay_code = 'N' then 'A'
+                     when pay_stat = '1' and pay_code = '0' then 'B'
+                     when pay_stat = '2' and pay_code = 'N' then 'C'
+                     when pay_stat = '2' and pay_code = '0' then 'D'
+                     when pay_stat = '3' and pay_code between '1' and '7' then 'E'
+                     when pay_stat = '4' and pay_code between '1' and '7' then 'F'
+                     when debt_code in ('A', 'B') then 'F' else null end), mon_since
+        from krm037_dedup
+        where mon_since > 1140
+          and issue = '021'
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Convert-KRM037-2.");
+
+  EXEC SQL
+     update krm023_dedup p
+        set cash = 'Y'
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          and exists (select *
+                      from krm037_dedup s
+                      where p.case_sn = s.case_sn
+                        and mon_since = cast(left(s.bill_date, 3) as int) * 12 * cast(substr(s.bill_date, 4, 2) as int)
+                        and p.issue = s.issue
+                        and cast(s.cash_lent as int) > 0);
+  EMB_SQL_CHECK("Cash-KRM037.");
+//end of convert krm037 to krm023  
 /*
   EXEC SQL
      insert into stm001_dedup (case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list, cnt)
@@ -325,7 +407,8 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      	      when left(ltrim(yrmon),1) not in ('1', '0', '*') then '0'||rtrim(ltrim(yrmon))
      	      else yrmon
      	     end)
-        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          and yrmon is not null;
   EMB_SQL_CHECK("Update 20.");
 
   EXEC SQL
@@ -333,8 +416,14 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         set mon_since = (case
      		   when left(yrmon,1) = '*' then null
      		   else cast(left(yrmon, 3) as int) * 12 + cast(right(left(yrmon, 5), 2) as int)
-     		 end),
-            now = (case when substr(inquiry_date, 8, 2) > '15' then
+     		 end)
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          and yrmon is not null;
+  EMB_SQL_CHECK("Update 21.");
+
+  EXEC SQL
+     update krm023_dedup
+        set now = (case when substr(inquiry_date, 8, 2) > '15' then
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
@@ -372,7 +461,8 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         set payment =
              (case when right(left(payment,2),1) in ('H', 'M', 'L') then '0'||(left(payment,2))
               else payment end)
-        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+        where payment is not null
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 24.");
 
   EXEC SQL
@@ -380,8 +470,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         set payment_amt = 
               (case right(payment,1) when 'L' then 2 when 'M' then 5 when 'H' then 8
                else 0 end) * power(10, cast(left(payment,2) as int)-1) / 1000.0
-        where payment is not null
-          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 25.");
 
   EXEC SQL
@@ -398,6 +487,14 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
           and issue != 'AEE'
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 26-1.");
+
+  EXEC SQL
+     update krm023_dedup
+        set revol_bal = payment_amt * 1000,
+            pre_owed = 0
+        where revol_bal is null
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Update 26-2.");
 
   EXEC SQL
      update  krm023_dedup
@@ -502,6 +599,20 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     long  ind001;
     long  revolving_amt;
     long  ps_code;
+
+    short  age_ind;
+    short  jas002_defect_ind;
+    short  krm001_hit_ind;
+    short  krm023_hit_ind;
+    short  max_bucket_ind;
+    short  fs044_ind;
+    short  fs334_ind;
+    short  cash_max_bucket_ind;
+    short  cash_utilization_ind;
+    short  ind001_ind;
+    short  revolving_amt_ind;
+    short  ps_code_ind;
+
     char  ps_msg[257];
   EXEC SQL END DECLARE SECTION;
   int rc = 0;
@@ -514,9 +625,10 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
 
   EXEC SQL
      select jas002_defect, krm001_hit, krm023_hit, max_bucket, fs044, fs334, cash_max_bucket,
-            cash_max_bucket, cash_utilization, ind001, revolving_amt, age
-     into :jas002_defect, :krm001_hit, :krm023_hit, :max_bucket, :fs044, :fs334, :cash_max_bucket,
-          :cash_max_bucket, :cash_utilization, :ind001, :revolving_amt, :age
+            cash_utilization, ind001, revolving_amt, age
+     into :jas002_defect:jas002_defect_ind, :krm001_hit:krm001_hit_ind, :krm023_hit:krm023_hit_ind,
+          :max_bucket:max_bucket_ind, :fs044:fs044_ind, :fs334:fs334_ind, :cash_max_bucket:cash_max_bucket_ind,
+          :cash_utilization:cash_utilization_ind, :ind001:ind001_ind, :revolving_amt:revolving_amt_ind, :age:age_ind
      from pdaco_cal
      where case_sn = :pfCase_Sn and idn = :pfIdn;
   EMB_SQL_CHECK("Select Pdaco_cal.");
@@ -559,7 +671,7 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     ps_code = 3107;
  }
  else if (cash_max_bucket >= 0.5 || cash_utilization >= 1) {
-    strcpy(MESSAGE, "最近一個月現金卡繳款異常或使用率超過100%(含)，初評未達核准標準。");
+    strcpy(MESSAGE, "最近一個月現金卡繳款異常或使用率超過95%(含)，初評未達核准標準。");
     ps_code = 3108;
  }
  else if (revolving_amt > 500000) {
@@ -711,14 +823,14 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
            (select count(*)
             from bam086_dedup s
             where account_code = 'Y'
-              and NULLIF(loan_amt, 0) / contract_amt >= 1
+              and NULLIF(loan_amt, 0) / contract_amt >= 0.95
               and contract_amt > 0
               and p.case_sn = s.case_sn
             group by case_sn)
        where exists (select *
                      from bam086_dedup s
                      where account_code = 'Y'
-                       and NULLIF(loan_amt, 0) / contract_amt >= 1
+                       and NULLIF(loan_amt, 0) / contract_amt >= 0.95
                        and contract_amt > 0
                        and p.case_sn = s.case_sn)
          and case_sn = :psCase_Sn and idn = :psIdn;
@@ -731,10 +843,14 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
            (select (case when min(now) - min(start_mon_since) >= 7 then 1 else 0 end)
             from krm001_dedup s
             where p.case_sn = s.case_sn
+              and s.end_mon_since > s.now
+              and s.m_s = 'Y'
             group by case_sn)
        where exists (select *
                      from krm001_dedup s
-                     where p.case_sn = s.case_sn)
+                     where p.case_sn = s.case_sn
+                       and s.end_mon_since > s.now
+                       and s.m_s = 'Y')
          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 10.");
   EXEC SQL
@@ -772,13 +888,14 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
        select case_sn, issue, max(mon_since)
             from krm023_dedup s
             where case_sn = :psCase_Sn and idn = :psIdn
+              and mon_since >= (now - 3)
             group by case_sn, issue;
   EMB_SQL_CHECK("set latest month.");
 
   EXEC SQL
      update pdaco_cal p
         set revolving_amt = revolving_amt +
-            (select sum(payment_amt) * 1000
+            (select sum(revol_bal)
              from krm023_dedup s, open_card t
              where p.case_sn = s.case_sn
                and pay_code in ('C', 'D', 'E', 'F')
@@ -797,12 +914,30 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
           and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("set CC revol amt.");
 
+  /*----unsecured loan amount: credit card ----*/
   EXEC SQL
      update pdaco_cal p
-        set reserve1 = reserve1 + revolving_amt
-        where case_sn = :psCase_Sn and idn = :psIdn;
+        set reserve1 = reserve1 +
+            (select sum(revol_bal + pre_owed) 
+             from krm023_dedup s, open_card t
+             where p.case_sn = s.case_sn
+               and pay_code in ('C', 'D', 'E', 'F')
+               and s.case_sn = t.case_sn
+               and s.issue = t.issue 
+               and s.mon_since = t.mon 
+            )
+        where exists (select *
+                      from krm023_dedup s, open_card t
+                      where p.case_sn = s.case_sn
+                        and pay_code in ('C', 'D', 'E', 'F')
+                        and s.case_sn = t.case_sn
+               		and s.issue = t.issue 
+               		and s.mon_since = t.mon 
+                     )
+          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("set unsecured loan revol. amt.");
 
+  /*----revolving: cash card ----*/
   EXEC SQL
     update pdaco_cal p
        set revolving_amt = revolving_amt +
