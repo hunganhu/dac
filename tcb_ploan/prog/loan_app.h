@@ -215,6 +215,8 @@ class LoanApp {
 //    int  write_result_declined(int decision);
 //    int  write_result_approved(int decision);
     int  write_result(int decision, int npv_value, int unsecured_amt);
+    int  write_npv(double npv);
+    int  write_delta_rate(double lowest_delta, double npv);
     double calculate_npv(double delta_apr);
     double find_lowest_rate (double offset, double delta_r);
     void set_lowest_rate (double delta_rate);

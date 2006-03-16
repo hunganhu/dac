@@ -44,7 +44,7 @@
 #define debug 0
 #endif
 
-const int EXPIRATION_DATE = 20060430; // expiration date of this module
+const int EXPIRATION_DATE = 20251231; // expiration date of this module
 const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
 
 char MESSAGE[1024];
@@ -209,6 +209,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
            db.Disconnect();
            return SYSTEM_ERROR;
         }    
+
      }
    
      app.set_guarantor_pass(qualified_guarantor);
@@ -219,14 +220,24 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      max_apr = app.get_max_apr();
      periods = app.get_periods();
      app_amount = app.get_apply_amount();
-     cut_point = get_risk_cut_point(app_amount, periods, max_apr);
-     app.set_cutpoint(cut_point);
+/* cutpoint is used in Phase I, use npv instead in Phase II */
+//     cut_point = get_risk_cut_point(app_amount, periods, max_apr);
+//     app.set_cutpoint(cut_point);
 
      /* calculate NPV with no interest rate bias*/
      npv_value = app.calculate_npv(0.0);
-
+/*
+     rc = app.write_npv(npv_value); // write npv to working table
+     if (rc != 0) {
+        strcpy (error_message, MESSAGE);
+        rc = db.Disconnect();
+        return SYSTEM_ERROR;
+     } 
+*/     
      /* find the lowest rate to make NPV > Approved_line (2000) */
      app.set_npv(npv_value);
+     round_npv = static_cast<int>(rint(npv_value / 100) * 100); //round to hundred dollar
+
      if (npv_value > (ApprovedNPV + Allowance)) {
         delta_apr = 0.0 - max_apr;
         lowest_delta = app.find_lowest_rate(0.0, delta_apr);
@@ -239,8 +250,16 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
         lowest_delta = 0.0;
      
      app.set_lowest_rate(lowest_delta);     
-     round_npv = static_cast<int>(rint(npv_value / 100) * 100);
-
+/*
+     npv_value = app.calculate_npv(lowest_delta);
+     // write lowest delta rate and corresponding npv to working table
+     rc = app.write_delta_rate(lowest_delta, npv_value);
+     if (rc != 0) {
+        strcpy (error_message, MESSAGE);
+        rc = db.Disconnect();
+        return SYSTEM_ERROR;
+     } 
+*/
      /* make decision*/
      if ((productType = app.get_product_type())== 4) {
         rc = app.write_result(TYPE_V, round_npv, unsecured_balance); // for product type 4

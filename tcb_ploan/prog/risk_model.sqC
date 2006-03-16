@@ -71,7 +71,8 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 //start of convert krm037 to krm023  
   EXEC SQL
      insert into krm023_dedup (case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, cnt)
-        select case_sn, idn, inquiry_date, issue, issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
+        select case_sn, idn, inquiry_date, issue,
+               issue_name, limit, yrmon, kr_code, payment, cash, pay_code, count(*)
         from krm023
         where case_sn = :pjtCase_Sn and idn = :pjtIdn
           and cast(yrmon as int) <= 9412
@@ -123,7 +124,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      update krm037_dedup
        set mon_since = (case when length(bill_date) = 4 and left(bill_date,1) between '1' and '9'
                                   then cast(left(bill_date, 2) as int) * 12 + cast(right(bill_date, 2) as int)
-                             when length(bill_date) = 7 and cast(right(bill_date,2) as int) >= 15
+                             when length(bill_date) = 7 and cast(right(bill_date,2) as int) > 15
                                   then cast(left(bill_date, 3)as int) * 12 + cast(substr(bill_date, 4, 2) as int)
                              when length(bill_date) = 7 then cast(left(bill_date, 3) as int) * 12 + cast(substr(bill_date, 4, 2) as int) - 1
                              else null end)
@@ -132,28 +133,14 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      
   EXEC SQL
      insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment, revol_bal, pre_owed, cash, pay_code, mon_since)
-        select CASE_SN, inquiry_date, IDN, issue, issue_name, cast(cast(perm_limit as int) as char(5)), card_type, last_paya, 
-               cast(revol_bal as int), cast(pre_owed as int), 'N',
-               (case when pay_stat = 'X' and pay_code = 'X' then 'X'
-                     when pay_stat = '1' and pay_code = 'N' then 'A'
-                     when pay_stat = '1' and pay_code = '0' then 'B'
-                     when pay_stat = '2' and pay_code = 'N' then 'C'
-                     when pay_stat = '2' and pay_code = '0' then 'D'
-                     when pay_stat = '3' and pay_code between '1' and '7' then 'E'
-                     when pay_stat = '4' and pay_code between '1' and '7' then 'F'
-                     when debt_code in ('A', 'B') then 'F' else null end), mon_since
-        from krm037_dedup
-        where mon_since > 1140
-          and issue != '021'
-          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Convert-KRM037-1.");
-  
-  EXEC SQL
-     insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment, revol_bal, pre_owed, cash, pay_code, mon_since)
         select CASE_SN, inquiry_date, IDN,
-               (case when card_type='V' then 'CTV'
-                     when card_type='M' then 'CTM'
-                     else issue),
+               (case when (issue = 'A82' and card_type = 'A') then 'AEA'
+                     when (issue = 'A82' and card_type = 'E') then 'AEE'
+                     when (issue = '021' and card_type = 'V') then 'CTV'
+                     when (issue = '021' and card_type = 'M') then 'CTM'
+                     when (issue = '021' and card_type = 'D') then 'CTD'
+                     when issue = '150' then '103'
+                     else issue end),
                issue_name, cast(cast(perm_limit as int) as char(5)), card_type, last_paya, 
                cast(revol_bal as int), cast(pre_owed as int), 'N',
                (case when pay_stat = 'X' and pay_code = 'X' then 'X'
@@ -166,9 +153,8 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
                      when debt_code in ('A', 'B') then 'F' else null end), mon_since
         from krm037_dedup
         where mon_since > 1140
-          and issue = '021'
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Convert-KRM037-2.");
+  EMB_SQL_CHECK("Convert-KRM037.");
 
   EXEC SQL
      update krm023_dedup p
@@ -352,7 +338,10 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      		  end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 15.");
-
+/*apply 30-day rule, now = year_month of inquiry_date minus one month 
+  15-day rule which if day part of inquiry_date > 15 then now = year_month of inquiry_date
+     else now = year_month of inquiry_date minus one month, is unuse.
+*/
   EXEC SQL
      update krm001_dedup
         set start_mon_since = (case
@@ -364,7 +353,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      			else cast(left(stop_date, 3) as int) * 12 + cast(right(left(stop_date, 5), 2) as int)
      		     end),
             now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end)
@@ -394,7 +383,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         		  else cast(left(ltrim(date_happen), 3) as int)* 12 + cast(right(left(rtrim(date_happen), 5), 2) as int)
       	  	         end),
             now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end)
@@ -424,11 +413,11 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      update krm023_dedup
         set now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end),
-            curr_inqmon = (case when substr(inquiry_date, 8, 2) > '15' then 1
+            curr_inqmon = (case when substr(inquiry_date, 8, 2) > '15' then 0
                            else 0 end)
         where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 21.");
@@ -449,7 +438,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      			else cast(left(query_date, 3) as int) * 12 + cast(right(left(query_date, 5), 2) as int)
      		       end),
             now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end)

@@ -662,6 +662,8 @@ char * LoanApp::get_sysdate()
     short oLowest_Rate_2_ind;
     short oLowest_Rate_3_ind;
     double oCut;
+    double oNetPresentValue;
+    double oDeltaRate;
  EXEC SQL END DECLARE SECTION;
 
 //--------------------------------------------------------------------------------------------------
@@ -901,6 +903,48 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   Debug("Exit LoanApp.write_result()");
   return (0);
 } //LoanApp::write_result()
+
+//--------------------------------------------------------------------------------------------------
+int LoanApp::write_npv(double npv)
+{
+  struct sqlca sqlca;
+  
+  Debug("Enter LoanApp.write_npv()");
+
+  strcpy(oCase_SN, case_sn);
+  oNetPresentValue = npv;
+  EXEC SQL
+     update  pdaco_cal
+        set npv = :oNetPresentValue
+	where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update NPV.");
+
+
+  Debug("Exit LoanApp.write_npv()");
+  return (0);
+} //LoanApp::LoanApp.write_npv()
+
+//--------------------------------------------------------------------------------------------------
+int LoanApp::write_delta_rate(double lowest_delta, double npv)
+{
+  struct sqlca sqlca;
+  
+  Debug("Enter LoanApp.write_delta_rate()");
+
+  strcpy(oCase_SN, case_sn);
+  oNetPresentValue = npv;
+  oDeltaRate = lowest_delta;
+  EXEC SQL
+     update  pdaco_cal
+        set reserve2 = :oDeltaRate,
+            reserve3 = :oNetPresentValue
+	where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Update Delta Rate.");
+
+
+  Debug("Exit LoanApp.write_delta_rate()");
+  return (0);
+} //LoanApp::LoanApp.write_delta_rate()
 
 //--------------------------------------------------------------------------------------------------
 void LoanApp::npv_init()

@@ -1080,9 +1080,9 @@ create index i_stm007_dedup on stm007_dedup(CASE_SN, IDN);
 	ln_35_080_9m_r_t2	decimal(16,8),
 	ci_score	decimal(16,8),
 	cpdaco_score	decimal(16,8),
-	reserve1	float,
-	reserve2	float,
-	reserve3	float,
+	reserve1	float,    -- unsecured loan amount
+	reserve2	float,    -- lowest dalta apr
+	reserve3	float,    -- npv with lowest apr
 	reserve4	float,
 	reserve5	float,
 	reserve6	float,
