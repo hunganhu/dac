@@ -842,10 +842,12 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
                        and s.m_s = 'Y')
          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 10.");
+  /* 20060316 by Eric:the earliest stmt should >=6 and the latest stmt should < 6 */
   EXEC SQL
     update pdaco_cal p
        set ind001 = ind001 +
-           (select (case when min(now) - min(mon_since) >= 6 then 1 else 0 end)
+           (select (case when (min(now) - min(mon_since) >= 6) and
+                              (min(now) - max(mon_since) < 6) then 1 else 0 end)
             from krm023_dedup s
             where p.case_sn = s.case_sn
             group by case_sn)
