@@ -745,7 +745,7 @@ create table TCB_FIN_INFO (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Commission	decimal(16,2)
+	Commission	decimal(7,4)
 ) IN "ESCORETABSP";
 
 insert into TCB_FIN_INFO (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct,
@@ -774,7 +774,7 @@ create table TCB_FIN_INFO_LOG (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Commission	decimal(16,2)
+	Commission	decimal(7,4)
 ) IN "ESCORETABSP";
 
 COMMENT ON TABLE TCB_FIN_INFO_LOG	IS 'DAC個人信貸模組財務資訊修改紀錄';

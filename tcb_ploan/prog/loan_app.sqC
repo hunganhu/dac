@@ -462,7 +462,7 @@ int LoanApp::get_fin_info()
   COF_deposit      = iCOF_deposit / 100.0;
   COF_bank         = iCOF_bank / 100.0;
   ROE              = iROE / 100.0;
-  Commission       = iCommission;
+  Commission       = iCommission / 100.0;
 
   Debug("Exit LoanApp.get_fin_info()");
   return (0);
@@ -729,7 +729,7 @@ int LoanApp::write_result_prescreen_failed()
   oCOF_deposit      = COF_deposit * 100.0;
   oCOF_bank         = COF_bank * 100.0;
   oROE              = ROE * 100.0;
-  oCommission       = Commission;
+  oCommission       = Commission * 100.0;
 
   EXEC SQL
      insert into app_result(Case_SN, system_time, PS_code, PS_msg, Fund_deposit_pct,
@@ -782,7 +782,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   oCOF_deposit      = COF_deposit * 100.0;
   oCOF_bank         = COF_bank * 100.0;
   oROE              = ROE * 100.0;
-  oCommission       = Commission;
+  oCommission       = Commission * 100.0;
   
   strcpy(apply_date, System_date); // insert slash '/' as separator
   apply_date[3] = apply_date[6] = '/';
@@ -1149,13 +1149,14 @@ double LoanApp::calculate_npv(double delta_apr)
   double revenue, cost, wc;
   double Interest_Revenue, Late_Fee, Early_Closing_Fee = 0.0, Application_Fee = 0.0;
   double Other_Fee = 0.0, Interest_Cost, Acct_Mgmt_Cost, PreCollection_Cost;
-  double Collection_Cost, Working_Capital, Credit_Loss;
+  double Collection_Cost, Working_Capital, Credit_Loss, Commission_Fee;
 
   npv_init();
   set_apr(delta_apr);
   set_attrition(delta_apr);
   set_annuity();
-  if (Commission < 0) Commission = 0;
+  Commission_Fee = Commission * principal;
+  if (Commission_Fee < 0) Commission_Fee = 0;
   Interest_Revenue = set_interest_revenue();
   Late_Fee = set_late_fee();
 //  Early_Closing_Fee = set_early_closing_fee();
@@ -1170,7 +1171,7 @@ double LoanApp::calculate_npv(double delta_apr)
   total_npv = (Interest_Revenue + Late_Fee + Early_Closing_Fee + Application_Fee
                + Other_Fee)                            // Revenue
               - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost
-               + Collection_Cost + Commission)         // Cost
+               + Collection_Cost + Commission_Fee)         // Cost
               + (Working_Capital + Credit_Loss);       // Working Capital
 
 #ifdef NPV_FLOWS
@@ -1189,7 +1190,7 @@ double LoanApp::calculate_npv(double delta_apr)
      outf <<  showpoint
               << setw(79) << setprecision(8) << Application_Fee
               << setw(15) << setprecision(8) << Other_Fee
-              << setw(15) << setprecision(8) << Commission
+              << setw(15) << setprecision(8) << Commission_Fee
               << setw(15) << setprecision(8) << Interest_Revenue
               << setw(15) << setprecision(8) << Late_Fee
               << setw(15) << setprecision(8) << Early_Closing_Fee
