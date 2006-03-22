@@ -357,7 +357,8 @@ void Loan::calculate_pd(TADOHandler *handler)
  // bool success = true;
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  now = yrmon_to_mon(inquiry_date, false, expire_date);
- curr_month = after_day15(inquiry_date);
+// curr_month = after_day15(inquiry_date);
+ curr_month = 0;
  avail_flag = -1;
  jas002_defect = krm021_hit = krm023_hit = fs044 = 0;
  try {
