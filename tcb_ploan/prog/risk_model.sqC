@@ -632,43 +632,43 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
  ps_code = 0; // initialize to 0
  
  if (age >= 60) {
-    strcpy(MESSAGE, "年齡 > 60 歲，初評未達核准標準。");
+    strcpy(MESSAGE, "年齡 > 60 歲。");
     ps_code = 3101;
  }
  else if (age < 20 && age != -1000) {
-    strcpy(MESSAGE, "年齡 < 20 歲，初評未達核准標準。");
+    strcpy(MESSAGE, "年齡 < 20 歲。");
     ps_code = 3102;
  }
  else if (cust_foreigner == 1) {
-    strcpy(MESSAGE, "外籍人士，初評未達核准標準。");
+    strcpy(MESSAGE, "外籍人士。");
     ps_code = 3103;
  }
  else if (krm001_hit ==0 || krm023_hit == 0) {
-    strcpy(MESSAGE, "聯徵中心資料不全、或查無資料者，模組無法評分，請人工授信。");
+    strcpy(MESSAGE, "聯徵中心資料不全、或查無資料者，模組無法評分。");
     ps_code = 3104;
  }
  else if (jas002_defect > 0) {
-    strcpy(MESSAGE, "三年內有強停、拒往、退票、授信異常情況者，初評未達核准標準。");
+    strcpy(MESSAGE, "三年內有強停、拒往、退票、授信異常情況者。");
     ps_code = 3105;
  }
  else if (max_bucket > 3) {
-    strcpy(MESSAGE, "信用卡繳款異常連續三個月以上，初評未達核准標準。");
+    strcpy(MESSAGE, "信用卡繳款異常連續三個月以上。");
     ps_code = 3106;
  }
  else if (fs044 > 0 || fs334 >= 3) {
-    strcpy(MESSAGE, "非信用卡貸款有延遲繳款金額或連續三個月繳款異常，初評未達核准標準。");
+    strcpy(MESSAGE, "非信用卡貸款有延遲繳款金額或連續三個月繳款異常。");
     ps_code = 3107;
  }
  else if (cash_max_bucket >= 0.5 || cash_utilization >= 1) {
-    strcpy(MESSAGE, "最近一個月現金卡繳款異常或使用率超過95%(含)，初評未達核准標準。");
+    strcpy(MESSAGE, "最近一個月現金卡繳款異常或使用率超過95%(含)。");
     ps_code = 3108;
  }
  else if (revolving_amt > 500000) {
-    strcpy(MESSAGE, "最近一個月現金卡加信用卡循環金額大於五十萬(不含)，初評未達核准標準。");
+    strcpy(MESSAGE, "最近一個月現金卡加信用卡循環金額大於五十萬(不含)。");
     ps_code = 3109;
  }
  else if (ind001 == 1) {
-    strcpy(MESSAGE, "無信用卡開卡超過六個月以上者，模組無法評分，請人工授信。");
+    strcpy(MESSAGE, "無信用卡開卡超過六個月以上者，模組無法評分。");
     ps_code = 3110;
  }
 

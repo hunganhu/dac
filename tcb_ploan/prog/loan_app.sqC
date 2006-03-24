@@ -96,19 +96,19 @@ char *decisionMsg[] = {
 */
 
 /*Type I message*/
-"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
-"建議核准。%s。",
+"%s 申請，建議核准(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元。"
+"%s。",
 /*Type II message*/
-"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元，"
-"初評未達核准標準。%s。",
+"%s 申請，初評未達核准標準(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%，經濟價值為 %d 元。"
+"%s。",
 /*Type III message*/
-"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
-"所以僅提供模組PB參考，請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
+"%s 申請，請人工授信(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，"
+"所以僅提供模組PB參考，模組預估每年轉壞帳之機率為 %5.2f%%。",
 /*Type IV message*/
-"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
-"請人工授信。模組預估每年轉壞帳之機率為 %5.2f%%。",
+"%s 申請，請人工授信(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，模組審核之申貸金額為新台幣 %d 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，"
+"。模組預估每年轉壞帳之機率為 %5.2f%%。",
 /*Type V message*/
-"%s 申請，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。"
+"%s 申請(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，模組審核之申貸金額為新台幣 %d 萬元，模組預估每年轉壞帳之機率為 %5.2f%%。"
 };
 
 int decisionCode[] = {
@@ -706,6 +706,7 @@ int LoanApp::update_final_npv()
 int LoanApp::write_result_prescreen_failed()
 {
   struct sqlca sqlca;
+  char apply_date[10];
   
   Debug("Enter LoanApp.write_result_prescreen_failed()");
 
@@ -713,6 +714,24 @@ int LoanApp::write_result_prescreen_failed()
   strcpy(osystem_time, CurrTime_MinGuo());
   oPS_code = ps_code_a;
   strcpy(oPS_msg, ps_msg_a);
+
+  strcpy(apply_date, System_date); // insert slash '/' as separator
+  apply_date[3] = apply_date[6] = '/';
+  apply_date[4] = System_date[3];
+  apply_date[5] = System_date[4];
+  apply_date[7] = System_date[5];
+  apply_date[8] = System_date[6];
+  apply_date[9] = '\0';
+
+  if (ps_code_a == 3104 || ps_code_a == 3110)
+     sprintf(oApproval_msg,
+             "%s 申請，請人工授信(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，%s",
+             apply_date, oPS_msg);
+  else
+     sprintf(oApproval_msg,
+             "%s 申請，初評未達核准標準(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，%s",
+             apply_date, oPS_msg);
+
 //  oCut = cutpoint;
 // check if case_sn exist in the table app_result
   EXEC SQL
@@ -737,19 +756,9 @@ int LoanApp::write_result_prescreen_failed()
                  Commission, Approval_code, Approval_msg) 
         values (:oCase_SN, :osystem_time, :oPS_code, :oPS_msg,:oFund_deposit_pct,
                 :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
-                :oPS_code, :oPS_msg);
+                :oPS_code, :oApproval_msg);
   EMB_SQL_CHECK("Write PS failure.");
-/*
-  EXEC SQL
-     update  app_result
-        set (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
-             COF_deposit, COF_bank, ROE, Commission) = 
-             (select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct,
-		     COF_deposit, COF_bank, ROE, Commission
-	      from  TCB_FIN_INFO)
-	where case_sn = :oCase_SN;
-  EMB_SQL_CHECK("Update Financial.");
-*/
+
 //  EXEC SQL COMMIT;
 //  EMB_SQL_CHECK("COMMIT");
 
@@ -795,7 +804,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   if (Term_1 > 0) {
      oLowest_Rate_1 = Lowest_rate_1 * 100;
      oLowest_Rate_1_ind = 0;
-     sprintf(msg1, "最低承做利率為第一期：%5.2f%%", Lowest_rate_1*100);
+     sprintf(msg1, "利潤為零之參考利率為第一期：%5.2f%%", Lowest_rate_1*100);
      strcpy (apr_msg, msg1);
   }
   else 
