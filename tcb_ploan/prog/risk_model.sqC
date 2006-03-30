@@ -644,11 +644,11 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     ps_code = 3103;
  }
  else if (krm001_hit ==0 || krm023_hit == 0) {
-    strcpy(MESSAGE, "聯徵中心資料不全、或查無資料者，模組無法評分。");
+    strcpy(MESSAGE, "聯徵中心資料不全、或查無資料，模組無法評分。");
     ps_code = 3104;
  }
  else if (jas002_defect > 0) {
-    strcpy(MESSAGE, "三年內有強停、拒往、退票、授信異常情況者。");
+    strcpy(MESSAGE, "三年內有強停、拒往、退票、授信異常情況。");
     ps_code = 3105;
  }
  else if (max_bucket > 3) {
@@ -668,7 +668,7 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
     ps_code = 3109;
  }
  else if (ind001 == 1) {
-    strcpy(MESSAGE, "無信用卡開卡超過六個月以上者，模組無法評分。");
+    strcpy(MESSAGE, "無信用卡開卡超過六個月以上，模組無法評分。");
     ps_code = 3110;
  }
 
