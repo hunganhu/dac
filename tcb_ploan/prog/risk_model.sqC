@@ -130,7 +130,62 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
                              else null end)
        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update-KRM037-mon_since.");
-     
+
+  EXEC SQL
+     update krm037_dedup
+        set last_paya =
+             (case when right(left(last_paya,2),1) in ('H', 'M', 'L') then '0'||(left(last_paya,2))
+              else last_paya end)
+        where last_paya is not null
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Update 24.");
+
+  EXEC SQL
+     update krm037_dedup
+        set payment_amt = 
+              (case right(last_paya,1) when 'L' then 2 when 'M' then 5 when 'H' then 8
+               else 0 end) * power(10, cast(left(last_paya,2) as int)-1) / 1000.0
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Update 25.");
+
+/* change paycode X to '*' which is less than 'A' in ascii table */
+/* 150新光 and 103誠泰 convert to 103新光 since 2006-01 */
+  EXEC SQL
+     insert into krm037_convert (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment_amt, revol_bal, pre_owed, cash, pay_code, mon_since)
+        select CASE_SN, inquiry_date, IDN,
+               (case when (issue = 'A82' and card_type = 'A') then 'AEA'
+                     when (issue = 'A82' and card_type = 'E') then 'AEE'
+                     when (issue = '021' and card_type = 'V') then 'CTV'
+                     when (issue = '021' and card_type = 'M') then 'CTM'
+                     when (issue = '021' and card_type = 'D') then 'CTD'
+                     when issue = '150' then '103'
+                     else issue end),
+               issue_name, cast(perm_limit as int), card_type, payment_amt, 
+               cast(revol_bal as int), cast(pre_owed as int), 'N',
+               (case when pay_stat = 'X' and pay_code = 'X' then '*'
+                     when pay_stat = '1' and pay_code = 'N' then 'A'
+                     when pay_stat = '1' and pay_code = '0' then 'B'
+                     when pay_stat = '2' and pay_code = 'N' then 'C'
+                     when pay_stat = '2' and pay_code = '0' then 'D'
+                     when pay_stat = '3' and pay_code between '1' and '7' then 'E'
+                     when pay_stat = '4' and pay_code between '1' and '7' then 'F'
+                     when debt_code in ('A', 'B') then 'F' else null end), mon_since
+        from krm037_dedup
+        where mon_since > 1140
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Convert-KRM037.");
+
+  EXEC SQL
+     insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment_amt, revol_bal, pre_owed, cash, pay_code, mon_since)
+        select CASE_SN, inquiry_date, IDN, issue,
+               issue_name, cast(sum(limit) as char(5)), kr_code, sum(payment_amt), 
+               sum(revol_bal), sum(pre_owed), cash, max(pay_code), mon_since
+        from krm037_convert
+        where mon_since > 1140
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn
+        group by CASE_SN, inquiry_date, IDN, issue, issue_name, kr_code, cash, mon_since;
+  EMB_SQL_CHECK("Convert-KRM037.");
+/*     
   EXEC SQL
      insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment, revol_bal, pre_owed, cash, pay_code, mon_since)
         select CASE_SN, inquiry_date, IDN,
@@ -155,6 +210,13 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         where mon_since > 1140
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Convert-KRM037.");
+*/
+  EXEC SQL
+     update krm023_dedup p
+        set pay_code = 'X'
+        where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          and pay_code='*';
+  EMB_SQL_CHECK("paycode-KRM037.");
 
   EXEC SQL
      update krm023_dedup p
@@ -459,13 +521,14 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         set payment_amt = 
               (case right(payment,1) when 'L' then 2 when 'M' then 5 when 'H' then 8
                else 0 end) * power(10, cast(left(payment,2) as int)-1) / 1000.0
-        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+        where payment is not null
+          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 25.");
 
   EXEC SQL
      update krm023_dedup
         set payment_amt = 0
-        where payment is null
+        where payment_amt is null
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update 26.");
 
@@ -1769,6 +1832,8 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   EMB_SQL_CHECK("delete krm001_dedup");
   EXEC SQL delete from krm023_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete krm023_dedup");
+  EXEC SQL delete from krm037_convert where case_sn= :delCase_Sn and idn = :delIdn;
+  EMB_SQL_CHECK("delete krm037_convert");
   EXEC SQL delete from krm037_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete krm037_dedup");
   EXEC SQL delete from bam086_dedup where case_sn= :delCase_Sn and idn = :delIdn;

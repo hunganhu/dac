@@ -893,6 +893,31 @@ CREATE TRIGGER TCB_FIN_UPDATE
  ) IN "ESCORETABSP";
  create index i_krm023_dedup on krm023_dedup(CASE_SN, IDN, issue, mon_since);
 
+ create table krm037_convert (
+ 	case_sn		char(12),
+ 	idn		char(11),
+	inquiry_date	char(10),
+ 	yrmon		char(5),
+ 	issue		char(3),
+ 	issue_name	char(40),
+ 	kr_code		char(7),
+ 	limit		int,
+ 	payment		char(3),
+ 	cash		char(1),
+ 	pay_code	char(1),
+ 	mon_since	int,
+ 	payment_amt	float,
+ 	bucket_def_1k	int default 0,
+ 	bucket_ef_1k	int default 0,
+ 	bucket_f_1k	int default 0,
+	now		int,
+	curr_inqmon	int,
+ 	cnt		int,
+	revol_bal 	int,
+	pre_owed 	int
+ ) IN "ESCORETABSP";
+ create index i_krm037_convert on krm037_convert(CASE_SN, IDN, issue, mon_since);
+
  create table KRM037_dedup (
  	CASE_SN		char(12) not null,
  	inquiry_date	char(10) not null,
