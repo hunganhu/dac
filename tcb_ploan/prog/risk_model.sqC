@@ -174,16 +174,16 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         where mon_since > 1140
           and case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Convert-KRM037.");
-
+/* ignore kr_code*/
   EXEC SQL
-     insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment_amt, revol_bal, pre_owed, cash, pay_code, mon_since)
+     insert into krm023_dedup (CASE_SN, inquiry_date, IDN, issue, issue_name, limit, payment_amt, revol_bal, pre_owed, cash, pay_code, mon_since)
         select CASE_SN, inquiry_date, IDN, issue,
-               issue_name, cast(sum(limit) as char(5)), kr_code, sum(payment_amt), 
+               issue_name, cast(sum(limit) as char(5)), sum(payment_amt), 
                sum(revol_bal), sum(pre_owed), cash, max(pay_code), mon_since
         from krm037_convert
         where mon_since > 1140
           and case_sn = :pjtCase_Sn and idn = :pjtIdn
-        group by CASE_SN, inquiry_date, IDN, issue, issue_name, kr_code, cash, mon_since;
+        group by CASE_SN, inquiry_date, IDN, issue, issue_name, cash, mon_since;
   EMB_SQL_CHECK("Convert-KRM037.");
 /*     
   EXEC SQL
