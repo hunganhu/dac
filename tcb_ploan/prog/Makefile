@@ -32,8 +32,8 @@ CPP=g++
 #  -DNPV_FLOWS: print cash flows of every term when calculating NPV
 #EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE -DNPV_FLOWS
 #EXTRA_CFLAG= -g -Wno-deprecated -DTRACE -DNPV_FLOWS
-EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
-#EXTRA_CFLAG= -g -Wno-deprecated 
+#EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
+EXTRA_CFLAG= -g -Wno-deprecated 
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
@@ -53,7 +53,7 @@ DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o 
 #		   2a - make all (srv + all_client)
 #****************************************************************************
 
-all : libdac_1_2.so java  main 
+all : libdac_1_3.so java  main mainfnl
 .PHONY : all
 	
 java: Dac.class 
@@ -70,11 +70,18 @@ main: main.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o main -ldb2 -L$(DB2PATH)/lib \
 	 main.o $(DLL_OBJ)
 
+mainfnl: mainfnl.o $(DLL_OBJ)
+	$(CPP) $(EXTRA_CFLAG) -o mainfnl -ldb2 -L$(DB2PATH)/lib \
+	 mainfnl.o $(DLL_OBJ)
+
 mainl: main.o 
 	$(CPP) $(EXTRA_CFLAG) -o mainl main.o -ldac -L. -ldb2 -L$(DB2PATH)/lib
 
 main.o: main.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c main.cpp
+
+mainfnl.o: mainfnl.cpp
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c mainfnl.cpp
 
 cutpoint: cutpoint.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o cutpoint -ldb2 -L$(DB2PATH)/lib \
@@ -85,9 +92,9 @@ cutpoint.o: cutpoint.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c cutpoint.cpp
 #	gcc -g  -c cutpoint.c
 	
-libdac_1_2.so: $(DLL_OBJ)
+libdac_1_3.so: $(DLL_OBJ)
 	$(ERASE) libdac_1_2.so
-	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_2.so $(DLL_OBJ)
+	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_3.so $(DLL_OBJ)
 #libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
@@ -122,8 +129,8 @@ clean :
 	$(ERASE) *.o *.so *.bak *~
 	$(ERASE) *.bnd *.C
 
-install: libdac_1_2.so
-	 cp -f libdac_1_2.so $(DESDIR)
+install: libdac_1_3.so
+	 cp -f libdac_1_3.so $(DESDIR)
 	 touch install
 	 cd $(DESDIR)
-	 ln -f -s libdac_1_2.so libdac.so
+	 ln -f -s libdac_1_3.so libdac.so
