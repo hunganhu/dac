@@ -242,7 +242,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
   TADOQuery *query2 = new TADOQuery(NULL);
   TADOCommand *command = new TADOCommand(NULL);
 
-  AnsiString inq_mon = "";//time_stamp_no.SubString(1,8);
+  AnsiString inq_mon = time_stamp_no.SubString(1,8);
   bool time_lock = true;
   bool archive = false;
   bool use_krm037 = true;
@@ -357,6 +357,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
             if (gav == 0 || nav == 0) {  // unqualified property
                final_code = DataErrorCode(OUTPUT_CODE_301);
                final_msg  = DataErrorMsg(OUTPUT_CODE_301);
+               write_final_result_fail (command, msn_no, final_code, final_msg);
             } else {  // qualified property
                // calculate npv, pb, max. loan amount
    	       il loan(apr, period, gav, nav, existing_mortgage, zip_no, principal, app_fee, balance,
@@ -385,9 +386,9 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                   final_code = DataErrorCode(OUTPUT_CODE_204);
                   final_msg  = DataErrorMsg(OUTPUT_CODE_204);
                }
+               write_final_result (command, msn_no, secured_pb, secured_npv,
+                       loan_amount_secured, final_code, final_msg);
             }
-            write_final_result (command, msn_no, secured_pb, secured_npv,
-                    loan_amount_secured, final_code, final_msg);
          } else { // prescreen fails
             // write prescreen failure result
             write_final_result_fail (command, msn_no, prescreen_code, prescreen_msg);
@@ -3143,7 +3144,7 @@ double krm023_balance(TADOQuery *query, AnsiString idn, int now)
              " DROP TABLE KRM023_RANGE_TMP;"
              " CREATE TABLE KRM023_RANGE_TMP "
              "(IDN CHAR(14), ISSUE CHAR(3), MON INT)";
-  sql_stmt = sql_stmt.UpperCase();
+//  sql_stmt = sql_stmt.UpperCase();
   query->Close();
   query->SQL->Clear();
   query->SQL->Add(sql_stmt);
@@ -3162,17 +3163,17 @@ double krm023_balance(TADOQuery *query, AnsiString idn, int now)
 
   sql_stmt = "SELECT SUM(CASE WHEN PAY_CODE IN ('C', 'D', 'E', 'F') THEN PAYMENT_AMT ELSE 0 END) AS BAL, ";
   sql_stmt += "SUM(CONVERT(FLOAT, LIMIT)) AS LINE ";
-  sql_stmt += "FROM " + KRM023 + "AS A ";
+  sql_stmt += "FROM " + KRM023 + " AS A ";
   sql_stmt += "INNER JOIN KRM023_RANGE_TMP AS B ON A.IDN = B.IDN AND ";
   sql_stmt += "A.ISSUE = B.ISSUE AND A.MON_SINCE = B.MON ";
   sql_stmt += "WHERE PAY_CODE IN ('C', 'D', 'E', 'F') AND ";
-  sql_stmt += "IDN = :idn";
+  sql_stmt += " A.IDN = :idn";
   sql_stmt = sql_stmt.UpperCase();
   query->Close();
   query->SQL->Clear();
   query->SQL->Add(sql_stmt);
   query->Parameters->ParamValues["idn"] = idn;
-  query->Parameters->ParamValues["now"] = now;
+//  query->Parameters->ParamValues["now"] = now;
   query->Open();
   double balance = 0;
   if(!query->FieldValues["BAL"].IsNull())
@@ -3199,7 +3200,7 @@ double krm023_balance(TADOQuery *query, AnsiString idn, int now)
 double bam009_balance(TADOQuery *query, AnsiString idn)
 {
   AnsiString sql_stmt;
-  sql_stmt = "SELECT SUM(ISNULL(LOAN_AMT,0) + ISNULL(PASS_DUE_AMT,0)) AS AMOUNT FROM " + BAM086;
+  sql_stmt = "SELECT SUM(CAST(ISNULL(LOAN_AMT,0) AS INT) + CAST(ISNULL(PASS_DUE_AMT,0) AS INT)) AS AMOUNT FROM " + BAM086;
   sql_stmt +=" WHERE IDN = :idn AND (ACCOUNT_CODE2 = '' OR ACCOUNT_CODE2 IS NULL OR ACCOUNT_CODE2 = 'N');";
   query->Close();
   query->SQL->Clear();
@@ -3254,7 +3255,7 @@ void prepare_JAS002(TADOCommand *command, const AnsiString &ori_table, const Ans
              "CREATE TABLE " + dest_table + " "
              " (IDN Char(14), TYPE CHAR(1), E_DATE Char(7), "
              "E_MON_SINCE INT);";
-  sql_stmt = sql_stmt.UpperCase();
+//  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
@@ -4047,8 +4048,10 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 	  command->Execute();
 
 		try{
-  		sql_stmt = "DROP TABLE FS_ISSUE;";
-      sql_stmt = sql_stmt.UpperCase();
+  		sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[FS_ISSUE]')"
+                           "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
+                           "   drop table [FS_ISSUE]; ";
+                sql_stmt = sql_stmt.UpperCase();
   		command->CommandText = sql_stmt;
   		command->Execute();
 		}
@@ -4060,9 +4063,9 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 		}
 
 		sql_stmt = "CREATE TABLE FS_ISSUE(IDN Char(14), MON Int, ISSUE Char(3));";
-    sql_stmt = sql_stmt.UpperCase();
-	  command->CommandText = sql_stmt;
-	  command->Execute();
+                sql_stmt = sql_stmt.UpperCase();
+	        command->CommandText = sql_stmt;
+                command->Execute();
 
 /*---Start making FS102---*/
 		sql_stmt ="INSERT INTO FS_Issue ";

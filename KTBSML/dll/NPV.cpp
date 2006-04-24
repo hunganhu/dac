@@ -1392,21 +1392,21 @@ double il::max_npv_amount(int trails, double &npv_value, double &pb, double npv[
   double max_npv_pb = npv[0][2];
   bool over_limit = false;
   double amount_ceiling;
-  if(filter == 0)
-    amount_ceiling = Max_Granting_Ratio* _nav;
-  else if(filter == 0x80)
-    amount_ceiling = Max_Granting_Ratio_CASHCARD * _nav;
-  else
-    amount_ceiling = Max_Granting_Ratio_DATA * _nav;
+//  if(filter == 0)
+//    amount_ceiling = Max_Granting_Ratio* _nav;
+//  else if(filter == 0x80)
+//    amount_ceiling = Max_Granting_Ratio_CASHCARD * _nav;
+//  else
+//    amount_ceiling = Max_Granting_Ratio_DATA * _nav;
 
   for(int i=0; i<trails;++i){
-    double amount = npv[i][0];
-    double total_exposure = amount + _existing_mortgage;
-    if(total_exposure > amount_ceiling){
-      if(i==0)
-        over_limit = true;
-      break;
-    }
+//    double amount = npv[i][0];
+//    double total_exposure = amount + _existing_mortgage;
+//    if(total_exposure > amount_ceiling){
+//      if(i==0)
+//        over_limit = true;
+//      break;
+//    }
     if(max_npv < npv[i][1]){
       max_npv = npv[i][1];
       max_amount = npv[i][0];
@@ -1617,3 +1617,5 @@ bool loc::dump_series(int type, int period)
   output.close();
   return true;
 };
+
+
