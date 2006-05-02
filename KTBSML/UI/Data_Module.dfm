@@ -1,7 +1,7 @@
 object Data: TData
   OldCreateOrder = False
-  Left = 683
-  Top = 360
+  Left = 498
+  Top = 202
   Height = 282
   Width = 341
   object connection: TADOConnection
@@ -25,5 +25,31 @@ object Data: TData
     Parameters = <>
     Left = 224
     Top = 56
+  end
+  object ejcic_query: TADOQuery
+    Connection = ejcic_connection
+    CursorType = ctStatic
+    LockType = ltReadOnly
+    EnableBCD = False
+    Parameters = <>
+    SQL.Strings = (
+      'SELECT RS_DTM_CHAR FROM JC_T_REQ;')
+    Left = 256
+    Top = 152
+  end
+  object ejcic_connection: TADOConnection
+    ConnectionString = 
+      'Provider=OraOLEDB.Oracle.1;Password=DAC_USER2;Persist Security I' +
+      'nfo=True;User ID=DAC_USER2;Data Source=JCICDB'
+    LoginPrompt = False
+    Provider = 'OraOLEDB.Oracle.1'
+    Left = 152
+    Top = 152
+  end
+  object ejcic: TENGINE
+    AutoConnect = False
+    ConnectKind = ckRunningOrNew
+    Left = 144
+    Top = 72
   end
 end

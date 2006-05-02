@@ -10,7 +10,7 @@
 #include <ADODB.hpp>
 #include <DB.hpp>
 #include <OleServer.hpp>
-//#include "GSSBEST_JCIC20_OCX.h"
+#include "GSSBEST_JCIC20_OCX.h"
 //---------------------------------------------------------------------------
 class TData : public TDataModule
 {
@@ -18,7 +18,11 @@ __published:	// IDE-managed Components
   TADOConnection *connection;
   TADOQuery *query;
   TADOCommand *command;
-//        TENGINE *ejcic;
+  TADOQuery *ejcic_query;
+  TADOConnection *ejcic_connection;
+        TENGINE *ejcic;
+//        void __fastcall DataModuleCreate(TObject *Sender);
+//        void __fastcall DataModuleDestroy(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
   __fastcall TData(TComponent* Owner);

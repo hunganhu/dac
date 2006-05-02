@@ -11,6 +11,11 @@
 #include <Mask.hpp>
 #include <ExtCtrls.hpp>
 #include <stdio>
+#include <ADODB.hpp>
+#include <dir.h>
+#include <fstream>
+#include <iostream>
+
 //---------------------------------------------------------------------------
 extern "C" __declspec(dllexport)
 int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
@@ -20,6 +25,16 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
 extern "C" __declspec(dllexport)
 int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
                       double gav, double nav, char *error);
+
+bool request_for_jcic_data(TADOQuery *query, const AnsiString &id,
+             AnsiString &query_sn, AnsiString &jcic_inquiry_result, int &error_no);
+AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
+                         TADOQuery *ejcic_query, TADOCommand *command,
+                         const AnsiString &query_sn, const AnsiString &msn, const AnsiString &idn,
+                         const AnsiString &input_time);
+AnsiString get_ejcic_inquiry_result(TADOQuery *query, const AnsiString &query_sn,
+                             AnsiString &result, AnsiString &result_code);
+
 //---------------------------------------------------------------------------
 class TformMain : public TForm
 {
@@ -62,26 +77,6 @@ __published:	// IDE-managed Components
         TMaskEdit *final_month;
         TMaskEdit *final_day;
         TButton *Button8;
-        TTabSheet *TabSheet4;
-        TGroupBox *GroupBox6;
-        TLabel *Label33;
-        TLabel *Label34;
-        TLabel *Label35;
-        TRadioButton *rbApproval;
-        TRadioButton *rbDecline;
-        TMaskEdit *medtApprovedLine;
-        TComboBox *cmbDeclineReason;
-        TLabel *Label26;
-        TMaskEdit *medtID;
-        TLabel *Label27;
-        TLabel *Label29;
-        TMaskEdit *medtEntryYear;
-        TMaskEdit *medtEntryMonth;
-        TMaskEdit *medtEntryDate;
-        TLabel *Label30;
-        TLabel *Label31;
-        TLabel *Label32;
-        TButton *Button2;
         TButton *btnExit3;
         TButton *btnExit2;
         TLabel *Label6;
@@ -246,6 +241,7 @@ __published:	// IDE-managed Components
         TLabel *Label70;
         TMaskEdit *edtZip;
         TLabel *hidden_Zip;
+        TLabel *hidden_InquiryDate;
         void __fastcall btnExit1Click(TObject *Sender);
         void __fastcall btnClearClick(TObject *Sender);
         void __fastcall btnPrescreenClick(TObject *Sender);
@@ -253,13 +249,16 @@ __published:	// IDE-managed Components
         void __fastcall finalReview_ClearClick(TObject *Sender);
         void __fastcall SelectClick(TObject *Sender);
         void __fastcall finalReviewClick(TObject *Sender);
+        void __fastcall FormDestroy(TObject *Sender);
+        void __fastcall FormCreate(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
         bool validate_application();
         bool validate_property();
         AnsiString get_case_sn(char *header);
+
         __fastcall TformMain(TComponent* Owner);
-        
+
 
 };
 //---------------------------------------------------------------------------

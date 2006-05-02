@@ -19,7 +19,7 @@ __published:	// IDE-managed Components
   TLabel *Label2;
   TEdit *edtPassword;
   void __fastcall btnCancelClick(TObject *Sender);
-//  void __fastcall FormCreate(TObject *Sender);
+  void __fastcall FormCreate(TObject *Sender);
   void __fastcall btnLoginClick(TObject *Sender);
   void __fastcall FormShow(TObject *Sender);
   void __fastcall btnLoginKeyPress(TObject *Sender, char &Key);
@@ -34,3 +34,4 @@ extern PACKAGE TfrmLogin *frmLogin;
 
 using namespace std;
 const int Command_time_out = 30;
+extern AnsiString agent_id;

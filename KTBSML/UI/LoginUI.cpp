@@ -24,12 +24,13 @@ void __fastcall TfrmLogin::btnCancelClick(TObject *Sender)
   Application->Terminate();
 }
 //---------------------------------------------------------------------------
-/*
+
 void __fastcall TfrmLogin::FormCreate(TObject *Sender)
 {
   frmLogin->ShowModal();
+  formMain->Hide();  
 }
-*/
+
 //---------------------------------------------------------------------------
 
 void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
@@ -40,13 +41,14 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
   AnsiString message;
   AnsiString sql_stmt;
 
+//  CoInitialize(NULL);
 
   Data->connection->Close();
   AnsiString connection_string;
-  connection_string = "Provider=SQLOLEDB.1;";
-  connection_string += "Password=Emily1013;";
-  connection_string += "Persist Security Info=True;User ID=sa;";
-  connection_string += "Initial Catalog=KTB_SML;Data Source=oliver\\daisy";
+  // KTB online OLE DB connection string
+  connection_string = "Provider=SQLOLEDB.1;Password=dac_sml;Persist Security Info=True;User ID=dac_sml;Initial Catalog=KTB_SML;Data Source=DAC-DB2";
+  // local test string
+//  connection_string = "Provider=SQLOLEDB.1;Password=;Persist Security Info=True;User ID=sa;Initial Catalog=KTB_SML;Data Source=oliver\\daisy";
   Data->connection->ConnectionString = connection_string;
   Data->connection->ConnectionTimeout = 5;
 
@@ -98,22 +100,27 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
       succeed = false;
     }
   }
+
+  if(login_error >= 3){
+    message = "登入錯誤超過三次，程式中止。";
+    MessageDlg(message, mtError, TMsgDlgButtons() << mbOK, 0);
+    btnCancel->Click();
+  }
+  else if (connection_error > 3){
+    message = "資料庫或網路連線失敗超過三次，程式中止，請洽網路管理與資料庫管理人員。";
+    MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
+    btnCancel->Click();
+  };
+
   if(succeed){
-//    connection_string = "Provider=SQLOLEDB.1;";
-//    connection_string += "Password=Emily1013;";
-//    connection_string += "Persist Security Info=True;User ID=sa;";
-//    connection_string += "Initial Catalog=TNB_SML;Data Source=oliver\\daisy";
-//    Data->connection->Close();
-//    Data->connection->ConnectionString = connection_string;
-//    Data->connection->ConnectionTimeout = 5;
-//    Data->connection->Open();
     Data->query->Close();
     Data->query->Connection = Data->connection;
     Data->query->CommandTimeout = Command_time_out;
     Data->command->Connection = Data->connection;
     Data->command->CommandTimeout = Command_time_out;
     Data->command->CommandType = cmdText;
-    ModalResult = mrCancel;
+    formMain->PageControlMain->ActivePage = formMain->TabSheet1; // Set active page to preliminary review
+    agent_id = edtUser->Text;  // Set agent_id to login id
     frmLogin->Close();
     formMain->Show();
   } else {
@@ -123,18 +130,7 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
       edtUser->Text = "";
       edtUser->SetFocus();
       succeed = false;
-  }
-
-  if(login_error > 3){
-    message = "登入錯誤超過三次，程式中止。";
-    MessageDlg(message, mtError, TMsgDlgButtons() << mbOK, 0);
-    btnCancel->Click();
-  }
-  else if (connection_error > 3){
-    message = "資料庫或網路連線失敗超過三次，程式中止，請洽網路管理與資料庫管理人員。";
-    MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-    btnCancel->Click();
-  }
+  } 
 }
 //---------------------------------------------------------------------------
 

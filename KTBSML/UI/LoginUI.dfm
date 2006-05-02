@@ -13,7 +13,7 @@ object frmLogin: TfrmLogin
   Font.Style = []
   FormStyle = fsStayOnTop
   OldCreateOrder = False
-  Visible = True
+  OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -41,7 +41,7 @@ object frmLogin: TfrmLogin
     Width = 75
     Height = 25
     Caption = #30331#20837
-    TabOrder = 0
+    TabOrder = 2
     OnClick = btnLoginClick
     OnKeyPress = btnLoginKeyPress
   end
@@ -51,7 +51,7 @@ object frmLogin: TfrmLogin
     Width = 75
     Height = 25
     Caption = #21462#28040
-    TabOrder = 1
+    TabOrder = 3
     OnClick = btnCancelClick
   end
   object edtUser: TEdit
@@ -61,7 +61,7 @@ object frmLogin: TfrmLogin
     Height = 21
     ImeMode = imClose
     ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-    TabOrder = 2
+    TabOrder = 0
   end
   object edtPassword: TEdit
     Left = 85
@@ -71,6 +71,6 @@ object frmLogin: TfrmLogin
     ImeMode = imDisable
     ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
     PasswordChar = '*'
-    TabOrder = 3
+    TabOrder = 1
   end
 end

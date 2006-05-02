@@ -12,8 +12,8 @@ WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
         try
         {
                  Application->Initialize();
-                 Application->CreateForm(__classid(TData), &Data);
                  Application->CreateForm(__classid(TformMain), &formMain);
+                 Application->CreateForm(__classid(TData), &Data);
                  Application->CreateForm(__classid(TfrmLogin), &frmLogin);
                  Application->Run();
         }
