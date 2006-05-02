@@ -152,8 +152,6 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
             // write prescreen failure result
             write_premier_result (command, msn_no, time_stamp_no, risk_score, prescreen_code, prescreen_msg);
          }
-         strcpy (error, prescreen_msg.c_str());
-         status = prescreen_code;
 // FINAL REVIEW
 
 //      } // end of error_check() >0
@@ -185,10 +183,13 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
   delete connection;
   CoUninitialize();
 
-  if (error_message.Length()>0)
+  if (status < 0) { // system error
      status = -1;
-  strcpy(error, error_message.c_str());
-
+     strcpy(error, error_message.c_str());
+  } else { // normal output
+     strcpy (error, prescreen_msg.c_str());
+     status = prescreen_code;
+  }
   return status;
 } // end of DAC_SML_PRESCREEN()
 //---------------------------------------------------------------------------
@@ -221,11 +222,14 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
 //  int product_type = -1;
 //  bool is_il;
   int gender = ((idn[1]== '1')? 1: 0);
+//  gender = 1; // remove after test
 
 
   unsigned char data_flag = 0x0;
   unsigned int filter_flag = 0x0;
+  unsigned int filter;
   double balance = 0;
+  int secured_npv_amount;
 
 //  unsigned char group;
 //  bool bsp_exclusion = ((nav == 0) && (gav == 0)) ? true : false;
@@ -360,12 +364,14 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                write_final_result_fail (command, msn_no, final_code, final_msg);
             } else {  // qualified property
                // calculate npv, pb, max. loan amount
-   	       il loan(apr, period, gav, nav, existing_mortgage, zip_no, principal, app_fee, balance,
+   	       il loan(apr, period, gav, nav, existing_mortgage, zip_no, principal, app_fee/1000.0, balance,
        	            risk_score, msn_no, idno, time_stamp_no, &error_message);
    	       if (loan.status() != 0) {
 		  status = 0;
-       	          loan_amount_secured = loan.npv(true, secured_npv, secured_pb, filter_flag, -1);
+                  filter = filter_flag & 0x1ff;  // Only the first 9 bits are checked
+       	          loan_amount_secured = loan.npv(true, secured_npv, secured_pb, filter, -1);
        	          loan_amount_secured *= 1000.0;
+                  secured_npv_amount = static_cast<int>(secured_npv + 0.5) * 1000;
                }
                else {
                   strcpy(error,error_message.c_str());
@@ -386,14 +392,15 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                   final_code = DataErrorCode(OUTPUT_CODE_204);
                   final_msg  = DataErrorMsg(OUTPUT_CODE_204);
                }
-               write_final_result (command, msn_no, secured_pb, secured_npv,
+               write_final_result (command, msn_no, secured_pb, secured_npv_amount,
                        loan_amount_secured, final_code, final_msg);
             }
          } else { // prescreen fails
             // write prescreen failure result
-            write_final_result_fail (command, msn_no, prescreen_code, prescreen_msg);
+            final_code = prescreen_code;
+            final_msg  = prescreen_msg;
+            write_final_result_fail (command, msn_no, final_code, final_msg);
          }
-         strcpy (error, prescreen_msg.c_str());
 
 //      } // end of error_check() >0
     } // end of now >0
@@ -424,9 +431,13 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
   delete connection;
   CoUninitialize();
 
-  if (error_message.Length()>0)
+  if (status < 0) { // system error
      status = -1;
-  strcpy(error, error_message.c_str());
+     strcpy(error, error_message.c_str());
+  } else { // normal output
+     strcpy (error, final_msg.c_str());
+     status = final_code;
+  }
 
   return status;
 } // end of DAC_SML_NPV()
@@ -717,7 +728,7 @@ try{
   sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[" + destination_table + "]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
              "DROP TABLE " + destination_table + ";";
-  sql_stmt = sql_stmt.UpperCase();
+//  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 }
@@ -960,7 +971,7 @@ void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
              "	REVOL_BAL 	INT,           "
              "	PRE_OWED 	INT            "
              " )";
-  sql_stmt = sql_stmt.UpperCase();
+//  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
@@ -1421,6 +1432,7 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table)
               "          where cycle >= @i"
               "       set @i = @i + 1"
               "    end";
+  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
@@ -2360,7 +2372,7 @@ void write_premier_result(TADOCommand *command, AnsiString msn_no, AnsiString ti
 
   sql_stmt = "INSERT INTO app_premier (msn, premier_date, rscore, premier_code, premier_msg) "
              " VALUES (:msn, :premier_date, :rscore, :premier_code, :premier_msg);";
-
+  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Parameters->ParamValues["msn"] = msn_no;
   command->Parameters->ParamValues["premier_date"] = curr_dtime;
@@ -2378,7 +2390,7 @@ void write_final_result(TADOCommand *command, AnsiString msn_no, double pb, int 
 
   sql_stmt = "INSERT INTO app_final (msn, final_date, pb, npv, optimal_amount, final_code, final_msg) "
              " VALUES (:msn, :final_date, :pb, :npv, :optimal_amount, :final_code, :final_msg);";
-
+  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Parameters->ParamValues["msn"] = msn_no;
   command->Parameters->ParamValues["final_date"] = curr_dtime;
@@ -2398,7 +2410,7 @@ void write_final_result_fail(TADOCommand *command, AnsiString msn_no,
   AnsiString curr_dtime = CurrDateTime();
   sql_stmt = "INSERT INTO app_final (msn, final_date, final_code, final_msg) "
              " VALUES (:msn, :final_date, :final_code, :final_msg);";
-
+  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Parameters->ParamValues["msn"] = msn_no;
   command->Parameters->ParamValues["final_date"] = curr_dtime;
@@ -2929,6 +2941,7 @@ catch(Exception &E){
       command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 }
+
 try{
   AnsiString sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[PDACO_V1_00_CAL]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
@@ -2942,6 +2955,7 @@ catch(Exception &E){
       command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 }
+
   AnsiString sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[BAM086_BUCKET]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
              "   drop table [BAM086_BUCKET]; "
@@ -3371,7 +3385,7 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
                "   drop table [KRM023_RANGE_TMP]; "
                "CREATE TABLE KRM023_RANGE_TMP "
                " (IDN CHAR(11), ISSUE CHAR(3), MON INT)";
-    sql_stmt = sql_stmt.UpperCase();
+//    sql_stmt = sql_stmt.UpperCase();
     query->Close();
     query->SQL->Clear();
     query->SQL->Add(sql_stmt);
@@ -3483,7 +3497,7 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
       sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[IND_TMP]')"
                "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
                " DROP TABLE IND_TMP;";
-      sql_stmt = sql_stmt.UpperCase();
+//      sql_stmt = sql_stmt.UpperCase();
       query->Close();
       query->SQL->Clear();
       query->SQL->Add(sql_stmt);
@@ -3535,7 +3549,7 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
     sql_stmt = " select IDN, max(bucket) AS CNT "
                "    from bam086_bucket "
                " WHERE IDN = :idn GROUP BY IDN;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt = sql_stmt.UpperCase();
   	query->Close();
   	query->SQL->Clear();
   	query->SQL->Add(sql_stmt);
@@ -3905,7 +3919,7 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 		sql_stmt +="WHERE (:now - Mon_Since)<= @i ";
 //		sql_stmt +="AND (:now1 - Mon_Since) > 0 ";
 		sql_stmt +="GROUP BY IDN SET @i = @i + 6 END;";
-    sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
 		command->CommandText = sql_stmt;
 	  command->Parameters->ParamValues["now"] = now;
 //	  command->Parameters->ParamValues["now1"] = now;
@@ -3914,14 +3928,14 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 		sql_stmt ="UPDATE PDACO_V1_00_CAL ";
 		sql_stmt +="SET FS101_3M = V1 FROM TMP1 AS A ";
 		sql_stmt +="WHERE A.IDN = PDACO_V1_00_CAL.IDN AND Mon=3;";
-    sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
 		command->CommandText = sql_stmt;
 	  command->Execute();
 
 		sql_stmt ="UPDATE PDACO_V1_00_CAL ";
 		sql_stmt +="SET FS101_9M = V1 FROM TMP1 AS A ";
 		sql_stmt +="WHERE A.IDN = PDACO_V1_00_CAL.IDN AND Mon=9;";
-    sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
 		command->CommandText = sql_stmt;
 	  command->Execute();
 
@@ -3943,7 +3957,7 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 		sql_stmt +="(:now - Mon_Since)<= @i ";
 //		sql_stmt +="AND (:now1 - Mon_Since) > 0 ";
 		sql_stmt +="GROUP BY IDN SET @i = @i + 3 END;";
-    sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
 		command->CommandText = sql_stmt;
 	  command->Parameters->ParamValues["now"] = now;
 //	  command->Parameters->ParamValues["now1"] = now;
@@ -4051,7 +4065,7 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
   		sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[FS_ISSUE]')"
                            "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
                            "   drop table [FS_ISSUE]; ";
-                sql_stmt = sql_stmt.UpperCase();
+//                sql_stmt = sql_stmt.UpperCase();
   		command->CommandText = sql_stmt;
   		command->Execute();
 		}

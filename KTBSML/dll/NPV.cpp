@@ -117,7 +117,8 @@ void loc::attrition(double pb, bool voluntary)
 
 double loc::secured_pb(double line, unsigned int filter)
 {
-  double loan_ratio2 = ((_existing_mortgage + line) /_gav )* 100;
+//  double loan_ratio2 = ((_existing_mortgage + line) /_gav )* 100;
+  double loan_ratio2 = ((_existing_mortgage + line) /_nav )* 100;
   double loan_ratio2_t;
   if(loan_ratio2 > 200)
   	loan_ratio2_t = 200;
@@ -126,7 +127,8 @@ double loc::secured_pb(double line, unsigned int filter)
   else
   	loan_ratio2_t = loan_ratio2;
 
-  double loan_diff2 = ((_existing_mortgage + line) - _gav);
+//  double loan_diff2 = ((_existing_mortgage + line) - _gav);
+  double loan_diff2 = ((_existing_mortgage + line) - _nav);
   int loan_diff2_1200k= loan_diff2>1200 ? 1 : 0;
 
   double total_approved_amt=(_existing_mortgage + line);
@@ -938,7 +940,8 @@ il::~il()
 
 double il::secured_pb(double loan_amount, unsigned int filter)
 {
-  double loan_ratio2 = ((_existing_mortgage + loan_amount) /_gav )* 100;
+//  double loan_ratio2 = ((_existing_mortgage + loan_amount) /_gav )* 100;
+  double loan_ratio2 = ((_existing_mortgage + loan_amount) /_nav )* 100;
   double loan_ratio2_t;
   if(loan_ratio2 > 200)
   	loan_ratio2_t = 200;
@@ -946,8 +949,9 @@ double il::secured_pb(double loan_amount, unsigned int filter)
   	loan_ratio2_t = 100;
   else
   	loan_ratio2_t = loan_ratio2;
-  	
-  double loan_diff2 = ((_existing_mortgage + loan_amount) - _gav);	
+
+//  double loan_diff2 = ((_existing_mortgage + loan_amount) - _gav);
+  double loan_diff2 = ((_existing_mortgage + loan_amount) - _nav);
   int loan_diff2_1200k= loan_diff2>1200 ? 1 : 0;
   
   double total_approved_amt=(_existing_mortgage + loan_amount);
@@ -1263,7 +1267,7 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
         cap = 500;
       upper = (upper > cap) ? cap : upper;
     }
-  } else  // secured 
+  } else  // secured
      upper = upper_bound;
 
   int trails = (upper - MIN_LENDING_AMOUNT) / 10.0 + 1;
@@ -1347,7 +1351,7 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
   if(trails > 0)
     optimal_amount = max_npv_amount(trails, npv_value, pb_value, npv, filter);
 //  if((secured == false) /*&& (_msn == "0003-0242533-CC-29-2")*/)
-//    dump_npv(trails,npv);
+    dump_npv(trails,npv);
 
   max_npv_value = npv_value;
   pb_max_npv = pb_value;
