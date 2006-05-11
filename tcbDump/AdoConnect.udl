@@ -1,0 +1,3 @@
+﻿[oledb]
+; Everything after this line is an OLE DB initstring
+Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=True;User ID=sa;Initial Catalog=escore;Data Source=OLIVER\DAISY
