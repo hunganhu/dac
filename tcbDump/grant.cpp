@@ -24,9 +24,9 @@ void __fastcall TForm2::Button1Click(TObject *Sender)
  Close();
  userName = Edit1->Text;
  passWord = Edit2->Text;
- connectString = "Provider=SQLOLEDB.1;Password=" + passWord +
+ connectString = "Provider=IBMDADB2.1;Password=" + passWord +
                  ";Persist Security Info=True;User ID=" + userName +
-                 ";Initial Catalog=escore;Data Source=OLIVER\\DAISY";
+                 ";Data Source=ESCORE;Location=10.0.31.71:50000;Extended Properties=\"\"";
  try {
    Form1->dbhandle = new TADOHandler();
    Form1->dbhandle->OpenDatabase(connectString.c_str());
