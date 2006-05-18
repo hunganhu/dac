@@ -25,7 +25,7 @@ bool check_channel(string channel_code);
 bool check_phone(const AnsiString &region_code, const AnsiString &phone_no, bool celluar);
 bool check_region_code(const AnsiString &region_code);
 void get_time(unsigned int &year, unsigned int &month, unsigned int &day,
-              unsigned int &hour, unsigned int &min);
+              unsigned int &hour, unsigned int &min, unsigned int &sec);
 
 
 #endif

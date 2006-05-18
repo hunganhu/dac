@@ -1,6 +1,6 @@
 object formMain: TformMain
-  Left = 119
-  Top = 9
+  Left = 125
+  Top = 77
   Width = 868
   Height = 688
   Caption = 'DAC'#20108#38918#20301#25151#36024#35413#20998#31995#32113#9472#25552#20379#20140#22478#37504#34892#20351#29992
@@ -30,8 +30,8 @@ object formMain: TformMain
     Top = 0
     Width = 857
     Height = 577
-    ActivePage = TabSheet2
-    TabIndex = 1
+    ActivePage = TabSheet3
+    TabIndex = 2
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = #21021#23529#26696#20214
@@ -2066,7 +2066,7 @@ object formMain: TformMain
           Font.Style = []
           ParentFont = False
         end
-        object Button7: TButton
+        object btnFinalreviewDir: TButton
           Left = 8
           Top = 24
           Width = 129
@@ -2128,7 +2128,7 @@ object formMain: TformMain
           ParentFont = False
           TabOrder = 3
         end
-        object Button8: TButton
+        object btnFinalreviewReport: TButton
           Left = 387
           Top = 24
           Width = 75
@@ -2222,13 +2222,14 @@ object formMain: TformMain
           Font.Style = []
           ParentFont = False
         end
-        object Button1: TButton
+        object btnPreviewDir: TButton
           Left = 8
           Top = 24
           Width = 129
           Height = 25
           Caption = #35373#23450#27284#26696#29986#29983#30446#37636
           TabOrder = 0
+          OnClick = btnPreviewDirClick
         end
         object primier_year: TMaskEdit
           Left = 207
@@ -2284,13 +2285,14 @@ object formMain: TformMain
           ParentFont = False
           TabOrder = 3
         end
-        object Button3: TButton
+        object btnPreviewReport: TButton
           Left = 387
           Top = 24
           Width = 75
           Height = 25
           Caption = #29986#29983#27284#26696
           TabOrder = 4
+          OnClick = btnPreviewReportClick
         end
       end
     end

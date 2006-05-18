@@ -34,6 +34,13 @@ AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
                          const AnsiString &input_time);
 AnsiString get_ejcic_inquiry_result(TADOQuery *query, const AnsiString &query_sn,
                              AnsiString &result, AnsiString &result_code);
+void prepare_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time);
+void prepare_final_report(TADOCommand *command, const AnsiString &report_gen_time);
+bool generate_prelimitary_report(TADOQuery *query, const AnsiString &report_dir,
+                     const AnsiString &report_gen_time);
+bool generate_final_report(TADOQuery *query, const AnsiString &report_dir,
+                     const AnsiString &report_gen_time);
+
 
 //---------------------------------------------------------------------------
 class TformMain : public TForm
@@ -72,11 +79,11 @@ __published:	// IDE-managed Components
         TLabel *Label42;
         TLabel *Label43;
         TLabel *Label44;
-        TButton *Button7;
+        TButton *btnFinalreviewDir;
         TMaskEdit *final_year;
         TMaskEdit *final_month;
         TMaskEdit *final_day;
-        TButton *Button8;
+        TButton *btnFinalreviewReport;
         TButton *btnExit3;
         TButton *btnExit2;
         TLabel *Label6;
@@ -227,11 +234,11 @@ __published:	// IDE-managed Components
         TLabel *Label45;
         TLabel *Label107;
         TLabel *Label108;
-        TButton *Button1;
+        TButton *btnPreviewDir;
         TMaskEdit *primier_year;
         TMaskEdit *primier_month;
         TMaskEdit *primier_day;
-        TButton *Button3;
+        TButton *btnPreviewReport;
         TButton *finalReview_Clear;
         TEdit *edtAPR;
         TEdit *edtAPR2;
@@ -251,6 +258,8 @@ __published:	// IDE-managed Components
         void __fastcall finalReviewClick(TObject *Sender);
         void __fastcall FormDestroy(TObject *Sender);
         void __fastcall FormCreate(TObject *Sender);
+        void __fastcall btnPreviewDirClick(TObject *Sender);
+        void __fastcall btnPreviewReportClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
         bool validate_application();
