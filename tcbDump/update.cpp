@@ -33,9 +33,9 @@ char *SQLCommands[] = {
 /* Approve_and_Appropriate*/
 " select a.system_date, a.case_sn, a.applicant_ID, a.applicant_name, a.branch, c.branch_name,"
 "        a.app_amt, a.apr_1, a.apr_2, a.apr_3, a.loan_amt, a.account_no, a.open_date"
-" from app_info a, app_result b, branch c"
+" from app_result b, app_info a left join branch c"
+"   on a.branch = c.branch"
 " where a.case_sn = b.case_sn"
-"   and a.branch = c.branch"
 "   and b.approval_code = 1"
 "   and a.approval_final = 2"
 "   and a.account_no is not null"
@@ -43,9 +43,9 @@ char *SQLCommands[] = {
 
 /* Decline_and_Appropriate*/
 " select a.system_date, a.case_sn, a.applicant_ID, a.applicant_name, a.branch, c.branch_name, a.app_amt, a.apr_1, a.apr_2, a.apr_3, a.loan_amt, a.account_no, a.open_date, b.approval_msg"
-" from app_info a, app_result b, branch c"
+" from app_result b, app_info a left join branch c"
+"   on a.branch = c.branch"
 " where a.case_sn = b.case_sn"
-"   and a.branch = c.branch"
 "   and b.approval_code not in (1, 3, 4, 5, 3104, 3110)"
 "   and a.approval_final = 2"
 "   and a.account_no is not null"
@@ -53,9 +53,9 @@ char *SQLCommands[] = {
 
 /* Manual_and_Appropriate*/
 " select a.system_date, a.case_sn, a.applicant_ID, a.applicant_name, a.branch, c.branch_name, a.app_amt, a.apr_1, a.apr_2, a.apr_3, a.loan_amt, a.account_no, a.open_date"
-" from app_info a, app_result b, branch c"
+" from app_result b, app_info a left join branch c"
+"   on a.branch = c.branch"
 " where a.case_sn = b.case_sn"
-"   and a.branch = c.branch"
 "   and b.approval_code in (3, 4, 5, 3104, 3110)"
 "   and a.approval_final = 2"
 "   and a.account_no is not null"
@@ -63,18 +63,18 @@ char *SQLCommands[] = {
 
 /* Approve_But_Decline*/
 " select a.system_date, a.case_sn, a.applicant_ID, a.applicant_name, a.branch, c.branch_name, a.app_amt"
-" from app_info a, app_result b, branch c"
+" from app_result b, app_info a left join branch c"
+"   on a.branch = c.branch"
 " where a.case_sn = b.case_sn"
-"   and a.branch = c.branch"
 "   and b.approval_code = 1"
 "   and a.approval_final = 0"
 " order by a.case_sn;",
 
 /* Approve_and_Unclose*/
 " select a.system_date, a.case_sn, a.applicant_ID, a.applicant_name, a.branch, c.branch_name, a.app_amt"
-" from app_info a, app_result b, branch c"
+" from app_result b, app_info a left join branch c"
+"   on a.branch = c.branch"
 " where a.case_sn = b.case_sn"
-"   and a.branch = c.branch"
 "   and b.approval_code = 1"
 "   and a.approval_final is null"
 " order by a.case_sn;"
@@ -118,62 +118,62 @@ bool Generate_ApprovePay_Report(TADOHandler *dbhandle, TADODataSet *ds)
           if (! ds->FieldValues["system_date"].IsNull())
              report_total << ds->FieldByName("system_date")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["case_sn"].IsNull())
              report_total << ds->FieldByName("case_sn")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_ID"].IsNull())
              report_total << ds->FieldByName("applicant_ID")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_name"].IsNull())
              report_total << ds->FieldByName("applicant_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch"].IsNull())
              report_total << ds->FieldByName("branch")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch_name"].IsNull())
              report_total << ds->FieldByName("branch_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["app_amt"].IsNull())
              report_total << ds->FieldByName("app_amt")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_1"].IsNull())
              report_total << ds->FieldByName("apr_1")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_2"].IsNull())
              report_total << ds->FieldByName("apr_2")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_3"].IsNull())
              report_total << ds->FieldByName("apr_3")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["loan_amt"].IsNull())
              report_total << ds->FieldByName("loan_amt")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["account_no"].IsNull())
              report_total << ds->FieldByName("account_no")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["open_date"].IsNull())
              report_total << ds->FieldByName("open_date")->AsString.c_str() <<endl;
@@ -250,32 +250,32 @@ bool Generate_ApproveDecline_Report(TADOHandler *dbhandle, TADODataSet *ds)
           if (! ds->FieldValues["system_date"].IsNull())
              report_total << ds->FieldByName("system_date")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["case_sn"].IsNull())
              report_total << ds->FieldByName("case_sn")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_ID"].IsNull())
              report_total << ds->FieldByName("applicant_ID")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_name"].IsNull())
              report_total << ds->FieldByName("applicant_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch"].IsNull())
              report_total << ds->FieldByName("branch")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch_name"].IsNull())
              report_total << ds->FieldByName("branch_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["app_amt"].IsNull())
              report_total << ds->FieldByName("app_amt")->AsString.c_str() <<endl;
@@ -319,32 +319,32 @@ bool Generate_ApproveUnclose_Report(TADOHandler *dbhandle, TADODataSet *ds)
           if (! ds->FieldValues["system_date"].IsNull())
              report_total << ds->FieldByName("system_date")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["case_sn"].IsNull())
              report_total << ds->FieldByName("case_sn")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_ID"].IsNull())
              report_total << ds->FieldByName("applicant_ID")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_name"].IsNull())
              report_total << ds->FieldByName("applicant_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch"].IsNull())
              report_total << ds->FieldByName("branch")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch_name"].IsNull())
              report_total << ds->FieldByName("branch_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["app_amt"].IsNull())
              report_total << ds->FieldByName("app_amt")->AsString.c_str() <<endl;
@@ -390,62 +390,62 @@ bool Generate_DeclinePay_Report(TADOHandler *dbhandle, TADODataSet *ds)
           if (! ds->FieldValues["system_date"].IsNull())
              report_total << ds->FieldByName("system_date")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["case_sn"].IsNull())
              report_total << ds->FieldByName("case_sn")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_ID"].IsNull())
              report_total << ds->FieldByName("applicant_ID")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_name"].IsNull())
              report_total << ds->FieldByName("applicant_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch"].IsNull())
              report_total << ds->FieldByName("branch")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch_name"].IsNull())
              report_total << ds->FieldByName("branch_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["app_amt"].IsNull())
              report_total << ds->FieldByName("app_amt")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_1"].IsNull())
              report_total << ds->FieldByName("apr_1")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_2"].IsNull())
              report_total << ds->FieldByName("apr_2")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_3"].IsNull())
              report_total << ds->FieldByName("apr_3")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["loan_amt"].IsNull())
              report_total << ds->FieldByName("loan_amt")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["account_no"].IsNull())
              report_total << ds->FieldByName("account_no")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["open_date"].IsNull())
              report_total << ds->FieldByName("open_date")->AsString.c_str() <<endl;
@@ -500,62 +500,62 @@ bool Generate_ManualPay_Report(TADOHandler *dbhandle, TADODataSet *ds)
           if (! ds->FieldValues["system_date"].IsNull())
              report_total << ds->FieldByName("system_date")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["case_sn"].IsNull())
              report_total << ds->FieldByName("case_sn")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_ID"].IsNull())
              report_total << ds->FieldByName("applicant_ID")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["applicant_name"].IsNull())
              report_total << ds->FieldByName("applicant_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch"].IsNull())
              report_total << ds->FieldByName("branch")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["branch_name"].IsNull())
              report_total << ds->FieldByName("branch_name")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["app_amt"].IsNull())
              report_total << ds->FieldByName("app_amt")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_1"].IsNull())
              report_total << ds->FieldByName("apr_1")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_2"].IsNull())
              report_total << ds->FieldByName("apr_2")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["apr_3"].IsNull())
              report_total << ds->FieldByName("apr_3")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["loan_amt"].IsNull())
              report_total << ds->FieldByName("loan_amt")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["account_no"].IsNull())
              report_total << ds->FieldByName("account_no")->AsString.c_str() <<",";
           else
-             report_total <<",,";
+             report_total <<",";
 
           if (! ds->FieldValues["open_date"].IsNull())
              report_total << ds->FieldByName("open_date")->AsString.c_str() <<endl;
@@ -610,6 +610,7 @@ void __fastcall TForm1::ApprovePayClick(TObject *Sender)
     config.clear();
     config.close();
   };
+  return_msg = "";
   Generate_ApprovePay_Report(dbhandle, ds);
   message->Caption = return_msg;
   Refresh();
@@ -624,6 +625,7 @@ void __fastcall TForm1::DeclinePayClick(TObject *Sender)
     config.clear();
     config.close();
   };
+  return_msg = "";
   Generate_DeclinePay_Report(dbhandle, ds);
   message->Caption = return_msg;
   Refresh();
@@ -638,6 +640,7 @@ void __fastcall TForm1::ManualPayClick(TObject *Sender)
     config.clear();
     config.close();
   };
+  return_msg = "";
   Generate_ManualPay_Report(dbhandle, ds);
   message->Caption = return_msg;
   Refresh();
@@ -652,6 +655,7 @@ void __fastcall TForm1::ApproveUncloseClick(TObject *Sender)
     config.clear();
     config.close();
   };
+  return_msg = "";
   Generate_ApproveUnclose_Report(dbhandle, ds);
   message->Caption = return_msg;
   Refresh();
@@ -666,6 +670,7 @@ void __fastcall TForm1::ApproveDeclineClick(TObject *Sender)
     config.clear();
     config.close();
   };
+  return_msg = "";
   Generate_ApproveDecline_Report(dbhandle, ds);
   message->Caption = return_msg;
   Refresh();
@@ -680,6 +685,7 @@ void __fastcall TForm1::AllClick(TObject *Sender)
     config.clear();
     config.close();
   };
+  return_msg = "";
   Generate_ApprovePay_Report(dbhandle, ds);
   Generate_ApproveDecline_Report(dbhandle, ds);
   Generate_ApproveUnclose_Report(dbhandle, ds);
