@@ -52,4 +52,11 @@ object Data: TData
     Left = 144
     Top = 72
   end
+  object query2: TADOQuery
+    CacheSize = 60
+    Connection = connection
+    Parameters = <>
+    Left = 56
+    Top = 152
+  end
 end

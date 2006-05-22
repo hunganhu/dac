@@ -28,7 +28,7 @@ void __fastcall TfrmLogin::btnCancelClick(TObject *Sender)
 void __fastcall TfrmLogin::FormCreate(TObject *Sender)
 {
   frmLogin->ShowModal();
-  formMain->Hide();  
+  formMain->Hide();
 }
 
 //---------------------------------------------------------------------------
@@ -46,9 +46,9 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
   Data->connection->Close();
   AnsiString connection_string;
   // KTB online OLE DB connection string
-  connection_string = "Provider=SQLOLEDB.1;Password=dac_sml;Persist Security Info=True;User ID=dac_sml;Initial Catalog=KTB_SML;Data Source=DAC-DB2";
+//  connection_string = "Provider=SQLOLEDB.1;Password=dac_sml;Persist Security Info=True;User ID=dac_sml;Initial Catalog=KTB_SML;Data Source=DAC-DB2";
   // local test string
-//  connection_string = "Provider=SQLOLEDB.1;Password=;Persist Security Info=True;User ID=sa;Initial Catalog=KTB_SML;Data Source=oliver\\daisy";
+  connection_string = "Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=True;User ID=sa;Initial Catalog=KTB_SML;Data Source=oliver\\daisy";
   Data->connection->ConnectionString = connection_string;
   Data->connection->ConnectionTimeout = 5;
 
@@ -82,23 +82,11 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
   }
   catch(Exception &E){
     string error_message = static_cast<string>(E.Message.c_str());
-    int n = error_message.find("登入失敗");
-    if(n > 0){
-//      ++login_error;
-      message = "使用者帳號或密碼錯誤，請重新輸入。";
-      MessageDlg(message, mtWarning, TMsgDlgButtons() << mbOK, 0);
-      edtPassword->Text = "";
-      edtUser->Text = "";
-      edtUser->SetFocus();
-      succeed = false;
-    }
-    else {
-      ++connection_error;
-      message = "資料庫或網路連線失敗，請稍後再試。";
-      MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      btnLogin->SetFocus();
-      succeed = false;
-    }
+    ++connection_error;
+    message = "資料庫或網路連線失敗，請稍後再試。";
+    MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
+    btnLogin->SetFocus();
+    succeed = false;
   }
 
   if(login_error >= 3){
@@ -116,6 +104,8 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
     Data->query->Close();
     Data->query->Connection = Data->connection;
     Data->query->CommandTimeout = Command_time_out;
+    Data->query2->Connection = Data->connection;
+    Data->query2->CommandTimeout = Command_time_out;
     Data->command->Connection = Data->connection;
     Data->command->CommandTimeout = Command_time_out;
     Data->command->CommandType = cmdText;
@@ -130,7 +120,7 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
       edtUser->Text = "";
       edtUser->SetFocus();
       succeed = false;
-  } 
+  }
 }
 //---------------------------------------------------------------------------
 

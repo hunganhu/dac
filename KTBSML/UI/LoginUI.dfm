@@ -1,6 +1,6 @@
 object frmLogin: TfrmLogin
-  Left = 433
-  Top = 292
+  Left = 414
+  Top = 293
   BorderStyle = bsDialog
   Caption = #30331#20837' DAC '#28136#20540#25151#36024#25480#20449#31995#32113
   ClientHeight = 160
@@ -43,7 +43,6 @@ object frmLogin: TfrmLogin
     Caption = #30331#20837
     TabOrder = 2
     OnClick = btnLoginClick
-    OnKeyPress = btnLoginKeyPress
   end
   object btnCancel: TButton
     Left = 144

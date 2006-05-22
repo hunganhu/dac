@@ -2073,6 +2073,7 @@ object formMain: TformMain
           Height = 25
           Caption = #35373#23450#27284#26696#29986#29983#30446#37636
           TabOrder = 0
+          OnClick = btnFinalreviewDirClick
         end
         object final_year: TMaskEdit
           Left = 207
@@ -2135,6 +2136,7 @@ object formMain: TformMain
           Height = 25
           Caption = #29986#29983#27284#26696
           TabOrder = 4
+          OnClick = btnFinalReportClick
         end
       end
       object btnExit3: TButton

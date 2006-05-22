@@ -21,6 +21,7 @@ __published:	// IDE-managed Components
   TADOQuery *ejcic_query;
   TADOConnection *ejcic_connection;
         TENGINE *ejcic;
+        TADOQuery *query2;
 //        void __fastcall DataModuleCreate(TObject *Sender);
 //        void __fastcall DataModuleDestroy(TObject *Sender);
 private:	// User declarations

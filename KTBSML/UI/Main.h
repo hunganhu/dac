@@ -260,6 +260,8 @@ __published:	// IDE-managed Components
         void __fastcall FormCreate(TObject *Sender);
         void __fastcall btnPreviewDirClick(TObject *Sender);
         void __fastcall btnPreviewReportClick(TObject *Sender);
+        void __fastcall btnFinalReportClick(TObject *Sender);
+        void __fastcall btnFinalreviewDirClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
         bool validate_application();
