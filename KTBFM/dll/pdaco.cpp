@@ -152,7 +152,7 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
         ps_code = PSCODE_101; }
      else if (app_max_bucket > 3) {
         ps_code = PSCODE_102; }
-     else if (delinquent_months > 0) {
+     else if (delinquent_months > 0) {  // Reload only
         ps_code = PSCODE_103; }
      else if (cash_max_bucket > 0) {
         ps_code = PSCODE_104; }
@@ -310,6 +310,17 @@ int PDACO::Segment()
 int PDACO::PS_code()
 {
  return ps_code;
+}
+//---------------------------------------------------------------------------
+double PDACO::Pdaco_score()
+{
+ return score;
+}
+//---------------------------------------------------------------------------
+
+double PDACO::monthly_debt()
+{
+ return ms101;
 }
 //---------------------------------------------------------------------------
 

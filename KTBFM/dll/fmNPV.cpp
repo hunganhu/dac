@@ -8,6 +8,7 @@
 
 #pragma package(smart_init)
 double recovery_ratio[2] = {0.7, 0.8};
+double nav_ratio[2] = {0.8, 0.9};
 
 Loan::Loan (char *case_no):
     case_no(case_no)
@@ -57,7 +58,7 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
           app_id_ind = -1;
 
        if (! ds->FieldValues["APP_INCOME"].IsNull())
-          app_income = ds->FieldValues["APP_INCOME"];
+          app_income = ds->FieldByName("APP_INCOME")->AsFloat / 1000.0;
        else
           app_income_ind = -1;
 
@@ -67,7 +68,7 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
           cos_id_ind = -1;
 
        if (! ds->FieldValues["COS_INCOME"].IsNull())
-          cos_income = ds->FieldValues["COS_INCOME"];
+          cos_income = ds->FieldByName("COS_INCOME")->AsFloat / 1000.0;
        else
           cos_income_ind = -1;
 
@@ -77,19 +78,19 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
           gua_id_ind = -1;
 
        if (! ds->FieldValues["GUA_INCOME"].IsNull())
-          gua_income = ds->FieldValues["GUA_INCOME"];
+          gua_income = ds->FieldByName("GUA_INCOME")->AsFloat / 1000.0;
        else
           gua_income_ind = -1;
 
        if (! ds->FieldValues["APP_AMT"].IsNull())
-          app_amt = ds->FieldValues["APP_AMT"];
+          app_amt = ds->FieldByName("APP_AMT")->AsFloat / 1000.0;
        else
-          app_amt_ind = -1;
+          app_amt = 0;
 
        if (! ds->FieldValues["PERIOD"].IsNull())
           periods = ds->FieldValues["PERIOD"];
        else
-          periods_ind = -1;
+          periods = 0;
 
        if (! ds->FieldValues["APR1"].IsNull())
           apr1 = ds->FieldValues["APR1"];
@@ -127,17 +128,17 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
           grace_period = 0;
 
        if (! ds->FieldValues["APP_FEE"].IsNull())
-          app_fee = ds->FieldValues["APP_FEE"];
+          app_fee = ds->FieldByName("APP_FEE")->AsFloat / 1000.0;
        else
           app_fee = 0;
 
        if (! ds->FieldValues["GAV"].IsNull())
-          gav = ds->FieldValues["GAV"];
+          gav = ds->FieldByName("GAV")->AsFloat / 1000.0;
        else
           gav = 0.0;
 
        if (!ds->FieldValues["NAV"].IsNull()) {
-          nav = ds->FieldValues["NAV"];
+          nav = ds->FieldByName("NAV")->AsFloat / 1000.0;
        }
        else
           nav = 0.0;
@@ -145,85 +146,44 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
        if (!ds->FieldValues["PREMIUM_COL"].IsNull())
           premium_col = ds->FieldValues["PREMIUM_COL"];
        else
-          premium_col_ind = -1;
+          premium_col = 0;
 
        if (!ds->FieldValues["MONTHLY_PAYMENT"].IsNull())
-          monthly_payment = ds->FieldValues["MONTHLY_PAYMENT"];
+          monthly_payment = ds->FieldByName("MONTHLY_PAYMENT")->AsFloat / 1000.0;
        else
-          monthly_payment_ind = -1;
+          monthly_payment = 0;
 
-//  if (trial_count == 0)  {
-//     Message += "無申請件資料 "; code = 313;}
-//  else {
-//     if ((principal_ind == -1) || (product_type == 1 && (principal < 100000.0 || principal > 600000.0))) {
-//        Message += TF_Messages[Loan_error_331_GX]; code = 331;}
-//     else if ((principal_ind == -1) || (product_type == 2 && (principal < 70000.0 || principal > 200000.0))){
-//        Message += TF_Messages[Loan_error_331_KHJ]; code = 331;}
-//
-//     if ((int_rate_ind == -1) || (int_rate < 0.0)||(int_rate > 0.20)) {
-//          Message += TF_Messages[Loan_error_332]; code = 332;}
-//
-//     if ((periods_ind == -1) || (periods < 13) || (periods > 84)) {
-//        Message += TF_Messages[Loan_error_333];  code = 333;}
-//
-//     if ((application_fee_ind == -1) || (application_fee < 0)) {
-//        Message += TF_Messages[Loan_error_334];  code = 334;}
-//
-//     if ((credit_checking_fee_ind == -1) || (credit_checking_fee < 0)) {
-//        Message += TF_Messages[Loan_error_335];  code = 335;}
-//
-//     if ((risk_mgmt_fee_ind == -1) || (risk_mgmt_fee < 0)) {
-//        Message += TF_Messages[Loan_error_336];  code = 336;}
-//
-//     if ((risk_mgmt_fee_terms_ind == -1) || (risk_mgmt_fee_terms < 0) || (risk_mgmt_fee_terms > periods)) {
-//        Message += TF_Messages[Loan_error_337];  code = 337;}
-//
-//     if ((teaser_period_ind == -1) || (teaser_period < 0) || (teaser_period >= periods)) {
-//        Message +=TF_Messages[Loan_error_338];   code = 338;}
-//
-//     if ((grace_period_ind == -1) || (grace_period < 0) || (grace_period >= periods)) {
-//        Message += TF_Messages[Loan_error_339];  code = 339;}
-//
-//     if ((teaser_rate_ind == -1) || (teaser_rate < 0.0) || (teaser_rate >= int_rate)) {
-//          Message += TF_Messages[Loan_error_340];  code = 340;}
-//
-//     if (!validate_date(ts_date)) {
-//        Message += TF_Messages[App_error_316]; code = 316;}
-  }
+    }
  } catch (Exception &E) {
-    ds->Close();  // close dataset before delete and drop an object outside the try block,
-                // otherwise result in "too many consecutive exceptions"
+    ds->Close();
     delete ds;
-    throw;
+    return -1;
  }
   ds->Close();  // close dataset before delete and drop an object outside the try block,
                 // otherwise result in "too many consecutive exceptions"
   delete ds;
-  if (code == 313)
-     return (-1);
-  else
-     return (0);
+  return (0);
 }
 
 //---------------------------------------------------------------------------
-double Loan::secured_pb(double first_mortgage_amount, int pdaco_twentile, double nav)
+double Loan::secured_pb()
 {
  // =============VARAIBLE DEFINITION=============
- // First_mortgage_amount in K
+ // First_mortgage_amount in K (principal)
  // NAV in K
  // pdaco twentile : use KTB's pdaco twentile cut
- 
- double loan_ratio = (first_mortgage_amount / nav) * 100;
+
+ double loan_ratio = (principal / nav) * 100;
  double loan_ratio2_tran_q = loan_ratio * loan_ratio;
  double p_twen_ratio_tran_aq = (pdaco_twentile * pdaco_twentile) * loan_ratio2_tran_q;
  // double fm_score, fm_pb;   // use class variable
- 
+
  // =============SCORING FORMULA=============
  fm_score = -0.01997 +
  	p_twen_ratio_tran_aq  * 1.657801E-8 +
- 	first_mortgage_amount * 0.00000274  +
+ 	principal             * 0.00000274  +
  	loan_ratio2_tran_q    * 0.00000156;
- 
+
  // =============PB ASSIGNMENT===============
  if (fm_score <= 0.005265642)      fm_pb = 0.002;
  else if (fm_score <= 0.007482222) fm_pb = 0.003;
@@ -263,6 +223,8 @@ double Loan::secured_pb(double first_mortgage_amount, int pdaco_twentile, double
  else if (fm_score <= 0.121612092) fm_pb = 0.037;
  else fm_pb = 0.038;
 
+ fm_pb = fm_pb * pb_adjustment;
+ 
  return fm_pb;
 }
 
@@ -315,6 +277,91 @@ String Loan::Inquiry_date()
  return inquiry_date;
 }
 //---------------------------------------------------------------------------
+int Loan::appIncome()
+{
+ return app_income;
+}
+//---------------------------------------------------------------------------
+int Loan::cosIncome()
+{
+ return cos_income;
+}
+//---------------------------------------------------------------------------
+int Loan::guaIncome()
+{
+ return gua_income;
+}
+
+//---------------------------------------------------------------------------
+void Loan::set_risk_score (double score)
+{
+ pdaco_score = score;
+}
+//---------------------------------------------------------------------------
+void Loan::set_monthly_income(double income)
+{
+ monthly_income = income;
+}
+//---------------------------------------------------------------------------
+void Loan::set_monthly_debt(double debt)
+{
+ monthly_debt = debt;
+}
+//---------------------------------------------------------------------------
+void Loan::set_risk_twentile (double score)
+{
+ if      (score <= -0.03231) pdaco_twentile=  1;
+ else if (score <= -0.02275) pdaco_twentile=  2;
+ else if (score <= -0.01479) pdaco_twentile=  3;
+ else if (score <= -0.00919) pdaco_twentile=  4;
+ else if (score <= -0.00438) pdaco_twentile=  5;
+ else if (score <=  0.00101) pdaco_twentile=  6;
+ else if (score <=  0.00624) pdaco_twentile=  7;
+ else if (score <=  0.01245) pdaco_twentile=  8;
+ else if (score <=  0.01836) pdaco_twentile=  9;
+ else if (score <=  0.02482) pdaco_twentile= 10;
+ else if (score <=  0.03219) pdaco_twentile= 11;
+ else if (score <=  0.03963) pdaco_twentile= 12;
+ else if (score <=  0.04759) pdaco_twentile= 13;
+ else if (score <=  0.05585) pdaco_twentile= 14;
+ else if (score <=  0.06657) pdaco_twentile= 15;
+ else if (score <=  0.07865) pdaco_twentile= 16;
+ else if (score <=  0.09435) pdaco_twentile= 17;
+ else if (score <=  0.11509) pdaco_twentile= 18;
+ else if (score <=  0.15002) pdaco_twentile= 19;
+ else if (score  >  0.15002) pdaco_twentile= 20;
+}
+//---------------------------------------------------------------------------
+void Loan::set_principal()
+{
+ double allowance, max_loan_capacity;
+ 
+ weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
+ allowance = monthly_income * 0.7 - monthly_debt;
+ max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
+ max_loan_capacity = min(min(nav*nav_ratio[premium_col], app_amt), max_loan_capacity);
+ if (0 < (app_amt - max_loan_capacity ) && (app_amt - max_loan_capacity ) <= 300)
+    max_loan_capacity = app_amt;
+ 
+ principal = max_loan_capacity;
+ 
+}
+//---------------------------------------------------------------------------
+void Loan::set_pb_adjustment(double pb_adj)
+{
+ pb_adjustment = pb_adj;
+}
+//---------------------------------------------------------------------------
+void Loan::set_lowest_delta(double delta)
+{
+ lowest_delta = delta;
+}
+//---------------------------------------------------------------------------
+double Loan::get_max_apr()
+{
+ return (max(max(apr1,apr2),apr3));
+}
+//---------------------------------------------------------------------------
 double Loan::get_pd()
 {
  return fm_pb;
@@ -330,10 +377,6 @@ double Loan::get_principal()
  return principal;
 }
 //---------------------------------------------------------------------------
-int Loan::get_card()
-{
- return card;
-}
 /*
 int Loan::get_external_monthly_payment()
 {
@@ -350,7 +393,7 @@ int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handle
 {
  double max_npv;
  int max_line;
-
+/*
  try {
     max_npv =-999999999;   // set max_npv to a very small negative number
     for (int i = 0; i < loops; i++) {
@@ -365,11 +408,12 @@ int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handle
  } catch (Exception &E) {
      throw;
  }
+ */
  return (max_line);
 }
 
 //---------------------------------------------------------------------------
-double Loan::calculate_npv(int line, double pb)
+double Loan::calculate_npv(double delta_apr)
 {
  double Interest_Revenue, Setup_Revenue, Late_Fee;
  double Interest_Cost, Commission, Setup_Cost, Acct_Mgmt_Cost, Late_Cost, Collection_Cost;
@@ -377,13 +421,14 @@ double Loan::calculate_npv(int line, double pb)
 
  try {
   npv_init();
-  set_apr(0.0);
-  set_attrition(pb);
-  set_annuity(line);  // 本息法
+  secured_pb();
+  set_apr(delta_apr);
+  set_attrition(fm_pb);
+  set_annuity(principal);  // 本息法
   // Revenue
   Interest_Revenue = set_interest_revenue();
   Setup_Revenue = set_setup_fee();
-  Late_Fee = set_late_fee(pb);
+  Late_Fee = set_late_fee(fm_pb);
 //  Open_Credit_Fee = set_open_credit_revenue();
 
   // Cost
@@ -391,11 +436,11 @@ double Loan::calculate_npv(int line, double pb)
   Commission =  calculate_commission();
   Setup_Cost = setup_cost();
   Acct_Mgmt_Cost = set_account_management_cost();
-  Late_Cost = set_late_cost(pb);
+  Late_Cost = set_late_cost(fm_pb);
   Collection_Cost = set_collection_cost();
 
   Working_Capital = set_working_capital();
-  Credit_Loss = set_credit_loss(pb);
+  Credit_Loss = set_credit_loss(fm_pb);
 
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
                - (Interest_Cost + Commission + Setup_Cost + Acct_Mgmt_Cost
@@ -700,5 +745,41 @@ double Loan::set_credit_loss(double pb)
           + credit_loss[0]);
 }
 
+//---------------------------------------------------------------------------
+double Loan::find_lowest_rate (double offset, double delta_r)
+{
+ double npv, target_r, offset_r;
+
+ target_r = offset + delta_r;
+
+ npv = calculate_npv(target_r);
+/*
+ if (trace) {
+     fstream outf;
+
+     outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
+     outf << "Case SN: " << case_sn << " offset: " << offset
+          << " delta: " << delta_r << " NPV: " << npv << endl;
+ }
+*/
+ if ((delta_r < 0.000001 && delta_r > -0.000001) ||            // abs(delta_r) < 0.000001
+     (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance)))  // or  2000 =< npv <= 2010
+    return (ceil(target_r * 100000) / 100000.0); // carry to 4th decimal
+//    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
+ else if (npv > (ApprovedNPV + Allowance)) {
+    if (delta_r > 0)
+       offset_r = offset;
+    else
+       offset_r = offset + delta_r;
+    return (find_lowest_rate(offset_r, delta_r / 2.0));
+ }
+ else if(npv < ApprovedNPV) {
+    if (delta_r > 0)
+       offset_r = offset + delta_r;
+    else
+       offset_r = offset;
+    return (find_lowest_rate(offset_r, delta_r / 2.0));
+ }
+}
 //---------------------------------------------------------------------------
 

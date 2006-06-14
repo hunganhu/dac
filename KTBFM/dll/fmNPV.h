@@ -19,6 +19,8 @@ using namespace std;
 const int TERM = 244;
 #define min(a,b)  ((a) > (b)) ? (b): (a)
 #define max(a,b)  ((a) > (b)) ? (a): (b)
+const double ApprovedNPV = 2.0;  // $000
+const double Allowance = 0.001;  // $000
 
 //---------------------------------------------------------------------------
 class Loan {
@@ -49,7 +51,7 @@ class Loan {
     int gua_income;		    // 保證人年收入
     int gua_qualified;		    // 保證人符合承作條件 0: NO / 1:YES-- l                      oan info
     int app_amt;		    // 申貸金額
-    int periods;			    // 申貸期間
+    int periods;		    // 申貸期間
     float apr1;			    // 第一段利率
     int seg1;			    // 第一段期間
     float apr2;			    // 第二段利率
@@ -98,12 +100,12 @@ class Loan {
     int cos_qualified_ind;		 
     int gua_id_ind;		 
     int gua_name_ind;		 
-    int gua_birthday_ind;	 
+    int gua_birthday_ind;
     int gua_marriage_ind;		 
     int gua_education_ind;		 
     int gua_income_ind;		 
     int gua_qualified_ind;		 
-    int app_amt_ind;		 
+    int app_amt_ind;
     int periods_ind;			 
     int apr1_ind;
     int seg1_ind;			 
@@ -115,7 +117,7 @@ class Loan {
     int app_fee_ind;		 
     int owner_id_ind;		 
     int owner_name_ind;		 
-    int land_num_ind;		 
+    int land_num_ind;
     int relationship_ind;		 
     int gav_ind;			 
     int nav_ind;			 
@@ -123,20 +125,24 @@ class Loan {
     int premium_col_ind;		 
     int monthly_payment_ind;	 
     int inquiry_date_ind;
-    int branch_ind;		 
+    int branch_ind;
     int emp_id_ind;		 
     int auditor_ind;		 
 
 
     /* cash flow arrays to calculate NPV */
     String Message;
-    int card;
     double principal;
+    double monthly_income;
+    double monthly_debt;
+    double weighted_apr;
+    double pb_adjustment;
+    double pdaco_score;
+    int    pdaco_twentile;
     double fm_score;
     double fm_pb;
+    double lowest_delta;
     double optimal_line;
-    double pdaco_rscore;
-    double pdaco_twentile;
     double total_npv;
     double apr[TERM+4];
     double open_attrition[TERM+4];
@@ -148,8 +154,6 @@ class Loan {
 //    double base_attrition[TERM+4];
     double open_credit_fee[TERM+4];
     double risk_mgmt_revenue[TERM+4];
-//    double taishin_tax[TERM+4];
-//    double tf_tax[TERM+4];
     double os_principal[TERM+4];
     double principal_repayment[TERM+4];
     double interest_repayment[TERM+4];
@@ -183,7 +187,7 @@ class Loan {
     double set_collection_cost();
     double set_working_capital();
     double set_credit_loss(double pb);
-    double secured_pb(double first_mortgage_amount, int pdaco_twentile, double nav);
+    double secured_pb();
 
   public:
 
@@ -211,7 +215,7 @@ class Loan {
     String error();
     int app_info_validate(char *case_no, TADOHandler *handler);
 //    void prescreen(char *inquiry_date, TADOHandler *handler);
-    double calculate_npv(int line, double pb);
+    double calculate_npv(double delta_apr);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     int exist_applicant();
     int exist_coapplicant();
@@ -220,7 +224,20 @@ class Loan {
     char * Cosigner();
     char * Guarantor();
     String Inquiry_date();
-    int get_card();
+    int appIncome();
+    int cosIncome();
+    int guaIncome();
+    void set_risk_score (double score);
+    void set_monthly_income(double income);
+    void set_monthly_debt(double debt);
+    void set_risk_twentile (double score);
+    void set_principal();
+    void set_pb_adjustment(double pb_adj);
+    double find_lowest_rate (double offset, double delta_r);
+    double get_max_apr();
+    void set_lowest_delta(double delta);
+
+
     int get_external_monthly_payment();
     double get_rscore ();
     double get_pd();

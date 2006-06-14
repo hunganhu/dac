@@ -19,6 +19,8 @@
 enum SQLCodes { Get_AppInfo_Record,
 		Get_Prescreen_Result,
 		Get_PDACO_Score,
+                Get_Overall_Lookup,
+                Get_Final_Lookup,
 		Create_Working_Tables,
                 Drop_Working_Tables,
 

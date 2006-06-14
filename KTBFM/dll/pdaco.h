@@ -47,6 +47,8 @@ class PDACO
     int GeneratePdacoScore(TADOHandler *handler);
     int Segment();
     int PS_code();
+    double Pdaco_score();
+    double monthly_debt();
 };
 
 #endif
