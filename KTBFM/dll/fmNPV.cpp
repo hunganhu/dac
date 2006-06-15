@@ -257,6 +257,11 @@ int Loan::exist_guarantor()
  else return 0;
 }
 //---------------------------------------------------------------------------
+String Loan::Case_no ()
+{
+ return case_no;
+}
+//---------------------------------------------------------------------------
 char * Loan::Applicant ()
 {
  return app_id.c_str();
@@ -334,27 +339,45 @@ void Loan::set_risk_twentile (double score)
 //---------------------------------------------------------------------------
 void Loan::set_principal()
 {
- double allowance, max_loan_capacity;
+ double allowance;
  
  weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
  allowance = monthly_income * 0.7 - monthly_debt;
  max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
- max_loan_capacity = min(min(nav*nav_ratio[premium_col], app_amt), max_loan_capacity);
- if (0 < (app_amt - max_loan_capacity ) && (app_amt - max_loan_capacity ) <= 300)
-    max_loan_capacity = app_amt;
- 
- principal = max_loan_capacity;
- 
+ principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
+ if (0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
+    principal = app_amt;
 }
 //---------------------------------------------------------------------------
-void Loan::set_pb_adjustment(double pb_adj)
+void Loan::set_pb_adjustment(double score)
 {
- pb_adjustment = pb_adj;
+ if (score <= -0.00919) pb_adjustment = 0.8;
+ else if (score <= 0.01836) pb_adjustment = 0.9;
+ else pb_adjustment = 1.0;
 }
 //---------------------------------------------------------------------------
-void Loan::set_lowest_delta(double delta)
+
+//---------------------------------------------------------------------------
+void Loan::set_npv (double npv_value)
 {
- lowest_delta = delta;
+ total_npv = npv_value;
+}
+//--------------------------------------------------------------------------------------------------
+void Loan::set_lowest_rate (double delta_rate)
+{
+ lowest_delta = delta_rate;
+ if (seg1 > 0)
+    min_apr1 = (apr1 + delta_rate < 0 ? 0 : apr1 + delta_rate);
+ else
+    min_apr1 = 0.0;
+ if (seg2 > 0)
+    min_apr2 = (apr2 + delta_rate < 0 ? 0 : apr2 + delta_rate);
+ else
+    min_apr2 = 0.0;
+ if (seg3 > 0)
+    min_apr3 = (apr3 + delta_rate < 0 ? 0 : apr3 + delta_rate);
+ else
+    min_apr3 = 0.0;
 }
 //---------------------------------------------------------------------------
 double Loan::get_max_apr()
@@ -377,12 +400,40 @@ double Loan::get_principal()
  return principal;
 }
 //---------------------------------------------------------------------------
-/*
-int Loan::get_external_monthly_payment()
+double Loan::Min_APR1()
 {
- return ms082;
+ return min_apr1;
 }
-*/
+//---------------------------------------------------------------------------
+double Loan::Min_APR2()
+{
+ return min_apr2;
+}
+//---------------------------------------------------------------------------
+double Loan::Min_APR3()
+{
+ return min_apr3;
+}
+//---------------------------------------------------------------------------
+double Loan::Monthly_Income()
+{
+ return monthly_income;
+}
+//---------------------------------------------------------------------------
+double Loan::Monthly_Debt()
+{
+ return monthly_debt;
+}
+//---------------------------------------------------------------------------
+double Loan::Max_Loan_Capacity()
+{
+ return max_loan_capacity;
+}
+//---------------------------------------------------------------------------
+double Loan::Weighted_APR()
+{
+ return weighted_apr;
+}
 //---------------------------------------------------------------------------
 int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler)
 /*
@@ -771,15 +822,14 @@ double Loan::find_lowest_rate (double offset, double delta_r)
        offset_r = offset;
     else
        offset_r = offset + delta_r;
-    return (find_lowest_rate(offset_r, delta_r / 2.0));
  }
  else if(npv < ApprovedNPV) {
     if (delta_r > 0)
        offset_r = offset + delta_r;
     else
        offset_r = offset;
-    return (find_lowest_rate(offset_r, delta_r / 2.0));
  }
+ return (find_lowest_rate(offset_r, delta_r / 2.0));
 }
 //---------------------------------------------------------------------------
 

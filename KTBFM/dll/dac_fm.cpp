@@ -4,10 +4,6 @@
 #include <stdio.h>
 #include <Math.hpp>
 #include "dac_fm.h"
-#include "functions.h"
-#include "errors.h"
-#include "pdaco.h"
-#include "fmNPV.h"
 #ifndef _WRFLOW    //In Project->Options->directories/conditionals, append ";_WRFLOW" to conditinals
  #define DEBUG 0
 #else
@@ -33,7 +29,7 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
  int now;
  int errCode = 0;
  int dispCode;
- double pdaco_score, income, monthly_debt, pb_adj;
+ double pdaco_score, income, monthly_debt;
  double npv_value, max_apr, delta_apr, lowest_delta;
  
  if (check_expiration(EXPIRATION_DATE) == -1) {
@@ -73,11 +69,11 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
        pdaco_gua->Prescreen_New(dbhandle);
        gua_seg = pdaco_gua->Segment();
        if (gua_seg > seg_Ip) gua_seg  = seg_Ip;
-       pb_adj = Pb_adjustment(pdaco_gua->Pdaco_score());
+       ptrLoan->set_pb_adjustment(pdaco_gua->Pdaco_score());
        gua_pscode = pdaco_gua->PS_code();
     } else {  // guarantor does not exist
        gua_seg = seg_N;
-       pb_adj = 1.0;
+       ptrLoan->set_pb_adjustment(1.0);
        gua_pscode = -1;
     }
     dispCode = overall_lookup( app_seg, cos_seg, gua_seg, app_pscode, cos_pscode, gua_pscode,
@@ -105,7 +101,6 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
       ptrLoan->set_monthly_debt(monthly_debt);
       ptrLoan->set_risk_twentile (pdaco_score);
       ptrLoan->set_principal();
-      ptrLoan->set_pb_adjustment(pb_adj);
       max_apr = ptrLoan->get_max_apr();
 
       /* calculate NPV with no interest rate bias*/
@@ -124,15 +119,20 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
       }
       else
          lowest_delta = 0.0;
-      ptrLoan->set_lowest_delta(lowest_delta);
+      ptrLoan->set_npv(npv_value);
+      ptrLoan->set_lowest_rate(lowest_delta);
 
-      final_lookup(app_seg, cos_seg, gua_seg, app_pscode, cos_pscode, gua_pscode,
-                 appMsg, cosMsg, guaMsg, dispCode, suggMsg, reasonMsg, dbhandle);
+      final_lookup(app_seg, cos_seg, gua_seg, dispCode, app_pscode, cos_pscode, gua_pscode,
+                 appMsg, cosMsg, guaMsg, suggMsg, reasonMsg, dbhandle);
 
       // write approve or decline result to db
+      write_final_result(dispCode, suggMsg, reasonMsg,
+                         ptrLoan, pdaco_app, pdaco_cos, pdaco_gua,dbhandle);
     }
     else {
       // write decline or manual result to db
+      write_prescreen_result(dispCode, suggMsg, reasonMsg,
+                             ptrLoan, pdaco_app, pdaco_cos, pdaco_gua, dbhandle);
     }
 
 
@@ -141,8 +141,11 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
      strcpy (error_message, E.Message.c_str());
      errCode = -1;
  }
- delete dbhandle;
+ if (ptrLoan->exist_applicant()) delete pdaco_app;
+ if (ptrLoan->exist_coapplicant()) delete pdaco_cos;
+ if (ptrLoan->exist_guarantor()) delete pdaco_gua;
  delete ptrLoan;
+ delete dbhandle;
  return (errCode);
 }
 
@@ -245,18 +248,10 @@ int overall_lookup(int appStatus, int cosStatus, int guaStatus,
 }
 
 //---------------------------------------------------------------------------
-double Pb_adjustment(double score)
-{
- if (score <= -0.00919) return 0.8;
- else if (score <= 0.01836) return 0.9;
- else return 1.0;
-}
-//---------------------------------------------------------------------------
-
-int final_lookup(int appStatus, int cosStatus, int guaStatus,
+int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
                  int appPSCode, int cosPSCode, int guaPSCode,
                  String appMsg, String cosMsg, String guaMsg,
-                 int disp_code, String dispositionMsg, String finalMsg, TADOHandler *handler)
+                 String dispositionMsg, String finalMsg, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
@@ -314,6 +309,90 @@ int final_lookup(int appStatus, int cosStatus, int guaStatus,
                 // otherwise result in "too many consecutive exceptions"
   delete ds;
   return (0);
+}
+//---------------------------------------------------------------------------
+
+void write_final_result(int dispCode, String suggMsg, String reasonMsg,
+                        Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
+                        TADOHandler *handler)
+{
+ String sqlstmt;
+
+ if (ptrLoan->get_principal() > 8000)
+     suggMsg += "，因貸款金額超過800萬元，建議送消金審查部核實擔保品價值及申請人/共同貸款人收入。";
+
+ sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
+           " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
+           " COS_RSCORE, COS_PB, COS_SCRCODE, COS_SCRMSG,"
+           " GUA_RSCORE, GUA_PB, GUA_SCRCODE, GUA_SCRMSG,"
+           " INCOME_CONSIDER, LOAN_AMOUNT_CONSIDER, WEIGHTED_APR, MAX_LOAN_CAPACITY, MS101,"
+           " FM_PB, NPV, APPROVED_AMOUNT, MIN_RATE1, MIN_RATE2, MIN_RATE3,"
+           " SUGG_CODE, SUGG_MSG, REASON_MSG) VALUES(";
+ sqlstmt += "'" + ptrLoan->Case_no()+ "','" + ExecutionTime()+ "'," +
+            pdaco_app->Pdaco_score()+ "," + pdaco_app->Pdaco_pb()+ "," +
+            pdaco_app->PS_code() + ",'" + PSMsg(pdaco_app->PS_code())+ "'";
+
+ if (ptrLoan->exist_coapplicant())  // add co-applicant risk info if exists
+    sqlstmt += "," + FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb())+ "," +
+            IntToStr(pdaco_cos->PS_code()) + ",'" + PSMsg(pdaco_cos->PS_code())+ "'";
+ else
+    sqlstmt +=  ", NULL, NULL, NULL, NULL";
+
+ if (ptrLoan->exist_guarantor())  // add guarantor risk info if exists
+    sqlstmt += "," +  FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb())+ "," +
+            IntToStr(pdaco_cos->PS_code()) + ",'" + PSMsg(pdaco_cos->PS_code())+ "'";
+ else
+    sqlstmt +=  ", NULL, NULL, NULL, NULL";
+
+ sqlstmt += "," + FloatToStr(ptrLoan->Monthly_Income() * 1000) + ","+ FloatToStr(ptrLoan->get_principal()* 1000)
+          + "," + FloatToStr(ptrLoan->Weighted_APR()) + "," + FloatToStr(ptrLoan->Max_Loan_Capacity() * 1000)
+          + "," + FloatToStr(ptrLoan->Monthly_Debt() * 1000) +  "," + FloatToStr(ptrLoan->get_pd())
+          + "," + FloatToStr(ptrLoan->get_npv() * 1000) + "," + FloatToStr(ptrLoan->get_principal() * 1000)
+          + "," + FloatToStr(ptrLoan->Min_APR1()) + "," +  FloatToStr(ptrLoan->Min_APR1())
+          + "," + FloatToStr(ptrLoan->Min_APR1());
+ sqlstmt += "," + IntToStr(dispCode) + ",'" + suggMsg + "','" + reasonMsg + "')"; // add suggestion message
+
+ try {
+    handler->ExecSQLCmd(sqlstmt.c_str());
+ } catch (Exception &E) {
+    throw;
+ }
+}
+//---------------------------------------------------------------------------
+void write_prescreen_result(int dispCode, String suggMsg, String reasonMsg,
+                        Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
+                        TADOHandler *handler)
+{
+ String sqlstmt;
+
+ sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
+           " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
+           " COS_RSCORE, COS_PB, COS_SCRCODE, COS_SCRMSG,"
+           " GUA_RSCORE, GUA_PB, GUA_SCRCODE, GUA_SCRMSG,"
+           " SUGG_CODE, SUGG_MSG, REASON_MSG) VALUES (";
+ sqlstmt += "'" + ptrLoan->Case_no()+ "','" + ExecutionTime()+ "'," +
+            pdaco_app->Pdaco_score()+ "," + pdaco_app->Pdaco_pb()+ "," +
+            pdaco_app->PS_code() + ",'" + PSMsg(pdaco_app->PS_code())+ "'";
+
+ if (ptrLoan->exist_coapplicant())  // add co-applicant risk info if exists
+    sqlstmt += "," + FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb())+ "," +
+            IntToStr(pdaco_cos->PS_code()) + ",'" + PSMsg(pdaco_cos->PS_code())+ "'";
+ else
+    sqlstmt +=  ", NULL, NULL, NULL, NULL";
+
+ if (ptrLoan->exist_guarantor())  // add guarantor risk info if exists
+    sqlstmt += "," +  FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb())+ "," +
+            IntToStr(pdaco_cos->PS_code()) + ",'" + PSMsg(pdaco_cos->PS_code())+ "'";
+ else
+    sqlstmt +=  ", NULL, NULL, NULL, NULL";
+
+ sqlstmt += "," + IntToStr(dispCode) + ",'" + suggMsg + "','" + reasonMsg + "')"; // add suggestion message
+
+ try {
+    handler->ExecSQLCmd(sqlstmt.c_str());
+ } catch (Exception &E) {
+    throw;
+ }
 }
 //---------------------------------------------------------------------------
 

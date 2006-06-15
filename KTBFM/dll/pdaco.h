@@ -48,6 +48,7 @@ class PDACO
     int Segment();
     int PS_code();
     double Pdaco_score();
+    double Pdaco_pb();
     double monthly_debt();
 };
 

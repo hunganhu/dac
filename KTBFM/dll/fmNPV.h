@@ -86,15 +86,15 @@ class Loan {
     int app_date_ind;
     int app_id_ind;
     int app_name_ind;
-    int app_birthday_ind;	 
-    int app_marriage_ind;		 
-    int app_education_ind;		 
-    int app_income_ind;		 
-    int app_qualified_ind;		 
-    int cos_id_ind;		 
-    int cos_name_ind;		 
-    int cos_birthday_ind;	 
-    int cos_marriage_ind;		 
+    int app_birthday_ind;
+    int app_marriage_ind;
+    int app_education_ind;
+    int app_income_ind;
+    int app_qualified_ind;
+    int cos_id_ind;
+    int cos_name_ind;
+    int cos_birthday_ind;
+    int cos_marriage_ind;
     int cos_education_ind;		 
     int cos_income_ind;		 
     int cos_qualified_ind;		 
@@ -123,7 +123,7 @@ class Loan {
     int nav_ind;			 
     int col_qualified_ind;		 
     int premium_col_ind;		 
-    int monthly_payment_ind;	 
+    int monthly_payment_ind;
     int inquiry_date_ind;
     int branch_ind;
     int emp_id_ind;		 
@@ -135,6 +135,7 @@ class Loan {
     double principal;
     double monthly_income;
     double monthly_debt;
+    double max_loan_capacity;
     double weighted_apr;
     double pb_adjustment;
     double pdaco_score;
@@ -142,6 +143,9 @@ class Loan {
     double fm_score;
     double fm_pb;
     double lowest_delta;
+    double min_apr1;
+    double min_apr2;
+    double min_apr3;
     double optimal_line;
     double total_npv;
     double apr[TERM+4];
@@ -220,6 +224,7 @@ class Loan {
     int exist_applicant();
     int exist_coapplicant();
     int exist_guarantor();
+    String Case_no ();
     char * Applicant();
     char * Cosigner();
     char * Guarantor();
@@ -232,13 +237,21 @@ class Loan {
     void set_monthly_debt(double debt);
     void set_risk_twentile (double score);
     void set_principal();
-    void set_pb_adjustment(double pb_adj);
+    void set_pb_adjustment(double score);
+
+    void set_lowest_rate (double delta_rate);
+    void set_npv (double npv_value);
     double find_lowest_rate (double offset, double delta_r);
     double get_max_apr();
-    void set_lowest_delta(double delta);
+    double Min_APR1();
+    double Min_APR2();
+    double Min_APR3();
+    double Monthly_Income();
+    double Monthly_Debt();
+    double Max_Loan_Capacity();
+    double Weighted_APR();
 
 
-    int get_external_monthly_payment();
     double get_rscore ();
     double get_pd();
     int get_test_PB(char *idn, TADOHandler *handler);
