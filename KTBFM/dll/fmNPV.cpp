@@ -1,3 +1,16 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: fmNPV.cpp
+**
+** Description: NPV model for first mortgage
+**
+****************************************************************************/
 //---------------------------------------------------------------------------
 #pragma hdrstop
 
@@ -804,19 +817,21 @@ double Loan::find_lowest_rate (double offset, double delta_r)
  target_r = offset + delta_r;
 
  npv = calculate_npv(target_r);
-/*
- if (trace) {
+
+#ifdef _TRACE
      fstream outf;
 
      outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << "Case SN: " << case_sn << " offset: " << offset
+     outf << "Case SN: " << case_no.c_str() << " offset: " << offset
           << " delta: " << delta_r << " NPV: " << npv << endl;
- }
-*/
- if ((delta_r < 0.000001 && delta_r > -0.000001) ||            // abs(delta_r) < 0.000001
-     (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance)))  // or  2000 =< npv <= 2010
+#endif
+
+ if ((delta_r < 0.00001 && delta_r > -0.00001) ||                 // abs(delta_r) < 0.00001
+     (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance))) {  // or  2000 =< npv <= 2010
+    min_npv = npv;
     return (ceil(target_r * 100000) / 100000.0); // carry to 4th decimal
 //    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
+ }
  else if (npv > (ApprovedNPV + Allowance)) {
     if (delta_r > 0)
        offset_r = offset;

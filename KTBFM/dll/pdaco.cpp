@@ -1,3 +1,16 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: pdaco.cpp
+**
+** Description: PDACO V1.0 risk model
+**
+****************************************************************************/
 //---------------------------------------------------------------------------
 #pragma hdrstop
 
@@ -105,6 +118,9 @@ int PDACO::Prescreen_New(TADOHandler *handler)
               segment = seg_Ip;
         }
      }
+#ifdef _TRACE
+     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
      DropWorkingTables(handler);
  } catch (Exception &E) {
      ds->Close();

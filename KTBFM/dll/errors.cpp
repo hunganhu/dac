@@ -1,6 +1,17 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: errors.cpp
+**
+** Description: Prescreen message for first mortgage
+**
+****************************************************************************/
 //---------------------------------------------------------------------------
-
-
 #pragma hdrstop
 
 #include "errors.h"

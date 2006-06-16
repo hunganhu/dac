@@ -1,3 +1,16 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: functions.h
+**
+** Description: header file for common functions
+**
+****************************************************************************/
 //---------------------------------------------------------------------------
 
 #ifndef functionsH

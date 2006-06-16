@@ -1,3 +1,16 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: dac_fm.cpp
+**
+** Description:  functions used for Kingtown Bank First Mortgage
+**
+****************************************************************************/
 //---------------------------------------------------------------------------
 #pragma hdrstop
 #include <vcl.h>

@@ -1,3 +1,16 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: fmNPV.h
+**
+** Description: header file of NPV model for first mortgage
+**
+****************************************************************************/
 //---------------------------------------------------------------------------
 #ifndef fmNPVH
 #define fmNPVH
@@ -19,8 +32,8 @@ using namespace std;
 const int TERM = 244;
 #define min(a,b)  ((a) > (b)) ? (b): (a)
 #define max(a,b)  ((a) > (b)) ? (a): (b)
-const double ApprovedNPV = 2.0;  // $000
-const double Allowance = 0.001;  // $000
+const double ApprovedNPV = 2.0;  // (K)$2000
+const double Allowance = 0.01;   // (K)$10
 
 //---------------------------------------------------------------------------
 class Loan {
@@ -76,10 +89,10 @@ class Loan {
     String auditor;		    // 徵審人員
 
     int record_count;               // number of app_info records read
-    int trial_count;                // number of Loan records read
+//    int trial_count;                // number of Loan records read
     int code;                       // prescreen code
 //    TADODataSet *ds;
-    double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
+//    double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
 
     /* Null indicator for each application feature */
     int prod_type_ind;
@@ -103,7 +116,7 @@ class Loan {
     int gua_birthday_ind;
     int gua_marriage_ind;		 
     int gua_education_ind;		 
-    int gua_income_ind;		 
+    int gua_income_ind;
     int gua_qualified_ind;		 
     int app_amt_ind;
     int periods_ind;			 
@@ -129,7 +142,6 @@ class Loan {
     int emp_id_ind;		 
     int auditor_ind;		 
 
-
     /* cash flow arrays to calculate NPV */
     String Message;
     double principal;
@@ -148,6 +160,7 @@ class Loan {
     double min_apr3;
     double optimal_line;
     double total_npv;
+    double min_npv;              // npv close to hurdle amount
     double apr[TERM+4];
     double open_attrition[TERM+4];
     double voluntary_attrition[TERM+4];

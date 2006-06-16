@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Licensed Materials - Property of DAC
 **
-** (C) COPYRIGHT Decision Analytics Consulting 2005
+** (C) COPYRIGHT Decision Analytics Consulting 2005, 2006
 ** All Rights Reserved.
 **
 *****************************************************************************
@@ -30,7 +30,8 @@ enum SQLCodes { Get_AppInfo_Record,
 
 		Drop_PROCEDURE_GENERATE_PDACO_SCORE,
                 Exec_PROCEDURE_GENERATE_PDACO_SCORE,
-                Create_PROCEDURE_GENERATE_PDACO_SCORE
+                Create_PROCEDURE_GENERATE_PDACO_SCORE,
+                Insert_Audit_Table
 		};
 
 extern char *SQLCommands[];
