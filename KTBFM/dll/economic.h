@@ -3,13 +3,13 @@
 //-------------------------------------------------------------------------------------------
 //Economic model constants
 const double LEVERAGE_RATIO = 0.9;     // 舉債比率（％）
-const double COMMISSION_RATE = 0.0003; // 佣金比率（％）
+const double COMMISSION_RATE = 0.0015; // 佣金比率（％）
 const double FEE_COMMISSION_RATE = 0.1;// 開辦費佣金比率（％）
 const double ALLOGRAPH_FEE = 0.0;      // 代書費
 const double LAND_ADM_FEE = 0.0;       // 地政規費
 const double DUEI_BAO_FEE = 2.25;      // 對保
 const double SETUP_FEE = 3.0;          // 開辦費
-const double COF = 0.012;              // 資金成本
+const double COF = 0.01;               // 資金成本
 const double ROE = 0.1;                // 股東權益報酬
 const double ACCT_MGMT_COST = 0.08;    // Account Management Cost
 const double LATE_PENALTY_RATIO = 1.2; // mutiple of interest rate applied

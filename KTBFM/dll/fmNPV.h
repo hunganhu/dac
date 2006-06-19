@@ -124,7 +124,7 @@ class Loan {
     int seg1_ind;			 
     int apr2_ind;			 
     int seg2_ind;			 
-    int apr3_ind;			 
+    int apr3_ind;
     int seg3_ind;
     int grace_period_ind;		 
     int app_fee_ind;		 
@@ -271,8 +271,8 @@ class Loan {
     double get_npv ();
     double get_principal ();
     void Init_Maintenance(TADOHandler *handler);
-//    double get_pd(char *idn, TADOHandler *handler);
-//    void postFilter();
+    // functions for test only
+    int app_validate_test(char *case_no, TADOHandler *handler);
 };
 
 

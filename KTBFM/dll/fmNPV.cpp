@@ -237,7 +237,7 @@ double Loan::secured_pb()
  else fm_pb = 0.038;
 
  fm_pb = fm_pb * pb_adjustment;
- 
+
  return fm_pb;
 }
 
@@ -485,7 +485,7 @@ double Loan::calculate_npv(double delta_apr)
 
  try {
   npv_init();
-  secured_pb();
+//  secured_pb();  // comment for test only
   set_apr(delta_apr);
   set_attrition(fm_pb);
   set_annuity(principal);  // ¥»®§ªk
@@ -509,18 +509,18 @@ double Loan::calculate_npv(double delta_apr)
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
                - (Interest_Cost + Commission + Setup_Cost + Acct_Mgmt_Cost
                   + Late_Cost + Collection_Cost )               // Cost
-                  + (Working_Capital + Credit_Loss);       // Working Capital
+                  + (Working_Capital - Credit_Loss);       // Working Capital
 
  } catch (Exception &E) {
      throw;
  }
-#ifdef _WRNPV
+#ifdef _WRFLOW
      fstream outf;
      outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
 
-     outf << "Case SN: " << app_sn.c_str() << "   appDate: " << app_date.c_str()
-          << "   jcicDate: " << jcic_date.c_str() << "   Commission: " << commission
-          << "   PB: " << pd << "   NPV: " << total_npv << endl;
+     outf << "Case SN: " << case_no.c_str()
+          << "   Commission: " << Commission << "   Setup Cost: " <<  Setup_Cost
+          << "   PB: " << fm_pb << "   NPV: " << total_npv << endl;
      outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr  "
           << "      OsPrinL        P_Repay        I_Repay         IntRev          LateF"
           << "        IntCost       AcctCost     Late_cost           Collect"
@@ -534,7 +534,7 @@ double Loan::calculate_npv(double delta_apr)
               << setw(15) << setprecision(8) << Late_Fee
               << setw(15) << setprecision(8) << Interest_Cost
               << setw(15) << setprecision(8) << Acct_Mgmt_Cost
-              << setw(15) << setprecision(8) << Late_cost
+              << setw(15) << setprecision(8) << Late_Cost
               << setw(15) << setprecision(8) << Collection_Cost
               << setw(15) << setprecision(8) << Working_Capital
               << setw(15) << setprecision(8) << Credit_Loss
@@ -711,7 +711,7 @@ double Loan::set_late_fee(double pb)
   double late = pb / 12.0 * 2.0;
 
   for (int i = 3; i <= periods; i++)
-     late_fee[i] = monthly_repayment[i] * open_attrition[i-1] * apr[i]
+     late_fee[i] = monthly_repayment[i-1] * open_attrition[i] * apr[i]
                    *  LATE_PENALTY_RATIO * late;
 
   return (NetPresentValue(ROE / 12.0, late_fee + 1, periods, ptEndOfPeriod)
@@ -745,7 +745,8 @@ double Loan::setup_cost()
 double Loan::set_account_management_cost()
 {
   for (int i = 1; i <= periods; i++)
-     account_management_cost[i] = ACCT_MGMT_COST * open_attrition[i-1];
+     account_management_cost[i] = ACCT_MGMT_COST / 12.0 * open_attrition[i-1]
+         * (os_principal[i] >= 1.0? 1: 0);
   return (NetPresentValue(ROE / 12.0, account_management_cost + 1, periods, ptEndOfPeriod)
           + account_management_cost[0]);
 }
@@ -756,7 +757,7 @@ double Loan::set_late_cost(double pb)
   double late = pb / 12.0 * 2.0;
 
   for (int i = 3; i <= periods; i++)
-     late_cost[i] = M2_3_EXPENSE * open_attrition[i-1] * late;
+     late_cost[i] = M2_3_EXPENSE * open_attrition[i] * late;
 
   return (NetPresentValue(ROE / 12.0, late_cost + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
@@ -767,14 +768,14 @@ double Loan::set_late_cost(double pb)
 double Loan::set_collection_cost()
 {
  double monthly_pb = fm_pb / 12.0;
-// double discount_rate = 1 / pow((1 + ROE / 12.0), TIME_TO_RECOVER);
+ double discount_rate = 1 / pow((1 + ROE / 12.0), TIME_TO_RECOVER);
  double recovery_amount = min(nav, principal * recovery_ratio[premium_col]);
  double wacc = 1.5 * (COF * LEVERAGE_RATIO + ROE * (1 - LEVERAGE_RATIO));
 
  for (int i=5; i <= periods; ++i)
-    collection_cost[i] = monthly_pb *  open_attrition[i-1] *
-                   (M4P_EXPENSE + (os_principal[i] * LEGAL_FEE_RATE) +
-                   (wacc * recovery_amount));
+    collection_cost[i] = monthly_pb *  open_attrition[i-1] * (os_principal[i] >= 1.0? 1: 0)
+                  * (M4P_EXPENSE + (os_principal[i] * LEGAL_FEE_RATE) +
+                    (wacc * discount_rate * recovery_amount));
 
   return (NetPresentValue(ROE / 12.0, collection_cost + 1, periods, ptEndOfPeriod)
           + collection_cost[0]);
@@ -802,7 +803,7 @@ double Loan::set_credit_loss(double pb)
  double recovery_amount = min(nav, principal * recovery_ratio[premium_col]);
  credit_loss [0] = 0.0;
  for (int i = 1; i <= periods; i++) {
-    credit_loss [i] = min(0, (os_principal[i-1] - recovery_amount * discount_rate))
+    credit_loss [i] = max(0, (os_principal[i-1] - recovery_amount * discount_rate))
                       * open_attrition[i-1] * monthly_pd;
  }
   return (NetPresentValue(ROE / 12.0, credit_loss + 1, periods, ptEndOfPeriod)
@@ -845,6 +846,94 @@ double Loan::find_lowest_rate (double offset, double delta_r)
        offset_r = offset;
  }
  return (find_lowest_rate(offset_r, delta_r / 2.0));
+}
+//---------------------------------------------------------------------------
+
+int Loan::app_validate_test(char *case_no, TADOHandler *handler)
+{
+ Variant hostVars[5];
+ TADODataSet *ds = new TADODataSet(NULL);
+ String sql_stmt;
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ code = 0;
+ Message = "";
+ try {
+    hostVars[0] = case_no;
+    handler->ExecSQLQry(SQLCommands[Get_AppInfo_Test], hostVars, 0, ds);
+    record_count = ds->RecordCount;
+
+    ds->First();
+    if (!ds->Eof) {
+       if (! ds->FieldValues["Loan amount"].IsNull())
+          principal = ds->FieldByName("Loan amount")->AsFloat;
+       else
+          principal = 0;
+
+       if (! ds->FieldValues["Original APR_1"].IsNull())
+          apr1 = ds->FieldValues["Original APR_1"];
+       else
+          apr1 = 0.0;
+
+       if (! ds->FieldValues["Term_1"].IsNull())
+          seg1 = ds->FieldValues["Term_1"];
+       else
+          seg1 = 0;
+
+       if (! ds->FieldValues["Original APR_2"].IsNull())
+          apr2 = ds->FieldValues["Original APR_2"];
+       else
+          apr2 = 0.0;
+
+       if (! ds->FieldValues["Term_2"].IsNull())
+          seg2 = ds->FieldValues["Term_2"];
+       else
+          seg2 = 0;
+
+       if (! ds->FieldValues["Original APR_3"].IsNull())
+          apr3 = ds->FieldValues["Original APR_3"];
+       else
+          apr3 = 0.0;
+
+       if (! ds->FieldValues["Term_3"].IsNull())
+          seg3 = ds->FieldValues["Term_3"];
+       else
+          seg3 = 0;
+       periods = seg1 + seg2 + seg3;
+
+       if (! ds->FieldValues["Grace_period"].IsNull())
+          grace_period = ds->FieldValues["Grace_period"];
+       else
+          grace_period = 0;
+
+       app_fee = 3.0;
+
+       if (!ds->FieldValues["NAV"].IsNull()) {
+          nav = ds->FieldByName("NAV")->AsFloat;
+       }
+       else
+          nav = 0.0;
+
+       if (!ds->FieldValues["Property_flag"].IsNull())
+          premium_col = ds->FieldValues["Property_flag"];
+       else
+          premium_col = 0;
+
+       if (!ds->FieldValues["PB"].IsNull())
+          fm_pb = ds->FieldByName("PB")->AsFloat;
+       else
+          fm_pb = 0;
+
+    }
+ } catch (Exception &E) {
+    ds->Close();
+    delete ds;
+    return -1;
+ }
+  ds->Close();  // close dataset before delete and drop an object outside the try block,
+                // otherwise result in "too many consecutive exceptions"
+  delete ds;
+  return (0);
 }
 //---------------------------------------------------------------------------
 
