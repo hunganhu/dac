@@ -4,23 +4,23 @@
   <MACROS>
     <VERSION value="BCB.06.00"/>
     <PROJECT value="DAC_FM_NPV.dll"/>
-    <OBJFILES value="dllentry.obj AdoHandle.obj functions.obj pdacoSQL.obj pdaco.obj dac_fm.obj 
-      errors.obj fmNPV.obj"/>
-    <RESFILES value=""/>
+    <OBJFILES value="dllentry.obj AdoHandle.obj dac_fm.obj errors.obj fmNPV.obj functions.obj 
+      pdaco.obj pdacoSQL.obj"/>
+    <RESFILES value="DAC_FM_NPV.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES)"/>
     <LIBFILES value=""/>
     <LIBRARIES value=""/>
-    <SPARELIBS value="adortl.lib dbrtl.lib rtl.lib vcl.lib"/>
+    <SPARELIBS value="vcl.lib rtl.lib adortl.lib dbrtl.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
       vcldbx.bpi ibxpress.bpi dsnap.bpi cds.bpi bdecds.bpi qrpt.bpi teeui.bpi 
       teedb.bpi tee.bpi dss.bpi teeqr.bpi visualclx.bpi visualdbclx.bpi 
       dsnapcrba.bpi dsnapcon.bpi bcbsmp.bpi vclie.bpi xmlrtl.bpi inet.bpi 
       inetdbbde.bpi inetdbxpress.bpi inetdb.bpi nmfast.bpi webdsnap.bpi 
       bcbie.bpi websnap.bpi soaprtl.bpi dclocx.bpi dbexpress.bpi dbxcds.bpi 
-      indy.bpi bcb2kaxserver.bpi"/>
+      indy.bpi bcb2kaxserver.bpi GSS_eJCIC.bpi"/>
     <PATHCPP value=".;"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
@@ -28,17 +28,17 @@
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
     <RELEASELIBPATH value="$(BCB)\lib\release"/>
     <LINKER value="ilink32"/>
-    <USERDEFINES value="_DEBUG;_WRFLOW;_TRACE"/>
+    <USERDEFINES value="_DEBUG;_TRACE;_WRFLOW"/>
     <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
     <MAINSOURCE value="DAC_FM_NPV.bpf"/>
-    <INCLUDEPATH value="..;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="..;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <INCLUDEPATH value="C:\dac\TainanBB\prog\KTBFM\test;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;C:\dac\TainanBB\prog\KTBFM\test;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-src_suffix cpp -D_DEBUG -D_WRFLOW -D_TRACE -I.. 
-      -IC:\dac\fuhwa\PLoan\prog\dll -I$(BCB)\include -I$(BCB)\include\vcl -boa"/>
+    <IDLCFLAGS value="-IC:\dac\TainanBB\prog\KTBFM\test -I$(BCB)\include -I$(BCB)\include\vcl 
+      -src_suffix cpp -D_DEBUG -D_TRACE -D_WRFLOW -boa"/>
     <CFLAG1 value="-WD -Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- 
       -tWD -tWM -c"/>
     <PFLAGS value="-$YD -$W -$O- -$A8 -v -JPHNE -M"/>
@@ -54,15 +54,16 @@
     <OTHERFILES value=""/>
   </LINKER>
   <FILELIST>
+      <FILE FILENAME="DAC_FM_NPV.res" FORMNAME="" UNITNAME="DAC_FM_NPV.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="DAC_FM_NPV.bpf" FORMNAME="" UNITNAME="DAC_FM_NPV" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="dllentry.cpp" FORMNAME="" UNITNAME="dllentry" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="AdoHandle.cpp" FORMNAME="" UNITNAME="AdoHandle" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="functions.cpp" FORMNAME="" UNITNAME="functions" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="pdacoSQL.cpp" FORMNAME="" UNITNAME="pdacoSQL" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="pdaco.cpp" FORMNAME="" UNITNAME="pdaco" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="dac_fm.cpp" FORMNAME="" UNITNAME="dac_fm" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="errors.cpp" FORMNAME="" UNITNAME="errors" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="fmNPV.cpp" FORMNAME="" UNITNAME="fmNPV" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="functions.cpp" FORMNAME="" UNITNAME="functions" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="pdaco.cpp" FORMNAME="" UNITNAME="pdaco" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="pdacoSQL.cpp" FORMNAME="" UNITNAME="pdacoSQL" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
@@ -99,26 +100,21 @@ Comments=
 c:\program files\borland\cbuilder6\Bin\dclite60.bpl=Borland Integrated Translation Environment
 
 [HistoryLists\hlIncludePath]
-Count=3
-Item0=..;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\include;$(BCB)\include\vcl
-Item1=..\;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\include;$(BCB)\include\vcl
-Item2=..\;C:\dac\fuhwa\PLoan\dll;$(BCB)\include;$(BCB)\include\vcl
+Count=1
+Item0=C:\dac\TainanBB\prog\KTBFM\test;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=3
-Item0=..;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\lib\obj;$(BCB)\lib
-Item1=..\;C:\dac\fuhwa\PLoan\prog\dll;$(BCB)\lib\obj;$(BCB)\lib
-Item2=..\;C:\dac\fuhwa\PLoan\dll;$(BCB)\lib\obj;$(BCB)\lib
+Count=1
+Item0=$(BCB)\Projects\Lib;C:\dac\TainanBB\prog\KTBFM\test;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1
 Item0=$(BCB)\source\vcl
 
 [HistoryLists\hlConditionals]
-Count=3
-Item0=_DEBUG;_WRFLOW;_TRACE
-Item1=_DEBUG;_WRFLOW
-Item2=_DEBUG
+Count=2
+Item0=_DEBUG;_TRACE;_WRFLOW
+Item1=_DEBUG
 
 [Debugging]
 DebugSourceDirs=$(BCB)\source\vcl

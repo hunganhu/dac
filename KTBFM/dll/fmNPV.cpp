@@ -448,34 +448,27 @@ double Loan::Weighted_APR()
  return weighted_apr;
 }
 //---------------------------------------------------------------------------
-int Loan::calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler)
-/*
-  npv[][0]: lending amount (input)
-  npv[][1]: PB (output)
-  npv[][2]: NPV (output)
-*/
+double Loan::Lowest_npv()
 {
- double max_npv;
- int max_line;
-/*
- try {
-    max_npv =-999999999;   // set max_npv to a very small negative number
-    for (int i = 0; i < loops; i++) {
-//      npv[i][1] = secured_pb(npv[i][0], handler);
-      if ((npv[i][2] = calculate_npv(npv[i][0], npv[i][1])) > max_npv) {
-           max_npv = npv[i][2];
-           max_line = i;
-      }
-    }
-    fm_pb = npv[max_line][1];
-    total_npv = npv[max_line][2];
- } catch (Exception &E) {
-     throw;
- }
- */
- return (max_line);
+ return min_npv;
 }
+//---------------------------------------------------------------------------
+double Loan::calculate_optimal_npv()
+{
+ double npv, max_apr;
+ double delta_r;
 
+ max_apr = get_max_apr();
+ delta_r = -0.01;
+ npv = calculate_npv(delta_r);
+ // Calculate all NPV between apr - 1% and 10% steps 0.25%
+ while ((delta_r + max_apr) <= 0.1 && npv < 2.0) {
+    delta_r = delta_r + 0.0025;
+    npv = calculate_npv(delta_r);
+ }
+ min_npv = npv;   // set to class variable
+ return (delta_r);
+}
 //---------------------------------------------------------------------------
 double Loan::calculate_npv(double delta_apr)
 {
@@ -773,9 +766,9 @@ double Loan::set_collection_cost()
  double wacc = 1.5 * (COF * LEVERAGE_RATIO + ROE * (1 - LEVERAGE_RATIO));
 
  for (int i=5; i <= periods; ++i)
-    collection_cost[i] = monthly_pb *  open_attrition[i-1] * (os_principal[i] >= 1.0? 1: 0)
+    collection_cost[i] = monthly_pb *  open_attrition[i] * (os_principal[i] >= 1.0? 1: 0)
                   * (M4P_EXPENSE + (os_principal[i] * LEGAL_FEE_RATE) +
-                    (wacc * discount_rate * recovery_amount));
+                    (wacc / 12.0 * discount_rate * recovery_amount));
 
   return (NetPresentValue(ROE / 12.0, collection_cost + 1, periods, ptEndOfPeriod)
           + collection_cost[0]);
@@ -827,11 +820,10 @@ double Loan::find_lowest_rate (double offset, double delta_r)
           << " delta: " << delta_r << " NPV: " << npv << endl;
 #endif
 
- if ((delta_r < 0.00001 && delta_r > -0.00001) ||                 // abs(delta_r) < 0.00001
+ if ((delta_r < 0.000001 && delta_r > -0.000001) ||                 // abs(delta_r) < 0.000001
      (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance))) {  // or  2000 =< npv <= 2010
     min_npv = npv;
-    return (ceil(target_r * 100000) / 100000.0); // carry to 4th decimal
-//    return ((static_cast<int>((target_r + 0.0001) * 10000)) / 10000.0); // carry to 4th decimal
+    return (ceil(target_r * 10000) / 10000.0); // carry to 4th decimal
  }
  else if (npv > (ApprovedNPV + Allowance)) {
     if (delta_r > 0)

@@ -166,7 +166,7 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
 int FM_Reload(char *case_no, char *ole_db, char *error_message)
 {
  TADOHandler *dbhandle;    // commemt if past from argument
- String Message = "";
+// String Message = "";
  Variant hostVars[20];
  Loan *ptrLoan;
  PDACO *pdaco_app, *pdaco_cos, *pdaco_gua;
@@ -270,8 +270,20 @@ int FM_Reload(char *case_no, char *ole_db, char *error_message)
       }
       else
          lowest_delta = 0.0;
+
       ptrLoan->set_npv(npv_value);
+      lowest_delta = ptrLoan->calculate_optimal_npv();
       ptrLoan->set_lowest_rate(lowest_delta);
+
+#ifdef _TRACE
+     fstream outf;
+
+     outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
+     outf << "Case SN: " << case_no << " min_apr1: " << ptrLoan->Min_APR1()
+          << " min_apr2: " << ptrLoan->Min_APR2()
+          << " min_apr3: " << ptrLoan->Min_APR3() << " NPV: " << ptrLoan->Lowest_npv() << endl;
+#endif
+
 /*
       final_lookup(app_seg, cos_seg, gua_seg, dispCode, app_pscode, cos_pscode, gua_pscode,
                  appMsg, cosMsg, guaMsg, suggMsg, reasonMsg, dbhandle);
