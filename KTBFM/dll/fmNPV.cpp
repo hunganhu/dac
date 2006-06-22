@@ -22,6 +22,7 @@
 #pragma package(smart_init)
 double recovery_ratio[2] = {0.7, 0.8};
 double nav_ratio[2] = {0.8, 0.9};
+double duei_bao_rate[2] = {0.0, 2.25};   // DUEI_BAO_FEE ($K)
 
 Loan::Loan (char *case_no):
     case_no(case_no)
@@ -731,7 +732,7 @@ double Loan::calculate_commission()
 //---------------------------------------------------------------------------
 double Loan::setup_cost()
 {
-  return(ALLOGRAPH_FEE + LAND_ADM_FEE + DUEI_BAO_FEE);
+  return(ALLOGRAPH_FEE + LAND_ADM_FEE + duei_bao_rate[premium_col]);
 }
 
 //---------------------------------------------------------------------------

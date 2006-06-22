@@ -88,10 +88,7 @@ class Loan {
     String auditor;		    // 徵審人員
 
     int record_count;               // number of app_info records read
-//    int trial_count;                // number of Loan records read
     int code;                       // prescreen code
-//    TADODataSet *ds;
-//    double max_apr;                 // 年利率 (e.g. 18% 為 0.18)
 
     /* Null indicator for each application feature */
     int prod_type_ind;
@@ -113,7 +110,7 @@ class Loan {
     int gua_id_ind;		 
     int gua_name_ind;		 
     int gua_birthday_ind;
-    int gua_marriage_ind;		 
+    int gua_marriage_ind;
     int gua_education_ind;		 
     int gua_income_ind;
     int gua_qualified_ind;		 
@@ -122,7 +119,7 @@ class Loan {
     int apr1_ind;
     int seg1_ind;			 
     int apr2_ind;			 
-    int seg2_ind;			 
+    int seg2_ind;
     int apr3_ind;
     int seg3_ind;
     int grace_period_ind;		 
@@ -165,9 +162,6 @@ class Loan {
     double voluntary_attrition[TERM+4];
     double involuntary_attrition[TERM+4];
     double vol_attrition_open[TERM+4];
-//    double bad_per_open[TERM+4];
-//    double m1_attrition[TERM+4];
-//    double base_attrition[TERM+4];
     double open_credit_fee[TERM+4];
     double risk_mgmt_revenue[TERM+4];
     double os_principal[TERM+4];
@@ -176,10 +170,8 @@ class Loan {
     double monthly_repayment[TERM+4];
     double interest_revenue[TERM+4];
     double late_fee[TERM+4];
-//    double early_closing_fee[TERM+4];
     double interest_cost[TERM+4];
     double account_management_cost[TERM+4];
-//    double precollection_cost[TERM+4];
     double late_cost[TERM+4];
     double collection_cost[TERM+4];
     double working_capital[TERM+4];
@@ -193,7 +185,6 @@ class Loan {
     void set_annuity(int line);
     double set_interest_revenue();
     double set_setup_fee();
-//    double set_open_credit_revenue();
     double set_late_fee(double pb);
     double set_interest_cost();
     double calculate_commission();
@@ -203,7 +194,6 @@ class Loan {
     double set_collection_cost();
     double set_working_capital();
     double set_credit_loss(double pb);
-    double secured_pb();
 
   public:
 
@@ -230,7 +220,7 @@ class Loan {
     ~Loan ();
     String error();
     int app_info_validate(char *case_no, TADOHandler *handler);
-//    void prescreen(char *inquiry_date, TADOHandler *handler);
+    double secured_pb();
     double calculate_npv(double delta_apr);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     int exist_applicant();
