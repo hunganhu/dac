@@ -69,9 +69,9 @@ int PDACO::Prescreen_New(TADOHandler *handler)
         krm021_hit = ds->FieldValues["KRM021_HIT"];
         krm023_hit = ds->FieldValues["KRM023_HIT"];
         bam086_hit = ds->FieldValues["BAM086_HIT"];
-        ind001     = ds->FieldValues["IDN001"];
+        ind001     = ds->FieldValues["IND001"];
         jas002_defect = ds->FieldValues["JAS002_DEFECT"];
-        app_max_bucket = ds->FieldValues["MAX_BUCKET "];
+        app_max_bucket = ds->FieldValues["MAX_BUCKET"];
         fs044 = ds->FieldValues["fs044"];
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         delinquent_months = ds->FieldValues["fs334"];
@@ -150,9 +150,9 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
         krm021_hit = ds->FieldValues["KRM021_HIT"];
         krm023_hit = ds->FieldValues["KRM023_HIT"];
         bam086_hit = ds->FieldValues["BAM086_HIT"];
-        ind001     = ds->FieldValues["IDN001"];
+        ind001     = ds->FieldValues["IND001"];
         jas002_defect = ds->FieldValues["JAS002_DEFECT"];
-        app_max_bucket = ds->FieldValues["MAX_BUCKET "];
+        app_max_bucket = ds->FieldValues["MAX_BUCKET"];
         fs044 = ds->FieldValues["fs044"];
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         delinquent_months = ds->FieldValues["fs334"];
@@ -199,6 +199,9 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
               segment = seg_Ip;
         }
      }
+#ifdef _TRACE
+     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
      DropWorkingTables(handler);
  } catch (Exception &E) {
      ds->Close();
@@ -228,9 +231,9 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
         krm021_hit = ds->FieldValues["KRM021_HIT"];
         krm023_hit = ds->FieldValues["KRM023_HIT"];
         bam086_hit = ds->FieldValues["BAM086_HIT"];
-        ind001     = ds->FieldValues["IDN001"];
+        ind001     = ds->FieldValues["IND001"];
         jas002_defect = ds->FieldValues["JAS002_DEFECT"];
-        app_max_bucket = ds->FieldValues["MAX_BUCKET "];
+        app_max_bucket = ds->FieldValues["MAX_BUCKET"];
         fs044 = ds->FieldValues["fs044"];
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         delinquent_months = ds->FieldValues["fs334"];
@@ -255,6 +258,9 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
      else if (revolving_amt > 500000) {
         ps_code = PSCODE_106; }
 
+#ifdef _TRACE
+     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+#endif
      DropWorkingTables(handler);
  } catch (Exception &E) {
      ds->Close();
@@ -306,7 +312,11 @@ int PDACO::GeneratePdacoScore(TADOHandler *handler)
         score = ds->FieldValues["PDACO_SCORE"];
         pb = ds->FieldValues["PB_IN"];
         twentile = ds->FieldValues["PDACO_TWEN"];
-        ms101 = ds->FieldValues["MS101"];
+        if (!ds->FieldValues["MS101"].IsNull()) {
+           ms101 = ds->FieldByName("MS101")->AsFloat;
+        }
+        else
+           ms101 = 0.0;
     }
  } catch (Exception &E) {
      ds->Close();

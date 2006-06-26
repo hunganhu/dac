@@ -17,6 +17,7 @@
 #define pdacoSQLH
 //---------------------------------------------------------------------------
 enum SQLCodes { Get_AppInfo_Test,
+                Get_AppInfo_BT,
                 Get_AppInfo_Record,
 		Get_Prescreen_Result,
 		Get_PDACO_Score,

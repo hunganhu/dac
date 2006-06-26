@@ -190,7 +190,7 @@ double Loan::secured_pb()
  double loan_ratio = (principal / nav) * 100;
  double loan_ratio2_tran_q = loan_ratio * loan_ratio;
  double p_twen_ratio_tran_aq = (pdaco_twentile * pdaco_twentile) * loan_ratio2_tran_q;
- // double fm_score, fm_pb;   // use class variable
+ // double fm_score, fm_pb;   // use object variable
 
  // =============SCORING FORMULA=============
  fm_score = -0.01997 +
@@ -237,6 +237,14 @@ double Loan::secured_pb()
  else if (fm_score <= 0.121612092) fm_pb = 0.037;
  else fm_pb = 0.038;
 
+#ifdef _TRACE
+     fstream outf;
+
+     outf.open("PDACO_trace.txt", ios::app | ios::out);  // Open for ouput and append
+     outf << case_no.c_str() << "," << pdaco_score << "," << pdaco_twentile
+          << "," << loan_ratio << "," << loan_ratio2_tran_q << "," << p_twen_ratio_tran_aq
+          << "," << fm_score << "," << fm_pb << endl;
+#endif
  fm_pb = fm_pb * pb_adjustment;
 
  return fm_pb;
@@ -841,7 +849,6 @@ double Loan::find_lowest_rate (double offset, double delta_r)
  return (find_lowest_rate(offset_r, delta_r / 2.0));
 }
 //---------------------------------------------------------------------------
-
 int Loan::app_validate_test(char *case_no, TADOHandler *handler)
 {
  Variant hostVars[5];
@@ -917,6 +924,53 @@ int Loan::app_validate_test(char *case_no, TADOHandler *handler)
        else
           fm_pb = 0;
 
+    }
+ } catch (Exception &E) {
+    ds->Close();
+    delete ds;
+    return -1;
+ }
+  ds->Close();  // close dataset before delete and drop an object outside the try block,
+                // otherwise result in "too many consecutive exceptions"
+  delete ds;
+  return (0);
+}
+//---------------------------------------------------------------------------
+int Loan::app_validate_bt(char *case_no, TADOHandler *handler)
+{
+ Variant hostVars[5];
+ TADODataSet *ds = new TADODataSet(NULL);
+
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ code = 0;
+ Message = "";
+ try {
+    hostVars[0] = case_no;
+    handler->ExecSQLQry(SQLCommands[Get_AppInfo_BT], hostVars, 0, ds);
+    record_count = ds->RecordCount;
+
+    ds->First();
+    if (!ds->Eof) {
+       if (! ds->FieldValues["IDN"].IsNull())
+          app_id = ds->FieldValues["IDN"];
+       else
+          app_id_ind = -1;
+
+       if (! ds->FieldValues["LOAN_AMT"].IsNull())
+          principal = ds->FieldByName("LOAN_AMT")->AsFloat;
+       else
+          principal = 0;
+
+       if (!ds->FieldValues["NAV"].IsNull()) {
+          nav = ds->FieldByName("NAV")->AsFloat;
+       }
+       else
+          nav = 0.0;
+
+       if (!ds->FieldValues["INQUIRY_DATE"].IsNull())
+          inquiry_date = ds->FieldValues["INQUIRY_DATE"];
+       else
+          inquiry_date_ind = -1;
     }
  } catch (Exception &E) {
     ds->Close();

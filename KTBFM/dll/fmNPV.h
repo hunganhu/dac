@@ -263,6 +263,7 @@ class Loan {
     void Init_Maintenance(TADOHandler *handler);
     // functions for test only
     int app_validate_test(char *case_no, TADOHandler *handler);
+    int app_validate_bt(char *case_no, TADOHandler *handler);
 };
 //Economic model constants
 const double LEVERAGE_RATIO = 0.9;     // Á|¶Å¤ñ²v¡]¢H¡^

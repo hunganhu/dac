@@ -27,6 +27,11 @@ char *SQLCommands[] = {
 " from NPVTEST"
 " where CASE_NO = :v0;",
 
+/* Get_AppInfo_BT */
+" SELECT case_no, idn, NAV, loan_amt, inquiry_date "
+" from input"
+" where CASE_NO = :v0;",
+
 /* Get_AppInfo_Record */
 " SELECT CASE_NO, APP_DATE, PROD_TYPE, APP_ID, APP_NAME, APP_BIRTHDAY, APP_MARRIAGE, APP_EDUCATION,"
 " APP_INCOME, APP_QUALIFIED, COS_ID, COS_NAME, COS_BIRTHDAY, COS_MARRIAGE, COS_EDUCATION, COS_INCOME,"
@@ -399,11 +404,11 @@ char *SQLCommands[] = {
 " DROP TABLE #PDACO_V1_00_CAL;"
 ,
 /* DROP_PROCEDURE_PREPARE_JCIC_DATA */
-" if exists (select * from dbo.sysobjects where id = object_id(N'[PREPARE_JCIC_DATA]') and OBJECTPROPERTY(id, N'IsProcedure') = 1)"
-" drop procedure PREPARE_JCIC_DATA;",
+" if exists (select * from dbo.sysobjects where id = object_id(N'[PREPARE_PDACO_JCIC_DATA]') and OBJECTPROPERTY(id, N'IsProcedure') = 1)"
+" drop procedure PREPARE_PDACO_JCIC_DATA;",
 
 /* EXEC_PROCEDURE_PREPARE_JCIC_DATA */
-"Execute PREPARE_JCIC_DATA :v0, :v1, :v2;",
+"Execute PREPARE_PDACO_JCIC_DATA :v0, :v1, :v2;",
 
 /* CREATE_PROCEDURE_PREPARE_JCIC_DATA*/
 " CREATE PROCEDURE PREPARE_PDACO_JCIC_DATA"

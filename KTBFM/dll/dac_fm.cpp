@@ -325,8 +325,82 @@ int FM_Reload(char *case_no, char *ole_db, char *error_message)
 //---------------------------------------------------------------------------
 int FM_Transfer(char *case_no, char *ole_db, char *error_message)
 {
+ TADOHandler *dbhandle;    // commemt if past from argument
+ Variant hostVars[20];
+ Loan *ptrLoan;
+ PDACO *pdaco_app, *pdaco_cos, *pdaco_gua;
+ int app_seg, cos_seg, gua_seg;
+ int app_pscode, cos_pscode, gua_pscode;
+ int pdacoPath, incomePath, ms101Path;
+ String appMsg, cosMsg, guaMsg, suggMsg, reasonMsg;
+ int now;
  int errCode = 0;
+ int dispCode;
+ double pdaco_score, income, monthly_debt;
 
+ if (check_expiration(EXPIRATION_DATE) == -1) {
+    strcpy (error_message, EXPIRATION_MSG);
+    return(-1);
+ }
+ try {
+    strcpy (error_message, "");      // return empty string if stop normally.
+    dbhandle = new TADOHandler();    // commemt if past from argument
+    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
+
+    ptrLoan = new Loan(case_no);
+    ptrLoan->app_validate_bt(case_no, dbhandle);
+    now = yrmon_to_mon(ptrLoan->Inquiry_date(), false, "");
+    // determine people
+    if (ptrLoan->exist_applicant()) {
+       pdaco_app = new PDACO(case_no, ptrLoan->Applicant(), now);
+       pdaco_app->Prescreen_New(dbhandle);
+//       app_seg = pdaco_app->Segment();
+//       app_pscode = pdaco_app->PS_code();
+    } else {
+       strcpy (error_message, "Applicant ID does not exist.");
+       return (-1);
+    }
+/*
+    if (ptrLoan->exist_coapplicant()) {
+       pdaco_cos = new PDACO(case_no, ptrLoan->Cosigner(), now);
+       pdaco_cos->Prescreen_New(dbhandle);
+       cos_seg =  pdaco_cos->Segment();
+       cos_pscode = pdaco_cos->PS_code();
+    } else {   // co-applicant does not exist
+       cos_seg = seg_N;
+       cos_pscode = -1;
+    }
+    if (ptrLoan->exist_guarantor()) {
+       pdaco_gua = new PDACO(case_no, ptrLoan->Guarantor(), now);
+       pdaco_gua->Prescreen_New(dbhandle);
+       gua_seg = pdaco_gua->Segment();
+       if (gua_seg > seg_Ip) gua_seg  = seg_Ip;
+       ptrLoan->set_pb_adjustment(pdaco_gua->Pdaco_score());
+       gua_pscode = pdaco_gua->PS_code();
+    } else {  // guarantor does not exist
+       gua_seg = seg_N;
+       ptrLoan->set_pb_adjustment(1.0);
+       gua_pscode = -1;
+    }
+
+    dispCode = overall_lookup( app_seg, cos_seg, gua_seg, app_pscode, cos_pscode, gua_pscode,
+                 appMsg, cosMsg, guaMsg, &pdacoPath, &incomePath, &ms101Path,
+                 suggMsg, reasonMsg, dbhandle);
+*/
+      pdaco_score = pdaco_app->Pdaco_score();
+      ptrLoan->set_risk_score (pdaco_score);
+      ptrLoan->set_risk_twentile (pdaco_score);
+      ptrLoan->secured_pb();
+
+ } catch (Exception &E) {
+     strcpy (error_message, E.Message.c_str());
+     errCode = -1;
+ }
+ if (ptrLoan->exist_applicant()) delete pdaco_app;
+// if (ptrLoan->exist_coapplicant()) delete pdaco_cos;
+// if (ptrLoan->exist_guarantor()) delete pdaco_gua;
+ delete ptrLoan;
+ delete dbhandle;
  return (errCode);
 }
 
