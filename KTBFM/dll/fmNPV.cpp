@@ -467,15 +467,15 @@ double Loan::calculate_optimal_npv()
  double npv, max_apr;
  double delta_r;
 
- max_apr = get_max_apr();
+// max_apr = get_max_apr();
  delta_r = -0.01;
  npv = calculate_npv(delta_r);
- // Calculate all NPV between apr - 1% and 10% steps 0.25%
- while ((delta_r + max_apr) <= 0.1 && npv < 2.0) {
+ // Calculate all NPV between apr1 - 1% and 10% steps 0.25%
+ while ((delta_r + apr1) <= 0.1 && npv < 2.0) {
     delta_r = delta_r + 0.0025;
     npv = calculate_npv(delta_r);
  }
- min_npv = npv;   // set to class variable
+ min_npv = npv;   // set to object variable
  return (delta_r);
 }
 //---------------------------------------------------------------------------
