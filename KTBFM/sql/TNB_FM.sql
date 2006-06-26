@@ -153,7 +153,7 @@ CREATE TABLE APP_INFO (
 -- Applicant
 	APP_ID		CHAR(10) NOT NULL,     -- 申請人身份證字號姓名
 	APP_NAME	VARCHAR(30) NOT NULL,  -- 申請人姓名
-	APP_BIRTHDAY	CHAR(7) NOT NULL,      -- 申請人生日 YYYMMDD
+	APP_BIRTHDAY	CHAR(7),	       -- 申請人生日 YYYMMDD
 	APP_MARRIAGE	INT,                   -- 申請人婚姻 0:未婚 / 1:已婚 / 2:離婚
 	APP_EDUCATION	INT,                   -- 申請人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
 	APP_INCOME	INT,		       -- 申請人年收入
@@ -175,8 +175,8 @@ CREATE TABLE APP_INFO (
 	GUA_INCOME	INT,		       -- 保證人年收入
 	GUA_QUALIFIED	INT,		       -- 保證人符合承作條件 0: NO / 1:YES
 -- Loan Info
-	APP_AMT		INT NOT NULL,          -- 申貸金額
-	PERIOD		INT NOT NULL,          -- 申貸期間
+	APP_AMT		INT,		       -- 申貸金額
+	PERIOD		INT,		       -- 申貸期間
 	APR1		DECIMAL(8,5),          -- 第一段利率
 	SEG1		INT,		       -- 第一段期間
 	APR2		DECIMAL(8,5),          -- 第二段利率
