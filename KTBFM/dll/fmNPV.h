@@ -239,6 +239,7 @@ class Loan {
     void set_monthly_debt(double debt);
     void set_risk_twentile (double score);
     void set_principal();
+    void set_principal_reload();
     void set_pb_adjustment(double score);
 
     void set_lowest_rate (double delta_rate);

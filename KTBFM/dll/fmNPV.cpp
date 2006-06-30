@@ -241,9 +241,9 @@ double Loan::secured_pb()
      fstream outf;
 
      outf.open("PDACO_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << case_no.c_str() << "," << pdaco_score << "," << pdaco_twentile
-          << "," << loan_ratio << "," << loan_ratio2_tran_q << "," << p_twen_ratio_tran_aq
-          << "," << fm_score << "," << fm_pb << endl;
+     outf << case_no.c_str() << "," << setprecision(10)<< pdaco_score << "," << pdaco_twentile
+          << "," << loan_ratio << "," << loan_ratio2_tran_q << "," <<  setprecision(10)<< p_twen_ratio_tran_aq
+          << "," << setprecision(10) << fm_score << "," << fm_pb << endl;
 #endif
  fm_pb = fm_pb * pb_adjustment;
 
@@ -367,7 +367,19 @@ void Loan::set_principal()
  allowance = monthly_income * 0.7 - monthly_debt;
  max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
  principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
- if (0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
+ if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
+    principal = app_amt;
+}
+//---------------------------------------------------------------------------
+void Loan::set_principal_reload()
+{
+ double allowance;
+ 
+ weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
+ allowance = monthly_income * 0.7 - monthly_debt + monthly_payment;
+ max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
+ principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
+ if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
     principal = app_amt;
 }
 //---------------------------------------------------------------------------
@@ -487,7 +499,7 @@ double Loan::calculate_npv(double delta_apr)
 
  try {
   npv_init();
-//  secured_pb();  // comment for test only
+  secured_pb();  // comment for test only
   set_apr(delta_apr);
   set_attrition(fm_pb);
   set_annuity(principal);  // ¥»®§ªk

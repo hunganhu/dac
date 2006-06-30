@@ -35,6 +35,12 @@ extern "C" __declspec(dllexport)
 extern "C" __declspec(dllexport)
  int FM_Transfer(char *case_no, char *ole_db, char *error_message);
 
+extern "C" __declspec(dllexport)
+ int FM_Reload_test(char *case_no, char *ole_db, char *error_message);
+
+extern "C" __declspec(dllexport)
+ int FM_Transfer_test(char *case_no, char *ole_db, char *error_message);
+
 int overall_lookup(int appStatus, int cosStatus, int guaStatus,
                  int appPSCode, int cosPSCode, int guaPSCode,
                  String appMsg, String cosMsg, String guaMsg,
@@ -50,6 +56,8 @@ void write_final_result(int dispCode, String suggMsg, String reasonMsg,
 void write_prescreen_result(int dispCode, String suggMsg, String reasonMsg,
                         Loan *prtLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
                         TADOHandler *dhandler);
+void write_bal_transfer_result(Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
+                        TADOHandler *handler);
 
 
 #endif
