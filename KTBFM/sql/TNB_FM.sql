@@ -207,7 +207,7 @@ GO
 --
 CREATE TABLE APP_RESULT (
 	CASE_NO		CHAR(14) NOT NULL,  -- 案件編號
-	FINAL_DATE	CHAR(14),           -- 審核日期YYYYMMDDHHMMSS
+	FINAL_DATE	CHAR(14),           -- 審核日期 YYYYMMDDHHMMSS
 	APP_RSCORE	DECIMAL(8,5),       -- 申請人 PDACO SCORE
 	APP_PB		DECIMAL(8,5),       -- 申請人 PB
 	APP_SCRCODE	INT,                -- 申請人 PRESCREEN代碼
@@ -233,7 +233,25 @@ CREATE TABLE APP_RESULT (
 	MIN_RATE3	DECIMAL(8,5),       -- 第三段最低可貸利率
 	SUGG_CODE	INT,                -- 審核結果代碼, 1:核准 2:婉拒 3:人工審核
 	SUGG_MSG	VARCHAR(256),       -- 審核結果訊息
-	REASON_MSG	VARCHAR(256)        -- 審核附加訊息
+	REASON_MSG	VARCHAR(256),       -- 審核附加訊息
+	RESULT_FILE_GEN_TIME CHAR(14)       -- 輸出報表產生時間 YYYYMMDDHHMMSS
 );
 ALTER TABLE APP_RESULT ADD CONSTRAINT P_APP_RESULT PRIMARY KEY (CASE_NO);
 GO
+
+CREATE TABLE CFC (
+	CFC_CODE	 char(4) NOT NULL,  -- 區域中心代碼
+	CFC		 varchar(60),       -- 區域中心名稱
+);
+ALTER TABLE CFC ADD CONSTRAINT P_CFC PRIMARY KEY (CFC_CODE);
+GO
+
+CREATE TABLE BRANCH (
+	BRANCH_CODE	 char(4) NOT NULL,  -- 分行代碼
+	BRANCH		 varchar(60),       -- 分行名稱
+	CFC_CODE	 char(4)            -- 區域中心代碼
+);
+ALTER TABLE BRANCH ADD CONSTRAINT P_BRANCH PRIMARY KEY (BRANCH_CODE);
+GO
+
+
