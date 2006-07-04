@@ -19,6 +19,8 @@
 
 #define PSMsg(x)  PRESCREEN_Msg[(x)].msg
 #define PSCode(x) PRESCREEN_Msg[(x)].code
+#define PSMsg_BT(x)  PRESCREEN_BT_Msg[(x)].msg
+#define PSCode_BT(x) PRESCREEN_BT_Msg[(x)].code
 
 #define SYSTEM_ERROR 1999
 
@@ -50,5 +52,6 @@ enum SegmentCodes {
 };
 
 extern Invalid_Msg PRESCREEN_Msg[];
+extern Invalid_Msg PRESCREEN_BT_Msg[];
 
 #endif

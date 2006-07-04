@@ -25,6 +25,7 @@
 #include "pdacoSQL.h"
 #include "functions.h"
 #include "AdoHandle.h"
+#include "errors.h"
 using namespace std;
 #pragma package(smart_init)
 // Constants used in the program.
@@ -54,11 +55,11 @@ class Loan {
     int cos_marriage;		    // 共同借款人婚姻 0:未婚 / 1:已婚 / 2:離婚
     int cos_education;		    // 共同借款人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
     int cos_income;		    // 共同借款人年收入
-    int cos_qualified;		    // 共同借款人符合承作條件 0: NO / 1:YES		
-    String gua_id;		    // 保證人身份證字號姓名  
+    int cos_qualified;		    // 共同借款人符合承作條件 0: NO / 1:YES
+    String gua_id;		    // 保證人身份證字號姓名
     String gua_name;		    // 保證人姓名
     String gua_birthday;	    // 保證人生日 YYYMMDD
-    int gua_marriage;		    // 保證人婚姻 0:未婚 / 1:已婚 / 2:離婚               
+    int gua_marriage;		    // 保證人婚姻 0:未婚 / 1:已婚 / 2:離婚
     int gua_education;		    // 保證人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
     int gua_income;		    // 保證人年收入
     int gua_qualified;		    // 保證人符合承作條件 0: NO / 1:YES-- l                      oan info
@@ -82,7 +83,9 @@ class Loan {
     int col_qualified;		    // 擔保品符合承作條件 0: NO / 1:YES
     int premium_col;		    // 擔保品區段良好且搭配優良建設公司 0: NO / 1:YES
     int monthly_payment;	    // 目前房貸月付金
-    String inquiry_date;	    // JCIC 查詢日期 YYYYMMDD
+    String app_inq_date;	    // 申請人 JCIC 查詢日期 YYYYMMDD
+    String cos_inq_date;	    // 共同借款人 JCIC 查詢日期 YYYYMMDD
+    String gua_inq_date;	    // 保證人 JCIC 查詢日期 YYYYMMDD
     String branch;		    // 進件分行
     String emp_id;		    // 進件員工
     String auditor;		    // 徵審人員
@@ -104,39 +107,41 @@ class Loan {
     int cos_name_ind;
     int cos_birthday_ind;
     int cos_marriage_ind;
-    int cos_education_ind;		 
-    int cos_income_ind;		 
-    int cos_qualified_ind;		 
-    int gua_id_ind;		 
-    int gua_name_ind;		 
+    int cos_education_ind;
+    int cos_income_ind;
+    int cos_qualified_ind;
+    int gua_id_ind;
+    int gua_name_ind;
     int gua_birthday_ind;
     int gua_marriage_ind;
-    int gua_education_ind;		 
+    int gua_education_ind;
     int gua_income_ind;
-    int gua_qualified_ind;		 
+    int gua_qualified_ind;
     int app_amt_ind;
-    int periods_ind;			 
+    int periods_ind;
     int apr1_ind;
-    int seg1_ind;			 
-    int apr2_ind;			 
+    int seg1_ind;
+    int apr2_ind;
     int seg2_ind;
     int apr3_ind;
     int seg3_ind;
-    int grace_period_ind;		 
-    int app_fee_ind;		 
-    int owner_id_ind;		 
-    int owner_name_ind;		 
+    int grace_period_ind;
+    int app_fee_ind;
+    int owner_id_ind;
+    int owner_name_ind;
     int land_num_ind;
-    int relationship_ind;		 
-    int gav_ind;			 
-    int nav_ind;			 
-    int col_qualified_ind;		 
-    int premium_col_ind;		 
+    int relationship_ind;
+    int gav_ind;
+    int nav_ind;
+    int col_qualified_ind;
+    int premium_col_ind;
     int monthly_payment_ind;
-    int inquiry_date_ind;
+    int app_inq_date_ind;
+    int cos_inq_date_ind;
+    int gua_inq_date_ind;
     int branch_ind;
-    int emp_id_ind;		 
-    int auditor_ind;		 
+    int emp_id_ind;
+    int auditor_ind;
 
     /* cash flow arrays to calculate NPV */
     String Message;
@@ -226,11 +231,13 @@ class Loan {
     int exist_applicant();
     int exist_coapplicant();
     int exist_guarantor();
-    String Case_no ();
+    String Case_no();
     char * Applicant();
     char * Cosigner();
     char * Guarantor();
-    String Inquiry_date();
+    String App_inquiry_date();
+    String Cos_inquiry_date();
+    String Gua_inquiry_date();
     int appIncome();
     int cosIncome();
     int guaIncome();
@@ -240,7 +247,7 @@ class Loan {
     void set_risk_twentile (double score);
     void set_principal();
     void set_principal_reload();
-    void set_pb_adjustment(double score);
+    void set_pb_adjustment(int segment, double score);
 
     void set_lowest_rate (double delta_rate);
     void set_npv (double npv_value);

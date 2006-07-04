@@ -60,6 +60,7 @@ class PDACO
     int GeneratePdacoScore(TADOHandler *handler);
     int Segment();
     int PS_code();
+    void set_PS_code(int code);
     double Pdaco_score();
     double Pdaco_pb();
     double monthly_debt();

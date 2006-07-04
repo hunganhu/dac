@@ -43,13 +43,13 @@ extern "C" __declspec(dllexport)
 
 int overall_lookup(int appStatus, int cosStatus, int guaStatus,
                  int appPSCode, int cosPSCode, int guaPSCode,
-                 String appMsg, String cosMsg, String guaMsg,
+                 String &appMsg, String &cosMsg, String &guaMsg,
                  int *pdacoPath, int *incomePath, int *ms101Path,
-                 String dispositionMsg, String finalMsg, TADOHandler *handler);
+                 String &dispositionMsg, String &finalMsg, TADOHandler *handler);
 int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
                  int appPSCode, int cosPSCode, int guaPSCode,
-                 String appMsg, String cosMsg, String guaMsg,
-                 String dispositionMsg, String finalMsg, TADOHandler *handler);
+                 String &appMsg, String &cosMsg, String &guaMsg,
+                 String &dispositionMsg, String &finalMsg, TADOHandler *handler);
 void write_final_result(int dispCode, String suggMsg, String reasonMsg,
                         Loan *prtLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
                         TADOHandler *handler);

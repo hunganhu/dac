@@ -93,7 +93,7 @@ int PDACO::Prescreen_New(TADOHandler *handler)
         ps_code = PSCODE_104; }
      else if (cash_utilization > 0) {
         ps_code = PSCODE_105; }
-     else if (revolving_amt > 500000) {
+     else if (revolving_amt > 500) {
         ps_code = PSCODE_106; }
 
      if (ps_code > 0)
@@ -109,9 +109,9 @@ int PDACO::Prescreen_New(TADOHandler *handler)
         }
         else {  // Non-scorable
            if (card_force_stop > 0)
-              ps_code = PSCODE_109;
-           else if (fs059_1k_12m > 0)
               ps_code = PSCODE_110;
+           else if (fs059_1k_12m > 0)
+              ps_code = PSCODE_109;
            if (ps_code > 0)
               segment = seg_If;
            else
@@ -174,7 +174,7 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
         ps_code = PSCODE_104; }
      else if (cash_utilization > 0) {
         ps_code = PSCODE_105; }
-     else if (revolving_amt > 500000) {
+     else if (revolving_amt > 500) {
         ps_code = PSCODE_106; }
 
      if (ps_code > 0)
@@ -190,9 +190,9 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
         }
         else {  // Non-scorable
            if (card_force_stop > 0)
-              ps_code = PSCODE_109;
-           else if (fs059_1k_12m > 0)
               ps_code = PSCODE_110;
+           else if (fs059_1k_12m > 0)
+              ps_code = PSCODE_109;
            if (ps_code > 0)
               segment = seg_If;
            else
@@ -255,7 +255,7 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
         ps_code = PSCODE_104; }
      else if (cash_utilization > 0) {
         ps_code = PSCODE_105; }
-     else if (revolving_amt > 500000) {
+     else if (revolving_amt > 500) {
         ps_code = PSCODE_106; }
 
 #ifdef _TRACE
@@ -354,4 +354,8 @@ double PDACO::monthly_debt()
  return ms101;
 }
 //---------------------------------------------------------------------------
+void PDACO::set_PS_code(int code)
+{
+ ps_code = code;
+}
 

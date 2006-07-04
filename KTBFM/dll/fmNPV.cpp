@@ -25,7 +25,15 @@ double nav_ratio[2] = {0.8, 0.9};
 double duei_bao_rate[2] = {0.0, 2.25};   // DUEI_BAO_FEE ($K)
 
 Loan::Loan (char *case_no):
-    case_no(case_no)
+    case_no(case_no),prod_type_ind(0),app_date_ind(0),app_id_ind(0),app_name_ind(0),app_birthday_ind(0),
+    app_marriage_ind(0),app_education_ind(0),app_income_ind(0),app_qualified_ind(0),cos_id_ind(0),
+    cos_name_ind(0),cos_birthday_ind(0),cos_marriage_ind(0),cos_education_ind(0),cos_income_ind(0),
+    cos_qualified_ind(0),gua_id_ind(0),gua_name_ind(0),gua_birthday_ind(0),gua_marriage_ind(0),
+    gua_education_ind(0),gua_income_ind(0),gua_qualified_ind(0),app_amt_ind(0),periods_ind(0),
+    apr1_ind(0),seg1_ind(0),apr2_ind(0),seg2_ind(0),apr3_ind(0),seg3_ind(0),grace_period_ind(0),
+    app_fee_ind(0),owner_id_ind(0),owner_name_ind(0),land_num_ind(0),relationship_ind(0),gav_ind(0),
+    nav_ind(0),col_qualified_ind(0),premium_col_ind(0),monthly_payment_ind(0),app_inq_date_ind(0),
+    cos_inq_date_ind(0),gua_inq_date_ind(0),branch_ind(0),emp_id_ind(0),auditor_ind(0)
 {
 }
 //---------------------------------------------------------------------------
@@ -53,6 +61,9 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
     hostVars[0] = case_no;
     handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 0, ds);
     record_count = ds->RecordCount;
+    if (record_count == 0) {
+       throw DataEx("無申請件資料 ",100);
+    }
 
     ds->First();
     if (!ds->Eof) {
@@ -167,6 +178,20 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
        else
           monthly_payment = 0;
 
+       if (!ds->FieldValues["APP_INQ_DATE"].IsNull())
+          app_inq_date = ds->FieldValues["APP_INQ_DATE"];
+       else
+          app_inq_date = "";
+
+       if (!ds->FieldValues["COS_INQ_DATE"].IsNull())
+          cos_inq_date = ds->FieldValues["COS_INQ_DATE"];
+       else
+          cos_inq_date = "";
+
+       if (!ds->FieldValues["GUA_INQ_DATE"].IsNull())
+          gua_inq_date = ds->FieldValues["GUA_INQ_DATE"];
+       else
+          gua_inq_date = "";
     }
  } catch (Exception &E) {
     ds->Close();
@@ -299,9 +324,19 @@ char * Loan::Guarantor ()
  return gua_id.c_str();
 }
 //---------------------------------------------------------------------------
-String Loan::Inquiry_date()
+String Loan::App_inquiry_date()
 {
- return inquiry_date;
+ return app_inq_date;
+}
+//---------------------------------------------------------------------------
+String Loan::Cos_inquiry_date()
+{
+ return cos_inq_date;
+}
+//---------------------------------------------------------------------------
+String Loan::Gua_inquiry_date()
+{
+ return gua_inq_date;
 }
 //---------------------------------------------------------------------------
 int Loan::appIncome()
@@ -362,7 +397,7 @@ void Loan::set_risk_twentile (double score)
 void Loan::set_principal()
 {
  double allowance;
- 
+
  weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
  allowance = monthly_income * 0.7 - monthly_debt;
  max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
@@ -374,7 +409,7 @@ void Loan::set_principal()
 void Loan::set_principal_reload()
 {
  double allowance;
- 
+
  weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
  allowance = monthly_income * 0.7 - monthly_debt + monthly_payment;
  max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
@@ -383,11 +418,14 @@ void Loan::set_principal_reload()
     principal = app_amt;
 }
 //---------------------------------------------------------------------------
-void Loan::set_pb_adjustment(double score)
+void Loan::set_pb_adjustment(int segment, double score)
 {
- if (score <= -0.00919) pb_adjustment = 0.8;
- else if (score <= 0.01836) pb_adjustment = 0.9;
- else pb_adjustment = 1.0;
+ if (segment == seg_S)
+    if (score <= -0.00919) pb_adjustment = 0.8;
+    else if (score <= 0.01836) pb_adjustment = 0.9;
+    else pb_adjustment = 1.0;
+ else
+    pb_adjustment = 1.0;
 }
 //---------------------------------------------------------------------------
 
@@ -979,10 +1017,10 @@ int Loan::app_validate_bt(char *case_no, TADOHandler *handler)
        else
           nav = 0.0;
 
-       if (!ds->FieldValues["INQUIRY_DATE"].IsNull())
-          inquiry_date = ds->FieldValues["INQUIRY_DATE"];
-       else
-          inquiry_date_ind = -1;
+//       if (!ds->FieldValues["INQUIRY_DATE"].IsNull())
+//          inquiry_date = ds->FieldValues["INQUIRY_DATE"];
+//       else
+//          inquiry_date_ind = -1;
     }
  } catch (Exception &E) {
     ds->Close();

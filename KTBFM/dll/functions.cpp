@@ -230,7 +230,7 @@ char * ExecutionTime()
 
  timer = time(NULL);
  tblock = localtime(&timer);
- sprintf (buf, "%04d%02d%02d%02d%02d%2d", tblock->tm_year+1900, tblock->tm_mon+1,
+ sprintf (buf, "%04d%02d%02d%02d%02d%02d", tblock->tm_year+1900, tblock->tm_mon+1,
           tblock->tm_mday, tblock->tm_hour, tblock->tm_min, tblock->tm_sec);
  return (buf);
 }
