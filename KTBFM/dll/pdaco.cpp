@@ -169,7 +169,7 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
      else if (app_max_bucket > 3) {
         ps_code = PSCODE_102; }
      else if (delinquent_months > 0) {  // Reload only
-        ps_code = PSCODE_103; }
+        ps_code = PSCODE_111; }
      else if (cash_max_bucket > 0) {
         ps_code = PSCODE_104; }
      else if (cash_utilization > 0) {

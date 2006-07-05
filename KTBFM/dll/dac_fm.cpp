@@ -98,8 +98,7 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
        gua_pscode = -1;
     }
     dispCode = overall_lookup( app_seg, cos_seg, gua_seg, app_pscode, cos_pscode, gua_pscode,
-                 appMsg, cosMsg, guaMsg, &pdacoPath, &incomePath, &ms101Path,
-                 suggMsg, reasonMsg, dbhandle);
+                 &pdacoPath, &incomePath, &ms101Path, suggMsg, reasonMsg, dbhandle);
     if (dispCode == 0) {
       // calculate NPV, lowest APR
       switch (pdacoPath) {
@@ -154,11 +153,11 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
 #endif
 
       final_lookup(app_seg, cos_seg, gua_seg, dispCode, app_pscode, cos_pscode, gua_pscode,
-                 appMsg, cosMsg, guaMsg, suggMsg, reasonMsg, dbhandle);
+                   suggMsg, reasonMsg, dbhandle);
 
       // write approve or decline result to db
       write_final_result(dispCode, suggMsg, reasonMsg,
-                         ptrLoan, pdaco_app, pdaco_cos, pdaco_gua,dbhandle);
+                         ptrLoan, pdaco_app, pdaco_cos, pdaco_gua, dbhandle);
     }
     else {
       // write decline or manual result to db
@@ -254,8 +253,7 @@ int FM_Reload(char *case_no, char *ole_db, char *error_message)
        gua_pscode = -1;
     }
     dispCode = overall_lookup( app_seg, cos_seg, gua_seg, app_pscode, cos_pscode, gua_pscode,
-                 appMsg, cosMsg, guaMsg, &pdacoPath, &incomePath, &ms101Path,
-                 suggMsg, reasonMsg, dbhandle);
+                 &pdacoPath, &incomePath, &ms101Path, suggMsg, reasonMsg, dbhandle);
 
     if (dispCode == 0) {
       // calculate NPV, lowest APR
@@ -311,7 +309,7 @@ int FM_Reload(char *case_no, char *ole_db, char *error_message)
 #endif
 
       final_lookup(app_seg, cos_seg, gua_seg, dispCode, app_pscode, cos_pscode, gua_pscode,
-                 appMsg, cosMsg, guaMsg, suggMsg, reasonMsg, dbhandle);
+                   suggMsg, reasonMsg, dbhandle);
 
       // write approve or decline result to db
       write_final_result(dispCode, suggMsg, reasonMsg,
@@ -386,17 +384,7 @@ int FM_Transfer(char *case_no, char *ole_db, char *error_message)
     if (ptrLoan->exist_guarantor()) {
        now = yrmon_to_mon(ptrLoan->Gua_inquiry_date(), false, "");
        pdaco_gua = new PDACO(case_no, ptrLoan->Guarantor(), now);
-       pdaco_gua->Prescreen_Reload(dbhandle);
-       gua_seg = pdaco_gua->Segment();
-       gua_pscode = pdaco_gua->PS_code();
-       if (gua_seg > seg_Ip) {
-           gua_seg  = seg_Ip;
-           if (gua_pscode >= PSCODE_109) { // ignore segment Insufficient-failure message (109,110)
-               gua_pscode = PSCODE_0;
-               pdaco_gua->set_PS_code(gua_pscode);
-           }
-       }
-       ptrLoan->set_pb_adjustment(gua_seg, pdaco_gua->Pdaco_score());
+       pdaco_gua->Prescreen_New(dbhandle);
     }
 
     write_bal_transfer_result(ptrLoan, pdaco_app, pdaco_cos, pdaco_gua, dbhandle);
@@ -418,13 +406,13 @@ int FM_Transfer(char *case_no, char *ole_db, char *error_message)
 //---------------------------------------------------------------------------
 int overall_lookup(int appStatus, int cosStatus, int guaStatus,
                  int appPSCode, int cosPSCode, int guaPSCode,
-                 String &appMsg, String &cosMsg, String &guaMsg,
                  int *pdacoPath, int *incomePath, int *ms101Path,
                  String &dispositionMsg, String &finalMsg, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
  int dispCode = 0;
+ String appMsg, cosMsg, guaMsg;
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
@@ -503,11 +491,11 @@ int overall_lookup(int appStatus, int cosStatus, int guaStatus,
 //---------------------------------------------------------------------------
 int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
                  int appPSCode, int cosPSCode, int guaPSCode,
-                 String &appMsg, String &cosMsg, String &guaMsg,
                  String &dispositionMsg, String &finalMsg, TADOHandler *handler)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
+ String appMsg, cosMsg, guaMsg;
 
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
@@ -553,7 +541,7 @@ int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
        }
        else
           guaMsg = "";
-//       finalMsg += guaMsg + "。";
+       finalMsg += guaMsg;
 
     }
  } catch (Exception &E) {
@@ -576,6 +564,8 @@ void write_final_result(int dispCode, String suggMsg, String reasonMsg,
 
  if (ptrLoan->get_principal() > 8000)
      suggMsg += "，因貸款金額超過800萬元，建議送消金審查部核實擔保品價值及申請人/共同貸款人收入。";
+ else if (ptrLoan->get_principal() <= 0)
+     suggMsg += "，收入不及負債。";
 
  sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
            " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
@@ -616,10 +606,20 @@ void write_final_result(int dispCode, String suggMsg, String reasonMsg,
 
  sqlstmt += "," + FloatToStr(ptrLoan->Monthly_Income() * 1000) + ","+ FloatToStr(ptrLoan->get_principal()* 1000)
           + "," + FloatToStr(ptrLoan->Weighted_APR()) + "," + FloatToStr(ptrLoan->Max_Loan_Capacity() * 1000)
-          + "," + FloatToStr(ptrLoan->Monthly_Debt() * 1000) +  "," + FloatToStr(ptrLoan->get_pd())
-          + "," + FloatToStr(ptrLoan->get_npv() * 1000) + "," + FloatToStr(ptrLoan->get_principal() * 1000)
+          + "," + FloatToStr(ptrLoan->Monthly_Debt() * 1000);
+
+ if (ptrLoan->get_principal() <= 0)  // if principal <=0 donot calculate pd and npv
+     sqlstmt += ", NULL, NULL";
+ else
+     sqlstmt += "," + FloatToStr(ptrLoan->get_pd()) + "," + FloatToStr(ptrLoan->get_npv() * 1000);
+
+ if (dispCode == 2) // declined case, set approved amount to 0, and no min APR
+     sqlstmt += ", 0, NULL, NULL, NULL";
+ else  // approved case
+     sqlstmt += "," + FloatToStr(ptrLoan->get_principal() * 1000)
           + "," + FloatToStr(ptrLoan->Min_APR1()) + "," +  FloatToStr(ptrLoan->Min_APR1())
           + "," + FloatToStr(ptrLoan->Min_APR1());
+
  sqlstmt += "," + IntToStr(dispCode) + ",'" + suggMsg + "','" + reasonMsg + "')"; // add suggestion message
 #ifdef _TRACE
      fstream outf;
@@ -703,14 +703,20 @@ void write_bal_transfer_result(Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos
     sqlstmt += FloatToStr(pdaco_app->Pdaco_score()) + "," +  FloatToStr(pdaco_app->Pdaco_pb());
  else
     sqlstmt +=  " NULL, NULL";
- sqlstmt += "," + IntToStr(PSCode_BT(pdaco_app->PS_code())) + ",'" + PSMsg_BT(pdaco_app->PS_code())+ "'";
+ if (pdaco_app->Segment() >= seg_Ip)  // insufficient data, show normal message
+    sqlstmt += "," + IntToStr(PSCode_BT(PSCODE_0)) + ",'" + PSMsg_BT(PSCODE_0)+ "'";
+ else
+    sqlstmt += "," + IntToStr(PSCode_BT(pdaco_app->PS_code())) + ",'" + PSMsg_BT(pdaco_app->PS_code())+ "'";
 
  if (ptrLoan->exist_coapplicant()) {  // add co-applicant risk info if exists
     if (pdaco_cos->Segment() == seg_S)
        sqlstmt += "," +  FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb());
     else
        sqlstmt +=  ", NULL, NULL";
-    sqlstmt += "," + IntToStr(PSCode_BT(pdaco_cos->PS_code())) + ",'" + PSMsg_BT(pdaco_cos->PS_code())+ "'";
+    if (pdaco_cos->Segment() >= seg_Ip)  // insufficient data, show normal message
+       sqlstmt += "," + IntToStr(PSCode_BT(PSCODE_0)) + ",'" + PSMsg_BT(PSCODE_0)+ "'";
+    else
+       sqlstmt += "," + IntToStr(PSCode_BT(pdaco_cos->PS_code())) + ",'" + PSMsg_BT(pdaco_cos->PS_code())+ "'";
  }
  else
     sqlstmt +=  ", NULL, NULL, NULL, NULL";
@@ -720,14 +726,14 @@ void write_bal_transfer_result(Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos
        sqlstmt += "," +  FloatToStr(pdaco_gua->Pdaco_score()) + "," +  FloatToStr(pdaco_gua->Pdaco_pb());
     else
        sqlstmt +=  ", NULL, NULL";
-    if (pdaco_gua->Segment() >= seg_Ip)  // insufficient data
+    if (pdaco_gua->Segment() >= seg_Ip)  // insufficient data, show normal message
        sqlstmt += "," + IntToStr(PSCode_BT(PSCODE_0)) + ",'" + PSMsg_BT(PSCODE_0)+ "'";
     else
        sqlstmt += "," + IntToStr(PSCode_BT(pdaco_gua->PS_code())) + ",'" + PSMsg_BT(pdaco_gua->PS_code())+ "'";
  }
  else
     sqlstmt +=  ", NULL, NULL, NULL, NULL";
- sqlstmt +=  ")"; // add suggestion message
+ sqlstmt +=  ")";
 #ifdef _TRACE
      fstream outf;
      outf.open("PATH_trace.txt", ios::app | ios::out);  // Open for ouput and append
@@ -978,6 +984,7 @@ int FM_Transfer_test(char *case_no, char *ole_db, char *error_message)
  delete dbhandle;
  return (errCode);
 }
+
 
 
 

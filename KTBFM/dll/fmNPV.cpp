@@ -402,7 +402,9 @@ void Loan::set_principal()
  allowance = monthly_income * 0.7 - monthly_debt;
  max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
  principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
- if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
+ if (principal < 0)
+    principal = 0;
+ else if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
     principal = app_amt;
 }
 //---------------------------------------------------------------------------
@@ -414,7 +416,9 @@ void Loan::set_principal_reload()
  allowance = monthly_income * 0.7 - monthly_debt + monthly_payment;
  max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
  principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
- if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
+ if (principal < 0)
+    principal = 0;
+ else if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
     principal = app_amt;
 }
 //---------------------------------------------------------------------------

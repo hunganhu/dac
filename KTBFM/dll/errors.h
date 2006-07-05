@@ -30,25 +30,26 @@ typedef struct _invalid_msg {
 } Invalid_Msg, *Invalid_Msg_Ptr;
 
 enum ErrorCodes {
-	PSCODE_0,
-	PSCODE_101,
-	PSCODE_102,
-	PSCODE_103,
-	PSCODE_104,
-	PSCODE_105,
-	PSCODE_106,
-	PSCODE_107,
-	PSCODE_108,
-	PSCODE_109,
-	PSCODE_110
+	PSCODE_0,    // 0
+	PSCODE_101,  // 1
+	PSCODE_102,  // 2
+	PSCODE_103,  // 3
+	PSCODE_104,  // 4
+	PSCODE_105,  // 5
+	PSCODE_106,  // 6
+	PSCODE_107,  // 7
+	PSCODE_108,  // 8
+	PSCODE_109,  // 9
+	PSCODE_110,  // 10
+	PSCODE_111   // 11
 };
 
 enum SegmentCodes {
-        seg_N,     // Null
-	seg_S,     // Success
-	seg_F,     // Fail
-	seg_Ip,    // Insufficient Pass
-	seg_If     // Insufficient Fail
+        seg_N,     // 0 Null
+	seg_S,     // 1 Success
+	seg_F,     // 2 Fail
+	seg_Ip,    // 3 Insufficient Pass
+	seg_If     // 4 Insufficient Fail
 };
 
 extern Invalid_Msg PRESCREEN_Msg[];
