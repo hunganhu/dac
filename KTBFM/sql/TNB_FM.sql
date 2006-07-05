@@ -128,6 +128,21 @@ CREATE TABLE STM007 (
 CREATE INDEX I_STM007 ON STM007(CASE_NO, IDN);
 GO
 
+create table VAM102 (                      -- '補充/註記資訊'
+	CASE_SN		char(12) not null, -- '申請編號';                                        
+	inquiry_date	char(10) not null, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';    
+	IDN		char(10) not null, -- '申請人身分證號';                               
+	IDN_BAN 	char(10),          -- '統編/身分證號';                               
+	DATA_DATE 	char(7),           -- '訊息登錄日期';                                
+	MAINCODE 	char(1),           -- '訊息種類大項代碼  (對照表)';                  
+	MAINNOTE 	char(36),          -- '訊息種類大項';                                
+	SUBCODE 	char(1),           -- '訊息種類細項代碼  (對照表)';                  
+	SUBNOTE 	char(60),          -- '訊息種類細項';                                
+	NOTES	 	varchar(256)       -- '訊息內容';                                    
+);
+create index i_vam102 on VAM102(CASE_SN, IDN);
+
+
 CREATE TABLE COUNTER (
 	SEQ_TYPE	CHAR(9) NOT NULL,               -- '序號類型, Ayyyymmdd: A20060412';
 	SEQ_NO		NUMERIC(5) NOT NULL DEFAULT 1   -- '序號值';
@@ -146,6 +161,42 @@ ALTER TABLE AGENT ADD CONSTRAINT P_AGENT PRIMARY KEY (USERID);
 INSERT INTO AGENT VALUES ('test', 'test', 'test', 'test');
 GO
 
+CREATE TABLE BRANCH_11_LOOKUP (
+	APPLICANT VARCHAR (3),
+	CO_APPLICANT VARCHAR (3),
+	GUARANTOR VARCHAR (1),
+	APPLICANT_STATUS INT,
+	CO_APPLICANT_STATUS INT,
+	GUARANTOR_STATUS INT,
+	DISPOSITION_CODE INT,
+	MESSAGE_DISPOSITION VARCHAR (40),
+	APPLICANT_MESSAGE VARCHAR (100),
+	CO_APPLICANT_MESSAGE VARCHAR (100),
+	MESSAGE_GUARANTOR VARCHAR (100);
+ALTER TABLE BRANCH_11_LOOKUP ADD CONSTRAINT P_BRANCH_11_LOOKUP PRIMARY KEY (APPLICANT, CO_APPLICANT, GUARANTOR, DISPOSITION_CODE);
+GO
+
+CREATE TABLE OVERALL_LOOKUP (
+	APPLICANT VARCHAR (3),
+	CO_APPLICANT VARCHAR (3),
+	GUARANTOR VARCHAR (1),
+	APPLICANT_STATUS INT,
+	CO_APPLICANT_STATUS INT,
+	GUARANTOR_STATUS INT,
+	DISPOSITION_CODE INT,
+	DISPOSITION_MESSAGE VARCHAR (20),
+	APPLICANT_MESSAGE VARCHAR (50),
+	CO_APPLICANT_MESSAGE VARCHAR (50),
+	GUARANTOR_MESSAGE VARCHAR (50),
+	PDACO_PATH VARCHAR (8),
+	INCOME_PATH VARCHAR (3),
+	MS101_PATH VARCHAR (3),
+	PDACO_CODE INT,
+	INCOME_CODE INT,
+	MS101_CODE INT);
+ALTER TABLE OVERALL_LOOKUP ADD CONSTRAINT P_OVERALL_LOOKUP PRIMARY KEY (APPLICANT, CO_APPLICANT, GUARANTOR);
+GO
+
 CREATE TABLE APP_INFO (
 	CASE_NO		CHAR(14) NOT NULL,     -- 案件編號
 	APP_DATE	CHAR(14) NOT NULL,     -- 案件輸入時間 YYYYMMDDHHMMSS
@@ -158,6 +209,7 @@ CREATE TABLE APP_INFO (
 	APP_EDUCATION	INT,                   -- 申請人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
 	APP_INCOME	INT,		       -- 申請人年收入
 	APP_QUALIFIED	INT,		       -- 申請人符合承作條件 0: NO / 1:YES
+	APP_INQ_DATE	CHAR(8),               -- 申請人 JCIC 查詢日期 YYYYMMDD
 -- Co-signer
 	COS_ID		CHAR(10),              -- 共同借款人身份證字號姓名
 	COS_NAME	VARCHAR(30),           -- 共同借款人姓名
@@ -166,6 +218,7 @@ CREATE TABLE APP_INFO (
 	COS_EDUCATION	INT,                   -- 共同借款人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
 	COS_INCOME	INT,		       -- 共同借款人年收入
 	COS_QUALIFIED	INT,		       -- 共同借款人符合承作條件 0: NO / 1:YES		
+	COS_INQ_DATE	CHAR(8),               -- 共同借款人 JCIC 查詢日期 YYYYMMDD
 -- Guarantor
 	GUA_ID		CHAR(10),              -- 保證人身份證字號姓名  
 	GUA_NAME	VARCHAR(30),           -- 保證人姓名
@@ -174,6 +227,7 @@ CREATE TABLE APP_INFO (
 	GUA_EDUCATION	INT,                   -- 保證人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
 	GUA_INCOME	INT,		       -- 保證人年收入
 	GUA_QUALIFIED	INT,		       -- 保證人符合承作條件 0: NO / 1:YES
+	GUA_INQ_DATE	CHAR(8),               -- 保證人 JCIC 查詢日期 YYYYMMDD
 -- Loan Info
 	APP_AMT		INT,		       -- 申貸金額
 	PERIOD		INT,		       -- 申貸期間
@@ -196,7 +250,6 @@ CREATE TABLE APP_INFO (
 	PREMIUM_COL	INT,                   -- 擔保品區段良好且搭配優良建設公司 0: NO / 1:YES
         MONTHLY_PAYMENT INT,	               -- 目前房貸月付金
 --
-	INQUIRY_DATE	CHAR(8),               -- JCIC 查詢日期 YYYYMMDD
 	BRANCH		VARCHAR(10),           -- 進件分行
 	EMP_ID		VARCHAR(10),           -- 進件員工
 	AUDITOR		VARCHAR(10)	       -- 徵審人員
