@@ -48,7 +48,7 @@ int overall_lookup(int appStatus, int cosStatus, int guaStatus,
 int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
                  int appPSCode, int cosPSCode, int guaPSCode,
                  String &dispositionMsg, String &finalMsg, TADOHandler *handler);
-void write_final_result(int dispCode, String suggMsg, String reasonMsg,
+void write_final_result(int &dispCode, String &suggMsg, String &reasonMsg,
                         Loan *prtLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
                         TADOHandler *handler);
 void write_prescreen_result(int dispCode, String suggMsg, String reasonMsg,

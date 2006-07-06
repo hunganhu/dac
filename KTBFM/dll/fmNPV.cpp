@@ -152,8 +152,10 @@ int Loan::app_info_validate(char *case_no, TADOHandler *handler)
        else
           grace_period = 0;
 
-       if (! ds->FieldValues["APP_FEE"].IsNull())
-          app_fee = ds->FieldByName("APP_FEE")->AsFloat / 1000.0;
+       if (! ds->FieldValues["APP_FEE"].IsNull()) {
+          app_fee = ds->FieldByName("APP_FEE")->AsFloat;
+          app_fee /= 1000.0;
+       }
        else
           app_fee = 0;
 
@@ -491,6 +493,21 @@ double Loan::Min_APR3()
  return min_apr3;
 }
 //---------------------------------------------------------------------------
+int Loan::term1()
+{
+ return seg1;
+}
+//---------------------------------------------------------------------------
+int Loan::term2()
+{
+ return seg2;
+}
+//---------------------------------------------------------------------------
+int Loan::term3()
+{
+ return seg3;
+}
+//---------------------------------------------------------------------------
 double Loan::Monthly_Income()
 {
  return monthly_income;
@@ -758,7 +775,7 @@ double Loan::set_interest_revenue()
 //---------------------------------------------------------------------------
 double Loan::set_setup_fee()
 {
- return (SETUP_FEE);
+ return (app_fee);
 }
 
 //---------------------------------------------------------------------------

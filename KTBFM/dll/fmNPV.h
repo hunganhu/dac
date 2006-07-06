@@ -47,23 +47,23 @@ class Loan {
     String app_birthday;	    // 申請人生日 YYYMMDD
     int app_marriage;		    // 申請人婚姻 0:未婚 / 1:已婚 / 2:離婚
     int app_education;		    // 申請人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
-    int app_income;		    // 申請人年收入
+    float app_income;		    // 申請人年收入
     int app_qualified;		    // 申請人符合承作條件 0: NO / 1:YES
     String cos_id;		    // 共同借款人身份證字號姓名
     String cos_name;		    // 共同借款人姓名
     String cos_birthday;	    // 共同借款人生日 YYYMMDD
     int cos_marriage;		    // 共同借款人婚姻 0:未婚 / 1:已婚 / 2:離婚
     int cos_education;		    // 共同借款人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
-    int cos_income;		    // 共同借款人年收入
+    float cos_income;		    // 共同借款人年收入
     int cos_qualified;		    // 共同借款人符合承作條件 0: NO / 1:YES
     String gua_id;		    // 保證人身份證字號姓名
     String gua_name;		    // 保證人姓名
     String gua_birthday;	    // 保證人生日 YYYMMDD
     int gua_marriage;		    // 保證人婚姻 0:未婚 / 1:已婚 / 2:離婚
     int gua_education;		    // 保證人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
-    int gua_income;		    // 保證人年收入
+    float gua_income;		    // 保證人年收入
     int gua_qualified;		    // 保證人符合承作條件 0: NO / 1:YES-- l                      oan info
-    int app_amt;		    // 申貸金額
+    float app_amt;		    // 申貸金額
     int periods;		    // 申貸期間
     float apr1;			    // 第一段利率
     int seg1;			    // 第一段期間
@@ -72,7 +72,7 @@ class Loan {
     float apr3;			    // 第三段利率
     int seg3;			    // 第三段期間
     int grace_period;		    // 寬限期
-    int app_fee;		    // 開辦費
+    float app_fee;		    // 開辦費
     String owner_id;		    // 所有人身分證字號
     String owner_name;		    // 所有人姓名
     String land_num;		    // 地號/建號
@@ -256,6 +256,9 @@ class Loan {
     double Min_APR1();
     double Min_APR2();
     double Min_APR3();
+    int term1();
+    int term2();
+    int term3();
     double Monthly_Income();
     double Monthly_Debt();
     double Max_Loan_Capacity();

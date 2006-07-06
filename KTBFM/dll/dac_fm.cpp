@@ -107,9 +107,9 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
         case 3: pdaco_score = (pdaco_app->Pdaco_score()+ pdaco_cos->Pdaco_score())/2.0; break;
       }
       switch (incomePath) {
-        case 1: income = ptrLoan->appIncome(); break;
-        case 2: income = ptrLoan->cosIncome(); break;
-        case 3: income = ptrLoan->appIncome()+ ptrLoan->cosIncome(); break;
+        case 1: income = ptrLoan->appIncome() / 12.0; break;
+        case 2: income = ptrLoan->cosIncome() / 12.0; break;
+        case 3: income = (ptrLoan->appIncome()+ ptrLoan->cosIncome()) / 12.0; break;
       }
       switch (ms101Path) {
         case 1: monthly_debt = pdaco_app->monthly_debt(); break;
@@ -138,11 +138,11 @@ int FM_New(char *case_no, char *ole_db, char *error_message)
 //      }
 //      else
 //         lowest_delta = 0.0;
-      ptrLoan->set_npv(npv_value);
       if (dispCode == 1) {
          lowest_delta = ptrLoan->calculate_optimal_npv();
          ptrLoan->set_lowest_rate(lowest_delta);
       }
+      ptrLoan->set_npv(npv_value);  // restore npv based on application
 #ifdef _TRACE
      fstream outf;
 
@@ -263,9 +263,9 @@ int FM_Reload(char *case_no, char *ole_db, char *error_message)
         case 3: pdaco_score = (pdaco_app->Pdaco_score()+ pdaco_cos->Pdaco_score())/2.0; break;
       }
       switch (incomePath) {
-        case 1: income = ptrLoan->appIncome(); break;
-        case 2: income = ptrLoan->cosIncome(); break;
-        case 3: income = ptrLoan->appIncome()+ ptrLoan->cosIncome(); break;
+        case 1: income = ptrLoan->appIncome() / 12.0; break;
+        case 2: income = ptrLoan->cosIncome() / 12.0; break;
+        case 3: income = (ptrLoan->appIncome()+ ptrLoan->cosIncome()) / 12.0; break;
       }
       switch (ms101Path) {
         case 1: monthly_debt = pdaco_app->monthly_debt(); break;
@@ -294,11 +294,11 @@ int FM_Reload(char *case_no, char *ole_db, char *error_message)
 //      }
 //      else
 //         lowest_delta = 0.0;
-      ptrLoan->set_npv(npv_value);
       if (dispCode == 1) {
          lowest_delta = ptrLoan->calculate_optimal_npv();
          ptrLoan->set_lowest_rate(lowest_delta);
       }
+      ptrLoan->set_npv(npv_value);  // restore npv based on application
 
 #ifdef _TRACE
      fstream outf;
@@ -556,16 +556,18 @@ int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
 }
 //---------------------------------------------------------------------------
 
-void write_final_result(int dispCode, String suggMsg, String reasonMsg,
+void write_final_result(int &dispCode, String &suggMsg, String &reasonMsg,
                         Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
                         TADOHandler *handler)
 {
  String sqlstmt;
 
  if (ptrLoan->get_principal() > 8000)
-     suggMsg += "，因貸款金額超過800萬元，建議送消金審查部核實擔保品價值及申請人/共同貸款人收入。";
- else if (ptrLoan->get_principal() <= 0)
-     suggMsg += "，收入不及負債。";
+     suggMsg += "因貸款金額超過800萬元，建議送消金審查部核實擔保品價值及申請人/共同貸款人收入。";
+ else if (ptrLoan->get_principal() <= 0) {
+     suggMsg = "模組建議婉拒:收入不及負債。";
+     dispCode = 2; // decline
+ }
 
  sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
            " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
@@ -605,7 +607,7 @@ void write_final_result(int dispCode, String suggMsg, String reasonMsg,
     sqlstmt +=  ", NULL, NULL, NULL, NULL";
 
  sqlstmt += "," + FloatToStr(ptrLoan->Monthly_Income() * 1000) + ","+ FloatToStr(ptrLoan->get_principal()* 1000)
-          + "," + FloatToStr(ptrLoan->Weighted_APR()) + "," + FloatToStr(ptrLoan->Max_Loan_Capacity() * 1000)
+          + "," + FloatToStr(ptrLoan->Weighted_APR()) + "," + FloatToStr(ptrLoan->Max_Loan_Capacity())
           + "," + FloatToStr(ptrLoan->Monthly_Debt() * 1000);
 
  if (ptrLoan->get_principal() <= 0)  // if principal <=0 donot calculate pd and npv
@@ -615,11 +617,18 @@ void write_final_result(int dispCode, String suggMsg, String reasonMsg,
 
  if (dispCode == 2) // declined case, set approved amount to 0, and no min APR
      sqlstmt += ", 0, NULL, NULL, NULL";
- else  // approved case
+ else { // approved case
      sqlstmt += "," + FloatToStr(ptrLoan->get_principal() * 1000)
-          + "," + FloatToStr(ptrLoan->Min_APR1()) + "," +  FloatToStr(ptrLoan->Min_APR1())
           + "," + FloatToStr(ptrLoan->Min_APR1());
-
+     if (ptrLoan->term2() > 0)
+         sqlstmt += "," +  FloatToStr(ptrLoan->Min_APR2());
+     else
+         sqlstmt += ", NULL";
+     if (ptrLoan->term3() > 0)
+         sqlstmt += "," +  FloatToStr(ptrLoan->Min_APR3());
+     else
+         sqlstmt += ", NULL";
+ }
  sqlstmt += "," + IntToStr(dispCode) + ",'" + suggMsg + "','" + reasonMsg + "')"; // add suggestion message
 #ifdef _TRACE
      fstream outf;
