@@ -55,7 +55,7 @@ class PDACO
     int DropWorkingTables(TADOHandler *handler);
     int Prescreen_New(TADOHandler *handler);
     int Prescreen_Reload(TADOHandler *handler);
-    int Prescreen_Transfer(TADOHandler *handler);
+//    int Prescreen_Transfer(TADOHandler *handler);
     int GenerateScreenVars(TADOHandler *handler);
     int GeneratePdacoScore(TADOHandler *handler);
     int Segment();

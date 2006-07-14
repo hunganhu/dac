@@ -79,6 +79,11 @@ int PDACO::Prescreen_New(TADOHandler *handler)
         cash_max_bucket = ds->FieldValues["fs302"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
+        if (!ds->FieldValues["MS101"].IsNull())
+           ms101 = ds->FieldByName("MS101")->AsFloat;
+        else
+           ms101 = 0.0;
+
      }
      // Generate Segmentation and Prescreen message
      ps_code = PSCODE_0;     // initial to no error
@@ -160,6 +165,10 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
         cash_max_bucket = ds->FieldValues["fs302"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
+        if (!ds->FieldValues["MS101"].IsNull())
+           ms101 = ds->FieldByName("MS101")->AsFloat;
+        else
+           ms101 = 0.0;
      }
      // Generate Segmentation and Prescreen message
      ps_code = PSCODE_0;     // initial to no error
@@ -214,6 +223,7 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
  return 0;
 }
 //---------------------------------------------------------------------------
+/*
 int PDACO::Prescreen_Transfer(TADOHandler *handler)
 {
  Variant hostVars[5];
@@ -241,6 +251,10 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
         cash_max_bucket = ds->FieldValues["fs302"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
+        if (!ds->FieldValues["MS101"].IsNull())
+           ms101 = ds->FieldByName("MS101")->AsFloat;
+        else
+           ms101 = 0.0;
      }
      // Generate Segmentation and Prescreen message
      ps_code = PSCODE_0;     // initial to no error
@@ -272,6 +286,7 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
 
  return 0;
 }
+*/
 //---------------------------------------------------------------------------
 int PDACO::GenerateScreenVars(TADOHandler *handler)
 {
@@ -312,11 +327,6 @@ int PDACO::GeneratePdacoScore(TADOHandler *handler)
         score = ds->FieldValues["PDACO_SCORE"];
         pb = ds->FieldValues["PB_IN"];
         twentile = ds->FieldValues["PDACO_TWEN"];
-        if (!ds->FieldValues["MS101"].IsNull()) {
-           ms101 = ds->FieldByName("MS101")->AsFloat;
-        }
-        else
-           ms101 = 0.0;
     }
  } catch (Exception &E) {
      ds->Close();

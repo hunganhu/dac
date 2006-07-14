@@ -710,7 +710,7 @@ void Loan::set_attrition(double pb)
 }
 
 //---------------------------------------------------------------------------
-void Loan::set_amortize(int line)
+void Loan::set_amortize(double line)
 {
   os_principal [0] = line;
   interest_repayment [0] = 0.0;
@@ -731,7 +731,7 @@ void Loan::set_amortize(int line)
 }
 
 //---------------------------------------------------------------------------
-void Loan::set_annuity(int line)
+void Loan::set_annuity(double line)
 {
   int Grace_Period = ((grace_period == periods)? grace_period - 1: grace_period);
   int after_grace_period = periods - Grace_Period;

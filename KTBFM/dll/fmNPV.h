@@ -82,7 +82,7 @@ class Loan {
     float existing_mortgage;	    // 房屋鑑價值
     int col_qualified;		    // 擔保品符合承作條件 0: NO / 1:YES
     int premium_col;		    // 擔保品區段良好且搭配優良建設公司 0: NO / 1:YES
-    int monthly_payment;	    // 目前房貸月付金
+    float monthly_payment;	    // 目前房貸月付金
     String app_inq_date;	    // 申請人 JCIC 查詢日期 YYYYMMDD
     String cos_inq_date;	    // 共同借款人 JCIC 查詢日期 YYYYMMDD
     String gua_inq_date;	    // 保證人 JCIC 查詢日期 YYYYMMDD
@@ -186,8 +186,8 @@ class Loan {
     void npv_init();
     void set_apr(double delta_apr);
     void set_attrition(double pb);
-    void set_amortize(int line);
-    void set_annuity(int line);
+    void set_amortize(double line);
+    void set_annuity(double line);
     double set_interest_revenue();
     double set_setup_fee();
     double set_late_fee(double pb);
