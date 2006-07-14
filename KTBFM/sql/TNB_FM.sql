@@ -129,8 +129,8 @@ CREATE INDEX I_STM007 ON STM007(CASE_NO, IDN);
 GO
 
 create table VAM102 (                      -- '補充/註記資訊'
-	CASE_SN		char(12) not null, -- '申請編號';                                        
-	inquiry_date	char(10) not null, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';    
+	CASE_NO		char(12) not null, -- '申請編號';                                        
+	INQUIRY_DATE	char(10) not null, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';    
 	IDN		char(10) not null, -- '申請人身分證號';                               
 	IDN_BAN 	char(10),          -- '統編/身分證號';                               
 	DATA_DATE 	char(7),           -- '訊息登錄日期';                                
@@ -140,7 +140,7 @@ create table VAM102 (                      -- '補充/註記資訊'
 	SUBNOTE 	char(60),          -- '訊息種類細項';                                
 	NOTES	 	varchar(256)       -- '訊息內容';                                    
 );
-create index i_vam102 on VAM102(CASE_SN, IDN);
+create index i_vam102 on VAM102(CASE_NO, IDN);
 
 
 CREATE TABLE COUNTER (
@@ -162,24 +162,24 @@ INSERT INTO AGENT VALUES ('test', 'test', 'test', 'test');
 GO
 
 CREATE TABLE BRANCH_11_LOOKUP (
-	APPLICANT VARCHAR (3),
-	CO_APPLICANT VARCHAR (3),
-	GUARANTOR VARCHAR (1),
+	APPLICANT VARCHAR (3) NOT NULL,
+	CO_APPLICANT VARCHAR (3) NOT NULL,
+	GUARANTOR VARCHAR (1) NOT NULL,
 	APPLICANT_STATUS INT,
 	CO_APPLICANT_STATUS INT,
 	GUARANTOR_STATUS INT,
-	DISPOSITION_CODE INT,
+	DISPOSITION_CODE INT NOT NULL,
 	MESSAGE_DISPOSITION VARCHAR (40),
 	APPLICANT_MESSAGE VARCHAR (100),
 	CO_APPLICANT_MESSAGE VARCHAR (100),
-	MESSAGE_GUARANTOR VARCHAR (100);
+	MESSAGE_GUARANTOR VARCHAR (100));
 ALTER TABLE BRANCH_11_LOOKUP ADD CONSTRAINT P_BRANCH_11_LOOKUP PRIMARY KEY (APPLICANT, CO_APPLICANT, GUARANTOR, DISPOSITION_CODE);
 GO
 
 CREATE TABLE OVERALL_LOOKUP (
-	APPLICANT VARCHAR (3),
-	CO_APPLICANT VARCHAR (3),
-	GUARANTOR VARCHAR (1),
+	APPLICANT VARCHAR (3) NOT NULL,
+	CO_APPLICANT VARCHAR (3) NOT NULL,
+	GUARANTOR VARCHAR (1) NOT NULL,
 	APPLICANT_STATUS INT,
 	CO_APPLICANT_STATUS INT,
 	GUARANTOR_STATUS INT,
