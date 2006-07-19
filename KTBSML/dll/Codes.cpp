@@ -3648,7 +3648,8 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
 
 // jas002_defect
     if(flag & 0x8){ // jas002 hit
-		sql_stmt ="SELECT IDN, SUM(CASE WHEN :now - E_MON_SINCE <= 36 THEN 1 ELSE 0 END) AS CNT ";
+//		sql_stmt ="SELECT IDN, SUM(CASE WHEN :now - E_MON_SINCE <= 36 THEN 1 ELSE 0 END) AS CNT ";
+		sql_stmt ="SELECT IDN, SUM(CASE WHEN E_MON_SINCE > 0 THEN 1 ELSE 0 END) AS CNT ";
 		sql_stmt +="FROM " + jas002 + " ";
 		sql_stmt +="WHERE IDN = :idn GROUP BY IDN;";
     sql_stmt = sql_stmt.UpperCase();
