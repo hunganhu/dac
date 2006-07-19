@@ -132,8 +132,9 @@ int yrmon_to_mon(String inquiry_month, bool time_lock, String lock)
     month = StrToInt(inquiry_month.SubString(5,2));
     day = StrToInt(inquiry_month.SubString(7,2));
   }
-  if (day <= 15)
-     month --;
+//  if (day <= 15)
+//     month --;
+  month --;  // apply 30-day rule
   if (month == 0) {
      month = 12;
      year--;
