@@ -801,6 +801,20 @@ CREATE TRIGGER TCB_FIN_UPDATE
   VALUES (CURRENT TIMESTAMP, USER, O.FUND_DEPOSIT_PCT, O.FUND_BANK_PCT, O.FUND_SELF_PCT, O.FUND_FREE_PCT,
     O.COF_DEPOSIT, O.COF_BANK, O.ROE, O.COMMISSION);
 
+CREATE TABLE branch (
+	Branch char (4) NOT NULL,
+	Branch_Name varchar (40),
+	County varchar (20),
+	Zone varchar (20)
+) IN "ESCORETABSP";
+alter table branch add constraint p_branch primary key (branch);
+
+COMMENT ON TABLE branch			IS 'TCB分行';
+COMMENT ON COLUMN branch.branch		IS '分行 ID';
+COMMENT ON COLUMN branch.Branch_Name	IS '分行名稱';
+COMMENT ON COLUMN branch.County		IS '分行所在縣市';
+COMMENT ON COLUMN branch.Zone		IS '區域';
+
 -- Create Permanent Working Tables
  create table bam086_dedup (
  	case_sn		char(12),

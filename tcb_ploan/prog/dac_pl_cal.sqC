@@ -261,7 +261,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      } 
 */
      /* make decision*/
-     if ((productType = app.get_product_type())== 4) {
+     if ((productType = app.get_product_type())== 5) { //product = 5:其他(只算壞帳機率)
         rc = app.write_result(TYPE_V, round_npv, unsecured_balance); // for product type 4
      } else {
         if (round_npv < ApprovedNPV) {

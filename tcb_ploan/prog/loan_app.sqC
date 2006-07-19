@@ -294,8 +294,8 @@ int LoanApp::initial()
   if (is_future_year(System_date, Car_year)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
 
-  // check product_type_code "1: 簡易小額信貸 2: 個人信貸產品A 3: 個人信貸產品B 4: 其他(只算壞帳機率)"
-  if (Product_type_code_ind == -1) Product_type_code = 4;
+  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 4:農家樂貸款 5:其他(只算壞帳機率)"
+  if (Product_type_code_ind == -1) Product_type_code = 5;
   else Product_type_code = iProduct_type_code;
 
 //  if ((Product_type_code == -1) || (Product_type_code < 1) || (Product_type_code > 4)) {
@@ -725,11 +725,11 @@ int LoanApp::write_result_prescreen_failed()
 
   if (ps_code_a == 3104 || ps_code_a == 3110)
      sprintf(oApproval_msg,
-             "%s 申請，請人工授信(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，%s",
+             "%s 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，%s",
              apply_date, oPS_msg);
   else
      sprintf(oApproval_msg,
-             "%s 申請，初評未達核准標準(請辦理第一類票據信用查詢，注意有無未清償註記之支票)，%s",
+             "%s 申請，初評未達核准標準(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，%s",
              apply_date, oPS_msg);
 
 //  oCut = cutpoint;
@@ -804,7 +804,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   if (Term_1 > 0) {
      oLowest_Rate_1 = Lowest_rate_1 * 100;
      oLowest_Rate_1_ind = 0;
-     sprintf(msg1, "利潤為零之參考利率為第一期：%5.2f%%", Lowest_rate_1*100);
+     sprintf(msg1, "損益兩平之參考利率為第一期：%5.2f%%", Lowest_rate_1*100);
      strcpy (apr_msg, msg1);
   }
   else 

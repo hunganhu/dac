@@ -773,13 +773,11 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
        set jas002_defect =
            (select (case when count(*) > 0 then 1 else 0 end)
             from jas002_t_dedup s
-            where now - mon_since <= 36
-              and p.case_sn = s.case_sn
+            where p.case_sn = s.case_sn
             group by s.case_sn )
        where exists (select *
                      from jas002_t_dedup s
-                     where now - mon_since <= 36
-                       and p.case_sn = s.case_sn)
+                     where p.case_sn = s.case_sn)
          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 2.");
 
