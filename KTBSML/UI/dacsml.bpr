@@ -4,12 +4,13 @@
   <MACROS>
     <VERSION value="BCB.06.00"/>
     <PROJECT value="dacsml.exe"/>
-    <OBJFILES value="dacsml.obj Data_Module.obj LoginUI.obj Main.obj functions.obj dirui.obj"/>
+    <OBJFILES value="dacsml.obj Data_Module.obj LoginUI.obj Main.obj functions.obj dirui.obj 
+      redirui.obj"/>
     <RESFILES value="dacsml.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
-    <RESDEPEN value="$(RESFILES) Data_Module.dfm LoginUI.dfm Main.dfm dirui.dfm"/>
+    <RESDEPEN value="$(RESFILES) Data_Module.dfm LoginUI.dfm Main.dfm dirui.dfm redirui.dfm"/>
     <LIBFILES value="DAC_SML_NPV.lib"/>
     <LIBRARIES value="GSS_eJCIC.lib"/>
     <SPARELIBS value="vcl.lib rtl.lib dbrtl.lib adortl.lib GSS_eJCIC.lib vclx.lib"/>
@@ -62,6 +63,7 @@
       <FILE FILENAME="functions.cpp" FORMNAME="" UNITNAME="functions" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="DAC_SML_NPV.lib" FORMNAME="" UNITNAME="DAC_SML_NPV.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="dirui.cpp" FORMNAME="frmDirUI" UNITNAME="dirui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="redirui.cpp" FORMNAME="frmReDirUI" UNITNAME="redirui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
