@@ -261,7 +261,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      } 
 */
      /* make decision*/
-     if ((productType = app.get_product_type())!= 1) { //product- 1:簡易小額信貸 2:公教人員貸款 3:U利貸款 4:農家樂貸款 5:其他(只算壞帳機率)
+     if ((productType = app.get_product_type())!= 1) { //product- 1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)
         rc = app.write_result(TYPE_V, round_npv, unsecured_balance); // for product type 2,3,4,5 output PB only
      } else {
         if (round_npv < ApprovedNPV) {

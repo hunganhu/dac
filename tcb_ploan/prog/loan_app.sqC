@@ -294,11 +294,11 @@ int LoanApp::initial()
   if (is_future_year(System_date, Car_year)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
 
-  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 4:農家樂貸款 5:其他(只算壞帳機率)"
+  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)"
   if (Product_type_code_ind == -1) Product_type_code = 5;
   else Product_type_code = iProduct_type_code;
 
-//  if ((Product_type_code == -1) || (Product_type_code < 1) || (Product_type_code > 4)) {
+//  if ((Product_type_code == -1) || (Product_type_code < 1) || (Product_type_code > 5)) {
 //     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1033)); code = DataErrorCode(DATA_ERR_1033);}
 
   
@@ -1011,10 +1011,10 @@ void LoanApp::npv_init()
   legal_detain_ratio_north = 0.0056;   //假扣押&強制執行-北區 (% of balance)
   legal_detain_ratio_south = 0.0056;   //假扣押&強制執行-南區 (% of balance)
   legal_detain_ratio_central = 0.0056; //假扣押&強制執行-中區 (% of balance)
-  if (Product_type_code == 4)   // for product is 4:農家樂貸款  EAD=40%, others are 25%.
-     recovery_ratio = 0.6;             //壞帳回收百分比, (資金損失 % (EAD) )
+  if (Product_type_code == 5)   // for product is 5:農家樂貸款  EAD=40%, others are 25%.
+     recovery_ratio = 0.4;             //(資金損失 % (EAD) ), 壞帳回收百分比 100%- EAD 
   else
-     recovery_ratio = 0.75;            //壞帳回收百分比, (資金損失 % (EAD) )
+     recovery_ratio = 0.75;            //(資金損失 % (EAD) ), 壞帳回收百分比 100%- EAD
   legal_action_period = 12.0;          // Legal action usually lasts 12 months before write-off
   pd = applicantPB_adjust;
   principal = App_amt;
