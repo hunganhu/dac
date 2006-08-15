@@ -51,6 +51,7 @@ class PDACO
     int ps_code;
     int segment;
 // PDACO 6.1 risk model raw variables
+    float GRAY2_FLAG;
     float APP_MAX_BUCKET;
     float APPROVED_AMT;
     float APR;
@@ -133,6 +134,7 @@ class PDACO
     int PrepareJcicData(TADOHandler *handler);
     int get_scorecard(TADOHandler *handler);
     int PDACO61P0Raw(TADOHandler *handler);
+    int PDACO61P1Raw(TADOHandler *handler);
     int PDACO61P2Raw(TADOHandler *handler);
     int PDACO61P3Raw(TADOHandler *handler);
     int PDACO61P4Raw(TADOHandler *handler);

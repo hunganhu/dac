@@ -159,6 +159,52 @@ int PDACO::PDACO61P0Raw(TADOHandler *handler)
  return 0;
 }
 //---------------------------------------------------------------------------
+int PDACO::PDACO61P1Raw(TADOHandler *handler)
+{
+ Variant hostVars[5];
+ TADODataSet *ds;
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ try {
+    handler->ExecSQLCmd(SQLCommands[PDACO61_P1]);
+    hostVars[0] = msn;
+    hostVars[1] = input_time;
+    handler->ExecSQLQry(SQLCommands[Get_P1_Raw_Variables], hostVars, 1, ds);
+    ds->First();
+    if (!ds->Eof) {
+        GRAY2_FLAG = ds->FieldValues["GRAY2_FLAG"];
+        krm023_hit = ds->FieldValues["KRM023_HIT"];
+        card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
+        fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
+        FS031 = ds->FieldValues["FS031"];
+    }
+    if (krm023_hit == 1) {     // Gray 1   krm023_hit
+       if (FS031 > 5) throw cc_error(PSCODE_111, msn, input_time);
+       else if (fs059_1k_12m > 0) throw cc_error(PSCODE_112, msn, input_time);
+       else if (card_force_stop > 0) throw cc_error(PSCODE_113, msn, input_time);
+    }
+    else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
+       if (FS031 > 3) throw cc_error(PSCODE_114, msn, input_time);
+       else if (card_force_stop > 0) throw cc_error(PSCODE_115, msn, input_time);
+    } else {       // White   no krm023 nor krm021 nor bam086
+       throw cc_error(PSCODE_201, msn, input_time);
+    }
+
+ } catch(cc_error &Err){
+     ds->Close();
+     delete ds;
+     throw;
+ } catch (Exception &E) {
+     ds->Close();
+     delete ds;
+     throw;
+ }
+ ds->Close();
+ delete ds;
+ return 0;
+}
+//---------------------------------------------------------------------------
 int PDACO::PDACO61P2Raw(TADOHandler *handler)
 {
  Variant hostVars[5];

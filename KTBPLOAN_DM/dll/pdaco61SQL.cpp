@@ -45,6 +45,12 @@ char *SQLCommands[] = {
 " where MSN = :v0"
 "   and INPUT_TIME = :v1",
 
+/*Get_P1_Raw_Variables*/
+" select KRM023_HIT, GRAY2_FLAG, CARD_FORCE_STOP, FS059_1K_12M, FS031"
+" from #PDACO_V6_1"
+" where MSN = :v0"
+"   and INPUT_TIME = :v1",
+
 /*Get_P2_Raw_Variables*/
 " select FS016C_9M_T1, CDEF_FLAG_1M, MS093, MS094B, MS105, WI001_9M"
 " from #PDACO_V6_1"
