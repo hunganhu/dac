@@ -879,7 +879,7 @@ GROUP BY MSN, IDN
    SET CARD_FORCE_STOP = V1
    FROM TMP AS A
    WHERE A.IDN = PDACO_V6_1.IDN;
- /*----CREDIT CARD FORCE STOP ----*/
+ /*----Number of credit lines with "EF_1K" Delinquent in past 12 months ----*/
  DELETE FROM TMP;
  INSERT INTO TMP (IDN, MON, V1)
    SELECT IDN, 12, COUNT(DISTINCT ISSUE)
@@ -978,6 +978,24 @@ GO
    		  END);
 GO   		  
 -----------------------------------------------------------------------------------------------------------------------
+-- P1, Data insufficient
+ /*---START MAKING FS031---*/
+ UPDATE PDACO_V6_1
+   SET FS031 = (SELECT COUNT(*)
+                FROM STM007_DEDUP A
+                WHERE ITEM_LIST IS NOT NULL
+                  AND ITEM_LIST <> ''
+                  AND A.IDN = PDACO_V6_1.IDN)
+   WHERE EXISTS (SELECT *
+                 FROM STM007_DEDUP A
+                 WHERE ITEM_LIST IS NOT NULL
+                   AND ITEM_LIST <> ''
+                   AND A.IDN = PDACO_V6_1.IDN);
+
+ UPDATE PDACO_V6_1
+    SET GRAY2_FLAG = BAM086_HIT+KRM021_HIT;
+GO
+-----------------------------------------------------------------------------------------------------------------------
 -- P2, w/o guarantor, CC limit (MS605) <=50K
  /*----MONTHLY DEBT ----*/
  DELETE FROM TMP;
@@ -1003,25 +1021,25 @@ GO
    SET MS093 = ISNULL(V1, 0)
    FROM TMP AS A
    WHERE A.IDN = PDACO_V6_1.IDN; 
--- MS094B Average credit card revolving balance in last 3 months
+ /* MS094B          */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
       SUM(CASE WHEN PAY_CODE IN ('C','D','E','F') 
-         THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
-         ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
+                    THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
+                    THEN ISNULL(SPREAD_PAYMENT,0)
+          ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
     FROM KRM023_DEDUP
     WHERE INQUIRY_MON-1 - MON_SINCE <=3  /* WITH 30-DAY RULE */
     AND  INQUIRY_MON   - MON_SINCE > 1  /* TRUNCATE THE TRIALING 2 MONTHS */
     GROUP BY IDN;
+ 
  UPDATE PDACO_V6_1
-    SET MS094B = (
-     SELECT V1
-     FROM TMP
-     WHERE IDN = PDACO_V6_1.IDN)
-    WHERE IDN IN (
-     SELECT IDN
-     FROM TMP);
+    SET MS094B = (SELECT V1
+                  FROM TMP
+                  WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
  /*----CASH CARD REVOLVING BALANCE ----*/
  UPDATE PDACO_V6_1
        SET MS105 = 
@@ -1034,6 +1052,11 @@ GO
                      FROM BAM086_DEDUP S
                      WHERE ACCOUNT_CODE = 'Y'
                        AND PDACO_V6_1.IDN = S.IDN);
+ UPDATE PDACO_V6_1
+   SET MS093  = ISNULL(MS093, 0),
+       MS094B = ISNULL(MS094B, 0),
+       MS105  = ISNULL(MS105, 0);
+                       
  /* WI001_9M       */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, MON, V1)
@@ -1058,7 +1081,7 @@ GO
     SET MONTHLY_PAYMENT = ISNULL(REQUEST_AMT * AMORTIZATION_RATE, 0);
  UPDATE PDACO_V6_1
    SET FS016C_9M_T1 = (CASE WHEN FS016C_9M = 0 THEN 0 ELSE 1 END),
-       LN001_9M = (MONTHLY_PAYMENT/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI001_9M;
+       LN001_9M = (MONTHLY_PAYMENT/1000.0 + ISNULL(MS093, 0) + (ISNULL(MS094B, 0) + ISNULL(MS105, 0))* 0.35)/ WI001_9M;
  UPDATE PDACO_V6_1
    SET LN001_9M_T2 = LN001_9M * (1-FS016C_9M_T1);
  UPDATE PDACO_V6_1
@@ -1110,13 +1133,19 @@ GO
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
-      MIN((ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)) / CAST(LIMIT AS FLOAT))
+      MIN(CASE WHEN PAY_CODE IN ('C','D','E','F') 
+                    THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
+                    THEN ISNULL(SPREAD_PAYMENT,0)
+               ELSE 0 END) / CAST(LIMIT AS FLOAT))
     FROM KRM023_DEDUP
     WHERE INQUIRY_MON   - MON_SINCE <=9  /* NO   30-DAY RULE */
-    AND  CAST(LIMIT AS FLOAT) > 0
-    AND  PAY_CODE IN ('C','D','E','F')
-    AND  PAYMENT_AMT+ISNULL(SPREAD_PAYMENT,0) > 1    /* TO ELIMINATE THOSE SMALL REVOLING LINES */
-    GROUP BY IDN;
+      AND CAST(LIMIT AS FLOAT) > 0
+      AND ((PAY_CODE IN ('C','D','E','F') AND ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) > 1)
+            OR (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>1))   /* TO ELIMINATE THOSE SMALL REVOLING LINES */
+		
+    GROUP BY IDN
+
  UPDATE PDACO_V6_1
     SET MS118_9M = (
      SELECT V1
@@ -1133,7 +1162,7 @@ GO
                    AND INQUIRY_MON - MON_SINCE > 0  /* ELIMINATE MOST RECENT 1 MONTH */
                    AND PAY_CODE IN ('A','B')
                    AND A.IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                  FROM KRM023_DEDUP AS A
                  WHERE INQUIRY_MON - MON_SINCE <= 6 /* NO 30-DAY RULE                */
                    AND INQUIRY_MON - MON_SINCE > 0  /* ELIMINATE MOST RECENT 1 MONTH */
@@ -1141,16 +1170,18 @@ GO
                    AND A.IDN = PDACO_V6_1.IDN);
  /* FS021_9M       */
  UPDATE PDACO_V6_1
-     SET FS021_9M = (SELECT COUNT(DISTINCT MON_SINCE)
-                     FROM KRM023_DEDUP
-                     WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
-                     AND  PAY_CODE IN ('C','D','E','F')
-                     AND IDN = PDACO_V6_1.IDN)
-     WHERE EXISTS (SELECT COUNT(DISTINCT MON_SINCE)
-                     FROM KRM023_DEDUP
-                     WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
-                     AND  PAY_CODE IN ('C','D','E','F')
-                     AND IDN = PDACO_V6_1.IDN);
+   SET FS021_9M = (SELECT COUNT(DISTINCT MON_SINCE)
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
+                     AND (PAY_CODE IN ('C','D','E','F') OR
+                          (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                   AND IDN = PDACO_V6_1.IDN)
+   WHERE EXISTS (SELECT *
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
+                     AND (PAY_CODE IN ('C','D','E','F') OR
+                          (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                   AND IDN = PDACO_V6_1.IDN);
  UPDATE PDACO_V6_1
    SET SECURE_FLAG = (CASE WHEN FS036 > 0 THEN 1 ELSE 0 END),
        UNSECURE_FLAG = (CASE WHEN FS040 > 0 THEN 1 ELSE 0 END);
@@ -1196,7 +1227,7 @@ GO
     SET MS001_12M_1K = (SELECT MAX(V1)
                         FROM TMP
                         WHERE IDN = PDACO_V6_1.IDN)
-    WHERE EXISTS (SELECT MAX(V1)
+    WHERE EXISTS (SELECT *
                         FROM TMP
                         WHERE IDN = PDACO_V6_1.IDN);
  /* FS018_12M    */
@@ -1205,7 +1236,7 @@ GO
                       FROM KRM023_DEDUP AS A
                       WHERE CASH = 'Y'
                       AND A.IDN = PDACO_V6_1.IDN)
-    WHERE EXISTS (SELECT COUNT(DISTINCT MON_SINCE)
+    WHERE EXISTS (SELECT *
                       FROM KRM023_DEDUP AS A
                       WHERE CASH = 'Y'
                       AND A.IDN = PDACO_V6_1.IDN);
@@ -1247,14 +1278,14 @@ GO
                       AND IDN = PDACO_V6_1.IDN);
  /* FS101_6M       */
  UPDATE PDACO_V6_1
- SET FS101_6M = (SELECT COUNT(DISTINCT ISSUE)
-                 FROM KRM023_DEDUP
-                 WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
-                   AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
-                 FROM KRM023_DEDUP
-                 WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
-                   AND IDN = PDACO_V6_1.IDN);
+   SET FS101_6M = (SELECT COUNT(DISTINCT ISSUE)
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
+                     AND IDN = PDACO_V6_1.IDN)
+   WHERE EXISTS (SELECT *
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
+                     AND IDN = PDACO_V6_1.IDN);
  /*----MONTHLY DEBT ----*/
  DELETE FROM TMP;
  INSERT INTO TMP (IDN, V1)
@@ -1279,25 +1310,41 @@ GO
    SET MS093 = ISNULL(V1, 0)
    FROM TMP AS A
    WHERE A.IDN = PDACO_V6_1.IDN; 
--- MS094B Average credit card revolving balance in last 3 months
+ /* MS094B          */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
       SUM(CASE WHEN PAY_CODE IN ('C','D','E','F') 
-         THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
-         ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
+                    THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
+                    THEN ISNULL(SPREAD_PAYMENT,0)
+          ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
     FROM KRM023_DEDUP
     WHERE INQUIRY_MON-1 - MON_SINCE <=3  /* WITH 30-DAY RULE */
     AND  INQUIRY_MON   - MON_SINCE > 1  /* TRUNCATE THE TRIALING 2 MONTHS */
     GROUP BY IDN;
+ 
  UPDATE PDACO_V6_1
-    SET MS094B = (
-     SELECT V1
-     FROM TMP
-     WHERE IDN = PDACO_V6_1.IDN)
-    WHERE IDN IN (
-     SELECT IDN
-     FROM TMP);
+    SET MS094B = (SELECT V1
+                  FROM TMP
+                  WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
+ /*----CASH CARD REVOLVING BALANCE ----*/
+ UPDATE PDACO_V6_1
+       SET MS105 = 
+           (SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT))
+            FROM BAM086_DEDUP S
+            WHERE ACCOUNT_CODE = 'Y'
+              AND PDACO_V6_1.IDN = S.IDN
+            GROUP BY S.IDN)
+       WHERE EXISTS (SELECT *
+                     FROM BAM086_DEDUP S
+                     WHERE ACCOUNT_CODE = 'Y'
+                       AND PDACO_V6_1.IDN = S.IDN);
+ UPDATE PDACO_V6_1
+   SET MS093  = ISNULL(MS093, 0),
+       MS094B = ISNULL(MS094B, 0),
+       MS105  = ISNULL(MS105, 0);
  /* WI004_9M       */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, MON, V1)
@@ -1335,7 +1382,7 @@ GO
    SET FS018_12M_Z = (CASE WHEN FS018_12M = 0 THEN 1 ELSE 0 END),
        FS309_Z = (CASE WHEN FS309 = 0 THEN 1 ELSE 0 END),
        INT053_6 = FS061_6M_1K / FS101_6M,
-       LN004_9M = (MONTHLY_PAYMENT/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI004_9M,
+       LN004_9M = (MONTHLY_PAYMENT/1000.0 + ISNULL(MS093, 0) + (ISNULL(MS094B, 0) + ISNULL(MS105, 0))* 0.35)/ WI004_9M,
        FS546_9M_TRAN = ISNULL(FS546_9M, 0);
  UPDATE PDACO_V6_1
    SET FS3036_T5 = (CASE WHEN BAM086_HIT = 1 AND (FS018_12M_Z = 0 OR FS309_Z = 0) THEN 1
@@ -1391,7 +1438,7 @@ GO
                    FROM KRM023_DEDUP AS A
                    WHERE CASH = 'Y'
                    AND A.IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(*)
+ WHERE EXISTS (SELECT *
                FROM KRM023_DEDUP AS A
                WHERE CASH = 'Y'
                  AND A.IDN = PDACO_V6_1.IDN);
@@ -1437,32 +1484,34 @@ GO
  INSERT INTO OPEN_LINE(IDN, ISSUE, BUCKET)
     SELECT IDN, ISSUE, MAX(BUCKET_EF_1K) 
     FROM KRM023_DEDUP
-    GROUP BY IDN, ISSUE; 
+    GROUP BY IDN, ISSUE;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, SUM(BUCKET)
     FROM OPEN_LINE
     GROUP BY IDN;
  UPDATE PDACO_V6_1
     SET FS073B_12M = (
-     SELECT V1
-     FROM TMP
-     WHERE IDN = PDACO_V6_1.IDN)
-    WHERE IDN IN (
-     SELECT IDN
-     FROM TMP);
+                SELECT V1
+                FROM TMP
+                WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
  /* ---PREPARE INTERMEDIATE TABLES FOR KRM023 AND KRM021 VARIABLES --- */
+ DELETE FROM OPEN_CARD;
+ DELETE FROM OPEN_LINE;
+ DELETE FROM LATEST_STMT_MON;
+ DELETE FROM LATEST_LINE;
  DECLARE @I INT
-   SET @I = 0;
+   SET @I = 0
    WHILE @I <= 13
     BEGIN
      INSERT INTO OPEN_CARD (IDN, ISSUE, MON, NOW)
       SELECT IDN,
              (CASE WHEN CARD_BRAND = 'A' AND ISSUE = 'A82' THEN 'AEA'
                    ELSE ISSUE END),
-             (INQUIRY_MON - @I), INQUIRY_MON
+             (INQUIRY_MON-1 - @I), INQUIRY_MON-1
       FROM KRM021_DEDUP
-      WHERE (END_MON_SINCE > (INQUIRY_MON - @I))
-        AND (START_MON_SINCE <= (INQUIRY_MON - @I))
+      WHERE (END_MON_SINCE > (INQUIRY_MON-1 - @I))
+        AND (START_MON_SINCE <= (INQUIRY_MON-1 - @I))
         AND ISSUE != '021'
      SET @I = @I + 1
     END;
@@ -1478,10 +1527,10 @@ GO
              (CASE WHEN CARD_BRAND = 'M' THEN 'CTM'
                    WHEN CARD_BRAND = 'V' THEN 'CTV'
                    WHEN CARD_BRAND = 'D' THEN 'CTD' END),
-             (INQUIRY_MON - @I), 1, INQUIRY_MON
+             (INQUIRY_MON-1 - @I), 1, INQUIRY_MON-1
       FROM KRM021_DEDUP
-      WHERE (END_MON_SINCE > (INQUIRY_MON - @I))
-        AND (START_MON_SINCE <= (INQUIRY_MON - @I))
+      WHERE (END_MON_SINCE > (INQUIRY_MON-1 - @I))
+        AND (START_MON_SINCE <= (INQUIRY_MON-1 - @I))
         AND ISSUE = '021'
      SET @I = @I + 1
     END;
@@ -1520,12 +1569,12 @@ GO
  INSERT INTO TMP (IDN, MON, V1)
    SELECT IDN, 3, COUNT(*)
    FROM KRM023_DEDUP AS A
-   WHERE ISSUE IN
-   (SELECT ISSUE FROM LATEST_LINE
-    WHERE MOB <= 12 AND IDN = A.IDN)
-      AND PAY_CODE IN ('C', 'D', 'E', 'F')
-      AND PAYMENT_AMT > 1
-      AND (INQUIRY_MON - MON_SINCE) <= 3
+   WHERE ISSUE IN (SELECT ISSUE FROM LATEST_LINE
+                   WHERE MOB <= 12 AND IDN = A.IDN)
+     AND (PAY_CODE IN ('C', 'D', 'E','F') OR
+	  (CASH='Y' AND ISNULL(SPREAD_PAYMENT,0)>0))
+     AND ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) > 1
+     AND (INQUIRY_MON-1 - MON_SINCE) <= 3
    GROUP BY IDN;
  UPDATE PDACO_V6_1
    SET FS205_3M_1K = V1
@@ -1556,25 +1605,41 @@ GO
    SET MS093 = ISNULL(V1, 0)
    FROM TMP AS A
    WHERE A.IDN = PDACO_V6_1.IDN; 
--- MS094B Average credit card revolving balance in last 3 months
+ /* MS094B          */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
       SUM(CASE WHEN PAY_CODE IN ('C','D','E','F') 
-         THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
-         ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
+                    THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
+                    THEN ISNULL(SPREAD_PAYMENT,0)
+          ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
     FROM KRM023_DEDUP
     WHERE INQUIRY_MON-1 - MON_SINCE <=3  /* WITH 30-DAY RULE */
     AND  INQUIRY_MON   - MON_SINCE > 1  /* TRUNCATE THE TRIALING 2 MONTHS */
     GROUP BY IDN;
+ 
  UPDATE PDACO_V6_1
-    SET MS094B = (
-     SELECT V1
-     FROM TMP
-     WHERE IDN = PDACO_V6_1.IDN)
-    WHERE IDN IN (
-     SELECT IDN
-     FROM TMP);
+    SET MS094B = (SELECT V1
+                  FROM TMP
+                  WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
+ /*----CASH CARD REVOLVING BALANCE ----*/
+ UPDATE PDACO_V6_1
+       SET MS105 = 
+           (SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT))
+            FROM BAM086_DEDUP S
+            WHERE ACCOUNT_CODE = 'Y'
+              AND PDACO_V6_1.IDN = S.IDN
+            GROUP BY S.IDN)
+       WHERE EXISTS (SELECT *
+                     FROM BAM086_DEDUP S
+                     WHERE ACCOUNT_CODE = 'Y'
+                       AND PDACO_V6_1.IDN = S.IDN);
+ UPDATE PDACO_V6_1
+   SET MS093  = ISNULL(MS093, 0),
+       MS094B = ISNULL(MS094B, 0),
+       MS105  = ISNULL(MS105, 0);
  /* WI003_9M       */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, MON, V1)
@@ -1611,7 +1676,7 @@ GO
        MS074_T3 = (CASE WHEN MS074_T2 > 2250 THEN 2250
                            ELSE MS074_T2 END),
        FS205_3M_1K_Q_TRAN2 = ISNULL(FS205_3M_1K_Q, 0),
-       LN003_9M_T = (MONTHLY_PAYMENT/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI003_9M_T,
+       LN003_9M_T = (MONTHLY_PAYMENT/1000.0 + ISNULL(MS093, 0) + (ISNULL(MS094B, 0) + ISNULL(MS105, 0))* 0.35)/ WI003_9M_T,
        FS031_1M_Q_TRAN2 = (CASE WHEN FS031_1M_Q IS NULL THEN 0
                                 WHEN FS031_1M_Q > 100 THEN 100
                                 ELSE FS031_1M_Q END);
@@ -1742,7 +1807,7 @@ GO
                  FROM STM007_DEDUP A
                  WHERE ITEM_LIST IS NOT NULL
                    AND ITEM_LIST <> ''
-                   AND A.IDN = PDACO_V6_1.IDN)
+                   AND A.IDN = PDACO_V6_1.IDN);
  UPDATE PDACO_V6_1
    SET FS031_1M = (SELECT SUM(CASE WHEN DATEDIFF(DAY,
 				CAST(RTRIM(CAST(CAST(LEFT(QUERY_DATE,3) AS INT)+1911 AS CHAR)) + SUBSTRING(QUERY_DATE,4,4) AS DATETIME),
@@ -1758,10 +1823,9 @@ GO
                  FROM STM007_DEDUP A
                  WHERE ITEM_LIST IS NOT NULL
                    AND ITEM_LIST <> ''
-                   AND A.IDN = PDACO_V6_1.IDN)
+                   AND A.IDN = PDACO_V6_1.IDN);
 /*BEGINNING KRM021-RELATED *****************************************/
-/* RS017 */
- 
+/* RS017 */ 
  UPDATE PDACO_V6_1
     SET RS017 = (SELECT MAX(INQUIRY_MON - START_MON_SINCE)
               FROM KRM021_DEDUP A
@@ -1770,7 +1834,7 @@ GO
     WHERE EXISTS (SELECT *
                FROM KRM021_DEDUP A
                WHERE (INQUIRY_MON - START_MON_SINCE) > 0
-                 AND A.IDN = PDACO_V6_1.IDN)
+                 AND A.IDN = PDACO_V6_1.IDN);
 
 /*BEGINNING BAM086-RELATED *****************************************/
  UPDATE PDACO_V6_1
@@ -1849,10 +1913,12 @@ GO
        FROM	BAM086_DEDUP
        GROUP BY IDN) AS A
   WHERE  A.IDN = PDACO_V6_1.IDN	
+
+ UPDATE PDACO_V6_1
+   SET MS093  = ISNULL(MS093, 0),
+       MS094B = ISNULL(MS094B, 0),
+       MS105  = ISNULL(MS105, 0)
 	
- /* SEX_TRAN	GENDER */
--- UPDATE PDACO_V6_1
---   SET SEX = SUBSTRING(IDN, 2, 1)
  /* APP_MAX_BUCKET */
  UPDATE PDACO_V6_1
  SET	APP_MAX_BUCKET = (
@@ -1869,7 +1935,7 @@ GO
     SET	CDEF_FLAG_1M = 1
  WHERE EXISTS (SELECT *
                FROM  KRM023_DEDUP AS A
-               WHERE INQUIRY_MON - 1 - MON_SINCE <= 1 
+               WHERE INQUIRY_MON-1 - MON_SINCE <= 1 
                  AND (PAY_CODE IN ('C','D','E','F') OR
 		      (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
                  AND A.IDN = PDACO_V6_1.IDN)
@@ -1897,26 +1963,28 @@ GO
                    AND INQUIRY_MON - MON_SINCE > 0  /* ELIMINATE MOST RECENT 1 MONTH */
                    AND PAY_CODE IN ('A','B')
                    AND A.IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                  FROM KRM023_DEDUP AS A
-                 WHERE INQUIRY_MON - MON_SINCE <= 6 /* NO 30-DAY RULE                */
-                   AND INQUIRY_MON - MON_SINCE > 0  /* ELIMINATE MOST RECENT 1 MONTH */
-                   AND PAY_CODE IN ('A','B')
-                   AND A.IDN = PDACO_V6_1.IDN)
-
-/* FS016C_9M      */
- UPDATE PDACO_V6_1
- SET FS016C_9M = (SELECT COUNT(DISTINCT ISSUE)
-                  FROM KRM023_DEDUP AS A
-                  WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE */
-                    AND CASH = 'Y'
-                    AND PAY_CODE IN ('C','D','E','F')
+                   WHERE INQUIRY_MON - MON_SINCE <= 6 /* NO 30-DAY RULE                */
+                     AND INQUIRY_MON - MON_SINCE > 0  /* ELIMINATE MOST RECENT 1 MONTH */
+                     AND PAY_CODE IN ('A','B')
+                     AND A.IDN = PDACO_V6_1.IDN);
+   
+/  * FS016C_9M      */
+   UPDATE PDACO_V6_1
+   SET FS016C_9M = (SELECT COUNT(DISTINCT ISSUE)
+                    FROM KRM023_DEDUP AS A
+                    WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE */
+                      AND CASH = 'Y'
+                      AND (PAY_CODE IN ('C','D','E','F') OR
+                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
                     AND A.IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                   FROM KRM023_DEDUP AS A
                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 
                     AND CASH = 'Y'
-                    AND PAY_CODE IN ('C','D','E','F')
+                    AND (PAY_CODE IN ('C','D','E','F') OR
+                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
                     AND A.IDN = PDACO_V6_1.IDN)
  
  /* FS016F_12M  */
@@ -1925,33 +1993,35 @@ GO
                    FROM KRM023_DEDUP AS A
                    WHERE CASH = 'Y'
                    AND A.IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(*)
+ WHERE EXISTS (SELECT *
                FROM KRM023_DEDUP AS A
                WHERE CASH = 'Y'
-                 AND A.IDN = PDACO_V6_1.IDN)
+                 AND A.IDN = PDACO_V6_1.IDN);
  
  /* FS018_12M    */
  UPDATE PDACO_V6_1
- SET FS018_12M = (SELECT COUNT(DISTINCT MON_SINCE)
-                   FROM KRM023_DEDUP AS A
-                   WHERE CASH = 'Y'
-                   AND A.IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT MON_SINCE)
-                   FROM KRM023_DEDUP AS A
-                   WHERE CASH = 'Y'
-                   AND A.IDN = PDACO_V6_1.IDN)
+    SET FS018_12M = (SELECT COUNT(DISTINCT MON_SINCE)
+                      FROM KRM023_DEDUP AS A
+                      WHERE CASH = 'Y'
+                      AND A.IDN = PDACO_V6_1.IDN)
+    WHERE EXISTS (SELECT *
+                      FROM KRM023_DEDUP AS A
+                      WHERE CASH = 'Y'
+                      AND A.IDN = PDACO_V6_1.IDN);
 /* FS021_9M       */
  UPDATE PDACO_V6_1
- SET FS021_9M = (SELECT COUNT(DISTINCT MON_SINCE)
-                 FROM KRM023_DEDUP
-                 WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
-                 AND  PAY_CODE IN ('C','D','E','F')
-                 AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT MON_SINCE)
-                 FROM KRM023_DEDUP
-                 WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
-                 AND  PAY_CODE IN ('C','D','E','F')
-                 AND IDN = PDACO_V6_1.IDN)
+   SET FS021_9M = (SELECT COUNT(DISTINCT MON_SINCE)
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
+                     AND (PAY_CODE IN ('C','D','E','F') OR
+                          (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                   AND IDN = PDACO_V6_1.IDN)
+   WHERE EXISTS (SELECT *
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE            */
+                     AND (PAY_CODE IN ('C','D','E','F') OR
+                          (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                   AND IDN = PDACO_V6_1.IDN);
 
 /* FS059_12M_1K   */
  UPDATE PDACO_V6_1
@@ -1959,7 +2029,7 @@ GO
                      FROM KRM023_DEDUP AS A
                      WHERE BUCKET_EF_1K > 0
                        AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                FROM KRM023_DEDUP AS A
                WHERE BUCKET_EF_1K > 0
                  AND IDN = PDACO_V6_1.IDN)
@@ -1971,7 +2041,7 @@ GO
                     WHERE INQUIRY_MON-1 - MON_SINCE <= 3 /* WITH 30-DAY RULE            */
                       AND BUCKET_EF_1K > 0
                       AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                     FROM KRM023_DEDUP
                     WHERE INQUIRY_MON-1 - MON_SINCE <= 3 /* WITH 30-DAY RULE            */
                       AND BUCKET_EF_1K > 0
@@ -1983,7 +2053,7 @@ GO
                     WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
                       AND BUCKET_DEF_1K > 0
                       AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                     FROM KRM023_DEDUP
                     WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
                       AND BUCKET_DEF_1K > 0
@@ -1995,33 +2065,29 @@ GO
  INSERT INTO OPEN_LINE(IDN, ISSUE, BUCKET)
     SELECT IDN, ISSUE, MAX(BUCKET_EF_1K) 
     FROM KRM023_DEDUP
-    GROUP BY IDN, ISSUE
- 
+    GROUP BY IDN, ISSUE;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, SUM(BUCKET)
     FROM OPEN_LINE
-    GROUP BY IDN
- 
+    GROUP BY IDN;
  UPDATE PDACO_V6_1
     SET FS073B_12M = (
-     SELECT V1
-     FROM TMP
-     WHERE IDN = PDACO_V6_1.IDN)
-    WHERE IDN IN (
-     SELECT IDN
-     FROM TMP)
+                SELECT V1
+                FROM TMP
+                WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
  
  /* FS101_6M       */
  UPDATE PDACO_V6_1
- SET FS101_6M = (SELECT COUNT(DISTINCT ISSUE)
-                 FROM KRM023_DEDUP
-                 WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
-                   AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
-                 FROM KRM023_DEDUP
-                 WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
-                   AND IDN = PDACO_V6_1.IDN)
- 
+   SET FS101_6M = (SELECT COUNT(DISTINCT ISSUE)
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
+                     AND IDN = PDACO_V6_1.IDN)
+   WHERE EXISTS (SELECT *
+                   FROM KRM023_DEDUP
+                   WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
+                     AND IDN = PDACO_V6_1.IDN);
+   
   /*---OPEN_CARD AND OPEN_LINE CONTAIN MONTHS WHICH SHOULD HAVE TRANSACTION RECORDS BASED ON
      KRM001, OPEN_LINE CONTAINS ONE RECORD FOR EACH CREDIT LINE EACH MONTH. ONE-CARD-ONE-LINE
      ISSUERS, I.E. 021(CITI) IS PROCESSED SEPERATELY.  THE OTHER TWO ONE-CARD-ONE-LINE ISSUERS,
@@ -2104,8 +2170,9 @@ GO
    FROM KRM023_DEDUP AS A
    WHERE ISSUE IN (SELECT ISSUE FROM LATEST_LINE
                    WHERE MOB <= 12 AND IDN = A.IDN)
-     AND PAY_CODE IN ('C', 'D', 'E', 'F')
-     AND PAYMENT_AMT > 1
+     AND (PAY_CODE IN ('C', 'D', 'E','F') OR
+	  (CASH='Y' AND ISNULL(SPREAD_PAYMENT,0)>0))
+     AND ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) > 1
      AND (INQUIRY_MON-1 - MON_SINCE) <= 3
    GROUP BY IDN;
  UPDATE PDACO_V6_1
@@ -2120,12 +2187,11 @@ GO
     FROM KRM023_DEDUP
     WHERE BUCKET_EF_1K > 0
     GROUP BY IDN, MON_SINCE;
- 
  UPDATE PDACO_V6_1
     SET MS001_12M_1K = (SELECT MAX(V1)
                         FROM TMP
                         WHERE IDN = PDACO_V6_1.IDN)
-    WHERE EXISTS (SELECT MAX(V1)
+    WHERE EXISTS (SELECT *
                         FROM TMP
                         WHERE IDN = PDACO_V6_1.IDN);
  
@@ -2134,32 +2200,36 @@ GO
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
       SUM(CASE WHEN PAY_CODE IN ('C','D','E','F') 
-         THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
-         ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
+                    THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
+                    THEN ISNULL(SPREAD_PAYMENT,0)
+          ELSE 0 END) / COUNT(DISTINCT MON_SINCE)
     FROM KRM023_DEDUP
     WHERE INQUIRY_MON-1 - MON_SINCE <=3  /* WITH 30-DAY RULE */
     AND  INQUIRY_MON   - MON_SINCE > 1  /* TRUNCATE THE TRIALING 2 MONTHS */
     GROUP BY IDN;
  
  UPDATE PDACO_V6_1
-    SET MS094B = (
-     SELECT V1
-     FROM TMP
-     WHERE IDN = PDACO_V6_1.IDN)
-    WHERE IDN IN (
-     SELECT IDN
-     FROM TMP);
+    SET MS094B = (SELECT V1
+                  FROM TMP
+                  WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
  
  /* MS118_9M       */
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
-      MIN((ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)) / CAST(LIMIT AS FLOAT))
+      MIN(CASE WHEN PAY_CODE IN ('C','D','E','F') 
+                    THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
+                    THEN ISNULL(SPREAD_PAYMENT,0)
+               ELSE 0 END) / CAST(LIMIT AS FLOAT))
     FROM KRM023_DEDUP
     WHERE INQUIRY_MON   - MON_SINCE <=9  /* NO   30-DAY RULE */
-    AND  CAST(LIMIT AS FLOAT) > 0
-    AND  PAY_CODE IN ('C','D','E','F')
-    AND  PAYMENT_AMT+ISNULL(SPREAD_PAYMENT,0) > 1    /* TO ELIMINATE THOSE SMALL REVOLING LINES */
+      AND CAST(LIMIT AS FLOAT) > 0
+      AND ((PAY_CODE IN ('C','D','E','F') AND ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) > 1)
+            OR (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>1))   /* TO ELIMINATE THOSE SMALL REVOLING LINES */
+		
     GROUP BY IDN
 
  UPDATE PDACO_V6_1
@@ -2182,7 +2252,9 @@ GO
     GROUP BY IDN, ISSUE;
  
  INSERT INTO TMP(IDN, V1)
-    SELECT IDN, SUM(ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)) AS MS601
+    SELECT IDN, SUM(CASE WHEN PAY_CODE IN ('C','D','E','F') THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
+			 WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>0 THEN ISNULL(SPREAD_PAYMENT,0)
+			 ELSE 0 END)
     FROM KRM023_DEDUP AS A
     WHERE EXISTS (SELECT *
                   FROM OPEN_LINE 
@@ -2196,8 +2268,7 @@ GO
  SET MS601 = (SELECT V1
               FROM TMP
               WHERE IDN = PDACO_V6_1.IDN)
- WHERE IDN IN (SELECT IDN
-               FROM TMP);
+ WHERE IDN IN (SELECT IDN FROM TMP);
 
  /* MS605          */
  DELETE FROM OPEN_LINE;
@@ -2214,15 +2285,43 @@ GO
     WHERE EXISTS (SELECT *
                   FROM OPEN_LINE
                   WHERE IDN = A.IDN
-                  AND  ISSUE = A.ISSUE
-                  AND  MON = A.MON_SINCE)
+                    AND  ISSUE = A.ISSUE
+                    AND  MON = A.MON_SINCE)
     GROUP BY IDN; 
  UPDATE PDACO_V6_1
  SET MS605 = (SELECT V1
               FROM TMP
               WHERE IDN = PDACO_V6_1.IDN)
- WHERE IDN IN (SELECT IDN
-               FROM TMP);
+ WHERE IDN IN (SELECT IDN FROM TMP);
+
+ /* MS606 Total unsecured revolving bal (credit card + cash card + loan) */
+ DELETE FROM OPEN_LINE;
+ DELETE FROM TMP;
+ INSERT INTO OPEN_LINE(IDN, ISSUE, MON)
+    SELECT IDN, ISSUE, MAX(MON_SINCE)
+    FROM KRM023_DEDUP
+    WHERE INQUIRY_MON  - MON_SINCE <=3  /* NO   30-DAY RULE */
+    GROUP BY IDN, ISSUE;
+ 
+ INSERT INTO TMP(IDN, V1)
+    SELECT IDN, SUM((CASE WHEN PAY_CODE IN ('C','D','E','F') THEN ISNULL(PAYMENT_AMT,0) ELSE 0 END)
+		    + ISNULL(SPREAD_PAYMENT,0))
+    FROM KRM023_DEDUP AS A
+    WHERE EXISTS (SELECT *
+                  FROM OPEN_LINE 
+                  WHERE IDN = A.IDN
+                    AND ISSUE = A.ISSUE
+                    AND MON = A.MON_SINCE)
+      AND PAY_CODE IN ('C','D','E','F')
+    GROUP BY IDN;
+
+ UPDATE PDACO_V6_1
+    SET MS606 = (SELECT V1
+                 FROM TMP
+                 WHERE IDN = PDACO_V6_1.IDN)
+    WHERE IDN IN (SELECT IDN FROM TMP);
+ UPDATE PDACO_V6_1
+    SET MS606 = isnull(MS606,0)+isnull(MS063,0);
 
  /* WI001_9M       */
  DELETE FROM TMP;
@@ -2272,113 +2371,6 @@ GO
     WHERE EXISTS (SELECT *
                  FROM TMP A
                  WHERE PDACO_V6_1.IDN = A.IDN);
- 
- UPDATE PDACO_V6_1
-   SET FT102_42 = FS102_3M - (FS102_9M - FS102_6M),
-       INT015_3 = (CASE WHEN FS101_3M = 0 THEN NULL ELSE FS016_3M / FS101_3M END),
-       FT059_1K_43 = FS059_1K_3M - (FS059_1K_6M - FS059_1K_3M),
-       FT059_1K_42 = FS059_1K_3M - (FS059_1K_9M - FS059_1K_6M),
-       FT212_1K_43 = FS212_1K_3M - (FS212_1K_6M - FS212_1K_3M),
-       INT028_9 = (CASE WHEN FS101_9M = 0 THEN NULL ELSE FS014_9M / FS101_9M END);
- UPDATE PDACO_V6_1
-   SET FT059_1K_43_R = POWER((CASE WHEN FT059_1K_43 < 0 THEN NULL ELSE FT059_1K_43 END), 0.5),
-       FT059_1K_42_Q = POWER (FT059_1K_42, 2),
-       FT102_42_R = POWER((CASE WHEN FT102_42 < 0 THEN NULL ELSE FT102_42 END), 0.5),
-       FT212_1K_43_Q = POWER (FT212_1K_43, 2),
-       FS205_3M_1K_Q = POWER (FS205_3M_1K, 2);
- UPDATE PDACO_V6_1
-   SET INT015_3_TRAN = (CASE WHEN INT015_3 IS NULL THEN 1
-      			    WHEN INT015_3 > 1 THEN 1
-      			    ELSE INT015_3 END),
-       FT102_42_R_TRAN = (CASE WHEN FT102_42_R IS NULL THEN -0.2
-      			    WHEN FT102_42_R > 1.7 THEN 1.7
-      			    ELSE FT102_42_R END),
-       FT212_1K_43_Q_TRAN = (CASE WHEN FT212_1K_43_Q IS NULL THEN 0
-      			    ELSE FT212_1K_43_Q END),
-       FT059_1K_42_Q_TRAN = (CASE WHEN FT059_1K_42_Q > 16 THEN 16
-      			       ELSE FT059_1K_42_Q END),
-       FS031_TRAN = (CASE WHEN FS031 IS NULL THEN -1
-      		       WHEN FS031 > 9 THEN 9
-      		       ELSE FS031 END),
-       SEX_TRAN = (CASE WHEN SEX = 1 THEN 1 ELSE 0 END),
-       APP_LAST_MONTH_BUCKET_TRAN = (CASE WHEN APP_LAST_MONTH_BUCKET IS NULL THEN 1
-      			    WHEN APP_LAST_MONTH_BUCKET > 2 THEN 2
-      			    ELSE APP_LAST_MONTH_BUCKET END),
-       FS205_3M_1K_Q_TRAN = (CASE WHEN FS205_3M_1K_Q IS NULL THEN 0
-      		       WHEN FS205_3M_1K_Q > 60 THEN 60
-      		       ELSE FS205_3M_1K_Q END),
-       INT028_9_TRAN = (CASE WHEN INT028_9 IS NULL THEN 0.3
-      		       WHEN INT028_9 > 0.3 THEN 0.3
-      		       ELSE INT028_9 END),
-       FT059_1K_43_R_TRAN = (CASE WHEN FT059_1K_43_R IS NULL THEN 1
-      			       ELSE FT059_1K_43_R END),
-       FS051_TRAN = (CASE WHEN FS051 IS NULL THEN 2
-      		       WHEN FS051 > 5 THEN 5
-      		       ELSE FS051 END);
- UPDATE PDACO_V6_1
-   SET PDACO_SCORE= 0.01474		+
-   	     INT015_3_TRAN		*	0.04190 +
-   	     FT059_1K_42_Q_TRAN		*	0.00964 +
-   	     FT212_1K_43_Q_TRAN		*	0.01186 +
-   	     FT102_42_R_TRAN		*	-0.02683 +
-   	     FS031_TRAN			*	0.00573 +
-   	     MS117_6M			*	0.04292 +
-   	     FS005_1K_3M		*	0.12726 +
-   	     SEX_TRAN 			*	0.02654 +
-   	     APP_LAST_MONTH_BUCKET_TRAN	*	0.05866 +
-   	     FS205_3M_1K_Q_TRAN		*	0.00058973 +
-   	     INT028_9_TRAN		*	-0.08045 +
-   	     FT059_1K_43_R_TRAN		*	0.01873 +
-   	     FS051_TRAN 		*	0.00345;
- UPDATE PDACO_V6_1
-   SET PDACO_TWEN = (CASE
-                     WHEN PDACO_SCORE IS NULL THEN 0
-                     WHEN PDACO_SCORE <= -0.03231 THEN 1
-                     WHEN PDACO_SCORE <= -0.02275 THEN 2
-                     WHEN PDACO_SCORE <= -0.01479 THEN 3
-                     WHEN PDACO_SCORE <= -0.00919 THEN 4
-                     WHEN PDACO_SCORE <= -0.00438 THEN 5
-                     WHEN PDACO_SCORE <= 0.00101 THEN 6
-                     WHEN PDACO_SCORE <= 0.00624 THEN 7
-                     WHEN PDACO_SCORE <= 0.01245 THEN 8
-                     WHEN PDACO_SCORE <= 0.01836 THEN 9
-                     WHEN PDACO_SCORE <= 0.02482 THEN 10
-                     WHEN PDACO_SCORE <= 0.03219 THEN 11
-                     WHEN PDACO_SCORE <= 0.03963 THEN 12
-                     WHEN PDACO_SCORE <= 0.04759 THEN 13
-                     WHEN PDACO_SCORE <= 0.05585 THEN 14
-                     WHEN PDACO_SCORE <= 0.06657 THEN 15
-                     WHEN PDACO_SCORE <= 0.07865 THEN 16
-                     WHEN PDACO_SCORE <= 0.09435 THEN 17
-                     WHEN PDACO_SCORE <= 0.11509 THEN 18
-                     WHEN PDACO_SCORE <= 0.15002 THEN 19
-                     ELSE 20
-   		  END)
- UPDATE PDACO_V6_1
-   SET PB_IN = (CASE
-                WHEN PDACO_TWEN = 0  THEN NULL
-                WHEN PDACO_TWEN = 1  THEN 0.0070
-                WHEN PDACO_TWEN = 2  THEN 0.0080
-                WHEN PDACO_TWEN = 3  THEN 0.0095
-                WHEN PDACO_TWEN = 4  THEN 0.0105
-                WHEN PDACO_TWEN = 5  THEN 0.0120
-                WHEN PDACO_TWEN = 6  THEN 0.0135
-                WHEN PDACO_TWEN = 7  THEN 0.0155
-                WHEN PDACO_TWEN = 8  THEN 0.0175
-                WHEN PDACO_TWEN = 9  THEN 0.0205
-                WHEN PDACO_TWEN = 10 THEN 0.0235
-                WHEN PDACO_TWEN = 11 THEN 0.0265
-                WHEN PDACO_TWEN = 12 THEN 0.0300
-                WHEN PDACO_TWEN = 13 THEN 0.0340
-                WHEN PDACO_TWEN = 14 THEN 0.0385
-                WHEN PDACO_TWEN = 15 THEN 0.0430
-                WHEN PDACO_TWEN = 16 THEN 0.0500
-                WHEN PDACO_TWEN = 17 THEN 0.0640
-                WHEN PDACO_TWEN = 18 THEN 0.0885
-                WHEN PDACO_TWEN = 19 THEN 0.1190
-                WHEN PDACO_TWEN = 20 THEN 0.1800
-     	     END);
-
 
 GO
 /* END_OF_CREATE_PROCEDURE_GENERATE_PDACO_SCORE */
