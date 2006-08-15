@@ -3,10 +3,10 @@
 <PROJECT>
   <MACROS>
     <VERSION value="BCB.06.00"/>
-    <PROJECT value="DAC_FM_NPV.dll"/>
+    <PROJECT value="DAC_PLOAN_NPV.dll"/>
     <OBJFILES value="dllentry.obj AdoHandle.obj dac_ploan.obj errors.obj ploanNPV.obj 
       functions.obj pdaco61.obj pdaco61SQL.obj"/>
-    <RESFILES value="DAC_FM_NPV.res"/>
+    <RESFILES value="DAC_PLOAN_NPV.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
@@ -30,7 +30,7 @@
     <LINKER value="ilink32"/>
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
-    <MAINSOURCE value="DAC_FM_NPV.bpf"/>
+    <MAINSOURCE value="DAC_PLOAN_NPV.bpf"/>
     <INCLUDEPATH value="C:\dac\TainanBB\prog\KTBFM\test;$(BCB)\include;$(BCB)\include\vcl"/>
     <LIBPATH value="$(BCB)\Projects\Lib;C:\dac\TainanBB\prog\KTBFM\test;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
@@ -54,8 +54,8 @@
     <OTHERFILES value=""/>
   </LINKER>
   <FILELIST>
-      <FILE FILENAME="DAC_FM_NPV.res" FORMNAME="" UNITNAME="DAC_FM_NPV.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="DAC_FM_NPV.bpf" FORMNAME="" UNITNAME="DAC_FM_NPV" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="DAC_PLOAN_NPV.res" FORMNAME="" UNITNAME="DAC_PLOAN_NPV.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="DAC_PLOAN_NPV.bpf" FORMNAME="" UNITNAME="DAC_PLOAN_NPV" CONTAINERID="BPF" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="dllentry.cpp" FORMNAME="" UNITNAME="dllentry" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="AdoHandle.cpp" FORMNAME="" UNITNAME="AdoHandle" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="dac_ploan.cpp" FORMNAME="" UNITNAME="dac_ploan" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
