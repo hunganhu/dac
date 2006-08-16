@@ -12,12 +12,17 @@
 **
 ****************************************************************************/
 //---------------------------------------------------------------------------
+// to do:
+// write scorecard, fsc_cap_amount, cap_amount to db
 #pragma hdrstop
 
 #include <Math.hpp>
 #include <math.h>
 #include "pdaco61.h"
 #include "errors.h"
+#define min(a,b)  ((a) > (b)) ? (b): (a)
+#define max(a,b)  ((a) > (b)) ? (a): (b)
+
 using namespace std;
 
 //---------------------------------------------------------------------------
@@ -105,6 +110,8 @@ int PDACO::get_scorecard(TADOHandler *handler)
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
+        monthly_income = ds->FieldValues["MONTHLY_INCOME"];
+        MS606 = ds->FieldValues["MS606"];
         if (!ds->FieldValues["MS101"].IsNull())
            ms101 = ds->FieldByName("MS101")->AsFloat;
         else
@@ -123,6 +130,7 @@ int PDACO::get_scorecard(TADOHandler *handler)
 	   scorecard = 4;
      else        // score card P5  100k < credit card limit (MS605)
 	scorecard = 5;
+     setLoanAmount();
  } catch (Exception &E) {
      ds->Close();
      delete ds;
@@ -490,52 +498,26 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
  ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
+     CreateWorkingTables(handler);
+     GenerateScreenVars(handler);
      card = get_scorecard(handler);
      switch (card) {
      	case 0: PDACO61P0Raw(handler);  // Scorecard P0
      	        break;
-     	case 1:
+     	case 1: PDACO61P1Raw(handler);  // Scorecard P1
      	        break;
      	case 2: PDACO61P2Raw(handler);  // Scorecard P2
      	        PDACO61P2Score();
-     	        cap_amount = 300000.0;
      	        break;
      	case 3: PDACO61P3Raw(handler);  // Scorecard P3
-     	        cap_amount = 700000.0;
      	        break;
      	case 4: PDACO61P4Raw(handler);  // Scorecard P4
      	        PDACO61P4Score();
-     	        cap_amount = 500000.0;
      	        break;
      	case 5: PDACO61P5Raw(handler);  // Scorecard P5
      	        PDACO61P5Score();
-     	        cap_amount = 1000000.0;
      	        break;
      }
-/*
-     if (ps_code > 0)
-        segment = seg_F;
-     else {
-        if (krm021_hit == 1 && krm023_hit== 1 && ind001 == 0) {    // Scorable
-           segment = seg_S;
-           GeneratePdacoScore(handler);
-           if (score > 0.06647) {
-              ps_code = PSCODE_107;
-              segment = seg_F;
-           }
-        }
-        else {  // Non-scorable
-           if (card_force_stop > 0)
-              ps_code = PSCODE_110;
-           else if (fs059_1k_12m > 0)
-              ps_code = PSCODE_109;
-           if (ps_code > 0)
-              segment = seg_If;
-           else
-              segment = seg_Ip;
-        }
-     }
-*/
 #ifdef _TRACE
      handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
@@ -564,6 +546,62 @@ int PDACO::GenerateScreenVars(TADOHandler *handler)
      throw;
  }
  return 0;
+}
+//---------------------------------------------------------------------------
+double PDACO::GetCapAmount()
+{
+ switch (scorecard) {
+        case 0: cap_amount = 0.0;       // Scorecard P0
+     	        break;
+     	case 1: cap_amount = 0.0;       // Scorecard P1
+     	        break;
+     	case 2: cap_amount = 300000.0;  // Scorecard P2
+     	        break;
+     	case 3: cap_amount = 700000.0;  // Scorecard P3
+     	        break;
+     	case 4: cap_amount = 500000.0;  // Scorecard P4
+     	        break;
+     	case 5: cap_amount = 1000000.0; // Scorecard P5
+     	        break;
+ }
+ return(cap_amount);
+}
+//---------------------------------------------------------------------------
+double PDACO::GetPbCap()
+{
+ // APR        PB Cap   APR needs to be round to integer
+ // 11% and plus   4%
+ // 10%            3.75%
+ // 9%             3.5%
+ // 8%             3.25%
+ // 7%             3%
+ // 6%             2.75%
+ // 5% and below   2.5%
+ double pbCap;
+ if (apr >= 10.5) pbCap = 0.04;       // 11% and plus
+ else if (apr >= 9.5) pbCap = 0.0375; // 10%
+ else if (apr >= 8.5) pbCap = 0.035;  // 9%
+ else if (apr >= 7.5) pbCap = 0.0325; // 8%
+ else if (apr >= 6.5) pbCap = 0.03;   // 7%
+ else if (apr >= 5.5) pbCap = 0.0275; // 6%
+ else pbCap = 0.025;                  // 5% and below
+
+ return(pbCap);
+}
+//---------------------------------------------------------------------------
+int PDACO::GetFscCap()
+{
+ double fsc_lendable = monthly_income * 22 - MS606;
+ if (fsc_lendable < 0) fsc_lendable = 0;
+ int fsc_lendable_rounding = (static_cast<int>(fsc_lendable) / 10000) * 10000;
+
+ return(fsc_lendable_rounding);
+}
+//---------------------------------------------------------------------------
+float PDACO::setLoanAmount()
+{
+ LOAN_AMOUNT = min(min(REQUEST_AMT, cap_amount),GetFscCap());
+ return(LOAN_AMOUNT);
 }
 //---------------------------------------------------------------------------
 double PDACO::getPdaco61Score()

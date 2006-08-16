@@ -60,8 +60,8 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
     if (check_credit_card_block(dbhandle, msno) > 0)
        throw cc_error(PSCODE_110, msno, app_input_time);
  // Get application info: amount, term, apr, and fee
-    ptrLoan = new Loan(msno, app_input_time);
-    ptrLoan->app_info_validate(msno, dbhandle);
+ //   ptrLoan = new Loan(msno, app_input_time);
+ //   ptrLoan->app_info_validate(msno, dbhandle);
  // new risk model and calculate jcic variables
     pdaco_app = new PDACO(msno, app_input_time);
     pass = pdaco_app->GeneratePdaco61Score(dbhandle);

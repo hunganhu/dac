@@ -34,6 +34,7 @@ class PDACO
     float        LOAN_AMOUNT;
     int          now;
     int          scorecard;
+    int          monthly_income;
 // prescreen variable
     int krm021_hit;
     int krm023_hit;
@@ -88,6 +89,7 @@ class PDACO
     float MS105;
     float MS118_9M;
     float MS601;
+    float MS604;
     float MS605;
     float MS606;
     float RS017;
@@ -142,11 +144,15 @@ class PDACO
     double PDACO61P2Score();
     double PDACO61P4Score();
     double PDACO61P5Score();
+    double GetCapAmount();
+    int GetFscCap();
 
   public:
     PDACO (char *msn, char* input_time);
     ~PDACO ();
     int GeneratePdaco61Score(TADOHandler *handler);
+    double GetPbCap();
+    float setLoanAmount();
     int GenerateScreenVars(TADOHandler *handler);
     void set_PS_code(int code);
     double getPdaco61Score();
