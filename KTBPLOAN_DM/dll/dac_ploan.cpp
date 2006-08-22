@@ -66,11 +66,9 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
     pdaco_app = new PDACO(msno, app_input_time);
     pass = pdaco_app->GeneratePdaco61Score(dbhandle);
  // calculate NPV
-    if (pass) {
-       if (pdaco_app->getPdaco61PB() > pdaco_app->GetPbCap())
-          throw cc_error(PSCODE_109, msno, app_input_time);
+    if (pass == 0) {
        // calculate NPV
-         
+
     }
  // upsell
  //

@@ -158,7 +158,7 @@ class PDACO
     double GetPbCap();
     float setLoanAmount();
     int GenerateScreenVars(TADOHandler *handler);
-    void set_PS_code(int code);
+    int getPsCode();
     double getPdaco61Score();
     double getPdaco61PB();
     double getPdaco61CapAmount();

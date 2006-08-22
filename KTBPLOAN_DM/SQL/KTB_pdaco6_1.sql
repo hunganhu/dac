@@ -310,6 +310,7 @@ GO
 	UNSECURE_FLAG	DECIMAL(16,8),
 	LU_FLAG		DECIMAL(16,8),
 	P4_SCORE	DECIMAL(16,8), /* P4 Related */
+        RS017_R_TRAN	DECIMAL(16,8),
 	MS604_R		DECIMAL(16,8),
 	MS001_12M_1K_Q	DECIMAL(16,8),
 	FS018_12M_Z	DECIMAL(16,8),
@@ -634,8 +635,8 @@ GO
   SET PAYMENT_AMT =
    (CASE RIGHT(PAYMENT,1) WHEN 'L' THEN 2 WHEN 'M' THEN 5 WHEN 'H' THEN 8
    ELSE 0 END) * POWER(10, ISNULL(LEFT(PAYMENT,2),0)-1) / 1000.0;
- INSERT INTO KRM023_DEDUP (MSN, INQUIRY_DATE, IDN, YRMON, MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, CASH, PAY_CODE, SPREAD_PAYMENT)
-   SELECT MSN, INQUIRY_DATE, IDN, YRMON, MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, CASH, PAY_CODE, SPREAD_PAYMENT
+ INSERT INTO KRM023_DEDUP (MSN, INQUIRY_DATE, IDN, YRMON, MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, CASH, PAY_CODE, SPREAD_PAYMENT, INQUIRY_MON)
+   SELECT MSN, INQUIRY_DATE, IDN, YRMON, MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, CASH, PAY_CODE, SPREAD_PAYMENT, INQUIRY_MON
    FROM KRM023_TMP1
    WHERE MON_SINCE > 1140;
  UPDATE KRM023_DEDUP
@@ -1051,6 +1052,22 @@ GO
 GO
 -----------------------------------------------------------------------------------------------------------------------
 -- P2, w/o guarantor, CC limit (MS605) <=50K
+/* FS016C_9M      */
+ UPDATE PDACO_V6_1
+   SET FS016C_9M = (SELECT COUNT(DISTINCT ISSUE)
+                    FROM KRM023_DEDUP AS A
+                    WHERE INQUIRY_MON-1 - MON_SINCE <= 9 /* WITH 30-DAY RULE */
+                      AND CASH = 'Y'
+                      AND (PAY_CODE IN ('C','D','E','F') OR
+                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                    AND A.IDN = PDACO_V6_1.IDN)
+ WHERE EXISTS (SELECT *
+                  FROM KRM023_DEDUP AS A
+                  WHERE INQUIRY_MON-1 - MON_SINCE <= 9 
+                    AND CASH = 'Y'
+                    AND (PAY_CODE IN ('C','D','E','F') OR
+                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                    AND A.IDN = PDACO_V6_1.IDN);
  /*----MONTHLY DEBT ----*/
  DELETE FROM TMP;
  INSERT INTO TMP (IDN, V1)
@@ -2023,7 +2040,7 @@ GO
                      AND PAY_CODE IN ('A','B')
                      AND A.IDN = PDACO_V6_1.IDN);
    
-/  * FS016C_9M      */
+/* FS016C_9M      */
    UPDATE PDACO_V6_1
    SET FS016C_9M = (SELECT COUNT(DISTINCT ISSUE)
                     FROM KRM023_DEDUP AS A
@@ -2037,7 +2054,7 @@ GO
                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 
                     AND CASH = 'Y'
                     AND (PAY_CODE IN ('C','D','E','F') OR
-                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
+                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0));
                     AND A.IDN = PDACO_V6_1.IDN);
  
  /* FS016F_12M  */

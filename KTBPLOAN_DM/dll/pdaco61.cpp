@@ -30,7 +30,7 @@ using namespace std;
 
 
 PDACO::PDACO (char *msn, char* input_time):
-    msn(msn), input_time(input_time)
+    msn(msn), input_time(input_time), ps_code(0), ps_msg("")
 {
 }
 
@@ -151,7 +151,6 @@ int PDACO::get_scorecard(TADOHandler *handler)
 	   scorecard = 4;
      else        // score card P5  100k < credit card limit (MS605)
 	scorecard = 5;
-     setLoanAmount();
  } catch (Exception &E) {
      ds->Close();
      delete ds;
@@ -336,7 +335,7 @@ int PDACO::PDACO61P5Raw(TADOHandler *handler)
         MS093 = ds->FieldValues["MS093"];
         MS094B = ds->FieldValues["MS094B"];
         MS105 = ds->FieldValues["MS105"];
-        WI003_9M = ds->FieldValues["WI003_9M"];
+        WI003_9M_T = ds->FieldValues["WI003_9M_T"];
     }
  } catch (Exception &E) {
      ds->Close();
@@ -353,11 +352,11 @@ double PDACO::PDACO61P0Score()
  rscore= 0.1192 +
 	 FS302_FG	* 0.16259 +
 	 jas002_defect  * 0.08236;
-	   
+
  if      (rscore <= 0.1192 ) twentile = 2;
  else if (rscore <= 0.20156) twentile = 3;
  else twentile = 4;
- 
+
  if (twentile == 2) pb = 0.12;
  else if (twentile == 3) pb = 0.24;
  else if (twentile == 4) pb = 0.28;
@@ -371,15 +370,16 @@ double PDACO::PDACO61P1Score()
  twentile = 0;
 
  if (krm023_hit == 1) {     // Gray 1   krm023_hit
-    if (FS031 > 5) throw cc_error(PSCODE_111, msn, input_time);
-    else if (fs059_1k_12m > 0) throw cc_error(PSCODE_112, msn, input_time);
-    else if (card_force_stop > 0) throw cc_error(PSCODE_113, msn, input_time);
+    if (FS031 > 5) {ps_code = PSCode(PSCODE_111); ps_msg = PSMsg(PSCODE_111);}
+    else if (fs059_1k_12m > 0) {ps_code = PSCode(PSCODE_112); ps_msg = PSMsg(PSCODE_112);}
+    else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_113); ps_msg = PSMsg(PSCODE_113);}
  }
  else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
-    if (FS031 > 3) throw cc_error(PSCODE_114, msn, input_time);
-    else if (card_force_stop > 0) throw cc_error(PSCODE_115, msn, input_time);
+    if (FS031 > 3) {ps_code = PSCode(PSCODE_114); ps_msg = PSMsg(PSCODE_114);}
+    else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_115); ps_msg = PSMsg(PSCODE_115);}
  } else {       // White   no krm023 nor krm021 nor bam086
-    throw cc_error(PSCODE_201, msn, input_time);
+    ps_code = PSCode(PSCODE_201);
+    ps_msg = PSMsg(PSCODE_201);
  }
 
  return (pb);
@@ -450,11 +450,10 @@ double PDACO::PDACO61P3Score()
 //---------------------------------------------------------------------------
 double PDACO::PDACO61P4Score()
 {
- double monthly_payment, ln004_9m, ln004_9m_q, p4_score;
- double APR_N, Score_N, term_N, loan_N, pb;
+ double APR_N, Score_N, term_N, loan_N;
 
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
- ln004_9m = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI004_9M,
+ ln004_9m = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI004_9M;
  ln004_9m_q = ln004_9m * ln004_9m;
 
  rscore = 0.39859	+
@@ -489,7 +488,7 @@ double PDACO::PDACO61P4Score()
  else twentile = 20;
 
  APR_N = apr * 100 / 30;
- Score_N = (p4_score + 0.07949958) / (2.864864072 + 0.07949958 );
+ Score_N = (rscore + 0.07949958) / (2.864864072 + 0.07949958 );
  term_N = TOTAL_TERM / 120.0;
  loan_N =LOAN_AMOUNT / 3000000.0;
 
@@ -504,11 +503,10 @@ double PDACO::PDACO61P4Score()
 //---------------------------------------------------------------------------
 double PDACO::PDACO61P5Score()
 {
- double monthly_payment, ln003_9m_t, p5_score;
- double APR_N, Score_N, term_N, loan_N, pb;
+ double APR_N, Score_N, term_N, loan_N;
 
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
- ln003_9m_t = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI003_9M_T,
+ ln003_9m_t = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI003_9M_T;
  rscore= 0.25612	+
    	     FS016F_12M         *	0.00321   +
    	     RS017_R_TRAN2      *	-0.03459  +
@@ -540,7 +538,7 @@ double PDACO::PDACO61P5Score()
  else twentile = 20;
 
  APR_N = apr * 100 / 30;
- Score_N = (p5_score + 0.017201595) / (0.6799021583 + 0.017201595);
+ Score_N = (rscore + 0.017201595) / (0.6799021583 + 0.017201595);
  term_N = TOTAL_TERM / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
@@ -566,24 +564,34 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      card = get_scorecard(handler);
      switch (card) {
      	case 0: PDACO61P0Raw(handler);  // Scorecard P0
+                setLoanAmount();
      	        PDACO61P0Score();
      	        break;
      	case 1: PDACO61P1Raw(handler);  // Scorecard P1
      	        PDACO61P1Score();
      	        break;
      	case 2: PDACO61P2Raw(handler);  // Scorecard P2
+                setLoanAmount();
      	        PDACO61P2Score();
      	        break;
      	case 3: PDACO61P3Raw(handler);  // Scorecard P3
+                setLoanAmount();
      	        PDACO61P3Score();
      	        break;
      	case 4: PDACO61P4Raw(handler);  // Scorecard P4
+                setLoanAmount();
      	        PDACO61P4Score();
      	        break;
      	case 5: PDACO61P5Raw(handler);  // Scorecard P5
+                setLoanAmount();
      	        PDACO61P5Score();
      	        break;
      }
+
+   if (pb > GetPbCap()) {
+      ps_code = PSCode(PSCODE_109);
+      ps_msg = PSMsg(PSCODE_109);
+   }
 #ifdef _TRACE
      WriteTraceRecord(handler);
 #endif
@@ -633,7 +641,9 @@ double PDACO::GetCapAmount()
      	        break;
      	case 2: cap_amount = 300000.0;  // Scorecard P2
      	        break;
-     	case 3: cap_amount = 700000.0;  // Scorecard P3
+     	case 3: if (twentile == 1) cap_amount = 700000.0;  // Scorecard P3
+                else if (twentile == 2) cap_amount = 300000.0;
+                else if (twentile == 3) cap_amount = 150000.0;
      	        break;
      	case 4: cap_amount = 500000.0;  // Scorecard P4
      	        break;
@@ -669,9 +679,9 @@ int PDACO::GetFscCap()
 {
  double fsc_lendable = monthly_income * 22 - MS606;
  if (fsc_lendable < 0) fsc_lendable = 0;
- int fsc_lendable_rounding = (static_cast<int>(fsc_lendable) / 10000) * 10000;
+ FSC_AMOUNT = (static_cast<int>(fsc_lendable) / 10000) * 10000;
 
- return(fsc_lendable_rounding);
+ return(FSC_AMOUNT);
 }
 //---------------------------------------------------------------------------
 float PDACO::setLoanAmount()
@@ -701,8 +711,8 @@ double PDACO::monthly_debt()
  return ms101;
 }
 //---------------------------------------------------------------------------
-void PDACO::set_PS_code(int code)
+int PDACO::getPsCode()
 {
- ps_code = code;
+ return ps_code;
 }
 
