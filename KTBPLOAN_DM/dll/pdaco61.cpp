@@ -13,7 +13,7 @@
 ****************************************************************************/
 //---------------------------------------------------------------------------
 // to do:
-// write scorecard, fsc_cap_amount, cap_amount to db
+// 
 #pragma hdrstop
 
 #include <Math.hpp>
@@ -42,6 +42,7 @@ PDACO::~PDACO ()
 int PDACO::CreateWorkingTables(TADOHandler *handler)
 {
  try {
+    handler->ExecSQLCmd(SQLCommands[Drop_Working_Tables]);
     handler->ExecSQLCmd(SQLCommands[Create_Working_Tables]);
  } catch (Exception &E) {
      throw;
@@ -65,7 +66,17 @@ int PDACO::PrepareJcicSourceTables(TADOHandler *handler)
  try {
     hostVars[0] = msn;
     hostVars[1] = input_time;
-    handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Source_Tables], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Insert_PDACO_V61], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Dedup_KRM021], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Dedup_KRM023], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Dedup_STM007], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Dedup_BAM086], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_DELINQUENT], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_BAD_CHECK], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_REJECT], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_STOP_CARD], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Dedup_KRM037], hostVars, 1);
+    handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Source_Tables]);
  } catch (Exception &E) {
      throw;
  }
@@ -79,6 +90,13 @@ int PDACO::PrepareJcicData(TADOHandler *handler)
  } catch (Exception &E) {
      throw;
  }
+ return 0;
+}
+//---------------------------------------------------------------------------
+int PDACO::GenerateScreenVars(TADOHandler *handler)
+{
+ PrepareJcicSourceTables(handler);
+ PrepareJcicData(handler);
  return 0;
 }
 //---------------------------------------------------------------------------
@@ -110,12 +128,15 @@ int PDACO::get_scorecard(TADOHandler *handler)
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
-        monthly_income = ds->FieldValues["MONTHLY_INCOME"];
-        MS606 = ds->FieldValues["MS606"];
-        if (!ds->FieldValues["MS101"].IsNull())
-           ms101 = ds->FieldByName("MS101")->AsFloat;
+        REQUEST_AMT = ds->FieldValues["REQUEST_AMT"];
+        TOTAL_TERM = ds->FieldValues["TOTAL_TERM"];
+        period = TOTAL_TERM;
+        apr = ds->FieldValues["APR"];
+        if (ds->FieldValues["MONTHLY_INCOME"].IsNull())
+          monthly_income = 0;
         else
-           ms101 = 0.0;
+           monthly_income = ds->FieldValues["MONTHLY_INCOME"];
+        MS606 = ds->FieldValues["MS606"];
      }
      if (jas002_defect > 0 || app_max_bucket > 3 || fs044 > 0 || delinquent_months > 3 || cash_max_bucket > 0)
      	scorecard = 0;           // score card P0  meet screenout rule #1-5
@@ -187,22 +208,7 @@ int PDACO::PDACO61P1Raw(TADOHandler *handler)
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         FS031 = ds->FieldValues["FS031"];
     }
-    if (krm023_hit == 1) {     // Gray 1   krm023_hit
-       if (FS031 > 5) throw cc_error(PSCODE_111, msn, input_time);
-       else if (fs059_1k_12m > 0) throw cc_error(PSCODE_112, msn, input_time);
-       else if (card_force_stop > 0) throw cc_error(PSCODE_113, msn, input_time);
-    }
-    else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
-       if (FS031 > 3) throw cc_error(PSCODE_114, msn, input_time);
-       else if (card_force_stop > 0) throw cc_error(PSCODE_115, msn, input_time);
-    } else {       // White   no krm023 nor krm021 nor bam086
-       throw cc_error(PSCODE_201, msn, input_time);
-    }
 
- } catch(cc_error &Err){
-     ds->Close();
-     delete ds;
-     throw;
  } catch (Exception &E) {
      ds->Close();
      delete ds;
@@ -342,6 +348,43 @@ int PDACO::PDACO61P5Raw(TADOHandler *handler)
  return 0;
 }
 //---------------------------------------------------------------------------
+double PDACO::PDACO61P0Score()
+{
+ rscore= 0.1192 +
+	 FS302_FG	* 0.16259 +
+	 jas002_defect  * 0.08236;
+	   
+ if      (rscore <= 0.1192 ) twentile = 2;
+ else if (rscore <= 0.20156) twentile = 3;
+ else twentile = 4;
+ 
+ if (twentile == 2) pb = 0.12;
+ else if (twentile == 3) pb = 0.24;
+ else if (twentile == 4) pb = 0.28;
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
+double PDACO::PDACO61P1Score()
+{
+ rscore = pb = 1.0;
+ twentile = 0;
+
+ if (krm023_hit == 1) {     // Gray 1   krm023_hit
+    if (FS031 > 5) throw cc_error(PSCODE_111, msn, input_time);
+    else if (fs059_1k_12m > 0) throw cc_error(PSCODE_112, msn, input_time);
+    else if (card_force_stop > 0) throw cc_error(PSCODE_113, msn, input_time);
+ }
+ else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
+    if (FS031 > 3) throw cc_error(PSCODE_114, msn, input_time);
+    else if (card_force_stop > 0) throw cc_error(PSCODE_115, msn, input_time);
+ } else {       // White   no krm023 nor krm021 nor bam086
+    throw cc_error(PSCODE_201, msn, input_time);
+ }
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
 double PDACO::PDACO61P2Score()
 {
  double APR_N, Score_N, term_N, loan_N;
@@ -349,30 +392,31 @@ double PDACO::PDACO61P2Score()
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
  ln001_9m = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI001_9M;
  ln001_9m_t2 = ln001_9m * (1-FS016C_9M_T1);
- p2_score= -0.02923	+
-   	   FS016C_9M_T1	*	0.15400 +
-   	   ln001_9m_t2	*	0.00316 +
-   	   CDEF_FLAG_1M	*	0.06766;
 
- if      (p2_score <= -0.01551)  twentile = 1 ;
- else if (p2_score <= -0.00549)  twentile = 2 ;
- else if (p2_score <= 0.00562 )  twentile = 3 ;
- else if (p2_score <= 0.01940 )  twentile = 4 ;
- else if (p2_score <= 0.04620 )  twentile = 5 ;
- else if (p2_score <= 0.05837 )  twentile = 6 ;
- else if (p2_score <= 0.07083 )  twentile = 7 ;
- else if (p2_score <= 0.07631 )  twentile = 8 ;
- else if (p2_score <= 0.08300 )  twentile = 9 ;
- else if (p2_score <= 0.09374 )  twentile = 10;
- else if (p2_score <= 0.10974 )  twentile = 11;
- else if (p2_score <= 0.12477 )  twentile = 12;
- else if (p2_score <= 0.14445 )  twentile = 13;
- else if (p2_score <= 0.18946 )  twentile = 14;
- else if (p2_score <= 0.19243 )  twentile = 17;
+ rscore= -0.02923	+
+   	 FS016C_9M_T1	*	0.15400 +
+   	 ln001_9m_t2	*	0.00316 +
+   	 CDEF_FLAG_1M	*	0.06766;
+
+ if      (rscore <= -0.01551)  twentile = 1 ;
+ else if (rscore <= -0.00549)  twentile = 2 ;
+ else if (rscore <= 0.00562 )  twentile = 3 ;
+ else if (rscore <= 0.01940 )  twentile = 4 ;
+ else if (rscore <= 0.04620 )  twentile = 5 ;
+ else if (rscore <= 0.05837 )  twentile = 6 ;
+ else if (rscore <= 0.07083 )  twentile = 7 ;
+ else if (rscore <= 0.07631 )  twentile = 8 ;
+ else if (rscore <= 0.08300 )  twentile = 9 ;
+ else if (rscore <= 0.09374 )  twentile = 10;
+ else if (rscore <= 0.10974 )  twentile = 11;
+ else if (rscore <= 0.12477 )  twentile = 12;
+ else if (rscore <= 0.14445 )  twentile = 13;
+ else if (rscore <= 0.18946 )  twentile = 14;
+ else if (rscore <= 0.19243 )  twentile = 17;
  else twentile = 20;
 
  APR_N = apr * 100 / 30;
- Score_N = (p2_score + 0.02188119 ) / (0.679902158 + 0.02188119 );
+ Score_N = (rscore + 0.021881193 ) / (0.5958727095 + 0.021881193);
  term_N = TOTAL_TERM / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
@@ -385,6 +429,25 @@ double PDACO::PDACO61P2Score()
 }
 
 //---------------------------------------------------------------------------
+double PDACO::PDACO61P3Score()
+{
+ double APR_N;
+
+ if (LU_FLAG == 1) twentile = 1;
+ else {   // LU_FLAG == 0
+    if (FS021_9M <=2 ) twentile = 2;
+    else twentile = 3;
+ }
+
+ APR_N = apr * 100 / 30;
+
+ if (twentile == 1) rscore = pb = 0.008;
+ else if (twentile == 2) rscore = pb = 0.044 + 0.083 * APR_N;
+ else if (twentile == 3) rscore = pb = 0.017 + 0.41  * APR_N;
+
+ return (pb);
+}
+//---------------------------------------------------------------------------
 double PDACO::PDACO61P4Score()
 {
  double monthly_payment, ln004_9m, ln004_9m_q, p4_score;
@@ -394,7 +457,7 @@ double PDACO::PDACO61P4Score()
  ln004_9m = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI004_9M,
  ln004_9m_q = ln004_9m * ln004_9m;
 
- p4_score = 0.39859	+
+ rscore = 0.39859	+
    	    MS604_R		*	0.00364 +
    	    RS017_R_TRAN	*	-0.09671 +
    	    MS001_12M_1K_Q	*	0.00000207 +
@@ -404,29 +467,29 @@ double PDACO::PDACO61P4Score()
    	    ln004_9m_q		*	0.04015 +
    	    FS546_9M_TRAN	*	0.01141;
 
- if      (p4_score <= -0.02452) twentile = 1;
- else if (p4_score <= 0.00056)  twentile = 2;
- else if (p4_score <= 0.01786)  twentile = 3;
- else if (p4_score <= 0.03197)  twentile = 4;
- else if (p4_score <= 0.04325)  twentile = 5;
- else if (p4_score <= 0.05431)  twentile = 6;
- else if (p4_score <= 0.06485)  twentile = 7;
- else if (p4_score <= 0.07343)  twentile = 8;
- else if (p4_score <= 0.08346)  twentile = 9;
- else if (p4_score <= 0.09181)  twentile = 10;
- else if (p4_score <= 0.10081)  twentile = 11;
- else if (p4_score <= 0.11041)  twentile = 12;
- else if (p4_score <= 0.12171)  twentile = 13;
- else if (p4_score <= 0.13461)  twentile = 14;
- else if (p4_score <= 0.14597)  twentile = 15;
- else if (p4_score <= 0.16077)  twentile = 16;
- else if (p4_score <= 0.18534)  twentile = 17;
- else if (p4_score <= 0.20890)  twentile = 18;
- else if (p4_score <= 0.25620)  twentile = 19;
+ if      (rscore <= -0.02452) twentile = 1;
+ else if (rscore <= 0.00056)  twentile = 2;
+ else if (rscore <= 0.01786)  twentile = 3;
+ else if (rscore <= 0.03197)  twentile = 4;
+ else if (rscore <= 0.04325)  twentile = 5;
+ else if (rscore <= 0.05431)  twentile = 6;
+ else if (rscore <= 0.06485)  twentile = 7;
+ else if (rscore <= 0.07343)  twentile = 8;
+ else if (rscore <= 0.08346)  twentile = 9;
+ else if (rscore <= 0.09181)  twentile = 10;
+ else if (rscore <= 0.10081)  twentile = 11;
+ else if (rscore <= 0.11041)  twentile = 12;
+ else if (rscore <= 0.12171)  twentile = 13;
+ else if (rscore <= 0.13461)  twentile = 14;
+ else if (rscore <= 0.14597)  twentile = 15;
+ else if (rscore <= 0.16077)  twentile = 16;
+ else if (rscore <= 0.18534)  twentile = 17;
+ else if (rscore <= 0.20890)  twentile = 18;
+ else if (rscore <= 0.25620)  twentile = 19;
  else twentile = 20;
 
  APR_N = apr * 100 / 30;
- Score_N = (p4_score + 0.02188119 ) / (0.679902158 + 0.02188119 );
+ Score_N = (p4_score + 0.07949958) / (2.864864072 + 0.07949958 );
  term_N = TOTAL_TERM / 120.0;
  loan_N =LOAN_AMOUNT / 3000000.0;
 
@@ -446,7 +509,7 @@ double PDACO::PDACO61P5Score()
 
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
  ln003_9m_t = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI003_9M_T,
- p5_score= 0.25612	+
+ rscore= 0.25612	+
    	     FS016F_12M         *	0.00321   +
    	     RS017_R_TRAN2      *	-0.03459  +
    	     MS074_T3           *	0.00003294+
@@ -455,29 +518,29 @@ double PDACO::PDACO61P5Score()
    	     FS031_1M_Q_TRAN2   *	0.00171   +
    	     FS073B_12M_R       *	0.02631;
 
- if      (p5_score <= 0.00317) twentile = 1;
- else if (p5_score <= 0.01542) twentile = 2;
- else if (p5_score <= 0.02500) twentile = 3;
- else if (p5_score <= 0.03280) twentile = 4;
- else if (p5_score <= 0.04108) twentile = 5;
- else if (p5_score <= 0.04851) twentile = 6;
- else if (p5_score <= 0.05467) twentile = 7;
- else if (p5_score <= 0.06031) twentile = 8;
- else if (p5_score <= 0.06764) twentile = 9;
- else if (p5_score <= 0.07515) twentile = 10;
- else if (p5_score <= 0.08255) twentile = 11;
- else if (p5_score <= 0.09187) twentile = 12;
- else if (p5_score <= 0.10131) twentile = 13;
- else if (p5_score <= 0.11072) twentile = 14;
- else if (p5_score <= 0.12268) twentile = 15;
- else if (p5_score <= 0.13652) twentile = 16;
- else if (p5_score <= 0.15577) twentile = 17;
- else if (p5_score <= 0.17960) twentile = 18;
- else if (p5_score <= 0.21736) twentile = 19;
+ if      (rscore <= 0.00317) twentile = 1;
+ else if (rscore <= 0.01542) twentile = 2;
+ else if (rscore <= 0.02500) twentile = 3;
+ else if (rscore <= 0.03280) twentile = 4;
+ else if (rscore <= 0.04108) twentile = 5;
+ else if (rscore <= 0.04851) twentile = 6;
+ else if (rscore <= 0.05467) twentile = 7;
+ else if (rscore <= 0.06031) twentile = 8;
+ else if (rscore <= 0.06764) twentile = 9;
+ else if (rscore <= 0.07515) twentile = 10;
+ else if (rscore <= 0.08255) twentile = 11;
+ else if (rscore <= 0.09187) twentile = 12;
+ else if (rscore <= 0.10131) twentile = 13;
+ else if (rscore <= 0.11072) twentile = 14;
+ else if (rscore <= 0.12268) twentile = 15;
+ else if (rscore <= 0.13652) twentile = 16;
+ else if (rscore <= 0.15577) twentile = 17;
+ else if (rscore <= 0.17960) twentile = 18;
+ else if (rscore <= 0.21736) twentile = 19;
  else twentile = 20;
 
  APR_N = apr * 100 / 30;
- Score_N = (p5_score + 0.02188119 ) / (0.679902158 + 0.02188119 );
+ Score_N = (p5_score + 0.017201595) / (0.6799021583 + 0.017201595);
  term_N = TOTAL_TERM / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
@@ -503,13 +566,16 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      card = get_scorecard(handler);
      switch (card) {
      	case 0: PDACO61P0Raw(handler);  // Scorecard P0
+     	        PDACO61P0Score();
      	        break;
      	case 1: PDACO61P1Raw(handler);  // Scorecard P1
+     	        PDACO61P1Score();
      	        break;
      	case 2: PDACO61P2Raw(handler);  // Scorecard P2
      	        PDACO61P2Score();
      	        break;
      	case 3: PDACO61P3Raw(handler);  // Scorecard P3
+     	        PDACO61P3Score();
      	        break;
      	case 4: PDACO61P4Raw(handler);  // Scorecard P4
      	        PDACO61P4Score();
@@ -519,9 +585,13 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	        break;
      }
 #ifdef _TRACE
-     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+     WriteTraceRecord(handler);
 #endif
      DropWorkingTables(handler);
+ } catch(cc_error &Err){
+#ifdef _TRACE
+     WriteTraceRecord(handler);
+#endif
  } catch (Exception &E) {
      ds->Close();
      delete ds;
@@ -533,15 +603,21 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
  return 0;
 }
 //---------------------------------------------------------------------------
-int PDACO::GenerateScreenVars(TADOHandler *handler)
+int PDACO::WriteTraceRecord(TADOHandler *handler)
 {
- Variant hostVars[5];
+ Variant hostVars[10];
  try {
-    hostVars[0] = msn;
-    hostVars[1] = input_time;
-    handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Source_Tables], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Data]);
-
+    handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+    hostVars[0] = LOAN_AMOUNT;
+    hostVars[1] = FSC_AMOUNT;
+    hostVars[2] = scorecard;
+    hostVars[3] = pb;
+    hostVars[4] = 0; // ps_code;
+    hostVars[5] = ""; // ps_msg;
+    hostVars[6] = rscore;
+    hostVars[7] = msn;
+    hostVars[8] = input_time;
+    handler->ExecSQLCmd(SQLCommands[Update_Audit_Table], hostVars, 8);
  } catch (Exception &E) {
      throw;
  }
@@ -600,13 +676,13 @@ int PDACO::GetFscCap()
 //---------------------------------------------------------------------------
 float PDACO::setLoanAmount()
 {
- LOAN_AMOUNT = min(min(REQUEST_AMT, cap_amount),GetFscCap());
+ LOAN_AMOUNT = principal = min(min(REQUEST_AMT, GetCapAmount()),GetFscCap());
  return(LOAN_AMOUNT);
 }
 //---------------------------------------------------------------------------
 double PDACO::getPdaco61Score()
 {
- return score;
+ return rscore;
 }
 //---------------------------------------------------------------------------
 double PDACO::getPdaco61PB()

@@ -29,6 +29,17 @@ enum SQLCodes { Get_AppInfo_Record,
 		Create_Working_Tables,
                 Drop_Working_Tables,
 
+                Insert_PDACO_V61,
+                Dedup_KRM021,
+                Dedup_KRM023,
+                Dedup_STM007,
+                Dedup_BAM086,
+                Insert_JAS002_DELINQUENT,
+                Insert_JAS002_BAD_CHECK,
+                Insert_JAS002_REJECT,
+                Insert_JAS002_STOP_CARD,
+                Dedup_KRM037,
+
                 Prepare_JCIC_Source_Tables,
                 Prepare_JCIC_Data,
                 PDACO61_P0,
@@ -37,7 +48,8 @@ enum SQLCodes { Get_AppInfo_Record,
                 PDACO61_P3,
                 PDACO61_P4,
                 PDACO61_P5,
-                Insert_Audit_Table
+                Insert_Audit_Table,
+                Update_Audit_Table
 		};
 
 extern char *SQLCommands[];

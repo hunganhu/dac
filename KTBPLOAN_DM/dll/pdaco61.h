@@ -32,6 +32,7 @@ class PDACO
     float        period;
     float        principal;
     float        LOAN_AMOUNT;
+    float        FSC_AMOUNT;
     int          now;
     int          scorecard;
     int          monthly_income;
@@ -50,6 +51,7 @@ class PDACO
     int ind001;
     float revolving_amt;
     int ps_code;
+    String ps_msg;
     int segment;
 // PDACO 6.1 risk model raw variables
     float GRAY2_FLAG;
@@ -109,13 +111,11 @@ class PDACO
     float ln004_9m_q;
     float FS546_9M_TRAN;
     float ln004_9m;
-    float p4_score;
     float FS016C_9M_T1;
     float WI003_9M_T;
     float monthly_payment;
     float ln001_9m;
     float ln001_9m_t2;
-    float p2_score;
     float RS017_R_TRAN2;
     float MS074_T3;
     float FS205_3M_1K_Q_TRAN2;
@@ -127,7 +127,7 @@ class PDACO
     float ms101;
     int   twentile;
     double cap_amount;
-    double score;
+    double rscore;
     double pb;
 // internal member functions
     int CreateWorkingTables(TADOHandler *handler);
@@ -141,7 +141,11 @@ class PDACO
     int PDACO61P3Raw(TADOHandler *handler);
     int PDACO61P4Raw(TADOHandler *handler);
     int PDACO61P5Raw(TADOHandler *handler);
+    int WriteTraceRecord(TADOHandler *handler);
+    double PDACO61P0Score();
+    double PDACO61P1Score();
     double PDACO61P2Score();
+    double PDACO61P3Score();
     double PDACO61P4Score();
     double PDACO61P5Score();
     double GetCapAmount();
@@ -163,7 +167,7 @@ class PDACO
 
 
 const double P2_X[14] = {0.0, 0.123593000, 5.000000000, 0.195735000, 0.0, 6.235570000, 1.100000000, 2.052260000, -0.831907000, 0.788097000, 1.439830000, 4.125550000, -1.674490000, 0.000040250};
-const double P4_X[12] = {0.0, 4.670740, 4.300610, 7.000060, 4.029140, 1.432320, 1.635670, -0.579372, 2.068420, 1.608720, 5.212910, 0.417489};
+const double P4_X[13] = {0.0, 2.7866900, 6.1972900, 5.7875000, 17.9352000, 0.0103210, 1.7034700, -0.9714930, 1.2490100, 1.6176200, 2.8300900, 1.8354100, -1.7777300};
 const double P5_X[14] = {0.0, 0.991190, 1.250800, 0.163415, 0.535809, -1.383160, 2.247320, 0.813351, 0.819610, -0.134986, 0.262729, 0.011975, -0.073090, 0.0};
 
 #endif

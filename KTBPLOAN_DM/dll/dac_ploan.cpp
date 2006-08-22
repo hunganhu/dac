@@ -36,7 +36,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  Loan *ptrLoan;
  PDACO *pdaco_app;
  char input_time[20];
- AnsiString bank = static_cast<AnsiString>(bank_code);
+ String bank = bank_code;
 // int now;
  int errCode = 0;
  int pass = 1;
@@ -67,11 +67,16 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
     pass = pdaco_app->GeneratePdaco61Score(dbhandle);
  // calculate NPV
     if (pass) {
+       if (pdaco_app->getPdaco61PB() > pdaco_app->GetPbCap())
+          throw cc_error(PSCODE_109, msno, app_input_time);
+       // calculate NPV
+         
     }
  // upsell
  //
 
  } catch(cc_error &Err){
+   // Store screen-out result
      strcpy (error, Err.ShowMessage());
      errCode = -1;
  } catch (Exception &E) {
@@ -91,7 +96,7 @@ unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn
  unsigned int return_value = 0x0;
 
  try {
-     sql_stmt = "SELECT * AS CNT FROM CREDIT_BLOCK_LIST WHERE MSN = :msn ";
+     sql_stmt = "SELECT * FROM CREDIT_BLOCK_LIST WHERE MSN = :msn ";
      hostVars[0] = msn;
      handler->ExecSQLQry(sql_stmt.c_str(), hostVars, 0, ds);
      if (ds->RecordCount > 0)
