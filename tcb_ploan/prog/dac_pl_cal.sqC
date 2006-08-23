@@ -44,8 +44,8 @@
 #define debug 0
 #endif
 
-const int EXPIRATION_DATE = 20251231; // expiration date of this module
-const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
+const int EXPIRATION_DATE = 20070920; // expiration date of this module, set by Guangyue 2006/07/28
+const char *EXPIRATION_MSG = "聯徵資料日期超過期限。"; // expiration message
 
 char MESSAGE[1024];
 
@@ -73,12 +73,12 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   Info("User ID= %s\n", uid);
   Info("User PW= %s\n", upw);
   Info("Case SN= %s\n", case_sn);
-*/
+
   if (check_expiration(EXPIRATION_DATE) == -1) {
      strcpy (error_message, EXPIRATION_MSG);
      return SYSTEM_ERROR;
   }
-
+*/
   memset(MESSAGE, '\0', sizeof(MESSAGE));
 
   db.setDb(alias, uid, upw);
@@ -99,7 +99,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      db.Disconnect();
      return rc;
   }
-
+  
   strcpy(aID, app.Applicant_id());
   Info("Case SN= %s\n", case_sn);
   Info("IDN= %s\n", aID);
@@ -114,6 +114,18 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      strcpy (error_message, MESSAGE);
      db.Disconnect();
      return rc;
+  }
+  if (app.get_product_type() > 5) { // NO pb and npv output for newly added products
+     app.write_result_unsupported_product();
+     if (rc < 0)  {
+        strcpy (error_message, MESSAGE);
+        db.Disconnect();
+        return SYSTEM_ERROR;
+     }
+     EXEC SQL COMMIT;
+     EMB_SQL_CHECK("COMMIT");
+     db.Disconnect();
+     return 0;
   }
 
   rc = rm.Calculate_PB(case_sn, aID, app.get_birthday(), app.get_sysdate());
@@ -261,7 +273,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      } 
 */
      /* make decision*/
-     if ((productType = app.get_product_type())!= 1) { //product- 1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)
+     if ((productType = app.get_product_type())!= 1) { //product- 1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:房貸
         rc = app.write_result(TYPE_V, round_npv, unsecured_balance); // for product type 2,3,4,5 output PB only
      } else {
         if (round_npv < ApprovedNPV) {
@@ -319,11 +331,12 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
   int  ps_code;
   char ps_msg[257];
   struct sqlca sqlca;
-
+/*
   if (check_expiration(EXPIRATION_DATE) == -1) {
      strcpy (error_message, EXPIRATION_MSG);
      return SYSTEM_ERROR;
   }
+*/
   memset(MESSAGE, '\0', sizeof(MESSAGE));
 
   db.setDb(alias, uid, upw);

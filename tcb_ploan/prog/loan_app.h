@@ -210,6 +210,7 @@ class LoanApp {
     void set_ps_status_g(int code, char *msg);
     void set_npv(double npv_value);
     int  update_final_npv();
+    int  write_result_unsupported_product();
     int  write_result_prescreen_failed();
 //    int  write_result_others(int decision);
 //    int  write_result_declined(int decision);

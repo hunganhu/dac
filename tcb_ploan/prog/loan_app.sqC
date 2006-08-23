@@ -67,7 +67,11 @@ Invalid_Msg tcbMsg[] = {
 	{1025, "申貸金額需填寫 "},
 	{1026, "申貸金額超出200萬 "},
 	{1027, "開辦費 (金額) 超出台幣99,999元 "},
-	{1028, "開辦費 (百分比) 超出100% "},
+	{1028, "開辦費 (百分比) 超出100% "}, 
+	{1029, "無效的產品類別 "},
+	{1030, "無效的教育程度 "},
+	{1031, "無效的婚姻狀態 "},
+	{1032, "無效的資金用途 "},
 	{1101, "申貸編號不存在於APP_INFO "},
 	{1102, "申貸編號不存在於APP_RESULT "},
 	{1103, "撥貸金額必須大於零 "},
@@ -226,7 +230,7 @@ int LoanApp::initial()
   else {
      Loan_purpose = iLoan_purpose;
      if ((Loan_purpose_ind == -1) || (Loan_purpose < 1) || (Loan_purpose > 2)) {
-        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1029)); code = DataErrorCode(DATA_ERR_1029);}
+        strcat(MESSAGE, DataErrorMsg(DATA_ERR_1032)); code = DataErrorCode(DATA_ERR_1032);}
   }   
   // check education in "1: 研究所以上 2: 大學 3: 專科 4: 高中職 5: 中學以下 6: 其他"
   if (Education_ind == -1) Education = -1;
@@ -294,12 +298,12 @@ int LoanApp::initial()
   if (is_future_year(System_date, Car_year)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
 
-  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)"
-  if (Product_type_code_ind == -1) Product_type_code = 5;
+  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:房貸"
+  if (Product_type_code_ind == -1) Product_type_code = 4;
   else Product_type_code = iProduct_type_code;
 
-//  if ((Product_type_code == -1) || (Product_type_code < 1) || (Product_type_code > 5)) {
-//     strcat(MESSAGE, DataErrorMsg(DATA_ERR_1033)); code = DataErrorCode(DATA_ERR_1033);}
+  // if ((Product_type_code < 1) || (Product_type_code > 6)) {
+  //   strcat(MESSAGE, DataErrorMsg(DATA_ERR_1029)); code = DataErrorCode(DATA_ERR_1029);}
 
   
   // check apr_1, 0~12, 6.99% as 6.99   
@@ -701,6 +705,61 @@ int LoanApp::update_final_npv()
   Debug("Exit LoanApp.update_final_npv()");
   return (0);
 } //LoanApp::update_final_npv()
+
+//--------------------------------------------------------------------------------------------------
+int LoanApp::write_result_unsupported_product()
+{
+  struct sqlca sqlca;
+  char apply_date[10];
+  
+  Debug("Enter LoanApp.write_result_unsupported_product()");
+
+  strcpy(oCase_SN, case_sn);
+  strcpy(osystem_time, CurrTime_MinGuo());
+  oPS_code = ps_code_a;
+  strcpy(oPS_msg, ps_msg_a);
+
+  strcpy(apply_date, System_date); // insert slash '/' as separator
+  apply_date[3] = apply_date[6] = '/';
+  apply_date[4] = System_date[3];
+  apply_date[5] = System_date[4];
+  apply_date[7] = System_date[5];
+  apply_date[8] = System_date[6];
+  apply_date[9] = '\0';
+
+  sprintf(oApproval_msg,
+          "%s 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)", apply_date);
+
+//  oCut = cutpoint;
+// check if case_sn exist in the table app_result
+  EXEC SQL
+     select case_sn from app_result where case_sn = :oCase_SN;
+  EMB_SQL_CHECK("Write Result1.");
+  if (sqlca.sqlcode != 100) { // case_sn exists in app_result, use update command
+     EXEC SQL delete from  app_result where case_sn = :oCase_SN;
+     EMB_SQL_CHECK("Delete PS failure..");
+  }
+  oFund_deposit_pct = Fund_deposit_pct * 100.0;
+  oFund_bank_pct    = Fund_bank_pct * 100.0;
+  oFund_self_pct    = Fund_self_pct * 100.0;
+  oFund_free_pct    = Fund_free_pct * 100.0;
+  oCOF_deposit      = COF_deposit * 100.0;
+  oCOF_bank         = COF_bank * 100.0;
+  oROE              = ROE * 100.0;
+  oCommission       = Commission * 100.0;
+
+  EXEC SQL
+     insert into app_result(Case_SN, system_time, Fund_deposit_pct,
+                 Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
+                 Commission,  Approval_msg) 
+        values (:oCase_SN, :osystem_time, :oFund_deposit_pct,
+                :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
+                :oApproval_msg);
+  EMB_SQL_CHECK("Write PS failure.");
+
+  Debug("Exit LoanApp.write_result_unsupported_product()");
+  return (0);
+} //LoanApp::write_result_unsupported_product()
 
 //--------------------------------------------------------------------------------------------------
 int LoanApp::write_result_prescreen_failed()
