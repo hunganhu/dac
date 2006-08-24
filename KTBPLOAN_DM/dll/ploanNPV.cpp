@@ -20,251 +20,17 @@
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
-double recovery_ratio[2] = {0.7, 0.8};
+//double recovery_ratio[2] = {0.7, 0.8};
 double nav_ratio[2] = {0.8, 0.9};
 double duei_bao_rate[2] = {0.0, 2.25};   // DUEI_BAO_FEE ($K)
 
-Loan::Loan (char *msn, char *input_time):
-    msn(msn),input_time(input_time)
+Loan::Loan (unsigned int loan_amount, double apr, unsigned int terms,
+            unsigned int application_fee, double pd):
+            principal(loan_amount),apr1(apr), seg1(terms), app_fee(application_fee),
+            pd(pd), apr2(0.0), seg2(0), apr3(0.0), seg3(0)
 {
+ max_apr = max(max(apr1,apr2),apr3);
 }
-//---------------------------------------------------------------------------
-/*
-  For a table column with data type decimal(p, s),
-    ds->FieldValues["m1_recovery_ratio"] will return 0.
-    ds->FieldByName("m1_recovery_ratio")->AsFloat will return correct value.
-  Conclusion:
-    For a column with data type char, varchar, you can get the value with
-     ds->FieldValues["m1_recovery_ratio"].
-    For a column with number data type, you'd better use
-     ds->FieldByName("m1_recovery_ratio")->AsFloat to get its value.
-*/
-
-int Loan::app_info_validate(char *msn, TADOHandler *handler)
-{
- Variant hostVars[5];
- TADODataSet *ds = new TADODataSet(NULL);
- String sql_stmt;
-
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
- code = 0;
- Message = "";
- try {
-    hostVars[0] = msn;
-    hostVars[1] = input_time;
-    handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 1, ds);
-    record_count = ds->RecordCount;
-    if (record_count == 0) {
-       throw DataEx("無申請件資料 ",100);
-    }
-
-    ds->First();
-    if (!ds->Eof) {
-       if (! ds->FieldValues["PROD_TYPE"].IsNull())
-          prod_type = ds->FieldValues["PROD_TYPE"];
-       else
-          prod_type_ind = -1;
-
-       if (! ds->FieldValues["APP_ID"].IsNull())
-          app_id = ds->FieldValues["APP_ID"];
-       else
-          app_id_ind = -1;
-
-       if (! ds->FieldValues["APP_INCOME"].IsNull())
-          app_income = ds->FieldByName("APP_INCOME")->AsFloat / 1000.0;
-       else
-          app_income_ind = -1;
-
-       if (! ds->FieldValues["COS_ID"].IsNull())
-          cos_id = ds->FieldValues["COS_ID"];
-       else
-          cos_id_ind = -1;
-
-       if (! ds->FieldValues["COS_INCOME"].IsNull())
-          cos_income = ds->FieldByName("COS_INCOME")->AsFloat / 1000.0;
-       else
-          cos_income_ind = -1;
-
-       if (! ds->FieldValues["GUA_ID"].IsNull())
-          gua_id = ds->FieldValues["GUA_ID"];
-       else
-          gua_id_ind = -1;
-
-       if (! ds->FieldValues["GUA_INCOME"].IsNull())
-          gua_income = ds->FieldByName("GUA_INCOME")->AsFloat / 1000.0;
-       else
-          gua_income_ind = -1;
-
-       if (! ds->FieldValues["APP_AMT"].IsNull())
-          app_amt = ds->FieldByName("APP_AMT")->AsFloat / 1000.0;
-       else
-          app_amt = 0;
-
-       if (! ds->FieldValues["PERIOD"].IsNull())
-          periods = ds->FieldValues["PERIOD"];
-       else
-          periods = 0;
-
-       if (! ds->FieldValues["APR1"].IsNull())
-          apr1 = ds->FieldValues["APR1"];
-       else
-          apr1 = 0.0;
-
-       if (! ds->FieldValues["SEG1"].IsNull())
-          seg1 = ds->FieldValues["SEG1"];
-       else
-          seg1 = 0;
-
-       if (! ds->FieldValues["APR2"].IsNull())
-          apr2 = ds->FieldValues["APR2"];
-       else
-          apr2 = 0.0;
-
-       if (! ds->FieldValues["SEG2"].IsNull())
-          seg2 = ds->FieldValues["SEG2"];
-       else
-          seg2 = 0;
-
-       if (! ds->FieldValues["APR3"].IsNull())
-          apr3 = ds->FieldValues["APR3"];
-       else
-          apr3 = 0.0;
-
-       if (! ds->FieldValues["SEG3"].IsNull())
-          seg3 = ds->FieldValues["SEG3"];
-       else
-          seg3 = 0;
-
-       if (! ds->FieldValues["GRACE_PERIOD"].IsNull())
-          grace_period = ds->FieldValues["GRACE_PERIOD"];
-       else
-          grace_period = 0;
-
-       if (! ds->FieldValues["APP_FEE"].IsNull()) {
-          app_fee = ds->FieldByName("APP_FEE")->AsFloat;
-          app_fee /= 1000.0;
-       }
-       else
-          app_fee = 0;
-
-       if (! ds->FieldValues["GAV"].IsNull())
-          gav = ds->FieldByName("GAV")->AsFloat / 1000.0;
-       else
-          gav = 0.0;
-
-       if (!ds->FieldValues["NAV"].IsNull()) {
-          nav = ds->FieldByName("NAV")->AsFloat / 1000.0;
-       }
-       else
-          nav = 0.0;
-
-       if (!ds->FieldValues["PREMIUM_COL"].IsNull())
-          premium_col = ds->FieldValues["PREMIUM_COL"];
-       else
-          premium_col = 0;
-
-       if (!ds->FieldValues["MONTHLY_PAYMENT"].IsNull())
-          monthly_payment = ds->FieldByName("MONTHLY_PAYMENT")->AsFloat / 1000.0;
-       else
-          monthly_payment = 0;
-
-       if (!ds->FieldValues["APP_INQ_DATE"].IsNull())
-          app_inq_date = ds->FieldValues["APP_INQ_DATE"];
-       else
-          app_inq_date = "";
-
-       if (!ds->FieldValues["COS_INQ_DATE"].IsNull())
-          cos_inq_date = ds->FieldValues["COS_INQ_DATE"];
-       else
-          cos_inq_date = "";
-
-       if (!ds->FieldValues["GUA_INQ_DATE"].IsNull())
-          gua_inq_date = ds->FieldValues["GUA_INQ_DATE"];
-       else
-          gua_inq_date = "";
-    }
- } catch (Exception &E) {
-    ds->Close();
-    delete ds;
-    return -1;
- }
-  ds->Close();  // close dataset before delete and drop an object outside the try block,
-                // otherwise result in "too many consecutive exceptions"
-  delete ds;
-  return (0);
-}
-
-//---------------------------------------------------------------------------
-double Loan::secured_pb()
-{
- // =============VARAIBLE DEFINITION=============
- // First_mortgage_amount in K (principal)
- // NAV in K
- // pdaco twentile : use KTB's pdaco twentile cut
-
- double loan_ratio = (principal / nav) * 100;
- double loan_ratio2_tran_q = loan_ratio * loan_ratio;
- double p_twen_ratio_tran_aq = (pdaco_twentile * pdaco_twentile) * loan_ratio2_tran_q;
- // double fm_score, fm_pb;   // use object variable
-
- // =============SCORING FORMULA=============
- fm_score = -0.01997 +
- 	p_twen_ratio_tran_aq  * 1.657801E-8 +
- 	principal             * 0.00000274  +
- 	loan_ratio2_tran_q    * 0.00000156;
-
- // =============PB ASSIGNMENT===============
- if (fm_score <= 0.005265642)      fm_pb = 0.002;
- else if (fm_score <= 0.007482222) fm_pb = 0.003;
- else if (fm_score <= 0.008836151) fm_pb = 0.004;
- else if (fm_score <= 0.010255733) fm_pb = 0.005;
- else if (fm_score <= 0.011781021) fm_pb = 0.006;
- else if (fm_score <= 0.013190738) fm_pb = 0.007;
- else if (fm_score <= 0.014524572) fm_pb = 0.008;
- else if (fm_score <= 0.015589203) fm_pb = 0.009;
- else if (fm_score <= 0.016951404) fm_pb = 0.010;
- else if (fm_score <= 0.018088879) fm_pb = 0.011;
- else if (fm_score <= 0.019078364) fm_pb = 0.012;
- else if (fm_score <= 0.020291099) fm_pb = 0.013;
- else if (fm_score <= 0.02102386)  fm_pb = 0.014;
- else if (fm_score <= 0.022872703) fm_pb = 0.015;
- else if (fm_score <= 0.02423022)  fm_pb = 0.016;
- else if (fm_score <= 0.025368277) fm_pb = 0.017;
- else if (fm_score <= 0.027393801) fm_pb = 0.018;
- else if (fm_score <= 0.028823742) fm_pb = 0.019;
- else if (fm_score <= 0.030351926) fm_pb = 0.020;
- else if (fm_score <= 0.032277837) fm_pb = 0.021;
- else if (fm_score <= 0.034372936) fm_pb = 0.022;
- else if (fm_score <= 0.036023876) fm_pb = 0.023;
- else if (fm_score <= 0.038486192) fm_pb = 0.024;
- else if (fm_score <= 0.040347679) fm_pb = 0.025;
- else if (fm_score <= 0.043045046) fm_pb = 0.026;
- else if (fm_score <= 0.045361163) fm_pb = 0.027;
- else if (fm_score <= 0.047448938) fm_pb = 0.028;
- else if (fm_score <= 0.048981471) fm_pb = 0.029;
- else if (fm_score <= 0.051403843) fm_pb = 0.030;
- else if (fm_score <= 0.054500449) fm_pb = 0.031;
- else if (fm_score <= 0.057261352) fm_pb = 0.032;
- else if (fm_score <= 0.060483419) fm_pb = 0.033;
- else if (fm_score <= 0.064944046) fm_pb = 0.034;
- else if (fm_score <= 0.069040716) fm_pb = 0.035;
- else if (fm_score <= 0.08892801)  fm_pb = 0.036;
- else if (fm_score <= 0.121612092) fm_pb = 0.037;
- else fm_pb = 0.038;
-
-#ifdef _TRACE
-     fstream outf;
-
-     outf.open("PDACO_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << msn.c_str() << "," << setprecision(10)<< pdaco_score << "," << pdaco_twentile
-          << "," << loan_ratio << "," << loan_ratio2_tran_q << "," <<  setprecision(10)<< p_twen_ratio_tran_aq
-          << "," << setprecision(10) << fm_score << "," << fm_pb << endl;
-#endif
- fm_pb = fm_pb * pb_adjustment;
-
- return fm_pb;
-}
-
 //---------------------------------------------------------------------------
 Loan::~Loan ()
 {
@@ -276,74 +42,15 @@ String Loan::error ()
  return Message;
 }
 //---------------------------------------------------------------------------
-int Loan::exist_applicant()
-{
- if (app_id_ind != -1) return 1;
- else return 0;
-}
-//---------------------------------------------------------------------------
-int Loan::exist_coapplicant()
-{
- if (cos_id_ind != -1) return 1;
- else return 0;
-}
-//---------------------------------------------------------------------------
-int Loan::exist_guarantor()
-{
- if (gua_id_ind != -1) return 1;
- else return 0;
-}
-//---------------------------------------------------------------------------
 String Loan::Case_no ()
 {
  return msn;
-}
-//---------------------------------------------------------------------------
-char * Loan::Applicant ()
-{
- return app_id.c_str();
-}
-//---------------------------------------------------------------------------
-char * Loan::Cosigner ()
-{
- return cos_id.c_str();
-}
-//---------------------------------------------------------------------------
-char * Loan::Guarantor ()
-{
- return gua_id.c_str();
-}
-//---------------------------------------------------------------------------
-String Loan::App_inquiry_date()
-{
- return app_inq_date;
-}
-//---------------------------------------------------------------------------
-String Loan::Cos_inquiry_date()
-{
- return cos_inq_date;
-}
-//---------------------------------------------------------------------------
-String Loan::Gua_inquiry_date()
-{
- return gua_inq_date;
 }
 //---------------------------------------------------------------------------
 int Loan::appIncome()
 {
  return app_income;
 }
-//---------------------------------------------------------------------------
-int Loan::cosIncome()
-{
- return cos_income;
-}
-//---------------------------------------------------------------------------
-int Loan::guaIncome()
-{
- return gua_income;
-}
-
 //---------------------------------------------------------------------------
 void Loan::set_risk_score (double score)
 {
@@ -384,34 +91,6 @@ void Loan::set_risk_twentile (double score)
  else if (score  >  0.15002) pdaco_twentile= 20;
 }
 //---------------------------------------------------------------------------
-void Loan::set_principal()
-{
- double allowance;
-
- weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
- allowance = monthly_income * 0.7 - monthly_debt;
- max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
- principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
- if (principal < 0)
-    principal = 0;
- else if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
-    principal = app_amt;
-}
-//---------------------------------------------------------------------------
-void Loan::set_principal_reload()
-{
- double allowance;
-
- weighted_apr = (apr1 * seg1 + apr2 * seg2 + apr3 * seg3) / (seg1 + seg2 + seg3);
- allowance = monthly_income * 0.7 - monthly_debt + monthly_payment;
- max_loan_capacity = -PresentValue(weighted_apr/12.0, (seg1 + seg2 + seg3), allowance, 0, ptEndOfPeriod);
- principal = min(min(nav*nav_ratio[premium_col],app_amt),max_loan_capacity);
- if (principal < 0)
-    principal = 0;
- else if (app_amt <= nav*nav_ratio[premium_col] && 0 < (app_amt - principal ) && (app_amt - principal ) <= 300)
-    principal = app_amt;
-}
-//---------------------------------------------------------------------------
 void Loan::set_pb_adjustment(int segment, double score)
 {
  if (segment == seg_S)
@@ -421,8 +100,6 @@ void Loan::set_pb_adjustment(int segment, double score)
  else
     pb_adjustment = 1.0;
 }
-//---------------------------------------------------------------------------
-
 //---------------------------------------------------------------------------
 void Loan::set_npv (double npv_value)
 {
@@ -548,12 +225,12 @@ double Loan::calculate_npv(double delta_apr)
   npv_init();
   secured_pb();  // comment for test only
   set_apr(delta_apr);
-  set_attrition(fm_pb);
+  set_attrition();
   set_annuity(principal);  // 本息法
   // Revenue
   Interest_Revenue = set_interest_revenue();
   Setup_Revenue = set_setup_fee();
-  Late_Fee = set_late_fee(fm_pb);
+  Late_Fee = set_late_fee();
 //  Open_Credit_Fee = set_open_credit_revenue();
 
   // Cost
@@ -565,7 +242,7 @@ double Loan::calculate_npv(double delta_apr)
   Collection_Cost = set_collection_cost();
 
   Working_Capital = set_working_capital();
-  Credit_Loss = set_credit_loss(fm_pb);
+  Credit_Loss = set_credit_loss();
 
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
                - (Interest_Cost + Commission + Setup_Cost + Acct_Mgmt_Cost
@@ -672,29 +349,67 @@ void Loan::set_apr(double delta_apr)
 }
 
 //---------------------------------------------------------------------------
-void Loan::set_attrition(double pb)
+void Loan::set_attrition()
 {
-  double monthly_pd = pb / 12.0;
-  double M1_120_base = 0.0063;
-  double M1_120_slope = 0.00004;
-  double M120_base = 0.0125;
-  double M120_slope = 0.0002;
-
-  open_attrition[0] = 1.0;
-  voluntary_attrition[0] = involuntary_attrition[0] = 0.0;
-  for (int i = 1; i <= periods; i++) {
-      if (i < 120) vol_attrition_open[i] = M1_120_base + i * M1_120_slope;
-      else if (i == 120) vol_attrition_open[i] = 0.025;
-      else if (i < 179) vol_attrition_open[i] = M120_base + (i - 120) * M120_slope;
-      else if (i == 179) vol_attrition_open[i] = 0.05;
-      else if (i == 180) vol_attrition_open[i] = 0.5;
-      else vol_attrition_open[i] = 0.05;
-
-      voluntary_attrition[i] = open_attrition[i-1] * vol_attrition_open[i];
-      involuntary_attrition[i] = open_attrition[i-1] * monthly_pd;
-      open_attrition[i] = open_attrition[i-1] - voluntary_attrition[i] - involuntary_attrition[i];
+//  double monthly_pd = pd / 12.0;
+  int cat, term;
+  int pd_term;
+  double Yfit;
+  
+  if (periods < 48) { // 3 year (4 * 12 month)
+     if (max_apr <= 0.05)
+        cat = 0;
+     else if (max_apr > 0.05 && max_apr <= 0.09)
+        cat = 1;
+     else
+        cat = 2;
+     term = 36; // month
+     slope = 1/6; // slope ratio
+  } else if (periods >= 48 && periods < 72 ) { // 5 year (4*12 - 6*12 month)
+     if (max_apr <= 0.05)
+        cat = 3;
+     else if (max_apr > 0.05 && max_apr <= 0.09)
+        cat = 4;
+     else
+        cat = 5;
+     term = 60; // month
+     slope = 1/4; // slope ratio
+  } else { //  7 year
+     if (max_apr <= 0.05)
+        cat = 6;
+     else if (max_apr > 0.05 && max_apr <= 0.09)
+        cat = 7;
+     else
+        cat = 8;
+     term = 120; // month
+     slope = 1/3; // slope ratio
   }
 
+  for (int i = 0; i < term; i++)
+      base_attrition[i] = Attrition_Table[cat][i];
+
+  Yfit =  pow(pd, 3)* Yfit_coeff[cat][0] +
+          pow(pd, 2)* Yfit_coeff[cat][1] +
+          pd        * Yfit_coeff[cat][2] +
+          Yfit_coeff[cat][3];
+
+  for (int i = 0; i < periods; i++) {
+      if (i < slope_turn_point)     // term <= 9
+          PD_attrition[i] = Yfit * (i + 1) / slope_turn_point;
+      else if (i >= slope_turn_point && i < slope_end_point) // 9 < term <= 25
+          PD_attrition[i] = PD_attrition[i-1] + PD_attrition[i-1] * slope / slope_turn_point;
+      else    // term > 25
+          PD_attrition[i] = PD_attrition[i-1];
+  }
+
+  open_attrition[0] = 1.0;
+  voluntary_attrition[0] = involuntary_attrition[0] = m1_attrition[0] = 0.0;
+  for (int i = 1; i <= periods; i++) {
+      voluntary_attrition[i] = open_attrition[i-1] * base_attrition[i-1];
+      involuntary_attrition[i] = open_attrition[i-1] * PD_attrition[i-1];
+      open_attrition[i] = open_attrition[i-1] - voluntary_attrition[i] - involuntary_attrition[i];
+      m1_attrition[i] = involuntary_attrition[i] * m1_to_m7_ratio;
+  }
 }
 
 //---------------------------------------------------------------------------
@@ -767,16 +482,29 @@ double Loan::set_setup_fee()
 }
 
 //---------------------------------------------------------------------------
-double Loan::set_late_fee(double pb)
+double Loan::set_late_fee()
 {
-  double late = pb / 12.0 * 2.0;
-
-  for (int i = 3; i <= periods; i++)
-     late_fee[i] = monthly_repayment[i-1] * open_attrition[i] * apr[i]
-                   *  LATE_PENALTY_RATIO * late;
+//  double late = pd / 12.0 * 2.0;
+  for (int i = 1; i <= periods; i++)
+     late_fee[i] = os_principal[i-1] * apr[i] * YearMonths / YearDays *
+                  (m1_attrition[i] * m1_recovery_ratio * m1_avg_late_days * m1_penalty_rate +
+                   involuntary_attrition[i] * m6_recovery_ratio * m6_avg_late_days * m6_penalty_rate);
 
   return (NetPresentValue(ROE / 12.0, late_fee + 1, periods, ptEndOfPeriod)
           + late_fee[0]);
+}
+//---------------------------------------------------------------------------
+double Loan::set_early_closing_fee()
+{
+  for (int i = 1; i <= periods; i++)
+     if (i > early_closing_period)
+        early_closing_fee [i] = 0.0;
+     else
+        early_closing_fee [i] = os_principal[i-1] * voluntary_attrition[i] * early_closing_fee_pct
+        		        * early_closing_fee_collectable_ratio;
+
+  return (NetPresentValue(ROE / 12.0, early_closing_fee + 1, periods, ptEndOfPeriod)
+          + early_closing_fee[0]);
 }
 
 //---------------------------------------------------------------------------
@@ -785,92 +513,121 @@ double Loan::set_late_fee(double pb)
 double Loan::set_interest_cost()
 {
   for (int i = 1; i <= periods; i++)
-     interest_cost[i] = os_principal[i-1] * open_attrition[i-1] * LEVERAGE_RATIO * COF / 12.0;
+     interest_cost[i] = os_principal[i-1] * open_attrition[i-1] * leverage_ratio * COF / 12.0;
   return (NetPresentValue(ROE / 12.0, interest_cost + 1, periods, ptEndOfPeriod)
           + interest_cost[0]);
 }
-
 //---------------------------------------------------------------------------
-double Loan::calculate_commission()
-{
-  return(principal * COMMISSION_RATE + app_fee * FEE_COMMISSION_RATE);
-}
-
-//---------------------------------------------------------------------------
-double Loan::setup_cost()
-{
-  return(ALLOGRAPH_FEE + LAND_ADM_FEE + duei_bao_rate[premium_col]);
-}
-
-//---------------------------------------------------------------------------
+// Account Management Cost
 double Loan::set_account_management_cost()
 {
   for (int i = 1; i <= periods; i++)
-     account_management_cost[i] = ACCT_MGMT_COST / 12.0 * open_attrition[i-1]
-         * (os_principal[i] >= 1.0? 1: 0);
+     account_management_cost[i] = acct_mgmt_cost * open_attrition[i-1];
   return (NetPresentValue(ROE / 12.0, account_management_cost + 1, periods, ptEndOfPeriod)
           + account_management_cost[0]);
 }
-
 //---------------------------------------------------------------------------
-double Loan::set_late_cost(double pb)
+// Pre-collection Cost
+/* 4 days late will send message to customer.
+   30 days late will call to customer.
+   30 days late is 2 payments behind.
+*/
+double Loan::set_precollection_cost()
 {
-  double late = pb / 12.0 * 2.0;
+  double monthly_pd = pd / YearMonths;
+  double m1Open = monthly_pd * m1_to_m7_ratio;
+  double d4Open = m1Open * m1_to_m7_ratio;
+  double phone_expense;
 
-  for (int i = 3; i <= periods; i++)
-     late_cost[i] = M2_3_EXPENSE * open_attrition[i] * late;
-
-  return (NetPresentValue(ROE / 12.0, late_cost + 1, periods, ptEndOfPeriod)
-          + late_fee[0]);
+  switch (district) {
+    case 1: phone_expense =  phone_expense_north;  break;
+    case 2: phone_expense =  phone_expense_central;  break;
+    case 3: phone_expense =  phone_expense_south;  break;
+  }
+  for (int i = 1; i <= periods + 1; i++)
+     if (i < 2)
+        precollection_cost[i] = 0.0;
+     else {
+       if (os_principal[i-2] > 0)
+          precollection_cost[i] = short_message_expense * open_attrition[i-2] * d4Open +
+                             phone_expense * open_attrition[i-2] * m1Open;
+       else
+          precollection_cost[i] = 0.0;
+     }
+  return (NetPresentValue(ROE / 12.0, precollection_cost + 1, periods+1, ptEndOfPeriod)
+          + precollection_cost[0]);
 }
-
 //---------------------------------------------------------------------------
 // Collection Cost (legal)
+/* 90+ days delinquent will tirgger legal action to collect outstanding principal
+   90+ days delinquent is 4 payments behind
+*/
 double Loan::set_collection_cost()
 {
- double monthly_pb = fm_pb / 12.0;
- double discount_rate = 1 / pow((1 + ROE / 12.0), TIME_TO_RECOVER);
- double recovery_amount = min(nav, principal * recovery_ratio[premium_col]);
- double wacc = 1.5 * (COF * LEVERAGE_RATIO + ROE * (1 - LEVERAGE_RATIO));
+  double monthly_pd = pd / YearMonths;
+  double legal_expense;
+  double legal_detain_ratio;
 
- for (int i=5; i <= periods; ++i)
-    collection_cost[i] = monthly_pb *  open_attrition[i] * (os_principal[i] >= 1.0? 1: 0)
-                  * (M4P_EXPENSE + (os_principal[i] * LEGAL_FEE_RATE) +
-                    (wacc / 12.0 * discount_rate * recovery_amount));
-
-  return (NetPresentValue(ROE / 12.0, collection_cost + 1, periods, ptEndOfPeriod)
+  switch (district) {
+    case 1: legal_expense = legal_exec_north + legal_query_north
+                            + legal_auction_north + legal_staff_north;
+            legal_detain_ratio = legal_detain_ratio_north;
+            break;
+    case 2: legal_expense =  legal_exec_central + legal_query_central
+                            + legal_auction_central + legal_staff_central;
+            legal_detain_ratio = legal_detain_ratio_central;
+            break;
+    case 3: legal_expense =  legal_exec_south + legal_query_south
+                            + legal_auction_south + legal_staff_south;
+            legal_detain_ratio = legal_detain_ratio_south;
+            break;
+  }
+  for (int i = 1; i <= periods + 3 ; i++)
+     if (i < 4)
+        collection_cost [i] = 0.0;
+     else {
+       if (os_principal[i-4] > 0)
+          collection_cost[i] = open_attrition[i-4] * monthly_pd *
+                       (legal_expense + os_principal[i-4] * legal_detain_ratio);
+       else
+          collection_cost[i] = 0.0;
+     }
+  return (NetPresentValue(ROE / 12.0, collection_cost + 1, periods+3, ptEndOfPeriod)
           + collection_cost[0]);
 }
 //---------------------------------------------------------------------------
-// Working Capital
+// Working Capacital
+/*
+    working_capital [i] = (os_principal[i-1]* open_attrition[i-1] -
+                           os_principal[i] * open_attrition[i]) *
+                           (os_principal[i-1]* open_attrition[i-1] * leverage_ratio -
+                           os_principal[i] * open_attrition[i] * leverage_ratio)
+*/
 double Loan::set_working_capital()
 {
- working_capital [0] = -os_principal[0] * (1 - LEVERAGE_RATIO);
+ working_capital [0] = -os_principal[0] * (1 - leverage_ratio);
  for (int i = 1; i <= periods; i++) {
     working_capital [i] = (os_principal[i-1]* open_attrition[i-1] -
                            os_principal[i] * open_attrition[i]) *
-                           (1- LEVERAGE_RATIO);
+                           (1- leverage_ratio);
  }
- return (NetPresentValue(ROE / 12.0, working_capital + 1, periods, ptEndOfPeriod)
+  return (NetPresentValue(ROE / 12.0, working_capital + 1, periods, ptEndOfPeriod)
           + working_capital[0]);
 }
 
 //---------------------------------------------------------------------------
 // Credit loss:
-double Loan::set_credit_loss(double pb)
+double Loan::set_credit_loss()
 {
- double monthly_pd = pb / 12.0;
- double discount_rate = 1 / pow((1 + ROE / 12.0), 12);
- double recovery_amount = min(nav, principal * recovery_ratio[premium_col]);
+ double discount_rate = 1 / pow((1 + ROE / YearMonths),legal_action_period);
  credit_loss [0] = 0.0;
  for (int i = 1; i <= periods; i++) {
-    credit_loss [i] = max(0, (os_principal[i-1] - recovery_amount * discount_rate))
-                      * open_attrition[i-1] * monthly_pd;
+    credit_loss [i] = -os_principal[i-1]* involuntary_attrition[i] *
+                      (1 - recovery_ratio * discount_rate);
  }
   return (NetPresentValue(ROE / 12.0, credit_loss + 1, periods, ptEndOfPeriod)
           + credit_loss[0]);
 }
-
 //---------------------------------------------------------------------------
 double Loan::find_lowest_rate (double offset, double delta_r)
 {
