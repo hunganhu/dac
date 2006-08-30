@@ -47,13 +47,13 @@ class Loan {
     /* application information */
     String msn;                 // 案件編號
     String input_time;		    // 案件輸入時間 YYYYMMDDHHMMSS
-    int prod_type;		    // 產品類別 1:一般房貸, 2:增貸, 3:原餘額轉貸
+//    int prod_type;		    // 產品類別 1:一般房貸, 2:增貸, 3:原餘額轉貸
     double pd;
-    String app_id;		    // 申請人身份證字號姓名
-    String app_name;		    // 申請人姓名
-    String app_birthday;	    // 申請人生日 YYYMMDD
-    int app_marriage;		    // 申請人婚姻 0:未婚 / 1:已婚 / 2:離婚
-    int app_education;		    // 申請人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
+//    String app_id;		    // 申請人身份證字號姓名
+//    String app_name;		    // 申請人姓名
+//    String app_birthday;	    // 申請人生日 YYYMMDD
+//    int app_marriage;		    // 申請人婚姻 0:未婚 / 1:已婚 / 2:離婚
+//    int app_education;		    // 申請人學歷 0:研究所 / 1:大學 / 2:專科 / 3:高、國中(含以下)
     float app_income;		    // 申請人年收入
     int periods;		    // 申貸期間
     float max_apr;		    // 申貸利率
@@ -66,7 +66,7 @@ class Loan {
     int seg3;			    // 第三段期間
     int grace_period;		    // 寬限期
     float app_fee;		    // 開辦費
-    float monthly_payment;	    // 目前房貸月付金
+//    float monthly_payment;	    // 目前房貸月付金
     String branch;		    // 進件分行
     String emp_id;		    // 進件員工
     String auditor;		    // 徵審人員
@@ -80,13 +80,13 @@ class Loan {
     double principal;
     double monthly_income;
     double monthly_debt;
-    double max_loan_capacity;
-    double weighted_apr;
-    double pb_adjustment;
-    double pdaco_score;
-    int    pdaco_twentile;
-    double fm_score;
-    double fm_pb;
+//    double max_loan_capacity;
+//    double weighted_apr;
+//    double pb_adjustment;
+//    double pdaco_score;
+//    int    pdaco_twentile;
+//    double fm_score;
+//    double fm_pb;
     double lowest_delta;
     double min_apr1;
     double min_apr2;
@@ -133,10 +133,10 @@ class Loan {
     double set_early_closing_fee();
 
     double set_interest_cost();
-    double calculate_commission();
-    double setup_cost();
+//    double calculate_commission();
+//    double setup_cost();
     double set_account_management_cost();
-    double set_late_cost(double pb);
+//    double set_late_cost(double pb);
     double set_collection_cost();
     double set_working_capital();
     double set_credit_loss();
@@ -144,20 +144,21 @@ class Loan {
 
   public:
 
-    Loan (unsigned int loan_amount, double apr, unsigned int terms,
+    Loan (char *msn, unsigned int loan_amount, double apr, unsigned int terms,
             unsigned int application_fee, double pd);
     ~Loan ();
     String error();
-    double secured_pb();
+//    double secured_pb();
     double calculate_npv(double delta_apr);
+    double recal_npv(double delta_apr, double loan_amt);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     String Case_no();
     int appIncome();
-    void set_risk_score (double score);
-    void set_monthly_income(double income);
-    void set_monthly_debt(double debt);
-    void set_risk_twentile (double score);
-    void set_pb_adjustment(int segment, double score);
+//    void set_risk_score (double score);
+//    void set_monthly_income(double income);
+//    void set_monthly_debt(double debt);
+//    void set_risk_twentile (double score);
+//    void set_pb_adjustment(int segment, double score);
 
     void set_lowest_rate (double delta_rate);
     void set_npv (double npv_value);
@@ -183,8 +184,8 @@ class Loan {
     double get_principal ();
     void Init_Maintenance(TADOHandler *handler);
     // functions for test only
-    int app_validate_test(char *case_no, TADOHandler *handler);
-    int app_validate_bt(char *case_no, TADOHandler *handler);
+//    int app_validate_test(char *case_no, TADOHandler *handler);
+//    int app_validate_bt(char *case_no, TADOHandler *handler);
 };
     //Economic model constants -  maintenance variables
     const int district = 3;                            // south

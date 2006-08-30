@@ -132,6 +132,7 @@ int PDACO::get_scorecard(TADOHandler *handler)
         TOTAL_TERM = ds->FieldValues["TOTAL_TERM"];
         period = TOTAL_TERM;
         apr = ds->FieldValues["APR"];
+        app_fee = ds->FieldValues["APP_FEE"];
         if (ds->FieldValues["MONTHLY_INCOME"].IsNull())
           monthly_income = 0;
         else
@@ -160,6 +161,16 @@ int PDACO::get_scorecard(TADOHandler *handler)
  delete ds;
  return (scorecard);
 }
+/*
+  For a table column with data type decimal(p, s),
+    ds->FieldValues["m1_recovery_ratio"] will return 0.
+    ds->FieldByName("m1_recovery_ratio")->AsFloat will return correct value.
+  Conclusion:
+    For a column with data type char, varchar, you can get the value with
+     ds->FieldValues["m1_recovery_ratio"].
+    For a column with number data type, you'd better use
+     ds->FieldByName("m1_recovery_ratio")->AsFloat to get its value.
+*/
 //---------------------------------------------------------------------------
 int PDACO::PDACO61P0Raw(TADOHandler *handler)
 {
@@ -175,7 +186,7 @@ int PDACO::PDACO61P0Raw(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_P0_Raw_Variables], hostVars, 1, ds);
     ds->First();
     if (!ds->Eof) {
-        FS302_FG = ds->FieldValues["FS302_FG"];
+        FS302_FG = ds->FieldByName("FS302_FG")->AsFloat;
     }
  } catch (Exception &E) {
      ds->Close();
@@ -201,11 +212,11 @@ int PDACO::PDACO61P1Raw(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_P1_Raw_Variables], hostVars, 1, ds);
     ds->First();
     if (!ds->Eof) {
-        GRAY2_FLAG = ds->FieldValues["GRAY2_FLAG"];
-        krm023_hit = ds->FieldValues["KRM023_HIT"];
-        card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
-        fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
-        FS031 = ds->FieldValues["FS031"];
+        GRAY2_FLAG = ds->FieldByName("GRAY2_FLAG")->AsFloat;
+        krm023_hit = ds->FieldByName("KRM023_HIT")->AsFloat;
+        card_force_stop = ds->FieldByName("CARD_FORCE_STOP")->AsFloat;
+        fs059_1k_12m = ds->FieldByName("FS059_1K_12M")->AsFloat;
+        FS031 = ds->FieldByName("FS031")->AsFloat;
     }
 
  } catch (Exception &E) {
@@ -232,12 +243,12 @@ int PDACO::PDACO61P2Raw(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_P2_Raw_Variables], hostVars, 1, ds);
     ds->First();
     if (!ds->Eof) {
-        FS016C_9M_T1 = ds->FieldValues["FS016C_9M_T1"];
-        CDEF_FLAG_1M = ds->FieldValues["CDEF_FLAG_1M"];
-        MS093 = ds->FieldValues["MS093"];
-        MS094B = ds->FieldValues["MS094B"];
-        MS105 = ds->FieldValues["MS105"];
-        WI001_9M = ds->FieldValues["WI001_9M"];
+        FS016C_9M_T1 = ds->FieldByName("FS016C_9M_T1")->AsFloat;
+        CDEF_FLAG_1M = ds->FieldByName("CDEF_FLAG_1M")->AsFloat;
+        MS093 = ds->FieldByName("MS093")->AsFloat;
+        MS094B = ds->FieldByName("MS094B")->AsFloat;
+        MS105 = ds->FieldByName("MS105")->AsFloat;
+        WI001_9M = ds->FieldByName("WI001_9M")->AsFloat;
     }
  } catch (Exception &E) {
      ds->Close();
@@ -263,8 +274,8 @@ int PDACO::PDACO61P3Raw(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_P3_Raw_Variables], hostVars, 1, ds);
     ds->First();
     if (!ds->Eof) {
-        LU_FLAG = ds->FieldValues["LU_FLAG"];
-        FS021_9M = ds->FieldValues["FS021_9M"];
+        LU_FLAG = ds->FieldByName("LU_FLAG")->AsFloat;
+        FS021_9M = ds->FieldByName("FS021_9M")->AsFloat;
     }
  } catch (Exception &E) {
      ds->Close();
@@ -290,17 +301,17 @@ int PDACO::PDACO61P4Raw(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_P4_Raw_Variables], hostVars, 1, ds);
     ds->First();
     if (!ds->Eof) {
-        MS604_R = ds->FieldValues["MS604_R"];
-        RS017_R_TRAN = ds->FieldValues["RS017_R_TRAN"];
-        MS001_12M_1K_Q = ds->FieldValues["MS001_12M_1K_Q"];
-        FS3036_T5 = ds->FieldValues["FS3036_T5"];
-        FS031_TRAN4 = ds->FieldValues["FS031_TRAN4"];
-        FS546_9M_TRAN = ds->FieldValues["FS546_9M_TRAN"];
-        INT053_6_Q = ds->FieldValues["INT053_6_Q"];
-        MS093 = ds->FieldValues["MS093"];
-        MS094B = ds->FieldValues["MS094B"];
-        MS105 = ds->FieldValues["MS105"];
-        WI004_9M = ds->FieldValues["WI004_9M"];
+        MS604_R = ds->FieldByName("MS604_R")->AsFloat;
+        RS017_R_TRAN = ds->FieldByName("RS017_R_TRAN")->AsFloat;
+        MS001_12M_1K_Q = ds->FieldByName("MS001_12M_1K_Q")->AsFloat;
+        FS3036_T5 = ds->FieldByName("FS3036_T5")->AsFloat;
+        FS031_TRAN4 = ds->FieldByName("FS031_TRAN4")->AsFloat;
+        FS546_9M_TRAN = ds->FieldByName("FS546_9M_TRAN")->AsFloat;
+        INT053_6_Q = ds->FieldByName("INT053_6_Q")->AsFloat;
+        MS093 = ds->FieldByName("MS093")->AsFloat;
+        MS094B = ds->FieldByName("MS094B")->AsFloat;
+        MS105 = ds->FieldByName("MS105")->AsFloat;
+        WI004_9M = ds->FieldByName("WI004_9M")->AsFloat;
     }
  } catch (Exception &E) {
      ds->Close();
@@ -326,16 +337,16 @@ int PDACO::PDACO61P5Raw(TADOHandler *handler)
     handler->ExecSQLQry(SQLCommands[Get_P5_Raw_Variables], hostVars, 1, ds);
     ds->First();
     if (!ds->Eof) {
-        FS016F_12M = ds->FieldValues["FS016F_12M"];
-        RS017_R_TRAN2 = ds->FieldValues["RS017_R_TRAN2"];
-        MS074_T3 = ds->FieldValues["MS074_T3"];
-        FS205_3M_1K_Q_TRAN2 = ds->FieldValues["FS205_3M_1K_Q_TRAN2"];
-        FS031_1M_Q_TRAN2 = ds->FieldValues["FS031_1M_Q_TRAN2"];
-        FS073B_12M_R = ds->FieldValues["FS073B_12M_R"];
-        MS093 = ds->FieldValues["MS093"];
-        MS094B = ds->FieldValues["MS094B"];
-        MS105 = ds->FieldValues["MS105"];
-        WI003_9M_T = ds->FieldValues["WI003_9M_T"];
+        FS016F_12M = ds->FieldByName("FS016F_12M")->AsFloat;
+        RS017_R_TRAN2 = ds->FieldByName("RS017_R_TRAN2")->AsFloat;
+        MS074_T3 = ds->FieldByName("MS074_T3")->AsFloat;
+        FS205_3M_1K_Q_TRAN2 = ds->FieldByName("FS205_3M_1K_Q_TRAN2")->AsFloat;
+        FS031_1M_Q_TRAN2 = ds->FieldByName("FS031_1M_Q_TRAN2")->AsFloat;
+        FS073B_12M_R = ds->FieldByName("FS073B_12M_R")->AsFloat;
+        MS093 = ds->FieldByName("MS093")->AsFloat;
+        MS094B = ds->FieldByName("MS094B")->AsFloat;
+        MS105 = ds->FieldByName("MS105")->AsFloat;
+        WI003_9M_T = ds->FieldByName("WI003_9M_T")->AsFloat;
     }
  } catch (Exception &E) {
      ds->Close();
@@ -349,13 +360,13 @@ int PDACO::PDACO61P5Raw(TADOHandler *handler)
 //---------------------------------------------------------------------------
 double PDACO::PDACO61P0Score()
 {
- rscore= 0.1192 +
-	 FS302_FG	* 0.16259 +
-	 jas002_defect  * 0.08236;
-
- if      (rscore <= 0.1192 ) twentile = 2;
- else if (rscore <= 0.20156) twentile = 3;
- else twentile = 4;
+ rscore = 0.11920 +
+	 FS302_FG	* 0.162590 +
+	 jas002_defect  * 0.082360;
+ rscore = static_cast<int> (rscore * 1000000)/1000000.0;
+ if      (rscore <= 0.11920 ) twentile = 2;
+ else if (rscore <= 0.201560) twentile = 3;
+ else if (rscore >  0.201560) twentile = 4;
 
  if (twentile == 2) pb = 0.12;
  else if (twentile == 3) pb = 0.24;
@@ -397,6 +408,7 @@ double PDACO::PDACO61P2Score()
    	 FS016C_9M_T1	*	0.15400 +
    	 ln001_9m_t2	*	0.00316 +
    	 CDEF_FLAG_1M	*	0.06766;
+ rscore = static_cast<int> (rscore * 1000000)/1000000.0;
 
  if      (rscore <= -0.01551)  twentile = 1 ;
  else if (rscore <= -0.00549)  twentile = 2 ;
@@ -413,10 +425,12 @@ double PDACO::PDACO61P2Score()
  else if (rscore <= 0.14445 )  twentile = 13;
  else if (rscore <= 0.18946 )  twentile = 14;
  else if (rscore <= 0.19243 )  twentile = 17;
- else twentile = 20;
+ else if (rscore >  0.19243 )  twentile = 20;
 
  APR_N = apr * 100 / 30;
  Score_N = (rscore + 0.021881193 ) / (0.5958727095 + 0.021881193);
+ if (Score_N < 0) Score_N = 0;
+ else if (Score_N > 1.0)  Score_N = 1.0;
  term_N = TOTAL_TERM / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
@@ -465,6 +479,7 @@ double PDACO::PDACO61P4Score()
    	    INT053_6_Q		*	0.09296 +
    	    ln004_9m_q		*	0.04015 +
    	    FS546_9M_TRAN	*	0.01141;
+ rscore = static_cast<int> (rscore * 1000000)/1000000.0;
 
  if      (rscore <= -0.02452) twentile = 1;
  else if (rscore <= 0.00056)  twentile = 2;
@@ -485,10 +500,12 @@ double PDACO::PDACO61P4Score()
  else if (rscore <= 0.18534)  twentile = 17;
  else if (rscore <= 0.20890)  twentile = 18;
  else if (rscore <= 0.25620)  twentile = 19;
- else twentile = 20;
+ else if (rscore >  0.25620)  twentile = 20;
 
  APR_N = apr * 100 / 30;
  Score_N = (rscore + 0.07949958) / (2.864864072 + 0.07949958 );
+ if (Score_N < 0) Score_N = 0;
+ else if (Score_N > 1.0)  Score_N = 1.0;
  term_N = TOTAL_TERM / 120.0;
  loan_N =LOAN_AMOUNT / 3000000.0;
 
@@ -515,6 +532,7 @@ double PDACO::PDACO61P5Score()
    	     ln003_9m_t         *	0.00003516+
    	     FS031_1M_Q_TRAN2   *	0.00171   +
    	     FS073B_12M_R       *	0.02631;
+ rscore = static_cast<int> (rscore * 1000000)/1000000.0;
 
  if      (rscore <= 0.00317) twentile = 1;
  else if (rscore <= 0.01542) twentile = 2;
@@ -535,16 +553,46 @@ double PDACO::PDACO61P5Score()
  else if (rscore <= 0.15577) twentile = 17;
  else if (rscore <= 0.17960) twentile = 18;
  else if (rscore <= 0.21736) twentile = 19;
- else twentile = 20;
+ else if (rscore >  0.21736) twentile = 20;
 
  APR_N = apr * 100 / 30;
  Score_N = (rscore + 0.017201595) / (0.6799021583 + 0.017201595);
+ if (Score_N < 0) Score_N = 0;
+ else if (Score_N > 1.0)  Score_N = 1.0;
  term_N = TOTAL_TERM / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
  pb = (P5_X[1] * pow(APR_N, P5_X[2]) * Score_N + (P5_X[3] + P5_X[4] * APR_N + P5_X[5] * pow(APR_N, P5_X[2])) * pow(Score_N, P5_X[6]))
       * (1 + term_N * (P5_X[7] + P5_X[8] * APR_N + P5_X[9] * Score_N))
       * (1 + loan_N * (P5_X[10] + P5_X[11] * APR_N + P5_X[12] * Score_N));
+
+ return (pb);
+}
+
+//---------------------------------------------------------------------------
+double PDACO::recal_Pdaco61Pb(double loan_amt, double newapr, int term)
+{
+ LOAN_AMOUNT = loan_amt;
+ apr = newapr;
+ period = term;
+ switch (scorecard) {
+ 	case 0: PDACO61P0Score();  // Scorecard P0
+     	        break;
+     	case 1: PDACO61P1Score();  // Scorecard P1
+     	        break;
+     	case 2: PDACO61P2Score();  // Scorecard P2
+     	        break;
+     	case 3: PDACO61P3Score();  // Scorecard P3
+     	        break;
+     	case 4: PDACO61P4Score();  // Scorecard P4
+     	        break;
+     	case 5: PDACO61P5Score(); // Scorecard P5
+     	        break;
+ }
+ if (pb > getPbCap()) {
+    ps_code = PSCode(PSCODE_109);
+    ps_msg = PSMsg(PSCODE_109);
+ }
 
  return (pb);
 }
@@ -568,6 +616,7 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	        PDACO61P0Score();
      	        break;
      	case 1: PDACO61P1Raw(handler);  // Scorecard P1
+                setLoanAmount();
      	        PDACO61P1Score();
      	        break;
      	case 2: PDACO61P2Raw(handler);  // Scorecard P2
@@ -588,7 +637,7 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	        break;
      }
 
-   if (pb > GetPbCap()) {
+   if (pb > getPbCap()) {
       ps_code = PSCode(PSCODE_109);
       ps_msg = PSMsg(PSCODE_109);
    }
@@ -632,7 +681,7 @@ int PDACO::WriteTraceRecord(TADOHandler *handler)
  return 0;
 }
 //---------------------------------------------------------------------------
-double PDACO::GetCapAmount()
+double PDACO::getCapAmount()
 {
  switch (scorecard) {
         case 0: cap_amount = 0.0;       // Scorecard P0
@@ -653,7 +702,7 @@ double PDACO::GetCapAmount()
  return(cap_amount);
 }
 //---------------------------------------------------------------------------
-double PDACO::GetPbCap()
+double PDACO::getPbCap()
 {
  // APR        PB Cap   APR needs to be round to integer
  // 11% and plus   4%
@@ -675,7 +724,7 @@ double PDACO::GetPbCap()
  return(pbCap);
 }
 //---------------------------------------------------------------------------
-int PDACO::GetFscCap()
+int PDACO::getFscCap()
 {
  double fsc_lendable = monthly_income * 22 - MS606;
  if (fsc_lendable < 0) fsc_lendable = 0;
@@ -684,10 +733,25 @@ int PDACO::GetFscCap()
  return(FSC_AMOUNT);
 }
 //---------------------------------------------------------------------------
-float PDACO::setLoanAmount()
+double PDACO::setLoanAmount()
 {
- LOAN_AMOUNT = principal = min(min(REQUEST_AMT, GetCapAmount()),GetFscCap());
+ LOAN_AMOUNT = principal = min(min(REQUEST_AMT, getCapAmount()),getFscCap());
  return(LOAN_AMOUNT);
+}
+//---------------------------------------------------------------------------
+double PDACO::upperLendableAmount()
+{
+  return(min(getCapAmount(), getFscCap()));
+}
+//---------------------------------------------------------------------------
+double PDACO::getLoanAmount()
+{
+ return(LOAN_AMOUNT);
+}
+//---------------------------------------------------------------------------
+double PDACO::getRequestAmount()
+{
+ return(REQUEST_AMT);
 }
 //---------------------------------------------------------------------------
 double PDACO::getPdaco61Score()
@@ -715,4 +779,52 @@ int PDACO::getPsCode()
 {
  return ps_code;
 }
+//---------------------------------------------------------------------------
+double PDACO::getScoreCard()
+{
+ return scorecard;
+}
+//---------------------------------------------------------------------------
+double PDACO::getApr()
+{
+ return apr;
+}
+//---------------------------------------------------------------------------
+int PDACO::getTerm()
+{
+ return TOTAL_TERM;
+}
+//---------------------------------------------------------------------------
+int PDACO::getAppFee()
+{
+ return app_fee;
+}
+//---------------------------------------------------------------------------
+void PDACO::postScreen()
+{
+/*
+FS314B	>= 0.95	OR	201  cash_utilization
+MS602	>= 500	OR	202  REVOLVING_AMT
+MS606	>= 1000	OR	203  MS606
+FS334B_1M	> 0	OR	204   CASH_MAX_BUCKET
+DELINQUENT_FLAG	=1	OR	205
+STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
+DEBT_CODE	=1	OR	207
+
+ if (CASH_UTILIZATION > 0)
+    throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
+ else if (REVOLVING_AMT >= 500)
+    throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
+ else if (MS606 > 0)
+    throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
+ else if (CASH_MAX_BUCKET > 0)
+    throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
+ else if (DELINQUENT_FLAG >= 1)
+    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
+ else if (CARD_FORCE_STOP >= 1)
+    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
+ else if (DEBT_CODE >= 1)
+    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
+    */
+    }
 

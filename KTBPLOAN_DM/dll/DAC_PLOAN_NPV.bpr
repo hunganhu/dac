@@ -37,8 +37,8 @@
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-IC:\dac\TainanBB\prog\KTBFM\test -I$(BCB)\include -I$(BCB)\include\vcl 
-      -src_suffix cpp -D_DEBUG -D_TRACE -D_WRFLOW -boa"/>
+    <IDLCFLAGS value="-src_suffix cpp -D_DEBUG -D_TRACE -D_WRFLOW 
+      -IC:\dac\TainanBB\prog\KTBFM\test -I$(BCB)\include -I$(BCB)\include\vcl -boa"/>
     <CFLAG1 value="-WD -Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- 
       -tWD -tWM -c"/>
     <PFLAGS value="-$YD -$W -$O- -$A8 -v -JPHNE -M"/>

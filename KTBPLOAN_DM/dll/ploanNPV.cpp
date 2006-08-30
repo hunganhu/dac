@@ -21,12 +21,12 @@
 
 #pragma package(smart_init)
 //double recovery_ratio[2] = {0.7, 0.8};
-double nav_ratio[2] = {0.8, 0.9};
-double duei_bao_rate[2] = {0.0, 2.25};   // DUEI_BAO_FEE ($K)
+//double nav_ratio[2] = {0.8, 0.9};
+//double duei_bao_rate[2] = {0.0, 2.25};   // DUEI_BAO_FEE ($K)
 
-Loan::Loan (unsigned int loan_amount, double apr, unsigned int terms,
+Loan::Loan (char *msn, unsigned int loan_amount, double apr, unsigned int terms,
             unsigned int application_fee, double pd):
-            principal(loan_amount),apr1(apr), seg1(terms), app_fee(application_fee),
+            msn(msn), principal(loan_amount),apr1(apr), seg1(terms), app_fee(application_fee),
             pd(pd), apr2(0.0), seg2(0), apr3(0.0), seg3(0)
 {
  max_apr = max(max(apr1,apr2),apr3);
@@ -50,55 +50,6 @@ String Loan::Case_no ()
 int Loan::appIncome()
 {
  return app_income;
-}
-//---------------------------------------------------------------------------
-void Loan::set_risk_score (double score)
-{
- pdaco_score = score;
-}
-//---------------------------------------------------------------------------
-void Loan::set_monthly_income(double income)
-{
- monthly_income = income;
-}
-//---------------------------------------------------------------------------
-void Loan::set_monthly_debt(double debt)
-{
- monthly_debt = debt;
-}
-//---------------------------------------------------------------------------
-void Loan::set_risk_twentile (double score)
-{
- if      (score <= -0.03231) pdaco_twentile=  1;
- else if (score <= -0.02275) pdaco_twentile=  2;
- else if (score <= -0.01479) pdaco_twentile=  3;
- else if (score <= -0.00919) pdaco_twentile=  4;
- else if (score <= -0.00438) pdaco_twentile=  5;
- else if (score <=  0.00101) pdaco_twentile=  6;
- else if (score <=  0.00624) pdaco_twentile=  7;
- else if (score <=  0.01245) pdaco_twentile=  8;
- else if (score <=  0.01836) pdaco_twentile=  9;
- else if (score <=  0.02482) pdaco_twentile= 10;
- else if (score <=  0.03219) pdaco_twentile= 11;
- else if (score <=  0.03963) pdaco_twentile= 12;
- else if (score <=  0.04759) pdaco_twentile= 13;
- else if (score <=  0.05585) pdaco_twentile= 14;
- else if (score <=  0.06657) pdaco_twentile= 15;
- else if (score <=  0.07865) pdaco_twentile= 16;
- else if (score <=  0.09435) pdaco_twentile= 17;
- else if (score <=  0.11509) pdaco_twentile= 18;
- else if (score <=  0.15002) pdaco_twentile= 19;
- else if (score  >  0.15002) pdaco_twentile= 20;
-}
-//---------------------------------------------------------------------------
-void Loan::set_pb_adjustment(int segment, double score)
-{
- if (segment == seg_S)
-    if (score <= -0.00919) pb_adjustment = 0.8;
-    else if (score <= 0.01836) pb_adjustment = 0.9;
-    else pb_adjustment = 1.0;
- else
-    pb_adjustment = 1.0;
 }
 //---------------------------------------------------------------------------
 void Loan::set_npv (double npv_value)
@@ -130,7 +81,7 @@ double Loan::get_max_apr()
 //---------------------------------------------------------------------------
 double Loan::get_pd()
 {
- return fm_pb;
+ return pd;
 }
 //---------------------------------------------------------------------------
 double Loan::get_npv()
@@ -183,15 +134,6 @@ double Loan::Monthly_Debt()
  return monthly_debt;
 }
 //---------------------------------------------------------------------------
-double Loan::Max_Loan_Capacity()
-{
- return max_loan_capacity;
-}
-//---------------------------------------------------------------------------
-double Loan::Weighted_APR()
-{
- return weighted_apr;
-}
 //---------------------------------------------------------------------------
 double Loan::Lowest_npv()
 {
@@ -219,11 +161,10 @@ double Loan::calculate_npv(double delta_apr)
 {
  double Interest_Revenue, Setup_Revenue, Late_Fee;
  double Interest_Cost, Commission, Setup_Cost, Acct_Mgmt_Cost, Late_Cost, Collection_Cost;
- double Credit_Loss, Working_Capital;
+ double PreCollection_Cost, Credit_Loss, Working_Capital, Other_Fee;
 
  try {
   npv_init();
-  secured_pb();  // comment for test only
   set_apr(delta_apr);
   set_attrition();
   set_annuity(principal);  // 本息法
@@ -231,21 +172,21 @@ double Loan::calculate_npv(double delta_apr)
   Interest_Revenue = set_interest_revenue();
   Setup_Revenue = set_setup_fee();
   Late_Fee = set_late_fee();
-//  Open_Credit_Fee = set_open_credit_revenue();
 
   // Cost
   Interest_Cost = set_interest_cost();
-  Commission =  calculate_commission();
-  Setup_Cost = setup_cost();
+//  Commission =  calculate_commission();
   Acct_Mgmt_Cost = set_account_management_cost();
-  Late_Cost = set_late_cost(fm_pb);
+  PreCollection_Cost = set_precollection_cost();
+//  Setup_Cost = setup_cost();
+//  Late_Cost = set_late_cost(pd);
   Collection_Cost = set_collection_cost();
 
   Working_Capital = set_working_capital();
   Credit_Loss = set_credit_loss();
 
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
-               - (Interest_Cost + Commission + Setup_Cost + Acct_Mgmt_Cost
+               - (Interest_Cost + Acct_Mgmt_Cost
                   + Late_Cost + Collection_Cost )               // Cost
                   + (Working_Capital - Credit_Loss);       // Working Capital
 
@@ -257,33 +198,36 @@ double Loan::calculate_npv(double delta_apr)
      outf.open("NPV_flows.txt", ios::app | ios::out);  // Open for ouput and append
 
      outf << "Case SN: " << msn.c_str()
-          << "   Commission: " << Commission << "   Setup Cost: " <<  Setup_Cost
-          << "   PB: " << fm_pb << "   NPV: " << total_npv << endl;
-     outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr  "
-          << "      OsPrinL        P_Repay        I_Repay         IntRev          LateF"
-          << "        IntCost       AcctCost     Late_cost           Collect"
-          << "      WorkCap     CreditLoss"  << endl;
-     outf << "==============================================================================================="
+          << "   PB: " << pd << "   NPV: " << total_npv << endl;
+     outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr    M1_Atr  Base_Atr        "
+          << "OsPrinL        P_Repay        I_Repay         IntRev          LateF         "
+          << "EarlyF        IntCost       AcctCost         PreCol        Collect             "
+          << "WC        CreLoss" << endl;
+     outf << "========================================================================================================="
           << "======================================================================"
           << "======================================================================" << endl;
      outf <<  showpoint
-              << setw(89) << setprecision(8) << "  "
+              << setw(79) << setprecision(8) << app_fee
+              << setw(15) << setprecision(8) << Other_Fee
+              << setw(15) << setprecision(8) << Commission
               << setw(15) << setprecision(8) << Interest_Revenue
               << setw(15) << setprecision(8) << Late_Fee
               << setw(15) << setprecision(8) << Interest_Cost
               << setw(15) << setprecision(8) << Acct_Mgmt_Cost
-              << setw(15) << setprecision(8) << Late_Cost
+              << setw(15) << setprecision(8) << PreCollection_Cost
               << setw(15) << setprecision(8) << Collection_Cost
               << setw(15) << setprecision(8) << Working_Capital
               << setw(15) << setprecision(8) << Credit_Loss
               << endl;
-     for (int i = 0; i <= periods; i++) {
+     for (int i = 0; i < periods + 4; i++) {
          outf << setprecision(8) << showpoint
               << setw(4)  << i
               << setw(10) << setprecision(4) << apr[i]
               << setw(10) << setprecision(4) << open_attrition[i]
               << setw(10) << setprecision(4) << voluntary_attrition[i]
               << setw(10) << setprecision(4) << involuntary_attrition[i]
+              << setw(10) << setprecision(4) << m1_attrition[i]
+              << setw(10) << setprecision(4) << base_attrition[i]
               << setw(15) << setprecision(8) << os_principal[i]
               << setw(15) << setprecision(8) << principal_repayment[i]
               << setw(15) << setprecision(8) << interest_repayment[i]
@@ -291,13 +235,52 @@ double Loan::calculate_npv(double delta_apr)
               << setw(15) << setprecision(8) << late_fee[i]
               << setw(15) << setprecision(8) << interest_cost[i]
               << setw(15) << setprecision(8) << account_management_cost[i]
-              << setw(15) << setprecision(8) << late_cost[i]
+              << setw(15) << setprecision(8) << precollection_cost[i]
               << setw(15) << setprecision(8) << collection_cost[i]
               << setw(15) << setprecision(8) << working_capital[i]
               << setw(15) << setprecision(8) << credit_loss[i]
               << endl;
      }
 #endif
+  return (total_npv);
+}
+//---------------------------------------------------------------------------
+double Loan::recal_npv(double delta_apr, double loan_amt)
+{
+ double Interest_Revenue, Setup_Revenue, Late_Fee;
+ double Interest_Cost, Commission, Setup_Cost, Acct_Mgmt_Cost, Late_Cost, Collection_Cost;
+ double PreCollection_Cost, Credit_Loss, Working_Capital, Other_Fee;
+
+ try {
+  principal = loan_amt;
+  npv_init();
+  set_apr(delta_apr);
+  set_attrition();
+  set_annuity(principal);  // 本息法
+  // Revenue
+  Interest_Revenue = set_interest_revenue();
+  Setup_Revenue = set_setup_fee();
+  Late_Fee = set_late_fee();
+
+  // Cost
+  Interest_Cost = set_interest_cost();
+//  Commission =  calculate_commission();
+  Acct_Mgmt_Cost = set_account_management_cost();
+  PreCollection_Cost = set_precollection_cost();
+//  Setup_Cost = setup_cost();
+//  Late_Cost = set_late_cost(pd);
+  Collection_Cost = set_collection_cost();
+
+  Working_Capital = set_working_capital();
+  Credit_Loss = set_credit_loss();
+
+  total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
+               - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost + Collection_Cost) // Cost
+               + (Working_Capital - Credit_Loss);       // Working Capital
+
+ } catch (Exception &E) {
+     throw;
+ }
   return (total_npv);
 }
 
@@ -309,6 +292,8 @@ void Loan::npv_init()
      open_attrition[i] = 0.0;
      voluntary_attrition[i] = 0.0;
      involuntary_attrition[i] = 0.0;
+     PD_attrition[i] = 0.0;
+     m1_attrition[i] = 0.0;
      vol_attrition_open[i] = 0.0;
 //     open_credit_fee[i] = 0.0;
 //     risk_mgmt_revenue[i] = 0.0;
@@ -318,11 +303,13 @@ void Loan::npv_init()
      monthly_repayment[i] = 0.0;
      interest_revenue[i] = 0.0;
      late_fee[i] = 0.0;
+     early_closing_fee [i] = 0.0;
 //     open_credit_fee[i] = 0.0;
 //     risk_mgmt_revenue[i] = 0.0;
      interest_cost[i] = 0.0;
      account_management_cost[i] = 0.0;
      late_cost[i] = 0.0;
+     precollection_cost[i] = 0.0;
      collection_cost[i] = 0.0;
      working_capital[i] = 0.0;
      credit_loss[i] = 0.0;
@@ -664,4 +651,5 @@ double Loan::find_lowest_rate (double offset, double delta_r)
  }
  return (find_lowest_rate(offset_r, delta_r / 2.0));
 }
+//---------------------------------------------------------------------------
 

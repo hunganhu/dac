@@ -38,10 +38,11 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  char input_time[20];
  String bank = bank_code;
 // int now;
- int errCode = 0;
+ int i, errCode = 0;
  int pass = 1;
  double pdaco_score, income, monthly_debt;
- double npv_value, delta_apr, lowest_delta;
+ double npv_value, pb_value, delta_apr, lowest_delta, orig_npv;
+ double optimal_amount, optimal_pb, optimal_npv;
  double max_apr;
 
  if (check_expiration(EXPIRATION_DATE) == -1) {
@@ -66,13 +67,45 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
     pdaco_app = new PDACO(msno, app_input_time);
     pass = pdaco_app->GeneratePdaco61Score(dbhandle);
  // calculate NPV
+/*
     if (pass == 0) {
        // calculate NPV
+       ptrLoan = new Loan(msno, pdaco_app->getLoanAmount(), pdaco_app->getApr(),
+                          pdaco_app->getTerm(), pdaco_app->getAppFee(), pdaco_app->getPdaco61PB());
+       orig_npv = optimal_npv = ptrLoan->calculate_npv(0.0); // delta_apr = 0.0
+       if (orig_npv <= 0) {
+           // output decline msg - npv too low
+       } else {
+         if (pdaco_app->getPdaco61PB() < 0.01 &&
+             pdaco_app->getScoreCard() == 5   &&
+             pdaco_app->getLoanAmount() == pdaco_app->getRequestAmount()) {
+             // upsell
+             for (i = pdaco_app->getLoanAmount(); i <= pdaco_app->upperLendableAmount();
+                  i = (i + 50000)/ 50000 * 50000) {
+                pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
+                npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
+                if (npv_value > optimal_npv && pb_value < pdaco_app->getPbCap()) {
+                   optimal_amount = i;
+                   optimal_npv = npv_value;
+                   optimal_pb = pb_value;
+                }
+             }
+             if (i > pdaco_app->upperLendableAmount()) {
+                i =  pdaco_app->upperLendableAmount();
+                pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
+                npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
+                if (npv_value > optimal_npv && pb_value < pdaco_app->getPbCap()) {
+                   optimal_amount = i;
+                   optimal_npv = npv_value;
+                   optimal_pb = pb_value;
+                }
+             } // end of upsell
+          }
+         // postscreen ();
 
+       }
     }
- // upsell
- //
-
+*/
  } catch(cc_error &Err){
    // Store screen-out result
      strcpy (error, Err.ShowMessage());
@@ -109,307 +142,12 @@ unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn
  return (return_value);
 };
 
-/*
-int FM_New(char *msn, char *ole_db, char *error_message)
+//---------------------------------------------------------------------------
+void upsell()
 {
- TADOHandler *dbhandle;    // commemt if past from argument
- Variant hostVars[20];
- Loan *ptrLoan;
- PDACO *pdaco_app, *pdaco_cos, *pdaco_gua;
- char input_time[20];
- int app_seg, cos_seg, gua_seg;
- int app_pscode, cos_pscode, gua_pscode;
- int pdacoPath, incomePath, ms101Path;
- String appMsg, cosMsg, guaMsg, suggMsg, reasonMsg;
-// int now;
- int errCode = 0;
- int dispCode;
- double pdaco_score, income, monthly_debt;
- double npv_value, delta_apr, lowest_delta;
- double max_apr;
-
- if (check_expiration(EXPIRATION_DATE) == -1) {
-    strcpy (error_message, EXPIRATION_MSG);
-    return(-1);
- }
- try {
-    strcpy (error_message, "");      // return empty string if stop normally.
-    dbhandle = new TADOHandler();    // commemt if past from argument
-    dbhandle->OpenDatabase(ole_db);  // commemt if past from argument
-
-    ptrLoan = new Loan(msn);
-    ptrLoan->app_info_validate(msn, dbhandle);
-//    now = yrmon_to_mon(ptrLoan->Inquiry_date(), false, "");
-    // determine people
-    if (ptrLoan->exist_applicant()) {
-//       now = yrmon_to_mon(ptrLoan->App_inquiry_date(), false, "");
-       pdaco_app = new PDACO(msn, input_time);
-       pdaco_app->Prescreen_New(dbhandle);
-       app_seg = pdaco_app->Segment();
-       app_pscode = pdaco_app->PS_code();
-    } else {
-       strcpy (error_message, "Applicant ID does not exist.");
-       return (-1);
-    }
-
-    if (ptrLoan->exist_coapplicant()) {
-//       now = yrmon_to_mon(ptrLoan->Cos_inquiry_date(), false, "");
-       pdaco_cos = new PDACO(msn, input_time);
-       pdaco_cos->Prescreen_New(dbhandle);
-       cos_seg =  pdaco_cos->Segment();
-       cos_pscode = pdaco_cos->PS_code();
-    } else {   // co-applicant does not exist
-       cos_seg = seg_N;
-       cos_pscode = -1;
-    }
-    if (ptrLoan->exist_guarantor()) {
-//       now = yrmon_to_mon(ptrLoan->Gua_inquiry_date(), false, "");
-       pdaco_gua = new PDACO(msn, input_time);
-       pdaco_gua->Prescreen_New(dbhandle);
-       gua_seg = pdaco_gua->Segment();
-       gua_pscode = pdaco_gua->PS_code();
-       if (gua_seg > seg_Ip) {
-           gua_seg  = seg_Ip;
-           if (gua_pscode >= PSCODE_109) { // ignore segment Insufficient-failure message (109,110)
-               gua_pscode = PSCODE_0;
-           }
-       }
-       ptrLoan->set_pb_adjustment(gua_seg, pdaco_gua->Pdaco_score());
-    } else {  // guarantor does not exist
-       gua_seg = seg_N;
-       ptrLoan->set_pb_adjustment(gua_seg, 1.0);
-       gua_pscode = -1;
-    }
-    dispCode = overall_lookup( app_seg, cos_seg, gua_seg, app_pscode, cos_pscode, gua_pscode,
-                 &pdacoPath, &incomePath, &ms101Path, suggMsg, reasonMsg, dbhandle);
-    if (dispCode == 0) {
-      // calculate NPV, lowest APR
-      switch (pdacoPath) {
-        case 1: pdaco_score = pdaco_app->Pdaco_score(); break;
-        case 2: pdaco_score = pdaco_cos->Pdaco_score(); break;
-        case 3: pdaco_score = (pdaco_app->Pdaco_score()+ pdaco_cos->Pdaco_score())/2.0; break;
-      }
-      switch (incomePath) {
-        case 1: income = ptrLoan->appIncome() / 12.0; break;
-        case 2: income = ptrLoan->cosIncome() / 12.0; break;
-        case 3: income = (ptrLoan->appIncome()+ ptrLoan->cosIncome()) / 12.0; break;
-      }
-      switch (ms101Path) {
-        case 1: monthly_debt = pdaco_app->monthly_debt(); break;
-        case 2: monthly_debt = pdaco_cos->monthly_debt(); break;
-        case 3: monthly_debt = pdaco_app->monthly_debt()+ pdaco_cos->monthly_debt(); break;
-      }
-      ptrLoan->set_risk_score (pdaco_score);
-      ptrLoan->set_monthly_income(income);
-      ptrLoan->set_monthly_debt(monthly_debt);
-      ptrLoan->set_risk_twentile (pdaco_score);
-      ptrLoan->set_principal();
-
-      // calculate NPV with no interest rate bias
-      npv_value = ptrLoan->calculate_npv(0.0);
-      // find the lowest rate to make NPV > Approved_line (2.0K)
-      if (npv_value > 2.0) dispCode = 1;
-      else dispCode = 2;
-
-      if (dispCode == 1) {
-         lowest_delta = ptrLoan->calculate_optimal_npv();
-         ptrLoan->set_lowest_rate(lowest_delta);
-      }
-      ptrLoan->set_npv(npv_value);  // restore npv based on application
-#ifdef _TRACE
-     fstream outf;
-
-     outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << "Case SN: " << msn << " min_apr1: " << ptrLoan->Min_APR1()
-          << " min_apr2: " << ptrLoan->Min_APR2()
-          << " min_apr3: " << ptrLoan->Min_APR3() << " NPV: " << ptrLoan->Lowest_npv() << endl;
-#endif
-
-      final_lookup(app_seg, cos_seg, gua_seg, dispCode, app_pscode, cos_pscode, gua_pscode,
-                   suggMsg, reasonMsg, dbhandle);
-
-      // write approve or decline result to db
-      write_final_result(dispCode, suggMsg, reasonMsg,
-                         ptrLoan, pdaco_app, pdaco_cos, pdaco_gua, dbhandle);
-    }
-    else {
-      // write decline or manual result to db
-      write_prescreen_result(dispCode, suggMsg, reasonMsg,
-                             ptrLoan, pdaco_app, pdaco_cos, pdaco_gua, dbhandle);
-    }
-
-
-    dbhandle->CloseDatabase();     // commemt if past from argument
- } catch (Loan::DataEx &DE){
-     strcpy (error_message, DE.message.c_str());
-     errCode = -1;
- } catch (Exception &E) {
-     strcpy (error_message, E.Message.c_str());
-     errCode = -1;
- }
- if (ptrLoan->exist_applicant()) delete pdaco_app;
- if (ptrLoan->exist_coapplicant()) delete pdaco_cos;
- if (ptrLoan->exist_guarantor()) delete pdaco_gua;
- delete ptrLoan;
- delete dbhandle;
- return (errCode);
 }
-*/
 //---------------------------------------------------------------------------
 /*
-//---------------------------------------------------------------------------
-int overall_lookup(int appStatus, int cosStatus, int guaStatus,
-                 int appPSCode, int cosPSCode, int guaPSCode,
-                 int *pdacoPath, int *incomePath, int *ms101Path,
-                 String &dispositionMsg, String &finalMsg, TADOHandler *handler)
-{
- Variant hostVars[5];
- TADODataSet *ds = new TADODataSet(NULL);
- int dispCode = 0;
- String appMsg, cosMsg, guaMsg;
-
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
- try {
-    finalMsg = "";       // initialize to empty string
-    hostVars[0] = appStatus;
-    hostVars[1] = cosStatus;
-    hostVars[2] = guaStatus;
-    handler->ExecSQLQry(SQLCommands[Get_Overall_Lookup], hostVars, 2, ds);
-
-    ds->First();
-    if (!ds->Eof) {
-       if (! ds->FieldValues["DISPOSITION_CODE"].IsNull())
-          dispCode = ds->FieldValues["DISPOSITION_CODE"];
-
-       if (! ds->FieldValues["DISPOSITION_MESSAGE"].IsNull())
-          dispositionMsg = ds->FieldValues["DISPOSITION_MESSAGE"];
-       else
-          dispositionMsg = "";
-
-       if (! ds->FieldValues["APPLICANT_MESSAGE"].IsNull()) {
-          appMsg = ds->FieldValues["APPLICANT_MESSAGE"];
-          if (appPSCode > 0)
-              appMsg = appMsg + "(" + PSMsg(appPSCode) + ")";
-       }
-       else
-          appMsg = "";
-       finalMsg += appMsg;
-
-       if (! ds->FieldValues["CO_APPLICANT_MESSAGE"].IsNull()) {
-          cosMsg = ds->FieldValues["CO_APPLICANT_MESSAGE"];
-          if (cosPSCode > 0)
-              cosMsg = cosMsg + "(" + PSMsg(cosPSCode) + ")";
-       }
-       else
-          cosMsg = "";
-       finalMsg += cosMsg;
-
-       if (! ds->FieldValues["GUARANTOR_MESSAGE"].IsNull()) {
-          guaMsg = ds->FieldValues["GUARANTOR_MESSAGE"];
-          if (guaPSCode > 0)
-             if (guaStatus >= seg_Ip) // Insufficient data
-                guaMsg = "";
-             else
-                guaMsg = guaMsg + "(" + PSMsg(guaPSCode) + ")";
-       }
-       else
-          guaMsg = "";
-       finalMsg += guaMsg + "¡C";
-
-       if (! ds->FieldValues["PDACO_CODE"].IsNull())
-          *pdacoPath = ds->FieldValues["PDACO_CODE"];
-       else
-          *pdacoPath = 0;
-
-       if (! ds->FieldValues["INCOME_CODE"].IsNull())
-          *incomePath = ds->FieldValues["INCOME_CODE"];
-       else
-          *incomePath = 0;
-
-       if (! ds->FieldValues["MS101_CODE"].IsNull())
-          *ms101Path = ds->FieldValues["MS101_CODE"];
-       else
-          *ms101Path = 0;
-    }
- } catch (Exception &E) {
-    ds->Close();
-    delete ds;
-    throw;
- }
-  ds->Close();  // close dataset before delete and drop an object outside the try block,
-                // otherwise result in "too many consecutive exceptions"
-  delete ds;
-  return (dispCode);
-}
-
-//---------------------------------------------------------------------------
-int final_lookup(int appStatus, int cosStatus, int guaStatus, int disp_code,
-                 int appPSCode, int cosPSCode, int guaPSCode,
-                 String &dispositionMsg, String &finalMsg, TADOHandler *handler)
-{
- Variant hostVars[5];
- TADODataSet *ds = new TADODataSet(NULL);
- String appMsg, cosMsg, guaMsg;
-
- ds->EnableBCD = false;  // Decimal fields are mapped to float.
- try {
-    finalMsg = "";       // initialize to empty string
-    hostVars[0] = appStatus;
-    hostVars[1] = cosStatus;
-    hostVars[2] = guaStatus;
-    hostVars[3] = disp_code;
-    handler->ExecSQLQry(SQLCommands[Get_Final_Lookup], hostVars, 3, ds);
-
-    ds->First();
-    if (!ds->Eof) {
-       if (! ds->FieldValues["MESSAGE_DISPOSITION"].IsNull())
-          dispositionMsg = ds->FieldValues["MESSAGE_DISPOSITION"];
-       else
-          dispositionMsg = "";
-
-       if (! ds->FieldValues["APPLICANT_MESSAGE"].IsNull()) {
-          appMsg = ds->FieldValues["APPLICANT_MESSAGE"];
-          if (appPSCode > 0)
-              appMsg = appMsg + "(" + PSMsg(appPSCode) + ")";
-       }
-       else
-          appMsg = "";
-       finalMsg += appMsg;
-
-       if (! ds->FieldValues["CO_APPLICANT_MESSAGE"].IsNull()) {
-          cosMsg = ds->FieldValues["CO_APPLICANT_MESSAGE"];
-          if (cosPSCode > 0)
-              cosMsg = cosMsg + "(" + PSMsg(cosPSCode) + ")";
-       }
-       else
-          cosMsg = "";
-       finalMsg += cosMsg;
-
-       if (! ds->FieldValues["MESSAGE_GUARANTOR"].IsNull()) {
-          guaMsg = ds->FieldValues["MESSAGE_GUARANTOR"];
-          if (guaPSCode > 0)
-             if (guaStatus >= seg_Ip) // Insufficient data
-                guaMsg = "";
-             else
-                guaMsg = guaMsg + "(" + PSMsg(guaPSCode) + ")";
-       }
-       else
-          guaMsg = "";
-       finalMsg += guaMsg;
-
-    }
- } catch (Exception &E) {
-    ds->Close();
-    delete ds;
-    throw;
- }
-  ds->Close();  // close dataset before delete and drop an object outside the try block,
-                // otherwise result in "too many consecutive exceptions"
-  delete ds;
-  return (0);
-}
-//---------------------------------------------------------------------------
-
 void write_final_result(int &dispCode, String &suggMsg, String &reasonMsg,
                         Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
                         TADOHandler *handler)
