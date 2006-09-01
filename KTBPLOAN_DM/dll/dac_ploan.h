@@ -33,7 +33,8 @@ extern "C" __declspec(dllexport)
                           char *bank_code, char *ole_db_str, int gender, char *error);
 
 unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn);
-                          
+void write_npv(char *msn, char *input_time, double npv, TADOHandler *handler);
+
 /*
 int overall_lookup(int appStatus, int cosStatus, int guaStatus,
                  int appPSCode, int cosPSCode, int guaPSCode,

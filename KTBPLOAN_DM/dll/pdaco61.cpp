@@ -13,7 +13,7 @@
 ****************************************************************************/
 //---------------------------------------------------------------------------
 // to do:
-// 
+//
 #pragma hdrstop
 
 #include <Math.hpp>
@@ -37,6 +37,35 @@ PDACO::PDACO (char *msn, char* input_time):
 //---------------------------------------------------------------------------
 PDACO::~PDACO ()
 {
+}
+int PDACO::input_npv_test(TADOHandler *handler)
+{
+ Variant hostVars[5];
+ TADODataSet *ds;
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ try {                  
+    hostVars[0] = msn;
+    hostVars[1] = input_time;
+    handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 1, ds);
+    ds->First();
+    if (!ds->Eof) {
+        LOAN_AMOUNT = ds->FieldValues["LOAN_AMOUNT"];
+        TOTAL_TERM = ds->FieldValues["TOTAL_TERM"];
+        period = TOTAL_TERM;
+        apr = ds->FieldByName("APR")->AsFloat;
+        app_fee = ds->FieldByName("APP_FEE")->AsFloat;
+        pb = ds->FieldByName("PB")->AsFloat;
+    }
+ } catch (Exception &E) {
+     ds->Close();
+     delete ds;
+     throw;
+ }
+ ds->Close();
+ delete ds;
+ return 0;
 }
 //---------------------------------------------------------------------------
 int PDACO::CreateWorkingTables(TADOHandler *handler)

@@ -148,17 +148,11 @@ class Loan {
             unsigned int application_fee, double pd);
     ~Loan ();
     String error();
-//    double secured_pb();
     double calculate_npv(double delta_apr);
     double recal_npv(double delta_apr, double loan_amt);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     String Case_no();
     int appIncome();
-//    void set_risk_score (double score);
-//    void set_monthly_income(double income);
-//    void set_monthly_debt(double debt);
-//    void set_risk_twentile (double score);
-//    void set_pb_adjustment(int segment, double score);
 
     void set_lowest_rate (double delta_rate);
     void set_npv (double npv_value);

@@ -174,6 +174,8 @@ class PDACO
     double monthly_debt();
     void   postScreen();
 
+    int input_npv_test(TADOHandler *handler);
+
 };
 
 

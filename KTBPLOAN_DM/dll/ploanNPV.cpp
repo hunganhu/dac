@@ -27,9 +27,10 @@
 Loan::Loan (char *msn, unsigned int loan_amount, double apr, unsigned int terms,
             unsigned int application_fee, double pd):
             msn(msn), principal(loan_amount),apr1(apr), seg1(terms), app_fee(application_fee),
-            pd(pd), apr2(0.0), seg2(0), apr3(0.0), seg3(0)
+            pd(pd), apr2(0.0), seg2(0), apr3(0.0), seg3(0), grace_period(0)
 {
  max_apr = max(max(apr1,apr2),apr3);
+ periods = seg1 + seg2 + seg3;
 }
 //---------------------------------------------------------------------------
 Loan::~Loan ()
@@ -187,8 +188,8 @@ double Loan::calculate_npv(double delta_apr)
 
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
                - (Interest_Cost + Acct_Mgmt_Cost
-                  + Late_Cost + Collection_Cost )               // Cost
-                  + (Working_Capital - Credit_Loss);       // Working Capital
+                  + PreCollection_Cost + Collection_Cost )   // Cost
+                  + (Working_Capital - Credit_Loss);         // Working Capital
 
  } catch (Exception &E) {
      throw;
@@ -351,7 +352,7 @@ void Loan::set_attrition()
      else
         cat = 2;
      term = 36; // month
-     slope = 1/6; // slope ratio
+     slope = 1.0/6.0; // slope ratio
   } else if (periods >= 48 && periods < 72 ) { // 5 year (4*12 - 6*12 month)
      if (max_apr <= 0.05)
         cat = 3;
@@ -360,7 +361,7 @@ void Loan::set_attrition()
      else
         cat = 5;
      term = 60; // month
-     slope = 1/4; // slope ratio
+     slope = 1.0/4.0; // slope ratio
   } else { //  7 year
      if (max_apr <= 0.05)
         cat = 6;
@@ -369,7 +370,7 @@ void Loan::set_attrition()
      else
         cat = 8;
      term = 120; // month
-     slope = 1/3; // slope ratio
+     slope = 1.0/3.0; // slope ratio
   }
 
   for (int i = 0; i < term; i++)

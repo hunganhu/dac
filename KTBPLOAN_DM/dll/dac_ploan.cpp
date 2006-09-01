@@ -63,16 +63,21 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  // Get application info: amount, term, apr, and fee
  //   ptrLoan = new Loan(msno, app_input_time);
  //   ptrLoan->app_info_validate(msno, dbhandle);
+
  // new risk model and calculate jcic variables
     pdaco_app = new PDACO(msno, app_input_time);
-    pass = pdaco_app->GeneratePdaco61Score(dbhandle);
+//    pass = pdaco_app->GeneratePdaco61Score(dbhandle);
+
+// npv test only, get loan info from table
+      pass = pdaco_app->input_npv_test(dbhandle);
  // calculate NPV
-/*
     if (pass == 0) {
        // calculate NPV
        ptrLoan = new Loan(msno, pdaco_app->getLoanAmount(), pdaco_app->getApr(),
                           pdaco_app->getTerm(), pdaco_app->getAppFee(), pdaco_app->getPdaco61PB());
        orig_npv = optimal_npv = ptrLoan->calculate_npv(0.0); // delta_apr = 0.0
+       write_npv(msno, app_input_time, orig_npv, dbhandle);
+/*
        if (orig_npv <= 0) {
            // output decline msg - npv too low
        } else {
@@ -102,10 +107,9 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
              } // end of upsell
           }
          // postscreen ();
-
        }
-    }
 */
+    }
  } catch(cc_error &Err){
    // Store screen-out result
      strcpy (error, Err.ShowMessage());
@@ -145,6 +149,20 @@ unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn
 //---------------------------------------------------------------------------
 void upsell()
 {
+}
+//---------------------------------------------------------------------------
+void write_npv(char *msn, char *input_time, double npv,
+                        TADOHandler *handler)
+{
+ String sqlstmt;
+
+ sqlstmt  = "INSERT INTO NPV_OUT (MSN, LOAN_AMOUNT, NPV) VALUES (" ;
+ sqlstmt += "'" + static_cast<String>(msn) + "', " + static_cast<String>(input_time) + ", " + FloatToStr(npv) + ")";
+ try {
+    handler->ExecSQLCmd(sqlstmt.c_str());
+ } catch (Exception &E) {
+    throw;
+ }
 }
 //---------------------------------------------------------------------------
 /*
