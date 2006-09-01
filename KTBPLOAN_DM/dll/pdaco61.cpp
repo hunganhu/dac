@@ -339,7 +339,7 @@ int PDACO::PDACO61P5Raw(TADOHandler *handler)
     if (!ds->Eof) {
         FS016F_12M = ds->FieldByName("FS016F_12M")->AsFloat;
         RS017_R_TRAN2 = ds->FieldByName("RS017_R_TRAN2")->AsFloat;
-        MS074_T3 = ds->FieldByName("MS074_T3")->AsFloat;
+        MS074 = ds->FieldByName("MS074")->AsFloat;
         FS205_3M_1K_Q_TRAN2 = ds->FieldByName("FS205_3M_1K_Q_TRAN2")->AsFloat;
         FS031_1M_Q_TRAN2 = ds->FieldByName("FS031_1M_Q_TRAN2")->AsFloat;
         FS073B_12M_R = ds->FieldByName("FS073B_12M_R")->AsFloat;
@@ -521,9 +521,14 @@ double PDACO::PDACO61P4Score()
 double PDACO::PDACO61P5Score()
 {
  double APR_N, Score_N, term_N, loan_N;
+ double MS074_T2;
 
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
  ln003_9m_t = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI003_9M_T;
+ MS074_T2  = LOAN_AMOUNT / 1000.0 + MS074;
+ if (MS074_T2 > 2250) MS074_T3 = 2250;
+ else  MS074_T3 = MS074_T2;
+
  rscore= 0.25612	+
    	     FS016F_12M         *	0.00321   +
    	     RS017_R_TRAN2      *	-0.03459  +
@@ -662,19 +667,13 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
 //---------------------------------------------------------------------------
 int PDACO::WriteTraceRecord(TADOHandler *handler)
 {
- Variant hostVars[10];
+ char buf[1024];
  try {
     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
-    hostVars[0] = LOAN_AMOUNT;
-    hostVars[1] = FSC_AMOUNT;
-    hostVars[2] = scorecard;
-    hostVars[3] = pb;
-    hostVars[4] = 0; // ps_code;
-    hostVars[5] = ""; // ps_msg;
-    hostVars[6] = rscore;
-    hostVars[7] = msn;
-    hostVars[8] = input_time;
-    handler->ExecSQLCmd(SQLCommands[Update_Audit_Table], hostVars, 8);
+    sprintf(buf, SQLCommands[Update_Audit_Table], LOAN_AMOUNT, FSC_AMOUNT,
+                 scorecard, pb, ps_code, ps_msg, rscore, msn, input_time);
+
+     handler->ExecSQLCmd(buf);
  } catch (Exception &E) {
      throw;
  }
@@ -728,7 +727,7 @@ int PDACO::getFscCap()
 {
  double fsc_lendable = monthly_income * 22 - MS606;
  if (fsc_lendable < 0) fsc_lendable = 0;
- FSC_AMOUNT = (static_cast<int>(fsc_lendable) / 10000) * 10000;
+ FSC_AMOUNT = (static_cast<int>(fsc_lendable / 10000)) * 10000;
 
  return(FSC_AMOUNT);
 }
