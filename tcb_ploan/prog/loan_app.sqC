@@ -214,9 +214,21 @@ int LoanApp::initial()
      strcpy(MESSAGE, DataErrorMsg(EXIST_ERR_1101));
      return(DataErrorCode(EXIST_ERR_1101));
   }
+
   strcpy (aID, iApplicant_Id);
   strcpy (System_date, iSystem_date);
-//  printf("system_date=%s.\n", System_date);
+  //  printf("system_date=%s.\n", System_date);
+
+  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:房貸"
+  if (Product_type_code_ind == -1) Product_type_code = 4;
+  else Product_type_code = iProduct_type_code;
+
+  if (Product_type_code > 5)  //NO data check for product > 5
+    return(code);
+    
+  // if ((Product_type_code < 1) || (Product_type_code > 6)) {
+  //   strcat(MESSAGE, DataErrorMsg(DATA_ERR_1029)); code = DataErrorCode(DATA_ERR_1029);}
+
   if (GID_ind == -1) strcpy(gID, "");
   else strcpy (gID, iGuarantor_Id);
   Info("Guarantor ID=%s.\n", gID);
@@ -297,14 +309,6 @@ int LoanApp::initial()
 
   if (is_future_year(System_date, Car_year)) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1008)); code = DataErrorCode(DATA_ERR_1008);}
-
-  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:房貸"
-  if (Product_type_code_ind == -1) Product_type_code = 4;
-  else Product_type_code = iProduct_type_code;
-
-  // if ((Product_type_code < 1) || (Product_type_code > 6)) {
-  //   strcat(MESSAGE, DataErrorMsg(DATA_ERR_1029)); code = DataErrorCode(DATA_ERR_1029);}
-
   
   // check apr_1, 0~12, 6.99% as 6.99   
   if (APR_1_ind == -1) {
@@ -525,11 +529,7 @@ int LoanApp::get_loan_info()
   if (System_date_final_ind == -1) strcpy(System_date_final, "");
   else strcpy (System_date_final, iSystem_date_final);
 //  printf ("System_date_final=%s.\n", System_date_final);
-    
-  if (System_time_final_ind == -1) strcpy(System_time_final, "");
-  else strcpy (System_time_final, iSystem_time_final);
-//  printf ("System_time_final=%s.\n", System_time_final);
-  
+      
   if (Approval_final_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(EXIST_ERR_1104)); code = DataErrorCode(EXIST_ERR_1104);}
   else Approval_final = iApproval_final;

@@ -383,7 +383,9 @@ int dac_pl_fnl(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return rc;
   }
   // update npv according to loan_amt
-  rc = app.update_final_npv(); 
+  if (app.get_product_type() <= 5) { // NO pb and npv output for newly added products
+     rc = app.update_final_npv(); 
+  }
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();

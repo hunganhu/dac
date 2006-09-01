@@ -37,13 +37,13 @@ EXTRA_CFLAG= -g -Wno-deprecated
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-ALIAS=dacdb
-#ALIAS=escore
+#ALIAS=dacdb
+ALIAS=escore
 # Set UID and PWD if neccesary
-UID=ejcicap1
-PWD=ejcicap1
-#UID=escorap1
-#PWD=escorap1
+#UID=ejcicap1
+#PWD=ejcicap1
+UID=escorap1
+PWD=escorap1
 
 ERASE=rm -f
 
@@ -53,7 +53,7 @@ DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o 
 #		   2a - make all (srv + all_client)
 #****************************************************************************
 
-all : libdac_1_3.so java  main mainfnl
+all : libdac_1_4_1.so java  main mainfnl
 .PHONY : all
 	
 java: Dac.class 
@@ -92,9 +92,9 @@ cutpoint.o: cutpoint.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c cutpoint.cpp
 #	gcc -g  -c cutpoint.c
 	
-libdac_1_3.so: $(DLL_OBJ)
-	$(ERASE) libdac_1_2.so
-	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_3.so $(DLL_OBJ)
+libdac_1_4_1.so: $(DLL_OBJ)
+	$(ERASE) libdac_1_4_1.so
+	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_4_1.so $(DLL_OBJ)
 #libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
@@ -129,8 +129,8 @@ clean :
 	$(ERASE) *.o *.so *.bak *~
 	$(ERASE) *.bnd *.C
 
-install: libdac_1_3.so
-	 cp -f libdac_1_3.so $(DESDIR)
+install: libdac_1_4_1.so
+	 cp -f libdac_1_4_1.so $(DESDIR)
 	 touch install
 	 cd $(DESDIR)
-	 ln -f -s libdac_1_3.so libdac.so
+	 ln -f -s libdac_1_4_1.so libdac.so
