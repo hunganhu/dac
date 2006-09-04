@@ -109,6 +109,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
          // postscreen ();
        }
 */
+     delete ptrLoan;
     }
  } catch(cc_error &Err){
    // Store screen-out result
@@ -119,6 +120,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
      errCode = -1;
  }
 // delete ptrLoan;
+ delete pdaco_app;
  delete dbhandle;
  return (errCode);
 }

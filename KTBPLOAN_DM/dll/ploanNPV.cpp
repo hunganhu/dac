@@ -187,9 +187,8 @@ double Loan::calculate_npv(double delta_apr)
   Credit_Loss = set_credit_loss();
 
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
-               - (Interest_Cost + Acct_Mgmt_Cost
-                  + PreCollection_Cost + Collection_Cost )   // Cost
-                  + (Working_Capital - Credit_Loss);         // Working Capital
+               - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost + Collection_Cost) // Cost
+               + (Working_Capital + Credit_Loss);       // Working Capital
 
  } catch (Exception &E) {
      throw;
@@ -202,15 +201,13 @@ double Loan::calculate_npv(double delta_apr)
           << "   PB: " << pd << "   NPV: " << total_npv << endl;
      outf << "TERM       APR  Open_Atr   Vol_Atr Invol_Atr    M1_Atr  Base_Atr        "
           << "OsPrinL        P_Repay        I_Repay         IntRev          LateF         "
-          << "EarlyF        IntCost       AcctCost         PreCol        Collect             "
+          << "IntCost       AcctCost         PreCol        Collect             "
           << "WC        CreLoss" << endl;
      outf << "========================================================================================================="
           << "======================================================================"
           << "======================================================================" << endl;
      outf <<  showpoint
-              << setw(79) << setprecision(8) << app_fee
-              << setw(15) << setprecision(8) << Other_Fee
-              << setw(15) << setprecision(8) << Commission
+              << setw(109) << setprecision(8) << app_fee
               << setw(15) << setprecision(8) << Interest_Revenue
               << setw(15) << setprecision(8) << Late_Fee
               << setw(15) << setprecision(8) << Interest_Cost
@@ -277,7 +274,7 @@ double Loan::recal_npv(double delta_apr, double loan_amt)
 
   total_npv = (Interest_Revenue + Setup_Revenue + Late_Fee)  // Revenue
                - (Interest_Cost + Acct_Mgmt_Cost + PreCollection_Cost + Collection_Cost) // Cost
-               + (Working_Capital - Credit_Loss);       // Working Capital
+               + (Working_Capital + Credit_Loss);       // Working Capital
 
  } catch (Exception &E) {
      throw;
@@ -343,7 +340,7 @@ void Loan::set_attrition()
   int cat, term;
   int pd_term;
   double Yfit;
-  
+
   if (periods < 48) { // 3 year (4 * 12 month)
      if (max_apr <= 0.05)
         cat = 0;

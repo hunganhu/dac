@@ -216,7 +216,7 @@ class Loan {
     const double legal_detain_ratio_north = 0.0056;   //假扣押&強制執行-北區 (% of balance)
     const double legal_detain_ratio_south = 0.0032;   //假扣押&強制執行-南區 (% of balance)
     const double legal_detain_ratio_central = 0.0080; //假扣押&強制執行-中區 (% of balance)
-    const double recovery_ratio = 0.75;               //壞帳回收百分比, (資金損失 % (EAD) )
+    const double recovery_ratio = 0.25;               //壞帳回收百分比, (1-資金損失 % (EAD) )
     const double legal_action_period = 12;            // Legal action usually lasts 12 months before write-off
 //---------------------------------------------------------------------------------------
 const double PDterm_coeff[][2] = {{6.0, 1.00},    // 0: dummy record
