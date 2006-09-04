@@ -153,7 +153,7 @@ int PDACO::get_scorecard(TADOHandler *handler)
         cash_max_bucket = ds->FieldValues["fs302"];        // ScreenOut rule #5 no. of delinquent cash cards > 0
         MS605 = ds->FieldValues["MS605"];
         CDEF_FLAG_1M = ds->FieldValues["CDEF_FLAG_1M"];
-        fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
+        FS059_3M_1K = ds->FieldValues["FS059_3M_1K"];
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
@@ -244,7 +244,7 @@ int PDACO::PDACO61P1Raw(TADOHandler *handler)
         GRAY2_FLAG = ds->FieldByName("GRAY2_FLAG")->AsFloat;
         krm023_hit = ds->FieldByName("KRM023_HIT")->AsFloat;
         card_force_stop = ds->FieldByName("CARD_FORCE_STOP")->AsFloat;
-        fs059_1k_12m = ds->FieldByName("FS059_1K_12M")->AsFloat;
+        fs059_1k_12m = ds->FieldByName("FS059_12M_1K")->AsFloat;
         FS031 = ds->FieldByName("FS031")->AsFloat;
     }
 
@@ -401,6 +401,19 @@ double PDACO::PDACO61P0Score()
  else if (twentile == 3) pb = 0.24;
  else if (twentile == 4) pb = 0.28;
 
+     if (jas002_defect > 0 || app_max_bucket > 3 || fs044 > 0 || delinquent_months > 3 || cash_max_bucket > 0)
+
+ if (jas002_defect > 0)
+    {ps_code = PSCode(PSCODE_101); ps_msg = PSMsg(PSCODE_101);}
+ else if (app_max_bucket > 3)
+    {ps_code = PSCode(PSCODE_102); ps_msg = PSMsg(PSCODE_102);}
+ else if (fs044 > 0)
+    {ps_code = PSCode(PSCODE_105); ps_msg = PSMsg(PSCODE_105);}
+ else if (delinquent_months > 3)
+    {ps_code = PSCode(PSCODE_107); ps_msg = PSMsg(PSCODE_107);}
+ else if (cash_max_bucket > 0)
+    {ps_code = PSCode(PSCODE_103); ps_msg = PSMsg(PSCODE_103);}
+
  return (pb);
 }
 //---------------------------------------------------------------------------
@@ -408,6 +421,9 @@ double PDACO::PDACO61P1Score()
 {
  rscore = pb = 1.0;
  twentile = 0;
+
+ postScreen();
+ if (ps_code > 0 ) return(pb);
 
  if (krm023_hit == 1) {     // Gray 1   krm023_hit
     if (FS031 > 5) {ps_code = PSCode(PSCODE_111); ps_msg = PSMsg(PSCODE_111);}
@@ -671,6 +687,11 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	        break;
      }
 
+   if (LOAN_AMOUNT < 150000) {
+      ps_code = PSCode(PSCODE_117);
+      ps_msg = PSMsg(PSCODE_117);
+   }
+
    if (pb > getPbCap()) {
       ps_code = PSCode(PSCODE_109);
       ps_msg = PSMsg(PSCODE_109);
@@ -777,6 +798,16 @@ double PDACO::getLoanAmount()
  return(LOAN_AMOUNT);
 }
 //---------------------------------------------------------------------------
+double PDACO::getUnsecuredBalance()
+{
+ return(MS606);
+}
+//---------------------------------------------------------------------------
+double PDACO::getDoubleCardBalance()
+{
+ return(revolving_amt);
+}
+//---------------------------------------------------------------------------
 double PDACO::getRequestAmount()
 {
  return(REQUEST_AMT);
@@ -830,29 +861,29 @@ int PDACO::getAppFee()
 //---------------------------------------------------------------------------
 void PDACO::postScreen()
 {
-/*
-FS314B	>= 0.95	OR	201  cash_utilization
-MS602	>= 500	OR	202  REVOLVING_AMT
-MS606	>= 1000	OR	203  MS606
-FS334B_1M	> 0	OR	204   CASH_MAX_BUCKET
-DELINQUENT_FLAG	=1	OR	205
-STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
-DEBT_CODE	=1	OR	207
+//---------------------------------------------------------------
+// FS314B	>= 0.95	OR	201  cash_utilization
+// MS602	>= 500	OR	202  REVOLVING_AMT
+// MS606	>= 1000	OR	203  MS606
+// FS334B_1M	> 0	OR	204   CASH_MAX_BUCKET
+// DELINQUENT_FLAG	=1	OR	205
+// STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
+// DEBT_CODE	=1	OR	207
+//---------------------------------------------------------------
+ if (cash_utilization > 0)
+    {ps_code = PSCode(PSCODE_104); ps_msg = PSMsg(PSCODE_104);}
+ else if (revolving_amt >= 500)
+    {ps_code = PSCode(PSCODE_108); ps_msg = PSMsg(PSCODE_108);}
+ else if (MS606 >= 1000)
+    {ps_code = PSCode(PSCODE_116); ps_msg = PSMsg(PSCODE_116);}
+ else if (cash_max_bucket > 0)
+    {ps_code = PSCode(PSCODE_119); ps_msg = PSMsg(PSCODE_119);}
+ else if (FS059_3M_1K >= 1)
+    {ps_code = PSCode(PSCODE_121); ps_msg = PSMsg(PSCODE_121);}
+ else if (card_force_stop >= 1)
+    {ps_code = PSCode(PSCODE_120); ps_msg = PSMsg(PSCODE_120);}
+// else if (DEBT_CODE >= 1)
+//    {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
 
- if (CASH_UTILIZATION > 0)
-    throw (RiskEx ("拒絕 [有退票強停拒往授信異常等記錄]", 103));
- else if (REVOLVING_AMT >= 500)
-    throw (RiskEx ("拒絕 [信用卡有90天以上遲繳記錄]", 104));
- else if (MS606 > 0)
-    throw (RiskEx ("拒絕 [貸款有遲繳記錄]", 105));
- else if (CASH_MAX_BUCKET > 0)
-    throw (RiskEx ("拒絕 [現金卡前期有遲繳記錄]", 106));
- else if (DELINQUENT_FLAG >= 1)
-    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
- else if (CARD_FORCE_STOP >= 1)
-    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
- else if (DEBT_CODE >= 1)
-    throw (RiskEx ("拒絕 [現金卡使用超出額度]", 107));
-    */
     }
 

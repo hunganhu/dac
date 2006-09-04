@@ -48,34 +48,20 @@ enum ErrorCodes {
 	PSCODE_114,  // 16
 	PSCODE_115,  // 17
 	PSCODE_116,  // 18
-	PSCODE_201,  // 19
-	PSCODE_202,  // 20
-	PSCODE_301,  // 21
-	PSCODE_302,  // 22
-	PSCODE_303,  // 23
-	PSCODE_304,  // 24
-	PSCODE_305,  // 25
-	PSCODE_306,  // 26
-	PSCODE_307,  // 27
-	PSCODE_308,  // 28
-	PSCODE_309,  // 29
-	PSCODE_310,  // 30
-	PSCODE_311,  // 31
-	PSCODE_312,  // 32
-	PSCODE_313,  // 33
-	PSCODE_314,  // 34
-	PSCODE_315   // 35
-};
-enum SegmentCodes {
-        seg_N,     // 0 Null
-	seg_S,     // 1 Success
-	seg_F,     // 2 Fail
-	seg_Ip,    // 3 Insufficient Pass
-	seg_If     // 4 Insufficient Fail
+	PSCODE_117,  // 19
+	PSCODE_118,  // 20
+	PSCODE_119,  // 21
+	PSCODE_120,  // 22
+	PSCODE_121,  // 23
+	PSCODE_122,  // 24
+	PSCODE_201,  // 25
+	PSCODE_301,  // 26
+	PSCODE_302,  // 27
+	PSCODE_303,  // 28
+	PSCODE_304   // 29
 };
 
 extern Invalid_Msg PRESCREEN_Msg[];
-extern Invalid_Msg PRESCREEN_BT_Msg[];
 
 class cc_error {
   public:

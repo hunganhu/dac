@@ -60,26 +60,29 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  // Check credit card black list
     if (check_credit_card_block(dbhandle, msno) > 0)
        throw cc_error(PSCODE_110, msno, app_input_time);
- // Get application info: amount, term, apr, and fee
- //   ptrLoan = new Loan(msno, app_input_time);
- //   ptrLoan->app_info_validate(msno, dbhandle);
 
  // new risk model and calculate jcic variables
     pdaco_app = new PDACO(msno, app_input_time);
-//    pass = pdaco_app->GeneratePdaco61Score(dbhandle);
+    pass = pdaco_app->GeneratePdaco61Score(dbhandle);
 
 // npv test only, get loan info from table
-      pass = pdaco_app->input_npv_test(dbhandle);
+//      pass = pdaco_app->input_npv_test(dbhandle);
  // calculate NPV
     if (pass == 0) {
        // calculate NPV
        ptrLoan = new Loan(msno, pdaco_app->getLoanAmount(), pdaco_app->getApr(),
                           pdaco_app->getTerm(), pdaco_app->getAppFee(), pdaco_app->getPdaco61PB());
        orig_npv = optimal_npv = ptrLoan->calculate_npv(0.0); // delta_apr = 0.0
-       write_npv(msno, app_input_time, orig_npv, dbhandle);
-/*
+
+       // initial optimal amount, npv, and corresponding pb
+       optimal_amount = pdaco_app->getLoanAmount();
+       optimal_pb = pdaco_app->getPdaco61PB();
+       //write_npv(msno, app_input_time, orig_npv, dbhandle); // npv test code
+
        if (orig_npv <= 0) {
-           // output decline msg - npv too low
+         // ps_code = PSCode(PSCODE_118);
+         // ps_msg = PSMsg(PSCODE_118);
+          //store_result() fail
        } else {
          if (pdaco_app->getPdaco61PB() < 0.01 &&
              pdaco_app->getScoreCard() == 5   &&
@@ -104,12 +107,21 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
                    optimal_npv = npv_value;
                    optimal_pb = pb_value;
                 }
-             } // end of upsell
-          }
-         // postscreen ();
+             }
+         }   // end of upsell
+         pdaco_app->postScreen ();
+         if (pdaco_app->getPsCode() == 0) {   // pass post screen
+             //store_result() pass
+         }
+         else {  // do NOT pass post screen
+             //store_result() fail
+         }
        }
-*/
+
      delete ptrLoan;
+    }
+    else {
+       //store_result() fail
     }
  } catch(cc_error &Err){
    // Store screen-out result
@@ -149,8 +161,122 @@ unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn
 };
 
 //---------------------------------------------------------------------------
-void upsell()
+void store_result(const char *idno,
+                  const char *input_time,
+                  PDACO *pdaco_app,
+                  int optimal_amount,
+                  int ps_code,
+                  int npv,
+                  double pb,
+                  const AnsiString &note,
+                  const char *version,
+                  bool normal,
+                  TADOHandler *handler)
 {
+ Variant hostVars[15];
+ TADODataSet *ds;
+ int result_output;
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+
+ AnsiString sql_stmt;
+ AnsiString result_string;
+
+ try {
+  if(normal){
+    int result_output;
+    if(npv <=0) {
+      result_output = 2;
+      result_string = "模組建議婉拒：經濟價值過低。";
+    }
+    else {
+       if ((pdaco_app->getRequestAmount() >= 500000) && (optimal_amount >= 500000)){
+         result_output = 1;
+         result_string = "請核實收入確認後，模組建議核准。";
+       }
+       else {
+         result_output = 1;
+         result_string = "模組建議核准。";
+       }
+     }
+     hostVars[0] = idno;
+     hostVars[1] = input_time;
+     hostVars[2] = optimal_amount;
+     hostVars[3] = pb;
+     hostVars[4] = npv;
+     hostVars[5] = result_string;
+     hostVars[6] = result_output;
+     hostVars[7] = pdaco_app->getUnsecuredBalance();
+     hostVars[8] = pdaco_app->getFscCap();
+     hostVars[9] = note;
+     hostVars[10] = pdaco_app->getDoubleCardBalance();
+     hostVars[11] = version;
+     hostVars[12] = ps_code;
+     handler->ExecSQLCmd(SQLCommands[Store_Result], hostVars, 12);
+  }
+  else {
+    int result_output;
+    switch (ps_code){
+      case 101:
+      case 102:
+      case 103:
+      case 105:
+      case 107:
+        result_output = 2;
+        result_string = "模組建議婉拒，壞帳機率過高。";
+        break;
+      case 104:
+      case 108:
+      case 116:
+        result_output = 2;
+        result_string = "模組建議婉拒，負債過高。";
+        break;
+      case 119:
+      case 120:
+      case 121:
+        result_output = 2;
+        result_string = "模組建議婉拒，信用有瑕疵。";
+        break;
+      case 111:
+      case 114:
+        result_output = 2;
+        result_string = "模組建議婉拒，查詢次數過高。";
+        break;
+      case 117:
+        result_output = 2;
+        result_string = "模組建議婉拒，負債過高。";
+        break;
+      case 112:
+      case 113:
+      case 115:
+        result_output = 2;
+        result_string = "模組建議婉拒，信用有瑕疵。";
+        break;
+      case 201:
+        result_output = 3;
+        result_string = "模組建議人工審核，JCIC資料不足。";
+        break;
+    }
+     hostVars[0] = idno;
+     hostVars[1] = input_time;
+     hostVars[2] = optimal_amount;
+     hostVars[3] = pb;
+     hostVars[4] = npv;
+     hostVars[5] = result_string;
+     hostVars[6] = result_output;
+     hostVars[7] = pdaco_app->getUnsecuredBalance();
+     hostVars[8] = pdaco_app->getFscCap();
+     hostVars[9] = note;
+     hostVars[10] = pdaco_app->getDoubleCardBalance();
+     hostVars[11] = version;
+     hostVars[12] = ps_code;
+     handler->ExecSQLCmd(SQLCommands[Store_Result], hostVars, 12);
+  }
+ } catch (Exception &E) {
+     throw;
+ }
+
 }
 //---------------------------------------------------------------------------
 void write_npv(char *msn, char *input_time, double npv,

@@ -150,7 +150,6 @@ class PDACO
     double PDACO61P4Score();
     double PDACO61P5Score();
     double getCapAmount();
-    int getFscCap();
 
   public:
     PDACO (char *msn, char* input_time);
@@ -164,6 +163,9 @@ class PDACO
     double getRequestAmount();
     int GenerateScreenVars(TADOHandler *handler);
     int getPsCode();
+    int getFscCap();
+    double getUnsecuredBalance();
+    double getDoubleCardBalance();
     double getPdaco61Score();
     double getScoreCard();
     double getApr();

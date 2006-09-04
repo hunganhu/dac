@@ -24,6 +24,7 @@
 
 const int EXPIRATION_DATE = 20251231; // expiration date of this module
 const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
+const char *VERSION = "2.0"; // PDACO 6.1 for KTB PLOAN DM  the 1st release
 
 //---------------------------------------------------------------------------
 //extern "C" __declspec(dllexport)
@@ -34,6 +35,17 @@ extern "C" __declspec(dllexport)
 
 unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn);
 void write_npv(char *msn, char *input_time, double npv, TADOHandler *handler);
+void store_result(const char *idno,
+                  const char *input_time,
+                  PDACO *pdaco_app,
+                  int optimal_amount,
+                  int ps_code,
+                  int npv,
+                  double pb,
+                  const AnsiString &note,
+                  const char *version,
+                  bool normal,
+                  TADOHandler *handler);
 
 /*
 int overall_lookup(int appStatus, int cosStatus, int guaStatus,
