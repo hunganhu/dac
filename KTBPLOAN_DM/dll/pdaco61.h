@@ -175,6 +175,7 @@ class PDACO
     double getPdaco61CapAmount();
     double monthly_debt();
     void   postScreen();
+    String vam102_message(TADOHandler *handler);
 
     int input_npv_test(TADOHandler *handler);
 

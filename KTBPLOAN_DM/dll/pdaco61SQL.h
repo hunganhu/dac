@@ -50,7 +50,8 @@ enum SQLCodes { Get_AppInfo_Record,
                 PDACO61_P5,
                 Insert_Audit_Table,
                 Update_Audit_Table,
-                Store_Result 
+                Store_Result,
+                Get_VAM102_Note 
 		};
 
 extern char *SQLCommands[];

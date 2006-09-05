@@ -95,6 +95,7 @@ int PDACO::PrepareJcicSourceTables(TADOHandler *handler)
  try {
     hostVars[0] = msn;
     hostVars[1] = input_time;
+    // add code to check if msn exists  first select then insert
     handler->ExecSQLCmd(SQLCommands[Insert_PDACO_V61], hostVars, 1);
     handler->ExecSQLCmd(SQLCommands[Dedup_KRM021], hostVars, 1);
     handler->ExecSQLCmd(SQLCommands[Dedup_KRM023], hostVars, 1);
@@ -712,7 +713,7 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
  ds->Close();
  delete ds;
 
- return 0;
+ return (ps_code);
 }
 //---------------------------------------------------------------------------
 int PDACO::WriteTraceRecord(TADOHandler *handler)
@@ -866,7 +867,7 @@ void PDACO::postScreen()
 // MS602	>= 500	OR	202  REVOLVING_AMT
 // MS606	>= 1000	OR	203  MS606
 // FS334B_1M	> 0	OR	204   CASH_MAX_BUCKET
-// DELINQUENT_FLAG	=1	OR	205
+// DELINQUENT_FLAG	=1	OR	205   FS059_3M_1K
 // STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
 // DEBT_CODE	=1	OR	207
 //---------------------------------------------------------------
@@ -884,6 +885,36 @@ void PDACO::postScreen()
     {ps_code = PSCode(PSCODE_120); ps_msg = PSMsg(PSCODE_120);}
 // else if (DEBT_CODE >= 1)
 //    {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
+}
 
-    }
+//---------------------------------------------------------------------------
+String PDACO::vam102_message(TADOHandler *handler)
+{
+ Variant hostVars[5];
+ TADODataSet *ds;
+ String note = "";
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
+ try {
+     hostVars[0] = msn;
+     hostVars[1] = input_time;
+     handler->ExecSQLQry(SQLCommands[Get_VAM102_Note], hostVars, 1, ds);
+     ds->First();
+     while (!ds->Eof) {
+        if(!ds->FieldValues["NOTE"].IsNull()){
+          note += static_cast<String>(ds->FieldValues["NOTE"]).Trim();
+          note += " ";
+        };
+        ds->Next();
+     }
+ } catch (Exception &E) {
+     ds->Close();
+     delete ds;
+     throw;
+ }
+ ds->Close();
+ delete ds;
+ return (note);
+};
 

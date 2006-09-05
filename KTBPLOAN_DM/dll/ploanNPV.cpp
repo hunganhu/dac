@@ -20,9 +20,6 @@
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
-//double recovery_ratio[2] = {0.7, 0.8};
-//double nav_ratio[2] = {0.8, 0.9};
-//double duei_bao_rate[2] = {0.0, 2.25};   // DUEI_BAO_FEE ($K)
 
 Loan::Loan (char *msn, unsigned int loan_amount, double apr, unsigned int terms,
             unsigned int application_fee, double pd):

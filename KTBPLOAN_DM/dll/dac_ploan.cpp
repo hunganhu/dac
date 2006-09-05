@@ -44,6 +44,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  double npv_value, pb_value, delta_apr, lowest_delta, orig_npv;
  double optimal_amount, optimal_pb, optimal_npv;
  double max_apr;
+ String note;
 
  if (check_expiration(EXPIRATION_DATE) == -1) {
     strcpy (error, EXPIRATION_MSG);
@@ -64,7 +65,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  // new risk model and calculate jcic variables
     pdaco_app = new PDACO(msno, app_input_time);
     pass = pdaco_app->GeneratePdaco61Score(dbhandle);
-
+    note = pdaco_app->vam102_message(dbhandle);
 // npv test only, get loan info from table
 //      pass = pdaco_app->input_npv_test(dbhandle);
  // calculate NPV
@@ -80,9 +81,8 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
        //write_npv(msno, app_input_time, orig_npv, dbhandle); // npv test code
 
        if (orig_npv <= 0) {
-         // ps_code = PSCode(PSCODE_118);
-         // ps_msg = PSMsg(PSCODE_118);
-          //store_result() fail
+         store_result(msno, app_input_time, pdaco_app, optimal_amount, pdaco_app->getPsCode(),
+                    optimal_npv, optimal_pb, note, VERSION, true, dbhandle);
        } else {
          if (pdaco_app->getPdaco61PB() < 0.01 &&
              pdaco_app->getScoreCard() == 5   &&
@@ -111,17 +111,20 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
          }   // end of upsell
          pdaco_app->postScreen ();
          if (pdaco_app->getPsCode() == 0) {   // pass post screen
-             //store_result() pass
+            store_result(msno, app_input_time, pdaco_app, optimal_amount, pdaco_app->getPsCode(),
+                    optimal_npv, optimal_pb, note, VERSION, true, dbhandle);
          }
          else {  // do NOT pass post screen
-             //store_result() fail
+            store_result(msno, app_input_time, pdaco_app, 0, pdaco_app->getPsCode(),
+                    0, pdaco_app->getPdaco61PB(), note, VERSION, false, dbhandle);
          }
        }
 
      delete ptrLoan;
     }
-    else {
-       //store_result() fail
+    else { // pdaco 6.1 fail
+       store_result(msno, app_input_time, pdaco_app, 0, pdaco_app->getPsCode(),
+                    0, pdaco_app->getPdaco61PB(), note, VERSION, false, dbhandle);
     }
  } catch(cc_error &Err){
    // Store screen-out result
