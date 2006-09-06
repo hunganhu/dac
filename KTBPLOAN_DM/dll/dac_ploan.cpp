@@ -210,10 +210,10 @@ void store_result(const char *idno,
      hostVars[4] = npv;
      hostVars[5] = result_string;
      hostVars[6] = result_output;
-     hostVars[7] = pdaco_app->getUnsecuredBalance();
+     hostVars[7] = pdaco_app->getUnsecuredBalance() * 1000;
      hostVars[8] = pdaco_app->getFscCap();
      hostVars[9] = note;
-     hostVars[10] = pdaco_app->getDoubleCardBalance();
+     hostVars[10] = pdaco_app->getDoubleCardBalance() * 1000;
      hostVars[11] = version;
      hostVars[12] = ps_code;
      handler->ExecSQLCmd(SQLCommands[Store_Result], hostVars, 12);
@@ -226,6 +226,7 @@ void store_result(const char *idno,
       case 103:
       case 105:
       case 107:
+      case 109:
         result_output = 2;
         result_string = "模組建議婉拒，壞帳機率過高。";
         break;
@@ -268,10 +269,10 @@ void store_result(const char *idno,
      hostVars[4] = npv;
      hostVars[5] = result_string;
      hostVars[6] = result_output;
-     hostVars[7] = pdaco_app->getUnsecuredBalance();
+     hostVars[7] = pdaco_app->getUnsecuredBalance() * 1000;
      hostVars[8] = pdaco_app->getFscCap();
      hostVars[9] = note;
-     hostVars[10] = pdaco_app->getDoubleCardBalance();
+     hostVars[10] = pdaco_app->getDoubleCardBalance() * 1000;
      hostVars[11] = version;
      hostVars[12] = ps_code;
      handler->ExecSQLCmd(SQLCommands[Store_Result], hostVars, 12);

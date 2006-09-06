@@ -44,7 +44,7 @@ class PDACO
     double jas002_defect;
     double app_max_bucket;
     double fs044;
-    double fs059_1k_12m;
+    double fs059_12m_1k;
     double delinquent_months;
     double card_force_stop;
     double cash_max_bucket;

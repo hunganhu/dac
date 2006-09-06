@@ -154,7 +154,10 @@ int PDACO::get_scorecard(TADOHandler *handler)
         cash_max_bucket = ds->FieldValues["fs302"];        // ScreenOut rule #5 no. of delinquent cash cards > 0
         MS605 = ds->FieldValues["MS605"];
         CDEF_FLAG_1M = ds->FieldValues["CDEF_FLAG_1M"];
-        FS059_3M_1K = ds->FieldValues["FS059_3M_1K"];
+        if (ds->FieldValues["FS059_3M_1K"].IsNull())
+          FS059_3M_1K = 0;
+        else
+           FS059_3M_1K = ds->FieldValues["FS059_3M_1K"];
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
@@ -245,7 +248,7 @@ int PDACO::PDACO61P1Raw(TADOHandler *handler)
         GRAY2_FLAG = ds->FieldByName("GRAY2_FLAG")->AsFloat;
         krm023_hit = ds->FieldByName("KRM023_HIT")->AsFloat;
         card_force_stop = ds->FieldByName("CARD_FORCE_STOP")->AsFloat;
-        fs059_1k_12m = ds->FieldByName("FS059_12M_1K")->AsFloat;
+        fs059_12m_1k = ds->FieldByName("FS059_12M_1K")->AsFloat;
         FS031 = ds->FieldByName("FS031")->AsFloat;
     }
 
@@ -428,7 +431,7 @@ double PDACO::PDACO61P1Score()
 
  if (krm023_hit == 1) {     // Gray 1   krm023_hit
     if (FS031 > 5) {ps_code = PSCode(PSCODE_111); ps_msg = PSMsg(PSCODE_111);}
-    else if (fs059_1k_12m > 0) {ps_code = PSCode(PSCODE_112); ps_msg = PSMsg(PSCODE_112);}
+    else if (fs059_12m_1k > 0) {ps_code = PSCode(PSCODE_112); ps_msg = PSMsg(PSCODE_112);}
     else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_113); ps_msg = PSMsg(PSCODE_113);}
  }
  else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
@@ -688,14 +691,14 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	        break;
      }
 
-   if (LOAN_AMOUNT < 150000) {
-      ps_code = PSCode(PSCODE_117);
-      ps_msg = PSMsg(PSCODE_117);
-   }
-
-   if (pb > getPbCap()) {
-      ps_code = PSCode(PSCODE_109);
-      ps_msg = PSMsg(PSCODE_109);
+   if (card > 1) {
+      if (LOAN_AMOUNT < 150000) {
+         ps_code = PSCode(PSCODE_117);
+         ps_msg = PSMsg(PSCODE_117);
+      } else if (pb > getPbCap()) {
+         ps_code = PSCode(PSCODE_109);
+         ps_msg = PSMsg(PSCODE_109);
+      }
    }
 #ifdef _TRACE
      WriteTraceRecord(handler);
@@ -763,12 +766,12 @@ double PDACO::getPbCap()
  // 6%             2.75%
  // 5% and below   2.5%
  double pbCap;
- if (apr >= 10.5) pbCap = 0.04;       // 11% and plus
- else if (apr >= 9.5) pbCap = 0.0375; // 10%
- else if (apr >= 8.5) pbCap = 0.035;  // 9%
- else if (apr >= 7.5) pbCap = 0.0325; // 8%
- else if (apr >= 6.5) pbCap = 0.03;   // 7%
- else if (apr >= 5.5) pbCap = 0.0275; // 6%
+ if (apr >= 0.105) pbCap = 0.04;       // 11% and plus
+ else if (apr >= 0.095) pbCap = 0.0375; // 10%
+ else if (apr >= 0.085) pbCap = 0.035;  // 9%
+ else if (apr >= 0.075) pbCap = 0.0325; // 8%
+ else if (apr >= 0.065) pbCap = 0.03;   // 7%
+ else if (apr >= 0.055) pbCap = 0.0275; // 6%
  else pbCap = 0.025;                  // 5% and below
 
  return(pbCap);
@@ -776,7 +779,7 @@ double PDACO::getPbCap()
 //---------------------------------------------------------------------------
 int PDACO::getFscCap()
 {
- double fsc_lendable = monthly_income * 22 - MS606;
+ double fsc_lendable = monthly_income * 22 - MS606 * 1000;
  if (fsc_lendable < 0) fsc_lendable = 0;
  FSC_AMOUNT = (static_cast<int>(fsc_lendable / 10000)) * 10000;
 
