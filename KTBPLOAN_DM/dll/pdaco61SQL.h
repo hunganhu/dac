@@ -50,6 +50,12 @@ enum SQLCodes { Get_AppInfo_Record,
                 PDACO61_P5,
                 Insert_Audit_Table,
                 Update_Audit_Table,
+                Update_P0_Transform,
+                Update_P1_Transform,
+                Update_P2_Transform,
+                Update_P3_Transform,
+                Update_P4_Transform,
+                Update_P5_Transform,
                 Store_Result,
                 Get_VAM102_Note 
 		};

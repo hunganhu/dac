@@ -54,11 +54,12 @@ enum ErrorCodes {
 	PSCODE_120,  // 22
 	PSCODE_121,  // 23
 	PSCODE_122,  // 24
-	PSCODE_201,  // 25
-	PSCODE_301,  // 26
-	PSCODE_302,  // 27
-	PSCODE_303,  // 28
-	PSCODE_304   // 29
+	PSCODE_123,  // 25
+	PSCODE_201,  // 26
+	PSCODE_301,  // 27
+	PSCODE_302,  // 28
+	PSCODE_303,  // 29
+	PSCODE_304   // 30
 };
 
 extern Invalid_Msg PRESCREEN_Msg[];

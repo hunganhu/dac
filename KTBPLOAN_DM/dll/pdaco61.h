@@ -51,7 +51,9 @@ class PDACO
     double cash_utilization;
     double ind001;
     double revolving_amt;
-    int ps_code;
+    int    debt_flag;
+    int    note_flag;
+    int    ps_code;
     String ps_msg;
     int segment;
 // PDACO 6.1 risk model raw variables
@@ -118,6 +120,7 @@ class PDACO
     double ln001_9m;
     double ln001_9m_t2;
     double RS017_R_TRAN2;
+    double MS074_T2;
     double MS074_T3;
     double FS205_3M_1K_Q_TRAN2;
     double ln003_9m_t;

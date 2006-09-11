@@ -2,9 +2,6 @@
 GO
 
 /* CREATE_WORKING_TABLE */
-
- IF OBJECT_ID('tempdb..BAM086_DEDUP') IS NOT NULL
-    DROP TABLE BAM086_DEDUP;
  CREATE TABLE BAM086_DEDUP (
  	MSN		VARCHAR(20),
  	INQUIRY_DATE	CHAR(10),
@@ -36,15 +33,11 @@ GO
  	INPUT_TIME	CHAR(12),
  	INQUIRY_MON	INT,
  	CNT		INT);
- IF OBJECT_ID('tempdb..BAM086_BUCKET') IS NOT NULL
-    DROP TABLE BAM086_BUCKET;
  CREATE TABLE BAM086_BUCKET (
  	IDN		CHAR(14),
  	BANK_CODE	CHAR(3),
  	MON_SINCE	INT,
  	BUCKET		FLOAT);
- IF OBJECT_ID('tempdb..KRM021_DEDUP') IS NOT NULL
-    DROP TABLE KRM021_DEDUP;
  CREATE TABLE KRM021_DEDUP (
  	MSN		VARCHAR(20),
  	INQUIRY_DATE	CHAR(10),
@@ -70,8 +63,6 @@ GO
  	INPUT_TIME	CHAR(12),
  	INQUIRY_MON	INT,
  	CNT		INT);
- IF OBJECT_ID('tempdb..KRM023_DEDUP') IS NOT NULL
-    DROP TABLE KRM023_DEDUP;
  CREATE TABLE KRM023_DEDUP (
  	MSN		VARCHAR(20),
  	INQUIRY_DATE	CHAR(10),
@@ -93,8 +84,6 @@ GO
  	INPUT_TIME	CHAR(12),
  	INQUIRY_MON	INT,
  	CNT		INT);
- IF OBJECT_ID('tempdb..KRM037_DEDUP') IS NOT NULL
-    DROP TABLE KRM037_DEDUP;
  CREATE TABLE KRM037_DEDUP (
 	MSN		VARCHAR(20),
 	INQUIRY_DATE	CHAR(10),
@@ -126,8 +115,6 @@ GO
  	INPUT_TIME	CHAR(12),
  	INQUIRY_MON	INT,
  	CNT		INT);
- IF OBJECT_ID('tempdb..STM007_DEDUP') IS NOT NULL
-    DROP TABLE STM007_DEDUP;
  CREATE TABLE STM007_DEDUP (
  	MSN VARCHAR(20),
  	INQUIRY_DATE	    CHAR(10),
@@ -142,8 +129,6 @@ GO
  	INPUT_TIME	CHAR(12),
  	INQUIRY_MON	INT,
  	CNT INT);
- IF OBJECT_ID('tempdb..JAS002_T') IS NOT NULL
-    DROP TABLE JAS002_T;
  CREATE TABLE JAS002_T (
  	MSN VARCHAR(20),
 	INQUIRY_DATE	CHAR(10),
@@ -151,8 +136,6 @@ GO
  	REASON CHAR (1),
  	DATE_HAPPEN CHAR (7),
  	MON_SINCE INT);
- IF OBJECT_ID('tempdb..JAS002_T_DEDUP') IS NOT NULL
-    DROP TABLE JAS002_T_DEDUP;
  CREATE TABLE JAS002_T_DEDUP (
  	MSN VARCHAR(20),
 	INQUIRY_DATE	CHAR(10),
@@ -162,14 +145,9 @@ GO
  	MON_SINCE INT,
  	INQUIRY_MON	INT,
  	CNT INT);
- IF OBJECT_ID('tempdb..BASE_TMP') IS NOT NULL
-    DROP TABLE BASE_TMP;
  CREATE TABLE BASE_TMP (
  	IDN CHAR (11),
- 	AVAIL_FLAG INT
- );
- IF OBJECT_ID('tempdb..BASE') IS NOT NULL
-    DROP TABLE BASE;
+ 	AVAIL_FLAG INT);
  CREATE TABLE BASE (
   	IDN VARCHAR (11),
  	AVAIL_FLAG INT DEFAULT 0,
@@ -181,22 +159,16 @@ GO
  	CASH_MAX_BUCKET INT DEFAULT 0,
  	CASH_UTILIZATION INT DEFAULT 0,
         IND001 INT DEFAULT 0);
- IF OBJECT_ID('tempdb..TMP') IS NOT NULL
-    DROP TABLE TMP;
  CREATE TABLE TMP (
 	IDN CHAR(11),
 	MON INT,
 	V1 DECIMAL (16, 8),
 	V2 DECIMAL (16, 8),
 	V3 DECIMAL (16, 8));
- IF OBJECT_ID('tempdb..TMP1') IS NOT NULL
-    DROP TABLE TMP1;
  CREATE TABLE TMP1 (
 	IDN CHAR(11),
 	MON INT,
 	V1 DECIMAL (16, 8));
- IF OBJECT_ID('tempdb..OPEN_ISSUE') IS NOT NULL
-    DROP TABLE OPEN_ISSUE;
  CREATE TABLE OPEN_ISSUE (
 	IDN CHAR(11),
 	ISSUE CHAR(3),
@@ -208,8 +180,6 @@ GO
 	ISSUE CHAR(3),
 	NOW   INT,
 	MON INT);
- IF OBJECT_ID('tempdb..OPEN_LINE') IS NOT NULL
-    DROP TABLE OPEN_LINE;
  CREATE TABLE OPEN_LINE (
 	IDN CHAR(11),
 	ISSUE CHAR(3),
@@ -217,21 +187,15 @@ GO
 	NOW   INT,
 	CARDS INT,
 	BUCKET INT);
- IF OBJECT_ID('tempdb..LATEST_STMT_MON') IS NOT NULL
-    DROP TABLE LATEST_STMT_MON;
  CREATE TABLE LATEST_STMT_MON (
 	IDN CHAR(11),
 	ISSUE CHAR(3),
 	MON INT);
- IF OBJECT_ID('tempdb..LATEST_LINE') IS NOT NULL
-    DROP TABLE LATEST_LINE;
  CREATE TABLE LATEST_LINE (
 	IDN CHAR(11),
 	ISSUE CHAR(3),
 	MON INT,
 	MOB INT);
- IF OBJECT_ID('tempdb..KRM023_TMP') IS NOT NULL
-    DROP TABLE KRM023_TMP;
  CREATE TABLE KRM023_TMP (
 	MSN VARCHAR(20),
 	IDN CHAR(11),
@@ -246,8 +210,6 @@ GO
 	CASH CHAR,
 	PAY_CODE CHAR,
 	SPREAD_PAYMENT FLOAT);
- IF OBJECT_ID('tempdb..KRM023_TMP1') IS NOT NULL
-    DROP TABLE KRM023_TMP1;
  CREATE TABLE KRM023_TMP1 (
 	MSN VARCHAR(20),
 	IDN CHAR(11),
@@ -262,8 +224,6 @@ GO
 	PAY_CODE CHAR,
 	SPREAD_PAYMENT FLOAT,
         INQUIRY_MON INT);
- IF OBJECT_ID('tempdb..PDACO_V6_1') IS NOT NULL
-    DROP TABLE PDACO_V6_1;
  CREATE TABLE PDACO_V6_1 (
 	MSN		VARCHAR(20),
 	INPUT_TIME	CHAR(12),
@@ -273,15 +233,16 @@ GO
 	REQUEST_AMT	INT,
 	APR		DECIMAL(6,5),
 	TOTAL_TERM	INT,
-	LOAN_AMT	INT,	
-	FSC_AMT		INT,	
+	APP_FEE 	INT,
+	LOAN_AMT	INT,
+	FSC_AMT		INT,
 	MONTHLY_INCOME	INT,
 	SCORECARD	INT,
 	PB		DECIMAL(16,8),
 	SCREEN_CODE	INT,
-	SCREEN_MSG	VARCHAR(64),	
+	SCREEN_MSG	VARCHAR(64),
 	AVAIL_FLAG	INT,
-	JAS002_DEFECT	INT,
+	JAS002_DEFECT	INT DEFAULT 0,
 	KRM021_HIT	INT DEFAULT 0,
 	KRM023_HIT	INT DEFAULT 0,
 	BAM086_HIT	INT DEFAULT 0,
@@ -295,24 +256,24 @@ GO
 	CASH_MAX_BUCKET INT DEFAULT 0,
 	CASH_UTILIZATION INT DEFAULT 0,
 	IND001		INT DEFAULT 0,
-	CARD_REV_BAL	FLOAT DEFAULT 0, /* MS601 */
+	CARD_REV_BAL	FLOAT DEFAULT 0,
 	MS105		FLOAT DEFAULT 0,
-	REVOLVING_AMT	FLOAT DEFAULT 0, /* MS602 */
-	SCORECARD	DECIMAL(16,8), 
-	P0_SCORE	DECIMAL(16,8), /* P0 Related */
-	FS302_FG	DECIMAL(16,8), 
-	P2_SCORE	DECIMAL(16,8), /* P2 Related */
+	REVOLVING_AMT	FLOAT DEFAULT 0,
+	P0_SCORE	DECIMAL(16,8),
+	FS302_FG	DECIMAL(16,8),
+	P2_SCORE	DECIMAL(16,8),
 	FS016C_9M_T1	DECIMAL(16,8),
 	LN001_9M	DECIMAL(16,8),
 	LN001_9M_T2	DECIMAL(16,8),
-	P3_SCORE	DECIMAL(16,8), /* P3 Related */
+	P3_SCORE	DECIMAL(16,8),
 	SECURE_FLAG	DECIMAL(16,8),
 	UNSECURE_FLAG	DECIMAL(16,8),
 	LU_FLAG		DECIMAL(16,8),
-	P4_SCORE	DECIMAL(16,8), /* P4 Related */
-        RS017_R_TRAN	DECIMAL(16,8),
+	P4_SCORE	DECIMAL(16,8),
+       RS017_R_TRAN	DECIMAL(16,8),
 	MS604_R		DECIMAL(16,8),
 	MS001_12M_1K_Q	DECIMAL(16,8),
+	FS061_6M_1K	DECIMAL(16,8),
 	FS018_12M_Z	DECIMAL(16,8),
 	FS309_Z		DECIMAL(16,8),
 	INT053_6	DECIMAL(16,8),
@@ -322,7 +283,7 @@ GO
 	FS546_9M_TRAN	DECIMAL(16,8),
 	FS3036_T5	DECIMAL(16,8),
 	FS031_TRAN4	DECIMAL(16,8),
-	P5_SCORE	DECIMAL(16,8), /* P5 Related */
+	P5_SCORE	DECIMAL(16,8),
         RS017_R		DECIMAL(16,8),
         RS017_R_TRAN2	DECIMAL(16,8),
         MS074_T2	DECIMAL(16,8),
@@ -334,17 +295,17 @@ GO
         FS031_1M_Q	DECIMAL(16,8),
         FS031_1M_Q_TRAN2 DECIMAL(16,8),
         FS073B_12M_R	DECIMAL(16,8),
-        PDACO_TWEN 	DECIMAL(16,8),  /* Twentile */
+        PDACO_TWEN 	DECIMAL(16,8),
 	MS093		DECIMAL(16,8),
 	MS094B		DECIMAL(16,8),
 	AMORTIZATION_RATE DECIMAL(16,8),
 	MONTHLY_PAYMENT	DECIMAL(16,8),
-	FSC_CAP		DECIMAL(16,8),			
-	FS031		DECIMAL(16,8) DEFAULT 0.0,	/* STM001 Related */ 
+	MS101		DECIMAL(16,8),
+	FS031		DECIMAL(16,8) DEFAULT 0.0,
 	FS031_1M	DECIMAL(16,8) DEFAULT 0.0,
-	RS017		DECIMAL(16,8),	/* KRM021 Related */
+	RS017		DECIMAL(16,8),
 	STOP_CODE_FLAG	DECIMAL(16,8),
-	FS036		DECIMAL(16,8),	/* BAM086 Related */
+	FS036		DECIMAL(16,8),
 	FS040		DECIMAL(16,8),
 	MS063		DECIMAL(16,8) DEFAULT 0.0,
 	MS074		DECIMAL(16,8),
@@ -352,8 +313,8 @@ GO
 	FS334B_1M	DECIMAL(16,8),
 	FS546_9M	DECIMAL(16,8),
 	FS314B		DECIMAL(16,8),
-	APP_MAX_BUCKET	DECIMAL(16,8),  /* KRM023 related */
-	CDEF_FLAG_1M	DECIMAL(16,8),
+	APP_MAX_BUCKET	DECIMAL(16,8),
+	CDEF_FLAG_1M	DECIMAL(16,8) DEFAULT 0,
 	FS002_3M_1K	DECIMAL(16,8),
 	FS014_6M	DECIMAL(16,8),
 	FS016C_9M	DECIMAL(16,8),
@@ -374,29 +335,91 @@ GO
 	WI001_9M	DECIMAL(16,8),
 	WI003_9M	DECIMAL(16,8),
 	WI004_9M	DECIMAL(16,8),
-	RSCORE		DECIMAL(16,8));
+	RSCORE  	DECIMAL(16,8));
 
 /* DROP_WORKING_TABLES */
- DROP TABLE BAM086_DEDUP;
- DROP TABLE BAM086_BUCKET;
- DROP TABLE KRM021_DEDUP;
- DROP TABLE KRM023_DEDUP;
- DROP TABLE KRM037_DEDUP;
- DROP TABLE STM007_DEDUP;
- DROP TABLE JAS002_T;
- DROP TABLE JAS002_T_DEDUP;
- DROP TABLE BASE_TMP;
- DROP TABLE BASE;
- DROP TABLE TMP;
- DROP TABLE TMP1;
- DROP TABLE OPEN_ISSUE;
- DROP TABLE OPEN_CARD;
- DROP TABLE OPEN_LINE;
- DROP TABLE LATEST_STMT_MON;
- DROP TABLE LATEST_LINE;
- DROP TABLE KRM023_TMP;
- DROP TABLE KRM023_TMP1;
- DROP TABLE PDACO_V6_1;
+ IF OBJECT_ID('tempdb..BAM086_DEDUP') IS NOT NULL
+    DROP TABLE BAM086_DEDUP;
+ IF OBJECT_ID('tempdb..BAM086_BUCKET') IS NOT NULL
+    DROP TABLE BAM086_BUCKET;
+ IF OBJECT_ID('tempdb..KRM021_DEDUP') IS NOT NULL
+    DROP TABLE KRM021_DEDUP;
+ IF OBJECT_ID('tempdb..KRM023_DEDUP') IS NOT NULL
+    DROP TABLE KRM023_DEDUP;
+ IF OBJECT_ID('tempdb..KRM037_DEDUP') IS NOT NULL
+    DROP TABLE KRM037_DEDUP;
+ IF OBJECT_ID('tempdb..STM007_DEDUP') IS NOT NULL
+    DROP TABLE STM007_DEDUP;
+ IF OBJECT_ID('tempdb..JAS002_T') IS NOT NULL
+    DROP TABLE JAS002_T;
+ IF OBJECT_ID('tempdb..JAS002_T_DEDUP') IS NOT NULL
+    DROP TABLE JAS002_T_DEDUP;
+ IF OBJECT_ID('tempdb..BASE_TMP') IS NOT NULL
+    DROP TABLE BASE_TMP;
+ IF OBJECT_ID('tempdb..BASE') IS NOT NULL
+    DROP TABLE BASE;
+ IF OBJECT_ID('tempdb..TMP') IS NOT NULL
+    DROP TABLE TMP;
+ IF OBJECT_ID('tempdb..TMP1') IS NOT NULL
+    DROP TABLE TMP1;
+ IF OBJECT_ID('tempdb..OPEN_ISSUE') IS NOT NULL
+    DROP TABLE OPEN_ISSUE;
+ IF OBJECT_ID('tempdb..OPEN_CARD') IS NOT NULL
+    DROP TABLE OPEN_CARD;
+ IF OBJECT_ID('tempdb..OPEN_LINE') IS NOT NULL
+    DROP TABLE OPEN_LINE;
+ IF OBJECT_ID('tempdb..LATEST_STMT_MON') IS NOT NULL
+    DROP TABLE LATEST_STMT_MON;
+ IF OBJECT_ID('tempdb..LATEST_LINE') IS NOT NULL
+    DROP TABLE LATEST_LINE;
+ IF OBJECT_ID('tempdb..KRM023_TMP') IS NOT NULL
+    DROP TABLE KRM023_TMP;
+ IF OBJECT_ID('tempdb..KRM023_TMP1') IS NOT NULL
+    DROP TABLE KRM023_TMP1;
+ IF OBJECT_ID('tempdb..PDACO_V6_1') IS NOT NULL
+    DROP TABLE PDACO_V6_1;
+/*
+ if exists (select * from dbo.sysobjects where id = object_id(N'BAM086_DEDUP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE BAM086_DEDUP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'BAM086_BUCKET') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE BAM086_BUCKET;
+ if exists (select * from dbo.sysobjects where id = object_id(N'KRM021_DEDUP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE KRM021_DEDUP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'KRM023_DEDUP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE KRM023_DEDUP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'KRM037_DEDUP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE KRM037_DEDUP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'STM007_DEDUP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE STM007_DEDUP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'JAS002_T') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE JAS002_T;
+ if exists (select * from dbo.sysobjects where id = object_id(N'JAS002_T_DEDUP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE JAS002_T_DEDUP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'BASE_TMP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE BASE_TMP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'BASE') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE BASE;
+ if exists (select * from dbo.sysobjects where id = object_id(N'TMP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE TMP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'TMP1') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE TMP1;
+ if exists (select * from dbo.sysobjects where id = object_id(N'OPEN_ISSUE') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE OPEN_ISSUE;
+ if exists (select * from dbo.sysobjects where id = object_id(N'OPEN_CARD') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE OPEN_CARD;
+ if exists (select * from dbo.sysobjects where id = object_id(N'OPEN_LINE') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE OPEN_LINE;
+ if exists (select * from dbo.sysobjects where id = object_id(N'LATEST_STMT_MON') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE LATEST_STMT_MON;
+ if exists (select * from dbo.sysobjects where id = object_id(N'LATEST_LINE') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE LATEST_LINE;
+ if exists (select * from dbo.sysobjects where id = object_id(N'KRM023_TMP') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE KRM023_TMP;
+ if exists (select * from dbo.sysobjects where id = object_id(N'KRM023_TMP1') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE KRM023_TMP1;
+ if exists (select * from dbo.sysobjects where id = object_id(N'PDACO_V6_1') and OBJECTPROPERTY(id, N'IsUserTable') = 1) 
+    DROP TABLE PDACO_V6_1;
+*/
 GO
 /* CREATE_PROCEDURE_PREPARE_JCIC_DATA */
  CREATE PROCEDURE PREPARE_PDACO_JCIC_DATA
@@ -639,10 +662,6 @@ GO
    SELECT MSN, INQUIRY_DATE, IDN, YRMON, MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, CASH, PAY_CODE, SPREAD_PAYMENT, INQUIRY_MON
    FROM KRM023_TMP1
    WHERE MON_SINCE > 1140;
- UPDATE KRM023_DEDUP
-   SET PAYMENT_AMT = CAST(LIMIT AS INT)
-   WHERE PAYMENT_AMT > CAST(LIMIT AS INT)
-     AND CAST(LIMIT AS INT) > 0;
  UPDATE  KRM023_DEDUP
  SET BUCKET_DEF_1K = (CASE WHEN PAY_CODE IN ('D', 'E', 'F') AND (PAYMENT_AMT + SPREAD_PAYMENT)> 1 THEN 1
                        ELSE 0 END),
@@ -699,6 +718,7 @@ GO
  UPDATE BAM086_DEDUP
   SET BANK_CODE2 = LEFT(BANK_CODE,3),
       MON_SINCE = CAST(DATA_YYY AS INT)* 12 + CAST(DATA_MM AS INT),
+      INQUIRY_MON = (CAST(LEFT(INQUIRY_DATE,4) AS INT) - 1911) * 12 + CAST(SUBSTRING(INQUIRY_DATE, 5, 2) AS INT),
       CYCLES = LEN(LTRIM(RTRIM(PAY_CODE_12)));
  SET @I=1;
  WHILE @I <= 12
@@ -886,7 +906,7 @@ GO
    SET CARD_FORCE_STOP = V1
    FROM TMP AS A
    WHERE A.IDN = PDACO_V6_1.IDN;
- /*----Number of credit lines with "EF_1K" Delinquent in past 12 months ----*/
+ /*----Number of credit lines with EF_1K Delinquent in past 12 months ----*/
  DELETE FROM TMP;
  INSERT INTO TMP (IDN, MON, V1)
    SELECT IDN, 12, COUNT(DISTINCT ISSUE)
@@ -922,7 +942,14 @@ GO
    FROM TMP AS A
    WHERE A.IDN = PDACO_V6_1.IDN;
  /* MS605          */
+ DELETE FROM OPEN_LINE;
  DELETE FROM TMP;
+ INSERT INTO OPEN_LINE(IDN, ISSUE, MON)
+    SELECT IDN, ISSUE, MAX(MON_SINCE)
+    FROM KRM023_DEDUP
+    WHERE INQUIRY_MON  - MON_SINCE <=3  /* NO   30-DAY RULE */
+      AND CAST(LIMIT AS FLOAT) > 0
+    GROUP BY IDN, ISSUE;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, AVG(CAST(LIMIT AS FLOAT))
     FROM KRM023_DEDUP AS A
@@ -1017,20 +1044,9 @@ GO
 
 
 -----------------------------------------------------------------------------------------------------------------------
--- P0, Screen #1-5
+-- P0, Screen 1-5
  UPDATE PDACO_V6_1
    SET FS302_FG = (CASE WHEN FS302 >= 1 THEN 1 ELSE 0 END);
- UPDATE PDACO_V6_1
-   SET P0_SCORE= 0.11920		+
-   	     FS302_FG		*	0.16259 +
-   	     JAS002_DEFECT	*	0.08236 ;
- UPDATE PDACO_V6_1
-   SET PDACO_TWEN = (CASE
-                     WHEN P0_SCORE IS NULL    THEN 0
-                     WHEN P0_SCORE <= 0.1192  THEN 2
-                     WHEN P0_SCORE <= 0.20156 THEN 3
-                     ELSE 4
-   		  END);
 GO   		  
 -----------------------------------------------------------------------------------------------------------------------
 -- P1, Data insufficient
@@ -1046,7 +1062,6 @@ GO
                  WHERE ITEM_LIST IS NOT NULL
                    AND ITEM_LIST <> ''
                    AND A.IDN = PDACO_V6_1.IDN);
-
  UPDATE PDACO_V6_1
     SET GRAY2_FLAG = BAM086_HIT+KRM021_HIT;
 GO
@@ -1110,18 +1125,6 @@ GO
                   FROM TMP
                   WHERE IDN = PDACO_V6_1.IDN)
     WHERE IDN IN (SELECT IDN FROM TMP);
- /*----CASH CARD REVOLVING BALANCE ----*/
- UPDATE PDACO_V6_1
-       SET MS105 = 
-           (SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT))
-            FROM BAM086_DEDUP S
-            WHERE ACCOUNT_CODE = 'Y'
-              AND PDACO_V6_1.IDN = S.IDN
-            GROUP BY S.IDN)
-       WHERE EXISTS (SELECT *
-                     FROM BAM086_DEDUP S
-                     WHERE ACCOUNT_CODE = 'Y'
-                       AND PDACO_V6_1.IDN = S.IDN);
  UPDATE PDACO_V6_1
    SET MS093  = ISNULL(MS093, 0),
        MS094B = ISNULL(MS094B, 0),
@@ -1143,41 +1146,7 @@ GO
                  FROM TMP A
                  WHERE PDACO_V6_1.IDN = A.IDN);
  UPDATE PDACO_V6_1
-    SET AMORTIZATION_RATE = (CASE WHEN APR = 0 THEN 1/TOTAL_TERM
-                                  ELSE POWER ((1 + (APR / 12)), TOTAL_TERM) * (APR / 12)
-                                       / (POWER ((1 + (APR / 12)), TOTAL_TERM) - 1) END);
- UPDATE PDACO_V6_1
-    SET MONTHLY_PAYMENT = ISNULL(REQUEST_AMT * AMORTIZATION_RATE, 0);
- UPDATE PDACO_V6_1
-   SET FS016C_9M_T1 = (CASE WHEN FS016C_9M = 0 THEN 0 ELSE 1 END),
-       LN001_9M = (MONTHLY_PAYMENT/1000.0 + ISNULL(MS093, 0) + (ISNULL(MS094B, 0) + ISNULL(MS105, 0))* 0.35)/ WI001_9M;
- UPDATE PDACO_V6_1
-   SET LN001_9M_T2 = LN001_9M * (1-FS016C_9M_T1);
- UPDATE PDACO_V6_1
-   SET P2_SCORE= -0.02923	+
-   	     FS016C_9M_T1	*	0.15400 +
-   	     LN001_9M_T2	*	0.00316 +
-   	     CDEF_FLAG_1M	*	0.06766;
- UPDATE PDACO_V6_1
-   SET PDACO_TWEN = (CASE
-                     WHEN P2_SCORE IS NULL     THEN 0
-                     WHEN P2_SCORE <= -0.01551 THEN 1
-                     WHEN P2_SCORE <= -0.00549 THEN 2
-                     WHEN P2_SCORE <= 0.00562  THEN 3
-                     WHEN P2_SCORE <= 0.01940  THEN 4
-                     WHEN P2_SCORE <= 0.04620  THEN 5
-                     WHEN P2_SCORE <= 0.05837  THEN 6
-                     WHEN P2_SCORE <= 0.07083  THEN 7
-                     WHEN P2_SCORE <= 0.07631  THEN 8
-                     WHEN P2_SCORE <= 0.08300  THEN 9
-                     WHEN P2_SCORE <= 0.09374  THEN 10
-                     WHEN P2_SCORE <= 0.10974  THEN 11
-                     WHEN P2_SCORE <= 0.12477  THEN 12
-                     WHEN P2_SCORE <= 0.14445  THEN 13
-                     WHEN P2_SCORE <= 0.18946  THEN 14
-                     WHEN P2_SCORE <= 0.19243  THEN 17
-                     ELSE 20
-   		  END);
+   SET FS016C_9M_T1 = (CASE WHEN FS016C_9M = 0 THEN 0 ELSE 1 END);
 GO
 -----------------------------------------------------------------------------------------------------------------------
 -- P3, w/o guarantor, 50K < CC limit (MS605) <= 100K, not revolve in last month (CDEF_FLAG_1M = 0)
@@ -1259,18 +1228,6 @@ GO
 GO
 -----------------------------------------------------------------------------------------------------------------------
 -- P4, w/o guarantor, 50K < CC limit (MS605) <= 100K, revolve in last month (CDEF_FLAG_1M = 1)
- /*----MS063 UNSECURED LOAN BALANCE ----*/
- UPDATE PDACO_V6_1
-       SET MS063 = 
-           (SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT))
-            FROM BAM086_DEDUP S
-            WHERE ((ACCOUNT_CODE2 = '') OR (ACCOUNT_CODE2 IS NULL) OR (ACCOUNT_CODE = 'N'))
-              AND PDACO_V6_1.IDN = S.IDN
-            GROUP BY S.IDN)
-       WHERE EXISTS (SELECT *
-                     FROM BAM086_DEDUP S
-                     WHERE ((ACCOUNT_CODE2 = '') OR (ACCOUNT_CODE2 IS NULL) OR (ACCOUNT_CODE = 'N'))
-                       AND PDACO_V6_1.IDN = S.IDN);
 -- CREDIT CARD AND UNSECURED REVOLVING_AMT (MS604)
  UPDATE PDACO_V6_1
    SET MS604 = CARD_REV_BAL + MS063;
@@ -1315,7 +1272,7 @@ GO
                  WHERE ACCOUNT_CODE = 'Y' AND
                        (CAST(ISNULL(LOAN_AMT,0) AS INT) + CAST(ISNULL(PASS_DUE_AMT,0) AS INT)) > 0
                    AND A.IDN = PDACO_V6_1.IDN)
-    WHERE EXISTS (SELECT COUNT(*)
+    WHERE EXISTS (SELECT *
                  FROM BAM086_DEDUP AS A
                  WHERE ACCOUNT_CODE = 'Y' AND
                        (CAST(ISNULL(LOAN_AMT,0) AS INT) + CAST(ISNULL(PASS_DUE_AMT,0) AS INT)) > 0
@@ -1339,7 +1296,7 @@ GO
                     WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
                       AND BUCKET_DEF_1K > 0
                       AND IDN = PDACO_V6_1.IDN)
- WHERE EXISTS (SELECT COUNT(DISTINCT ISSUE)
+ WHERE EXISTS (SELECT *
                     FROM KRM023_DEDUP
                     WHERE INQUIRY_MON-1 - MON_SINCE <= 6 /* WITH 30-DAY RULE            */
                       AND BUCKET_DEF_1K > 0
@@ -1396,18 +1353,6 @@ GO
                   FROM TMP
                   WHERE IDN = PDACO_V6_1.IDN)
     WHERE IDN IN (SELECT IDN FROM TMP);
- /*----CASH CARD REVOLVING BALANCE ----*/
- UPDATE PDACO_V6_1
-       SET MS105 = 
-           (SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT))
-            FROM BAM086_DEDUP S
-            WHERE ACCOUNT_CODE = 'Y'
-              AND PDACO_V6_1.IDN = S.IDN
-            GROUP BY S.IDN)
-       WHERE EXISTS (SELECT *
-                     FROM BAM086_DEDUP S
-                     WHERE ACCOUNT_CODE = 'Y'
-                       AND PDACO_V6_1.IDN = S.IDN);
  UPDATE PDACO_V6_1
    SET MS093  = ISNULL(MS093, 0),
        MS094B = ISNULL(MS094B, 0),
@@ -1429,12 +1374,6 @@ GO
                  FROM TMP A
                  WHERE PDACO_V6_1.IDN = A.IDN);
  UPDATE PDACO_V6_1
-    SET AMORTIZATION_RATE = (CASE WHEN APR = 0 THEN 1/TOTAL_TERM
-                                  ELSE POWER ((1 + (APR / 12)), TOTAL_TERM) * (APR / 12)
-                                       / (POWER ((1 + (APR / 12)), TOTAL_TERM) - 1) END);
- UPDATE PDACO_V6_1
-    SET MONTHLY_PAYMENT = ISNULL(REQUEST_AMT * AMORTIZATION_RATE, 0);
- UPDATE PDACO_V6_1
     SET FS546_9M = A.FS546_9M
     FROM (SELECT IDN, 
    	  SUM(CASE WHEN PURPOSE_CODE = '4' AND
@@ -1452,7 +1391,6 @@ GO
        RS017_R = POWER((CASE WHEN RS017 < 0 THEN NULL ELSE RS017 END), 0.5),
        MS001_12M_1K_Q = MS001_12M_1K * MS001_12M_1K,
        INT053_6 = FS061_6M_1K / FS101_6M,
-       LN004_9M = (MONTHLY_PAYMENT/1000.0 + ISNULL(MS093, 0) + (ISNULL(MS094B, 0) + ISNULL(MS105, 0))* 0.35)/ WI004_9M,
        FS546_9M_TRAN = ISNULL(FS546_9M, 0);
  UPDATE PDACO_V6_1
    SET FS3036_T5 = (CASE WHEN BAM086_HIT = 1 AND (FS018_12M_Z = 0 OR FS309_Z = 0) THEN 1
@@ -1463,42 +1401,7 @@ GO
        FS031_TRAN4 = (CASE WHEN FS031 IS NULL THEN 0
                            WHEN FS031 > 10 THEN 10
                            ELSE FS031 END),
-       INT053_6_Q = INT053_6 * INT053_6,
-       LN004_9M_Q = LN004_9M * LN004_9M;
- UPDATE PDACO_V6_1
-   SET P4_SCORE= 0.39859	+
-   	     MS604_R		*	0.00364 +
-   	     RS017_R_TRAN	*	-0.09671 +  
-   	     MS001_12M_1K_Q	*	0.00000207 +
-   	     FS3036_T5		*	0.04757 +   
-   	     FS031_TRAN4	*	0.00872 +   
-   	     INT053_6_Q		*	0.09296 +   
-   	     LN004_9M_Q		*	0.04015 +   
-   	     FS546_9M_TRAN	*	0.01141;   
- UPDATE PDACO_V6_1
-   SET PDACO_TWEN = (CASE
-                     WHEN P4_SCORE IS NULL     THEN 0
-                     WHEN P4_SCORE <= -0.02452 THEN 1
-                     WHEN P4_SCORE <= 0.00056  THEN 2
-                     WHEN P4_SCORE <= 0.01786  THEN 3
-                     WHEN P4_SCORE <= 0.03197  THEN 4
-                     WHEN P4_SCORE <= 0.04325  THEN 5
-                     WHEN P4_SCORE <= 0.05431  THEN 6
-                     WHEN P4_SCORE <= 0.06485  THEN 7
-                     WHEN P4_SCORE <= 0.07343  THEN 8
-                     WHEN P4_SCORE <= 0.08346  THEN 9
-                     WHEN P4_SCORE <= 0.09181  THEN 10
-                     WHEN P4_SCORE <= 0.10081  THEN 11
-                     WHEN P4_SCORE <= 0.11041  THEN 12
-                     WHEN P4_SCORE <= 0.12171  THEN 13
-                     WHEN P4_SCORE <= 0.13461  THEN 14
-                     WHEN P4_SCORE <= 0.14597  THEN 15
-                     WHEN P4_SCORE <= 0.16077  THEN 16
-                     WHEN P4_SCORE <= 0.18534  THEN 17
-                     WHEN P4_SCORE <= 0.20890  THEN 18
-                     WHEN P4_SCORE <= 0.25620  THEN 19
-                     ELSE 20            
-   		  END);
+       INT053_6_Q = INT053_6 * INT053_6;
 GO   		  
 -----------------------------------------------------------------------------------------------------------------------
 -- P5, w/o guarantor, 100K < CC limit (MS605) <= 100K
@@ -1697,17 +1600,6 @@ GO
     WHERE IDN IN (SELECT IDN FROM TMP);
  /*----CASH CARD REVOLVING BALANCE ----*/
  UPDATE PDACO_V6_1
-       SET MS105 = 
-           (SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT))
-            FROM BAM086_DEDUP S
-            WHERE ACCOUNT_CODE = 'Y'
-              AND PDACO_V6_1.IDN = S.IDN
-            GROUP BY S.IDN)
-       WHERE EXISTS (SELECT *
-                     FROM BAM086_DEDUP S
-                     WHERE ACCOUNT_CODE = 'Y'
-                       AND PDACO_V6_1.IDN = S.IDN);
- UPDATE PDACO_V6_1
    SET MS093  = ISNULL(MS093, 0),
        MS094B = ISNULL(MS094B, 0),
        MS105  = ISNULL(MS105, 0);
@@ -1728,12 +1620,6 @@ GO
                  FROM TMP A
                  WHERE PDACO_V6_1.IDN = A.IDN);
  UPDATE PDACO_V6_1
-    SET AMORTIZATION_RATE = (CASE WHEN APR = 0 THEN 1/TOTAL_TERM
-                                  ELSE POWER ((1 + (APR / 12)), TOTAL_TERM) * (APR / 12)
-                                       / (POWER ((1 + (APR / 12)), TOTAL_TERM) - 1) END);
- UPDATE PDACO_V6_1
-    SET MONTHLY_PAYMENT = ISNULL(REQUEST_AMT * AMORTIZATION_RATE, 0);
- UPDATE PDACO_V6_1
    SET RS017_R = POWER((CASE WHEN RS017 < 0 THEN NULL ELSE RS017 END), 0.5),
        MS074_T2 = REQUEST_AMT/1000.0 + ISNULL(MS074, 0),
        FS205_3M_1K_Q = FS205_3M_1K * FS205_3M_1K,
@@ -1747,43 +1633,9 @@ GO
        MS074_T3 = (CASE WHEN MS074_T2 > 2250 THEN 2250
                            ELSE MS074_T2 END),
        FS205_3M_1K_Q_TRAN2 = ISNULL(FS205_3M_1K_Q, 0),
-       LN003_9M_T = (MONTHLY_PAYMENT/1000.0 + ISNULL(MS093, 0) + (ISNULL(MS094B, 0) + ISNULL(MS105, 0))* 0.35)/ WI003_9M_T,
        FS031_1M_Q_TRAN2 = (CASE WHEN FS031_1M_Q IS NULL THEN 0
                                 WHEN FS031_1M_Q > 100 THEN 100
                                 ELSE FS031_1M_Q END);
- UPDATE PDACO_V6_1
-   SET P5_SCORE= 0.25612	+
-   	     FS016F_12M         *	0.00321   +
-   	     RS017_R_TRAN2      *	-0.03459  +
-   	     MS074_T3           *	0.00003294+
-   	     FS205_3M_1K_Q_TRAN2*	0.00225   +
-   	     LN003_9M_T         *	0.00003516+
-   	     FS031_1M_Q_TRAN2   *	0.00171   +
-   	     FS073B_12M_R       *	0.02631;
- UPDATE PDACO_V6_1
-   SET PDACO_TWEN = (CASE
-                     WHEN P5_SCORE IS NULL    THEN 0
-                     WHEN P5_SCORE <= 0.00317 THEN 1
-                     WHEN P5_SCORE <= 0.01542 THEN 2
-                     WHEN P5_SCORE <= 0.02500 THEN 3
-                     WHEN P5_SCORE <= 0.03280 THEN 4
-                     WHEN P5_SCORE <= 0.04108 THEN 5
-                     WHEN P5_SCORE <= 0.04851 THEN 6
-                     WHEN P5_SCORE <= 0.05467 THEN 7
-                     WHEN P5_SCORE <= 0.06031 THEN 8
-                     WHEN P5_SCORE <= 0.06764 THEN 9
-                     WHEN P5_SCORE <= 0.07515 THEN 10
-                     WHEN P5_SCORE <= 0.08255 THEN 11
-                     WHEN P5_SCORE <= 0.09187 THEN 12
-                     WHEN P5_SCORE <= 0.10131 THEN 13
-                     WHEN P5_SCORE <= 0.11072 THEN 14
-                     WHEN P5_SCORE <= 0.12268 THEN 15
-                     WHEN P5_SCORE <= 0.13652 THEN 16
-                     WHEN P5_SCORE <= 0.15577 THEN 17
-                     WHEN P5_SCORE <= 0.17960 THEN 18
-                     WHEN P5_SCORE <= 0.21736 THEN 19
-                     ELSE 20     
-   		  END);
 GO
 
 /* CREATE_PROCEDURE_GENERATE_PDACO_SCORE */
@@ -2054,7 +1906,7 @@ GO
                   WHERE INQUIRY_MON-1 - MON_SINCE <= 9 
                     AND CASH = 'Y'
                     AND (PAY_CODE IN ('C','D','E','F') OR
-                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0));
+                         (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0))
                     AND A.IDN = PDACO_V6_1.IDN);
  
  /* FS016F_12M  */
@@ -2289,7 +2141,7 @@ GO
  DELETE FROM TMP;
  INSERT INTO TMP(IDN, V1)
     SELECT IDN, 
-      MIN(CASE WHEN PAY_CODE IN ('C','D','E','F') 
+      MIN((CASE WHEN PAY_CODE IN ('C','D','E','F') 
                     THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0)
 	       WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0) > 0 
                     THEN ISNULL(SPREAD_PAYMENT,0)
@@ -2298,9 +2150,8 @@ GO
     WHERE INQUIRY_MON   - MON_SINCE <=9  /* NO   30-DAY RULE */
       AND CAST(LIMIT AS FLOAT) > 0
       AND ((PAY_CODE IN ('C','D','E','F') AND ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) > 1)
-            OR (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>1))   /* TO ELIMINATE THOSE SMALL REVOLING LINES */
-		
-    GROUP BY IDN
+            OR (CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>1))   /* TO ELIMINATE THOSE SMALL REVOLING LINES */	
+    GROUP BY IDN;
 
  UPDATE PDACO_V6_1
     SET MS118_9M = (

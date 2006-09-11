@@ -166,6 +166,8 @@ int PDACO::get_scorecard(TADOHandler *handler)
         period = TOTAL_TERM;
         apr = ds->FieldValues["APR"];
         app_fee = ds->FieldValues["APP_FEE"];
+        debt_flag = ds->FieldValues["DEBT_FLAG"];
+        note_flag = ds->FieldValues["NOTE_FLAG"];
         if (ds->FieldValues["MONTHLY_INCOME"].IsNull())
           monthly_income = 0;
         else
@@ -433,10 +435,12 @@ double PDACO::PDACO61P1Score()
     if (FS031 > 5) {ps_code = PSCode(PSCODE_111); ps_msg = PSMsg(PSCODE_111);}
     else if (fs059_12m_1k > 0) {ps_code = PSCode(PSCODE_112); ps_msg = PSMsg(PSCODE_112);}
     else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_113); ps_msg = PSMsg(PSCODE_113);}
+    else {ps_code = PSCode(PSCODE_201); ps_msg = PSMsg(PSCODE_201);}
  }
  else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
     if (FS031 > 3) {ps_code = PSCode(PSCODE_114); ps_msg = PSMsg(PSCODE_114);}
     else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_115); ps_msg = PSMsg(PSCODE_115);}
+    else {ps_code = PSCode(PSCODE_201); ps_msg = PSMsg(PSCODE_201);}
  } else {       // White   no krm023 nor krm021 nor bam086
     ps_code = PSCode(PSCODE_201);
     ps_msg = PSMsg(PSCODE_201);
@@ -502,7 +506,7 @@ double PDACO::PDACO61P3Score()
     else twentile = 3;
  }
 
- APR_N = apr * 100 / 30;
+ APR_N = apr * 100.0 / 30.0;
 
  if (twentile == 1) rscore = pb = 0.008;
  else if (twentile == 2) rscore = pb = 0.044 + 0.083 * APR_N;
@@ -657,6 +661,7 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
  Variant hostVars[5];
  TADODataSet *ds;
  int card;
+ char buf[1024];
 
  ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
@@ -668,26 +673,44 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	case 0: PDACO61P0Raw(handler);  // Scorecard P0
                 setLoanAmount();
      	        PDACO61P0Score();
+                sprintf(buf, SQLCommands[Update_P0_Transform], twentile,
+                        msn, input_time);
+                handler->ExecSQLCmd(buf);
      	        break;
      	case 1: PDACO61P1Raw(handler);  // Scorecard P1
                 setLoanAmount();
      	        PDACO61P1Score();
+                sprintf(buf, SQLCommands[Update_P1_Transform], twentile,
+                        msn, input_time);
+                handler->ExecSQLCmd(buf);
      	        break;
      	case 2: PDACO61P2Raw(handler);  // Scorecard P2
                 setLoanAmount();
      	        PDACO61P2Score();
+                sprintf(buf, SQLCommands[Update_P2_Transform], twentile, ln001_9m, 
+                        ln001_9m_t2, monthly_payment, msn, input_time);
+                handler->ExecSQLCmd(buf);
      	        break;
      	case 3: PDACO61P3Raw(handler);  // Scorecard P3
                 setLoanAmount();
      	        PDACO61P3Score();
+                sprintf(buf, SQLCommands[Update_P3_Transform], twentile,
+                        msn, input_time);
+                handler->ExecSQLCmd(buf);
      	        break;
      	case 4: PDACO61P4Raw(handler);  // Scorecard P4
                 setLoanAmount();
      	        PDACO61P4Score();
+                sprintf(buf, SQLCommands[Update_P4_Transform], twentile, ln004_9m, 
+                        ln004_9m_q, monthly_payment, msn, input_time);
+                handler->ExecSQLCmd(buf);
      	        break;
      	case 5: PDACO61P5Raw(handler);  // Scorecard P5
                 setLoanAmount();
      	        PDACO61P5Score();
+                sprintf(buf, SQLCommands[Update_P5_Transform], twentile, ln003_9m_t, 
+                        MS074_T3, monthly_payment, msn, input_time);
+                handler->ExecSQLCmd(buf);
      	        break;
      }
 
@@ -723,11 +746,11 @@ int PDACO::WriteTraceRecord(TADOHandler *handler)
 {
  char buf[1024];
  try {
-    handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
     sprintf(buf, SQLCommands[Update_Audit_Table], LOAN_AMOUNT, FSC_AMOUNT,
                  scorecard, pb, ps_code, ps_msg, rscore, msn, input_time);
+    handler->ExecSQLCmd(buf);
 
-     handler->ExecSQLCmd(buf);
+    handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
  } catch (Exception &E) {
      throw;
  }
@@ -789,6 +812,7 @@ int PDACO::getFscCap()
 double PDACO::setLoanAmount()
 {
  LOAN_AMOUNT = principal = min(min(REQUEST_AMT, getCapAmount()),getFscCap());
+ LOAN_AMOUNT = 150000.0;
  return(LOAN_AMOUNT);
 }
 //---------------------------------------------------------------------------
@@ -886,8 +910,10 @@ void PDACO::postScreen()
     {ps_code = PSCode(PSCODE_121); ps_msg = PSMsg(PSCODE_121);}
  else if (card_force_stop >= 1)
     {ps_code = PSCode(PSCODE_120); ps_msg = PSMsg(PSCODE_120);}
-// else if (DEBT_CODE >= 1)
-//    {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
+ else if (debt_flag >= 1)
+    {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
+ else if (note_flag >= 1)
+    {ps_code = PSCode(PSCODE_123); ps_msg = PSMsg(PSCODE_123);}
 }
 
 //---------------------------------------------------------------------------
