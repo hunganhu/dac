@@ -32,6 +32,7 @@ enum ErrorCodes {
 	PSCODE_0,    // 0
 	PSCODE_1,    // 1
 	PSCODE_2,    // 2
+	PSCODE_3,    // 3
 	PSCODE_101,  // 3
 	PSCODE_102,  // 4
 	PSCODE_103,  // 5

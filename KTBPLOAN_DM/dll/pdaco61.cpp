@@ -45,7 +45,7 @@ int PDACO::input_npv_test(TADOHandler *handler)
 
  ds = new TADODataSet(NULL);
  ds->EnableBCD = false;  // Decimal fields are mapped to float.
- try {                  
+ try {
     hostVars[0] = msn;
     hostVars[1] = input_time;
     handler->ExecSQLQry(SQLCommands[Get_AppInfo_Record], hostVars, 1, ds);
@@ -92,24 +92,41 @@ int PDACO::DropWorkingTables(TADOHandler *handler)
 int PDACO::PrepareJcicSourceTables(TADOHandler *handler)
 {
  Variant hostVars[5];
+ TADODataSet *ds;
+ int record_count;
+
+ ds = new TADODataSet(NULL);
+ ds->EnableBCD = false;  // Decimal fields are mapped to float.
  try {
     hostVars[0] = msn;
     hostVars[1] = input_time;
     // add code to check if msn exists  first select then insert
-    handler->ExecSQLCmd(SQLCommands[Insert_PDACO_V61], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Dedup_KRM021], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Dedup_KRM023], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Dedup_STM007], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Dedup_BAM086], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_DELINQUENT], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_BAD_CHECK], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_REJECT], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Insert_JAS002_STOP_CARD], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Dedup_KRM037], hostVars, 1);
-    handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Source_Tables]);
+    handler->ExecSQLQry(SQLCommands[Get_Applicant_Record], hostVars, 1, ds);
+    record_count = ds->RecordCount;
+    if (record_count > 0) {
+       handler->ExecSQLCmd(SQLCommands[Insert_PDACO_V61], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Dedup_KRM021], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Dedup_KRM023], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Dedup_STM007], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Dedup_BAM086], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Insert_JAS002_DELINQUENT], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Insert_JAS002_BAD_CHECK], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Insert_JAS002_REJECT], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Insert_JAS002_STOP_CARD], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Dedup_KRM037], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Source_Tables]);
+    }
+    else {
+       ps_code = PSCode(PSCODE_3);
+       ps_msg = PSMsg(PSCODE_3);
+    }
  } catch (Exception &E) {
+     ds->Close();
+     delete ds;
      throw;
  }
+ ds->Close();
+ delete ds;
  return 0;
 }
 //---------------------------------------------------------------------------
@@ -149,30 +166,31 @@ int PDACO::get_scorecard(TADOHandler *handler)
         ind001     = ds->FieldValues["IND001"];
         jas002_defect = ds->FieldValues["JAS002_DEFECT"];  // ScreenOut rule #1 Major Derogatory within 3 year > 0
         app_max_bucket = ds->FieldValues["MAX_BUCKET"];    // ScreenOut rule #2 Max. bucket of credit lines > 3
-        delinquent_months = ds->FieldValues["fs334"];      // ScreenOut rule #3 Max bucket of loans > 3
-        fs044 = ds->FieldValues["fs044"];                  // ScreenOut rule #4 no. of loans w/ pass_due_amount > 0
-        cash_max_bucket = ds->FieldValues["fs302"];        // ScreenOut rule #5 no. of delinquent cash cards > 0
+        delinquent_months = ds->FieldValues["FS334"];      // ScreenOut rule #3 Max bucket of loans > 3
+        fs044 = ds->FieldValues["FS044"];                  // ScreenOut rule #4 no. of loans w/ pass_due_amount > 0
+        cash_max_bucket = ds->FieldValues["FS302"];        // ScreenOut rule #5 no. of delinquent cash cards > 0
         MS605 = ds->FieldValues["MS605"];
         CDEF_FLAG_1M = ds->FieldValues["CDEF_FLAG_1M"];
         if (ds->FieldValues["FS059_3M_1K"].IsNull())
           FS059_3M_1K = 0;
         else
-           FS059_3M_1K = ds->FieldValues["FS059_3M_1K"];
-        card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
-        cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
-        revolving_amt = ds->FieldValues["REVOLVING_AMT"];
+           FS059_3M_1K = ds->FieldValues["FS059_3M_1K"];        // PostScreen #6 121- card delinquent in 3M
+        FS334B_1M = ds->FieldValues["FS334B_1M"];               // PostScreen #4 119- bam delinquent in 1M
+        card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];   // PostScreen #5 120- card force stop
+        cash_utilization = ds->FieldValues["CASH_UTILIZATION"]; // PostScreen #1 104- cash util >=.95
+        revolving_amt = ds->FieldValues["REVOLVING_AMT"];       // PostScreen #2 108- double card >=500K
         REQUEST_AMT = ds->FieldValues["REQUEST_AMT"];
         TOTAL_TERM = ds->FieldValues["TOTAL_TERM"];
         period = TOTAL_TERM;
         apr = ds->FieldValues["APR"];
         app_fee = ds->FieldValues["APP_FEE"];
-        debt_flag = ds->FieldValues["DEBT_FLAG"];
-        note_flag = ds->FieldValues["NOTE_FLAG"];
+        debt_flag = ds->FieldValues["DEBT_FLAG"];               // PostScreen #7 122- debt note in krm037
+        note_flag = ds->FieldValues["NOTE_FLAG"];               // PostScreen #8 123- note in vam102
         if (ds->FieldValues["MONTHLY_INCOME"].IsNull())
           monthly_income = 0;
         else
            monthly_income = ds->FieldValues["MONTHLY_INCOME"];
-        MS606 = ds->FieldValues["MS606"];
+        MS606 = ds->FieldValues["MS606"];                       // PostScreen #3 116- unsecured loan >=1M
      }
      if (jas002_defect > 0 || app_max_bucket > 3 || fs044 > 0 || delinquent_months > 3 || cash_max_bucket > 0)
      	scorecard = 0;           // score card P0  meet screenout rule #1-5
@@ -406,9 +424,7 @@ double PDACO::PDACO61P0Score()
  if (twentile == 2) pb = 0.12;
  else if (twentile == 3) pb = 0.24;
  else if (twentile == 4) pb = 0.28;
-
-     if (jas002_defect > 0 || app_max_bucket > 3 || fs044 > 0 || delinquent_months > 3 || cash_max_bucket > 0)
-
+ pb = pb / 2.0;
  if (jas002_defect > 0)
     {ps_code = PSCode(PSCODE_101); ps_msg = PSMsg(PSCODE_101);}
  else if (app_max_bucket > 3)
@@ -437,7 +453,7 @@ double PDACO::PDACO61P1Score()
     else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_113); ps_msg = PSMsg(PSCODE_113);}
     else {ps_code = PSCode(PSCODE_201); ps_msg = PSMsg(PSCODE_201);}
  }
- else if (GRAY2_FLAG == 1) {  // Gray 2  krm021_hit or bam086_hit
+ else if (GRAY2_FLAG > 0) {  // Gray 2  krm021_hit or bam086_hit
     if (FS031 > 3) {ps_code = PSCode(PSCODE_114); ps_msg = PSMsg(PSCODE_114);}
     else if (card_force_stop > 0) {ps_code = PSCode(PSCODE_115); ps_msg = PSMsg(PSCODE_115);}
     else {ps_code = PSCode(PSCODE_201); ps_msg = PSMsg(PSCODE_201);}
@@ -453,6 +469,7 @@ double PDACO::PDACO61P2Score()
 {
  double APR_N, Score_N, term_N, loan_N;
 
+ // period should be the same as TOTAL_TERM, but can be changed when recalculating PB
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
  ln001_9m = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI001_9M;
  ln001_9m_t2 = ln001_9m * (1-FS016C_9M_T1);
@@ -484,12 +501,13 @@ double PDACO::PDACO61P2Score()
  Score_N = (rscore + 0.021881193 ) / (0.5958727095 + 0.021881193);
  if (Score_N < 0) Score_N = 0;
  else if (Score_N > 1.0)  Score_N = 1.0;
- term_N = TOTAL_TERM / 120.0;
+ term_N = period / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
  pb = (P2_X[13] + P2_X[1] * pow(APR_N, P2_X[2]) * Score_N + (P2_X[3] + P2_X[4] * APR_N + P2_X[5] * pow(APR_N, P2_X[2])) * pow(Score_N, P2_X[6]))
               * (1 + term_N * ( P2_X[7] + P2_X[8] * APR_N + P2_X[9] * Score_N))
               * (1 + loan_N * ( P2_X[10] + P2_X[11] * APR_N + P2_X[12] * Score_N ));
+ pb = pb / 2.0;
  if (pb > 1.0) pb = 1.0;
 
  return (pb);
@@ -511,6 +529,7 @@ double PDACO::PDACO61P3Score()
  if (twentile == 1) rscore = pb = 0.008;
  else if (twentile == 2) rscore = pb = 0.044 + 0.083 * APR_N;
  else if (twentile == 3) rscore = pb = 0.017 + 0.41  * APR_N;
+ pb = pb / 2.0;
 
  return (pb);
 }
@@ -555,16 +574,17 @@ double PDACO::PDACO61P4Score()
  else if (rscore <= 0.25620)  twentile = 19;
  else if (rscore >  0.25620)  twentile = 20;
 
- APR_N = apr * 100 / 30;
+ APR_N = apr * 100.0 / 30.0;
  Score_N = (rscore + 0.07949958) / (2.864864072 + 0.07949958 );
  if (Score_N < 0) Score_N = 0;
  else if (Score_N > 1.0)  Score_N = 1.0;
- term_N = TOTAL_TERM / 120.0;
+ term_N = period / 120.0;
  loan_N =LOAN_AMOUNT / 3000000.0;
 
- pb = (P2_X[1] * (pow(APR_N, P2_X[2])) * Score_N + (P2_X[3] + P2_X[4] * APR_N + P2_X[5] * pow(APR_N, P2_X[2])) * pow(Score_N, P2_X[6]))
-          * ( 1 + term_N * ( P2_X[7] + P2_X[8] * APR_N + P2_X[9] * Score_N))
-          * ( 1 + loan_N * ( P2_X[10] + P2_X[11] * APR_N + P2_X[12] * Score_N));
+ pb = (P4_X[1] * (pow(APR_N, P4_X[2])) * Score_N + (P4_X[3] + P4_X[4] * APR_N + P4_X[5] * pow(APR_N, P4_X[2])) * pow(Score_N, P4_X[6]))
+          * (1 + term_N * ( P4_X[7] + P4_X[8] * APR_N + P4_X[9] * Score_N))
+          * (1 + loan_N * ( P4_X[10] + P4_X[11] * APR_N + P4_X[12] * Score_N));
+ pb = pb / 2.0;
  if (pb > 1.0) pb = 1.0;
 
  return (pb);
@@ -574,18 +594,18 @@ double PDACO::PDACO61P4Score()
 double PDACO::PDACO61P5Score()
 {
  double APR_N, Score_N, term_N, loan_N;
- double MS074_T2;
 
  monthly_payment = Payment(apr / 12.0, period, -LOAN_AMOUNT, 0.0, ptEndOfPeriod);
  ln003_9m_t = (monthly_payment/1000.0 + MS093 + (MS094B + MS105)* 0.35)/ WI003_9M_T;
  MS074_T2  = LOAN_AMOUNT / 1000.0 + MS074;
- if (MS074_T2 > 2250) MS074_T3 = 2250;
- else  MS074_T3 = MS074_T2;
+//  remove Cap when in production
+// if (MS074_T2 > 2250) MS074_T3 = 2250;
+// else  MS074_T3 = MS074_T2;
 
  rscore= 0.25612	+
    	     FS016F_12M         *	0.00321   +
    	     RS017_R_TRAN2      *	-0.03459  +
-   	     MS074_T3           *	0.00003294+
+   	     MS074_T2           *	0.00003294+
    	     FS205_3M_1K_Q_TRAN2*	0.00225   +
    	     ln003_9m_t         *	0.00003516+
    	     FS031_1M_Q_TRAN2   *	0.00171   +
@@ -613,16 +633,18 @@ double PDACO::PDACO61P5Score()
  else if (rscore <= 0.21736) twentile = 19;
  else if (rscore >  0.21736) twentile = 20;
 
- APR_N = apr * 100 / 30;
+ APR_N = apr * 100.0 / 30.0;
  Score_N = (rscore + 0.017201595) / (0.6799021583 + 0.017201595);
  if (Score_N < 0) Score_N = 0;
  else if (Score_N > 1.0)  Score_N = 1.0;
- term_N = TOTAL_TERM / 120.0;
+ term_N = period / 120.0;
  loan_N = LOAN_AMOUNT / 3000000.0;
 
  pb = (P5_X[1] * pow(APR_N, P5_X[2]) * Score_N + (P5_X[3] + P5_X[4] * APR_N + P5_X[5] * pow(APR_N, P5_X[2])) * pow(Score_N, P5_X[6]))
       * (1 + term_N * (P5_X[7] + P5_X[8] * APR_N + P5_X[9] * Score_N))
       * (1 + loan_N * (P5_X[10] + P5_X[11] * APR_N + P5_X[12] * Score_N));
+ pb = pb / 2.0;
+ if (pb > 1.0) pb = 1.0;
 
  return (pb);
 }
@@ -687,7 +709,7 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	case 2: PDACO61P2Raw(handler);  // Scorecard P2
                 setLoanAmount();
      	        PDACO61P2Score();
-                sprintf(buf, SQLCommands[Update_P2_Transform], twentile, ln001_9m, 
+                sprintf(buf, SQLCommands[Update_P2_Transform], twentile, ln001_9m,
                         ln001_9m_t2, monthly_payment, msn, input_time);
                 handler->ExecSQLCmd(buf);
      	        break;
@@ -701,15 +723,15 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
      	case 4: PDACO61P4Raw(handler);  // Scorecard P4
                 setLoanAmount();
      	        PDACO61P4Score();
-                sprintf(buf, SQLCommands[Update_P4_Transform], twentile, ln004_9m, 
+                sprintf(buf, SQLCommands[Update_P4_Transform], twentile, ln004_9m,
                         ln004_9m_q, monthly_payment, msn, input_time);
                 handler->ExecSQLCmd(buf);
      	        break;
      	case 5: PDACO61P5Raw(handler);  // Scorecard P5
                 setLoanAmount();
      	        PDACO61P5Score();
-                sprintf(buf, SQLCommands[Update_P5_Transform], twentile, ln003_9m_t, 
-                        MS074_T3, monthly_payment, msn, input_time);
+                sprintf(buf, SQLCommands[Update_P5_Transform], twentile, ln003_9m_t,
+                        MS074_T2, monthly_payment, msn, input_time);
                 handler->ExecSQLCmd(buf);
      	        break;
      }
@@ -812,7 +834,7 @@ int PDACO::getFscCap()
 double PDACO::setLoanAmount()
 {
  LOAN_AMOUNT = principal = min(min(REQUEST_AMT, getCapAmount()),getFscCap());
- LOAN_AMOUNT = 150000.0;
+// LOAN_AMOUNT = 150000.0;
  return(LOAN_AMOUNT);
 }
 //---------------------------------------------------------------------------
@@ -893,7 +915,7 @@ void PDACO::postScreen()
 // FS314B	>= 0.95	OR	201  cash_utilization
 // MS602	>= 500	OR	202  REVOLVING_AMT
 // MS606	>= 1000	OR	203  MS606
-// FS334B_1M	> 0	OR	204   CASH_MAX_BUCKET
+// FS334B_1M	> 0	OR	204   BAM_MAX_BUCKET
 // DELINQUENT_FLAG	=1	OR	205   FS059_3M_1K
 // STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
 // DEBT_CODE	=1	OR	207
@@ -904,15 +926,15 @@ void PDACO::postScreen()
     {ps_code = PSCode(PSCODE_108); ps_msg = PSMsg(PSCODE_108);}
  else if (MS606 >= 1000)
     {ps_code = PSCode(PSCODE_116); ps_msg = PSMsg(PSCODE_116);}
- else if (cash_max_bucket > 0)
+ else if (FS334B_1M > 0)
     {ps_code = PSCode(PSCODE_119); ps_msg = PSMsg(PSCODE_119);}
  else if (FS059_3M_1K >= 1)
     {ps_code = PSCode(PSCODE_121); ps_msg = PSMsg(PSCODE_121);}
  else if (card_force_stop >= 1)
     {ps_code = PSCode(PSCODE_120); ps_msg = PSMsg(PSCODE_120);}
- else if (debt_flag >= 1)
+ else if (debt_flag > 0)
     {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
- else if (note_flag >= 1)
+ else if (note_flag > 0)
     {ps_code = PSCode(PSCODE_123); ps_msg = PSMsg(PSCODE_123);}
 }
 

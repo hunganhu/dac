@@ -45,12 +45,14 @@ class PDACO
     double app_max_bucket;
     double fs044;
     double fs059_12m_1k;
-    double delinquent_months;
+    double delinquent_months; // FS334
     double card_force_stop;
     double cash_max_bucket;
     double cash_utilization;
     double ind001;
     double revolving_amt;
+    double FS334;
+    double FS334B_1M;
     int    debt_flag;
     int    note_flag;
     int    ps_code;
@@ -83,8 +85,6 @@ class PDACO
     double FS302;
     double FS309;
     double FS314B;
-    double FS334;
-    double FS334B_1M;
     double FS546_9M;
     double MS001_12M_1K;
     double MS063;
