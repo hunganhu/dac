@@ -38,6 +38,7 @@ enum SQLCodes { Get_AppInfo_Record,
                 Insert_JAS002_REJECT,
                 Insert_JAS002_STOP_CARD,
                 Dedup_KRM037,
+                Dedup_VAM102,
 
                 Prepare_JCIC_Source_Tables,
                 Prepare_JCIC_Data,

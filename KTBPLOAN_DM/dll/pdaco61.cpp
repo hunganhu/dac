@@ -114,6 +114,7 @@ int PDACO::PrepareJcicSourceTables(TADOHandler *handler)
        handler->ExecSQLCmd(SQLCommands[Insert_JAS002_REJECT], hostVars, 1);
        handler->ExecSQLCmd(SQLCommands[Insert_JAS002_STOP_CARD], hostVars, 1);
        handler->ExecSQLCmd(SQLCommands[Dedup_KRM037], hostVars, 1);
+       handler->ExecSQLCmd(SQLCommands[Dedup_VAM102], hostVars, 1);
        handler->ExecSQLCmd(SQLCommands[Prepare_JCIC_Source_Tables]);
     }
     else {
