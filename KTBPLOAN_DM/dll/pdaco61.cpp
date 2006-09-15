@@ -715,8 +715,8 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
                 handler->ExecSQLCmd(buf);
      	        break;
      	case 3: PDACO61P3Raw(handler);  // Scorecard P3
-                setLoanAmount();
      	        PDACO61P3Score();
+                setLoanAmount();
                 sprintf(buf, SQLCommands[Update_P3_Transform], twentile,
                         msn, input_time);
                 handler->ExecSQLCmd(buf);

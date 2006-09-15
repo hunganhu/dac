@@ -80,9 +80,26 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
        optimal_pb = pdaco_app->getPdaco61PB();
        //write_npv(msno, app_input_time, orig_npv, dbhandle); // npv test code
 
-       if (orig_npv <= 0) {
-         store_result(msno, app_input_time, pdaco_app, optimal_amount, pdaco_app->getPsCode(),
+       if (orig_npv <= 0) { // check if we can downsell until 150000
+          for (i = pdaco_app->getLoanAmount(); i >= 150000;
+                  i = (i - 50000)/ 50000 * 50000) {
+               pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
+               npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
+               if (npv_value > optimal_npv && pb_value < pdaco_app->getPbCap()) {
+                  optimal_amount = i;
+                  optimal_npv = npv_value;
+                  optimal_pb = pb_value;
+               }
+          }
+          pdaco_app->postScreen ();
+          if (pdaco_app->getPsCode() == 0) {   // pass post screen
+             store_result(msno, app_input_time, pdaco_app, optimal_amount, pdaco_app->getPsCode(),
                     optimal_npv, optimal_pb, note, VERSION, true, dbhandle);
+          }
+          else {  // do NOT pass post screen
+             store_result(msno, app_input_time, pdaco_app, 0, pdaco_app->getPsCode(),
+                    0, pdaco_app->getPdaco61PB(), note, VERSION, false, dbhandle);
+          }
        } else {
          if (pdaco_app->getPdaco61PB() < 0.01 &&
              pdaco_app->getScoreCard() == 5   &&
@@ -102,7 +119,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
                 i =  pdaco_app->upperLendableAmount();
                 pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
                 npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
-                if (npv_value > optimal_npv && pb_value < pdaco_app->getPbCap()) {
+                if (npv_value > optimal_npv && pb_value < 0.01) {  // pb cannot be over 1% when upsell
                    optimal_amount = i;
                    optimal_npv = npv_value;
                    optimal_pb = pb_value;
@@ -239,6 +256,8 @@ void store_result(const char *idno,
       case 119:
       case 120:
       case 121:
+      case 122:
+      case 123:
         result_output = 2;
         result_string = "模組建議婉拒，信用有瑕疵。";
         break;
@@ -297,207 +316,6 @@ void write_npv(char *msn, char *input_time, double npv,
  }
 }
 //---------------------------------------------------------------------------
-/*
-void write_final_result(int &dispCode, String &suggMsg, String &reasonMsg,
-                        Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
-                        TADOHandler *handler)
-{
- String sqlstmt;
 
- if (ptrLoan->get_principal() > 8000)
-     suggMsg += "因貸款金額超過800萬元，建議送消金審查部核實擔保品價值及申請人/共同貸款人收入。";
- else if (ptrLoan->get_principal() <= 0) {
-     suggMsg = "模組建議婉拒:收入不及負債。";
-     dispCode = 2; // decline
- }
-
- sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
-           " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
-           " COS_RSCORE, COS_PB, COS_SCRCODE, COS_SCRMSG,"
-           " GUA_RSCORE, GUA_PB, GUA_SCRCODE, GUA_SCRMSG,"
-           " INCOME_CONSIDER, LOAN_AMOUNT_CONSIDER, WEIGHTED_APR, MAX_LOAN_CAPACITY, MS101,"
-           " FM_PB, NPV, APPROVED_AMOUNT, MIN_RATE1, MIN_RATE2, MIN_RATE3,"
-           " SUGG_CODE, SUGG_MSG, REASON_MSG) VALUES(";
- sqlstmt += "'" + ptrLoan->Case_no()+ "','" + ExecutionTime()+ "',";
- if (pdaco_app->Segment() == seg_S)
-    sqlstmt += FloatToStr(pdaco_app->Pdaco_score()) + "," +  FloatToStr(pdaco_app->Pdaco_pb());
- else
-    sqlstmt +=  " NULL, NULL";
- sqlstmt += "," +IntToStr(PSCode(pdaco_app->PS_code())) + ",'" + PSMsg(pdaco_app->PS_code())+ "'";
-
- if (ptrLoan->exist_coapplicant()) {  // add co-applicant risk info if exists
-    if (pdaco_cos->Segment() == seg_S)
-       sqlstmt += "," +  FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb());
-    else
-       sqlstmt +=  ", NULL, NULL";
-    sqlstmt += "," + IntToStr(PSCode(pdaco_cos->PS_code())) + ",'" + PSMsg(pdaco_cos->PS_code())+ "'";
- }
- else
-    sqlstmt +=  ", NULL, NULL, NULL, NULL";
-
- if (ptrLoan->exist_guarantor()) {  // add guarantor risk info if exists
-    if (pdaco_gua->Segment() == seg_S)
-       sqlstmt += "," +  FloatToStr(pdaco_gua->Pdaco_score()) + "," +  FloatToStr(pdaco_gua->Pdaco_pb());
-    else
-       sqlstmt +=  ", NULL, NULL";
-    if (pdaco_gua->Segment() >= seg_Ip)   // insufficient data
-       sqlstmt += "," + IntToStr(PSCode(PSCODE_0)) + ",'" + PSMsg(PSCODE_0)+ "'";
-    else
-       sqlstmt += "," + IntToStr(PSCode(pdaco_gua->PS_code())) + ",'" + PSMsg(pdaco_gua->PS_code())+ "'";
- }
- else
-    sqlstmt +=  ", NULL, NULL, NULL, NULL";
-
- sqlstmt += "," + FloatToStr(ptrLoan->Monthly_Income() * 1000) + ","+ FloatToStr(ptrLoan->get_principal()* 1000)
-          + "," + FloatToStr(ptrLoan->Weighted_APR()) + "," + FloatToStr(ptrLoan->Max_Loan_Capacity())
-          + "," + FloatToStr(ptrLoan->Monthly_Debt() * 1000);
-
- if (ptrLoan->get_principal() <= 0)  // if principal <=0 donot calculate pd and npv
-     sqlstmt += ", NULL, NULL";
- else
-     sqlstmt += "," + FloatToStr(ptrLoan->get_pd()) + "," + FloatToStr(ptrLoan->get_npv() * 1000);
-
- if (dispCode == 2) // declined case, set approved amount to 0, and no min APR
-     sqlstmt += ", 0, NULL, NULL, NULL";
- else { // approved case
-     sqlstmt += "," + FloatToStr(ptrLoan->get_principal() * 1000)
-          + "," + FloatToStr(ptrLoan->Min_APR1());
-     if (ptrLoan->term2() > 0)
-         sqlstmt += "," +  FloatToStr(ptrLoan->Min_APR2());
-     else
-         sqlstmt += ", NULL";
-     if (ptrLoan->term3() > 0)
-         sqlstmt += "," +  FloatToStr(ptrLoan->Min_APR3());
-     else
-         sqlstmt += ", NULL";
- }
- sqlstmt += "," + IntToStr(dispCode) + ",'" + suggMsg + "','" + reasonMsg + "')"; // add suggestion message
-#ifdef _TRACE
-     fstream outf;
-     outf.open("PATH_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << "Case SN:" <<  ptrLoan->Case_no().c_str() <<": " << sqlstmt.c_str() << endl;
-#endif
-
- try {
-    handler->ExecSQLCmd(sqlstmt.c_str());
- } catch (Exception &E) {
-    throw;
- }
-}
-//---------------------------------------------------------------------------
-void write_prescreen_result(int dispCode, String suggMsg, String reasonMsg,
-                        Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
-                        TADOHandler *handler)
-{
- String sqlstmt;
-
- sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
-           " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
-           " COS_RSCORE, COS_PB, COS_SCRCODE, COS_SCRMSG,"
-           " GUA_RSCORE, GUA_PB, GUA_SCRCODE, GUA_SCRMSG,"
-           " SUGG_CODE, SUGG_MSG, REASON_MSG) VALUES (";
- sqlstmt += "'" + ptrLoan->Case_no()+ "','" + ExecutionTime()+ "',";
- if (pdaco_app->Segment() == seg_S)
-    sqlstmt += FloatToStr(pdaco_app->Pdaco_score()) + "," +  FloatToStr(pdaco_app->Pdaco_pb());
- else
-    sqlstmt +=  " NULL, NULL";
- sqlstmt += "," + IntToStr(PSCode(pdaco_app->PS_code())) + ",'" + PSMsg(pdaco_app->PS_code())+ "'";
-
- if (ptrLoan->exist_coapplicant()) {  // add co-applicant risk info if exists
-    if (pdaco_cos->Segment() == seg_S)
-       sqlstmt += "," +  FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb());
-    else
-       sqlstmt +=  ", NULL, NULL";
-    sqlstmt += "," + IntToStr(PSCode(pdaco_cos->PS_code())) + ",'" + PSMsg(pdaco_cos->PS_code())+ "'";
- }
- else
-    sqlstmt +=  ", NULL, NULL, NULL, NULL";
-
- if (ptrLoan->exist_guarantor()) {  // add guarantor risk info if exists
-    if (pdaco_gua->Segment() == seg_S)
-       sqlstmt += "," +  FloatToStr(pdaco_gua->Pdaco_score()) + "," +  FloatToStr(pdaco_gua->Pdaco_pb());
-    else
-       sqlstmt +=  ", NULL, NULL";
-    if (pdaco_gua->Segment() >= seg_Ip)   // insufficient data
-       sqlstmt += "," + IntToStr(PSCode(PSCODE_0)) + ",'" + PSMsg(PSCODE_0)+ "'";
-    else
-       sqlstmt += "," + IntToStr(PSCode(pdaco_gua->PS_code())) + ",'" + PSMsg(pdaco_gua->PS_code())+ "'";
- }
- else
-    sqlstmt +=  ", NULL, NULL, NULL, NULL";
-
- sqlstmt += "," + IntToStr(dispCode) + ",'" + suggMsg + "','" + reasonMsg + "')"; // add suggestion message
-#ifdef _TRACE
-     fstream outf;
-     outf.open("PATH_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << "Case SN:" << ptrLoan->Case_no().c_str() <<": " << sqlstmt.c_str() << endl;
-#endif
-
- try {
-    handler->ExecSQLCmd(sqlstmt.c_str());
- } catch (Exception &E) {
-    throw;
- }
-}
-//---------------------------------------------------------------------------
-void write_bal_transfer_result(Loan *ptrLoan, PDACO *pdaco_app, PDACO *pdaco_cos, PDACO *pdaco_gua,
-                        TADOHandler *handler)
-{
- String sqlstmt;
-
- sqlstmt = "INSERT INTO APP_RESULT (CASE_NO, FINAL_DATE, "
-           " APP_RSCORE, APP_PB, APP_SCRCODE, APP_SCRMSG,"
-           " COS_RSCORE, COS_PB, COS_SCRCODE, COS_SCRMSG,"
-           " GUA_RSCORE, GUA_PB, GUA_SCRCODE, GUA_SCRMSG) VALUES (";
- sqlstmt += "'" + ptrLoan->Case_no()+ "','" + ExecutionTime()+ "',";
- if (pdaco_app->Segment() == seg_S)
-    sqlstmt += FloatToStr(pdaco_app->Pdaco_score()) + "," +  FloatToStr(pdaco_app->Pdaco_pb());
- else
-    sqlstmt +=  " NULL, NULL";
- if (pdaco_app->Segment() >= seg_Ip)  // insufficient data, show normal message
-    sqlstmt += "," + IntToStr(PSCode_BT(PSCODE_0)) + ",'" + PSMsg_BT(PSCODE_0)+ "'";
- else
-    sqlstmt += "," + IntToStr(PSCode_BT(pdaco_app->PS_code())) + ",'" + PSMsg_BT(pdaco_app->PS_code())+ "'";
-
- if (ptrLoan->exist_coapplicant()) {  // add co-applicant risk info if exists
-    if (pdaco_cos->Segment() == seg_S)
-       sqlstmt += "," +  FloatToStr(pdaco_cos->Pdaco_score()) + "," +  FloatToStr(pdaco_cos->Pdaco_pb());
-    else
-       sqlstmt +=  ", NULL, NULL";
-    if (pdaco_cos->Segment() >= seg_Ip)  // insufficient data, show normal message
-       sqlstmt += "," + IntToStr(PSCode_BT(PSCODE_0)) + ",'" + PSMsg_BT(PSCODE_0)+ "'";
-    else
-       sqlstmt += "," + IntToStr(PSCode_BT(pdaco_cos->PS_code())) + ",'" + PSMsg_BT(pdaco_cos->PS_code())+ "'";
- }
- else
-    sqlstmt +=  ", NULL, NULL, NULL, NULL";
-
- if (ptrLoan->exist_guarantor()) {  // add guarantor risk info if exists
-    if (pdaco_gua->Segment() == seg_S)
-       sqlstmt += "," +  FloatToStr(pdaco_gua->Pdaco_score()) + "," +  FloatToStr(pdaco_gua->Pdaco_pb());
-    else
-       sqlstmt +=  ", NULL, NULL";
-    if (pdaco_gua->Segment() >= seg_Ip)  // insufficient data, show normal message
-       sqlstmt += "," + IntToStr(PSCode_BT(PSCODE_0)) + ",'" + PSMsg_BT(PSCODE_0)+ "'";
-    else
-       sqlstmt += "," + IntToStr(PSCode_BT(pdaco_gua->PS_code())) + ",'" + PSMsg_BT(pdaco_gua->PS_code())+ "'";
- }
- else
-    sqlstmt +=  ", NULL, NULL, NULL, NULL";
- sqlstmt +=  ")";
-#ifdef _TRACE
-     fstream outf;
-     outf.open("PATH_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << "Case SN:" << ptrLoan->Case_no().c_str() <<": " << sqlstmt.c_str() << endl;
-#endif
-
- try {
-    handler->ExecSQLCmd(sqlstmt.c_str());
- } catch (Exception &E) {
-    throw;
- }
-}
-*/
-//---------------------------------------------------------------------------
 
 
