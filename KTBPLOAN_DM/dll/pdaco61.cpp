@@ -670,10 +670,10 @@ double PDACO::recal_Pdaco61Pb(double loan_amt, double newapr, int term)
      	case 5: PDACO61P5Score(); // Scorecard P5
      	        break;
  }
- if (pb > getPbCap()) {
-    ps_code = PSCode(PSCODE_109);
-    ps_msg = PSMsg(PSCODE_109);
- }
+// if (pb > getPbCap()) {
+//    ps_code = PSCode(PSCODE_109);
+//    ps_msg = PSMsg(PSCODE_109);
+// }
 
  return (pb);
 }
@@ -741,10 +741,11 @@ int PDACO::GeneratePdaco61Score(TADOHandler *handler)
       if (LOAN_AMOUNT < 150000) {
          ps_code = PSCode(PSCODE_117);
          ps_msg = PSMsg(PSCODE_117);
-      } else if (pb > getPbCap()) {
-         ps_code = PSCode(PSCODE_109);
-         ps_msg = PSMsg(PSCODE_109);
       }
+//      else if (pb > getPbCap()) {
+//         ps_code = PSCode(PSCODE_109);
+//         ps_msg = PSMsg(PSCODE_109);
+//      }
    }
 #ifdef _TRACE
      WriteTraceRecord(handler);
@@ -888,6 +889,12 @@ double PDACO::monthly_debt()
 int PDACO::getPsCode()
 {
  return ps_code;
+}
+//---------------------------------------------------------------------------
+void   PDACO::setPsCode(int code)
+{
+ ps_code = PSCode(code);
+ ps_msg  = PSMsg(code);
 }
 //---------------------------------------------------------------------------
 double PDACO::getScoreCard()

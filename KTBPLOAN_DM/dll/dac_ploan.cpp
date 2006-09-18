@@ -79,26 +79,31 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
        optimal_amount = pdaco_app->getLoanAmount();
        optimal_pb = pdaco_app->getPdaco61PB();
        //write_npv(msno, app_input_time, orig_npv, dbhandle); // npv test code
-
-       if (orig_npv <= 0) { // check if we can downsell until 150000
+       double pbCap =  pdaco_app->getPbCap();
+       if (orig_npv <= 0 || optimal_pb > pbCap) { // check if we can downsell until 150000
           for (i = pdaco_app->getLoanAmount(); i >= 150000;
-                  i = (i - 50000)/ 50000 * 50000) {
+                  i = (i%50000 > 0 ? (i + 50000)/ 50000 * 50000 -50000 : i-50000)) {
                pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
                npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
-               if (npv_value > optimal_npv && pb_value < pdaco_app->getPbCap()) {
+               if (npv_value > 0 && pb_value < pbCap) {
                   optimal_amount = i;
                   optimal_npv = npv_value;
                   optimal_pb = pb_value;
+                  break;
                }
           }
-          pdaco_app->postScreen ();
+          if (optimal_pb > pbCap)
+             pdaco_app->setPsCode(PSCODE_109);
+          else
+             pdaco_app->postScreen ();
+
           if (pdaco_app->getPsCode() == 0) {   // pass post screen
              store_result(msno, app_input_time, pdaco_app, optimal_amount, pdaco_app->getPsCode(),
                     optimal_npv, optimal_pb, note, VERSION, true, dbhandle);
           }
           else {  // do NOT pass post screen
              store_result(msno, app_input_time, pdaco_app, 0, pdaco_app->getPsCode(),
-                    0, pdaco_app->getPdaco61PB(), note, VERSION, false, dbhandle);
+                    0, optimal_pb, note, VERSION, false, dbhandle);
           }
        } else {
          if (pdaco_app->getPdaco61PB() < 0.01 &&
@@ -109,7 +114,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
                   i = (i + 50000)/ 50000 * 50000) {
                 pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
                 npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
-                if (npv_value > optimal_npv && pb_value < pdaco_app->getPbCap()) {
+                if (npv_value > optimal_npv && pb_value < 0.01) {  // pb cannot be over 1% when upsell
                    optimal_amount = i;
                    optimal_npv = npv_value;
                    optimal_pb = pb_value;
@@ -157,7 +162,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
  return (errCode);
 }
 
-unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn)
+unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &idn)
 {
  Variant hostVars[5];
  TADODataSet *ds = new TADODataSet(NULL);
@@ -165,8 +170,8 @@ unsigned int check_credit_card_block(TADOHandler *handler, const AnsiString &msn
  unsigned int return_value = 0x0;
 
  try {
-     sql_stmt = "SELECT * FROM CREDIT_BLOCK_LIST WHERE MSN = :msn ";
-     hostVars[0] = msn;
+     sql_stmt = "SELECT * FROM CREDIT_BLOCK_LIST WHERE IDN = :idn ";
+     hostVars[0] = idn;
      handler->ExecSQLQry(sql_stmt.c_str(), hostVars, 0, ds);
      if (ds->RecordCount > 0)
         return_value = 0x800;

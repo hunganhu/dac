@@ -33,34 +33,34 @@ enum ErrorCodes {
 	PSCODE_1,    // 1
 	PSCODE_2,    // 2
 	PSCODE_3,    // 3
-	PSCODE_101,  // 3
-	PSCODE_102,  // 4
-	PSCODE_103,  // 5
-	PSCODE_104,  // 6
-	PSCODE_105,  // 7
-	PSCODE_106,  // 8
-	PSCODE_107,  // 9
-	PSCODE_108,  // 10
-	PSCODE_109,  // 11
-	PSCODE_110,  // 12
-	PSCODE_111,  // 13
-	PSCODE_112,  // 14
-	PSCODE_113,  // 15
-	PSCODE_114,  // 16
-	PSCODE_115,  // 17
-	PSCODE_116,  // 18
-	PSCODE_117,  // 19
-	PSCODE_118,  // 20
-	PSCODE_119,  // 21
-	PSCODE_120,  // 22
-	PSCODE_121,  // 23
-	PSCODE_122,  // 24
-	PSCODE_123,  // 25
-	PSCODE_201,  // 26
-	PSCODE_301,  // 27
-	PSCODE_302,  // 28
-	PSCODE_303,  // 29
-	PSCODE_304   // 30
+	PSCODE_101,  // 4
+	PSCODE_102,  // 5
+	PSCODE_103,  // 6
+	PSCODE_104,  // 7
+	PSCODE_105,  // 8
+	PSCODE_106,  // 9
+	PSCODE_107,  // 10
+	PSCODE_108,  // 11
+	PSCODE_109,  // 12
+	PSCODE_110,  // 13
+	PSCODE_111,  // 14
+	PSCODE_112,  // 15
+	PSCODE_113,  // 16
+	PSCODE_114,  // 17
+	PSCODE_115,  // 18
+	PSCODE_116,  // 19
+	PSCODE_117,  // 20
+	PSCODE_118,  // 21
+	PSCODE_119,  // 22
+	PSCODE_120,  // 23
+	PSCODE_121,  // 24
+	PSCODE_122,  // 25
+	PSCODE_123,  // 26
+	PSCODE_201,  // 27
+	PSCODE_301,  // 28
+	PSCODE_302,  // 29
+	PSCODE_303,  // 30
+	PSCODE_304   // 31
 };
 
 extern Invalid_Msg PRESCREEN_Msg[];

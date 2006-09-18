@@ -27,8 +27,6 @@ const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; 
 const char *VERSION = "2.0"; // PDACO 6.1 for KTB PLOAN DM  the 1st release
 
 //---------------------------------------------------------------------------
-//extern "C" __declspec(dllexport)
-// int FM_New(char *case_no, char *ole_db, char *error_message);
 extern "C" __declspec(dllexport)
  int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_time,
                           char *bank_code, char *ole_db_str, int gender, char *error);
