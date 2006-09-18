@@ -81,8 +81,8 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
        //write_npv(msno, app_input_time, orig_npv, dbhandle); // npv test code
        double pbCap =  pdaco_app->getPbCap();
        if (orig_npv <= 0 || optimal_pb > pbCap) { // check if we can downsell until 150000
-          for (i = pdaco_app->getLoanAmount(); i >= 150000;
-                  i = (i%50000 > 0 ? (i + 50000)/ 50000 * 50000 -50000 : i-50000)) {
+          for (i = pdaco_app->getLoanAmount()-10000; i >= 150000;
+                  i = i-10000) {
                pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
                npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
                if (npv_value > 0 && pb_value < pbCap) {
@@ -110,18 +110,8 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
              pdaco_app->getScoreCard() == 5   &&
              pdaco_app->getLoanAmount() == pdaco_app->getRequestAmount()) {
              // upsell
-             for (i = pdaco_app->getLoanAmount(); i <= pdaco_app->upperLendableAmount();
-                  i = (i + 50000)/ 50000 * 50000) {
-                pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
-                npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
-                if (npv_value > optimal_npv && pb_value < 0.01) {  // pb cannot be over 1% when upsell
-                   optimal_amount = i;
-                   optimal_npv = npv_value;
-                   optimal_pb = pb_value;
-                }
-             }
-             if (i > pdaco_app->upperLendableAmount()) {
-                i =  pdaco_app->upperLendableAmount();
+             for (i = pdaco_app->getLoanAmount()+10000; i <= pdaco_app->upperLendableAmount();
+                  i = i + 10000) {
                 pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
                 npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
                 if (npv_value > optimal_npv && pb_value < 0.01) {  // pb cannot be over 1% when upsell
@@ -156,7 +146,6 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
      strcpy (error, E.Message.c_str());
      errCode = -1;
  }
-// delete ptrLoan;
  delete pdaco_app;
  delete dbhandle;
  return (errCode);
