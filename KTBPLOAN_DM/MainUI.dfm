@@ -1,6 +1,6 @@
 object frmMainUI: TfrmMainUI
-  Left = 210
-  Top = 61
+  Left = 244
+  Top = 51
   BorderStyle = bsDialog
   Caption = 'DAC '#20491#20154#20449#36024#35413#20998#31995#32113'('#34892#37559#23560#26696#29256') - '#25552#20379#20140#22478#37504#34892#20351#29992
   ClientHeight = 599

@@ -42,7 +42,7 @@ using namespace std;
 #define ACCT_MGMT_FEE 3
 
 
-
+//This NPV model is adopted from FuHwa personal loan
 class ploan{
 	private:
 //attributes
@@ -50,34 +50,11 @@ class ploan{
     bool _located;
 	  unsigned int _loan_amount;
     double _monthly_rate;
+    double _monthly_pb;
     double _apr;
     unsigned int _terms;
     unsigned int _application_fee;
-    double _ms093;
-    double _ms094;
-    double _ms105;
-    double _ms047;
-    double _ms080;
-    double _wi006_9m;
-    double _wi008_3m;
-    double _wi008_9m;
-    double _wi002_12m;
-    double _wi004_12m;
-    double _cpdaco_score;
-    bool _ms093_isnull;
-    bool _ms094_isnull;
-    bool _ms105_isnull;
-    bool _ms047_isnull;
-    bool _ms080_isnull;
-    bool _wi006_9m_isnull;
-    bool _wi008_3m_isnull;
-    bool _wi008_9m_isnull;
-    bool _wi002_12m_isnull;
-    bool _wi004_12m_isnull;
-    double _pdaco_score;
-    double _monthly_pb;
-    double _ci_score;
-    int _year_for_pd;
+    unsigned int _year_for_pd;
 
 //methods
     void probability_of_stay();
@@ -91,21 +68,11 @@ class ploan{
     void operation_expense(unsigned int i);
     double discount();
     bool dump_series(int type, int period);
-    double calculate_pb();
-    double assign_pb();
     void annunity();
-    double assign_pd(unsigned int);
-
+    double assign_pd(unsigned int i);
   public:
     ploan(unsigned int loan_amount, double apr, unsigned int terms,
-             unsigned int application_fee,
-             double ms093, double ms094, double ms105, double ms047,
-             double ms080, double wi006_9m, double wi008_3m, double wi008_9m,
-             double wi002_12m, double wi004_12m, double pdaco_score,
-             bool ms093_isnull, bool ms094_isnull, bool ms105_isnull, bool ms047_isnull,
-             bool ms080_isnull, bool wi006_9m_isnull, bool wi008_3m_isnull,
-             bool wi008_9m_isnull, bool wi002_12m_isnull, bool wi004_12m_isnull);
+             unsigned int application_fee);
     ~ploan();         
     double npv(double &pb);
-    double get_ci_score(){return _ci_score;};    
 };

@@ -46,7 +46,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
   int status = 0;
   double pb = 0;
   AnsiString special_note = "";
-  AnsiString version = "1.41";
+  AnsiString version = "1.42";
 
   AnsiString bank = static_cast<AnsiString>(bank_code);
   if(bank!= "054")
@@ -67,13 +67,14 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
   unsigned int max_line = 0;
 
   try{
-
+//Check date validity
     int now = yrmon_to_mon(jcic_date, timelock, "20070101", archive, use_krm037);
 
     if(now > 0){
-      connect(connection, connection_string);
+//Initialize ado objects and establish database connection
       initialize_ado_objects(connection, query, query2, command, command_timeout);
-
+      connect(connection, connection_string);
+//Copy JCIC data
       copy_table(command, "KRM021", KRM001, msn, jcic_date, input_time);
       copy_table(command, "KRM023", KRM023, msn, jcic_date, input_time);
       copy_table(command, "KRM037", KRM037, msn, jcic_date, input_time);
@@ -84,142 +85,122 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
       vam102_message(query, msn, jcic_date, input_time, special_note);
 
 //      prepare_KRM023(command, KRM023, now);
+//Prepare JCIC data
       merge_prepare_KRM023_KRM037(command, KRM023, KRM037, now);
       prepare_KRM001(command, KRM001, now);
       prepare_BAM086(command, BAM086, now);
       prepare_STM001(command, STM001, "054");
       prepare_JAS002(command, JAS002, JAS002_T);
 
-      get_idn_list(command, KRM001, KRM023, BAM086, STM001, JAS002_T);
+//Prepare infrastructure tables for variables generation
       create_common_working_tables(command);
       prepare_2xx_infra(command, now);
+//Get JCIC data availability
+      get_idn_list(command, KRM001, KRM023, BAM086, STM001, JAS002_T);
       unsigned int data_flag = get_data_availability(query, msn);
+//Prescreen
       unsigned int filter_flag =
         in_pdaco(query, KRM023, KRM001, JAS002_T, BAM086, msn, data_flag, now,
                  unsecured_balance_opt, unsecured_balance_per, max_line,
                  unsecured_balance_dac);
+//Handle applicants with insufficient JCIC data
       unsigned int insufficiency_flag =
         data_insufficiency(query, data_flag, filter_flag,
                            KRM023, KRM001, STM001,now, msn, input_time);
-
+//Check credit card black list
       filter_flag |= check_credit_card_block(query, msn);
       if (filter_flag != 0)
+//Prepare decline message
         prescreen_out(filter_flag, insufficiency_flag, msn, input_time);
       else{
         int result_code = 0;
         AnsiString result_message;
 
-        double ms093, ms094, ms105, ms047, ms080, wi008_3m, wi008_9m;
-        double wi002_12m, wi004_12m, wi006_9m, pdaco_score;
-        double apr;
-        unsigned int loan_amount, terms, application_fee;
-        bool ms093_isnull, ms094_isnull, ms105_isnull, ms047_isnull;
-        bool ms080_isnull, wi006_9m_isnull, wi008_3m_isnull, wi008_9m_isnull;
-        bool wi002_12m_isnull, wi004_12m_isnull;
-
-        get_product_parameters(query, msn, input_time, apr, loan_amount,
+        double pdaco_score, apr;
+        unsigned int app_amount, terms, application_fee;
+//Get loan amount, tenure, apr, and fee
+        get_product_parameters(query, msn, input_time, apr, app_amount,
                                terms, application_fee);
-
-/*        cpdaco_v1_00_preparation(query, command, KRM023, KRM001, JAS002_T,
-                                 BAM086, STM001, msn, gender, now, filter_flag,
-                                 data_flag, ms093, ms094, ms105, ms047,
-                                 ms080, wi006_9m, wi008_3m, wi008_9m,
-                                 wi002_12m, wi004_12m, pdaco_score,
-                                 ms093_isnull, ms094_isnull, ms105_isnull,
-                                 ms047_isnull, ms080_isnull, wi006_9m_isnull,
-                                 wi008_3m_isnull, wi008_9m_isnull,
-                                 wi002_12m_isnull, wi004_12m_isnull);*/
+//Calculate pdaco and assign pb
         pdaco_score = pdaco_1_00(query, command,
                                  KRM023, KRM001, JAS002_T, BAM086, STM001,
                                  msn, gender, now, filter_flag, data_flag);
         pb = get_pdaco_1_00_pb(query, msn);
+//Screen out application with pb > 0.05
         if(pb >= 0.05)
           throw cc_error(109, msn, input_time);
-        double cap_amount = 0;
-        double trial_amount = 0;
+//Calculate max lendable amount
+        double max_amount = 0;
+        double lendable_amount = 0;
         if(pb <= 0.01)
-          cap_amount = 1000000;
+          max_amount = 1000000;
         else if (pb <= 0.013)
-          cap_amount = 950000;
+          max_amount = 950000;
         else if (pb <= 0.016)
-          cap_amount = 900000;
+          max_amount = 900000;
         else if (pb <= 0.019)
-          cap_amount = 850000;
+          max_amount = 850000;
         else if (pb <= 0.021)
-          cap_amount = 800000;
+          max_amount = 800000;
         else if (pb <= 0.024)
-          cap_amount = 750000;
+          max_amount = 750000;
         else if (pb <= 0.027)
-          cap_amount = 700000;
+          max_amount = 700000;
         else if (pb <= 0.03)
-          cap_amount = 650000;
+          max_amount = 650000;
         else if (pb <= 0.033)
-          cap_amount = 600000;
+          max_amount = 600000;
         else if (pb <= 0.036)
-          cap_amount = 550000;
+          max_amount = 550000;
         else if (pb <= 0.039)
-          cap_amount = 500000;
+          max_amount = 500000;
         else if (pb <= 0.041)
-          cap_amount = 450000;
+          max_amount = 450000;
         else if (pb <= 0.044)
-          cap_amount = 400000;
+          max_amount = 400000;
         else if (pb <= 0.047)
-          cap_amount = 350000;
+          max_amount = 350000;
         else if (pb < 0.05)
-          cap_amount = 300000;
+          max_amount = 300000;
 
-        if(((loan_amount - cap_amount) > 0) && ((loan_amount - cap_amount) <= 50000))
-          trial_amount = loan_amount;
+        if(((app_amount - max_amount) > 0) && ((app_amount - max_amount) <= 50000))
+          lendable_amount = app_amount;
         else{
-//          if(cap_amount > loan_amount)
-//            trial_amount = loan_amount;
-//          else
-            trial_amount = cap_amount;
+          lendable_amount = max_amount;
         };
-
         unsigned int monthly_income = get_income(query, msn, input_time);
         int fsc_lendable = monthly_income * 22 - unsecured_balance_opt;
-        unsigned int loan_amount_dac = trial_amount;
 
         if(fsc_lendable < 0)
           fsc_lendable = 0;
         unsigned int fsc_lendable_rounding = (fsc_lendable / 10000) * 10000;
 
-//        if(fsc_lendable < trial_amount)
-//          trial_amount = fsc_lendable_rounding;
-
         if(pb < 0.01){
-          if(loan_amount_dac > fsc_lendable)
-            loan_amount_dac = fsc_lendable_rounding;
+          if(lendable_amount > fsc_lendable)
+            lendable_amount = fsc_lendable_rounding;
         }
         else if((pb >= 0.01) && (pb < 0.03)){
-          unsigned int app_anount_multiple_unrounded = loan_amount * 1.5;
+          unsigned int app_anount_multiple_unrounded = app_amount * 1.5;
           unsigned int app_amount_multiple = (app_anount_multiple_unrounded / 10000) * 10000;
           unsigned int lower = app_amount_multiple > fsc_lendable_rounding ? fsc_lendable_rounding : app_amount_multiple;
-          if(loan_amount_dac > lower)
-            loan_amount_dac = lower;
+          if(lendable_amount > lower)
+            lendable_amount = lower;
         }
         else if(pb >= 0.03){
-          unsigned int app_amount_multiple = loan_amount;
+          unsigned int app_amount_multiple = app_amount;
           unsigned int lower = app_amount_multiple > fsc_lendable_rounding ? fsc_lendable_rounding : app_amount_multiple;
-          if(loan_amount_dac > lower)
-            loan_amount_dac = lower;
+          if(lendable_amount > lower)
+            lendable_amount = lower;
         };
-        if(loan_amount_dac < 150000)
-          loan_amount_dac = 0;
+        if(lendable_amount < 150000)
+          lendable_amount = 0;
 
-        ploan  application(loan_amount_dac, apr, terms, application_fee,
-                           ms093, ms094, ms105, ms047, ms080, wi006_9m,
-                           wi008_3m, wi008_9m, wi002_12m, wi004_12m,
-                           pdaco_score, ms093_isnull, ms094_isnull,
-                           ms105_isnull, ms047_isnull, ms080_isnull,
-                           wi006_9m_isnull, wi008_3m_isnull,
-                           wi008_9m_isnull, wi002_12m_isnull, wi004_12m_isnull);
-//        double pb;
+//Calculate npv
+        ploan  application(lendable_amount, apr, terms, application_fee);
         double npv = application.npv(pb);
 
-        store_result(command, msn, input_time, 0, "", loan_amount, unsecured_balance_opt,
-                     loan_amount_dac, fsc_lendable, unsecured_balance_dac,
+        store_result(command, msn, input_time, 0, "", app_amount, unsecured_balance_opt,
+                     lendable_amount, fsc_lendable, unsecured_balance_dac,
                      monthly_income, npv, pb, special_note, version, true);
       };
     }
@@ -228,7 +209,10 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
     };
   }
   catch(cc_error &Err){
-    status = -1;
+    if(Err.error_code() < 100)
+      status = -1;
+    else
+      status = 0;
     error_message += Err.ShowMessage();
     if(Err.error_code() > 100)
       store_result(command, Err.idn(), Err.app_date(),
@@ -1222,15 +1206,10 @@ void get_idn_list(TADOCommand *command, AnsiString KRM001, AnsiString KRM023,
   command->CommandText = sql_stmt;
   command->Execute();
 
-//  sql_stmt = "INSERT INTO idn_LIST_TMP SELECT DISTINCT MSN, 16 FROM " + DAM103 + " ";
   sql_stmt = "INSERT INTO IDN_LIST_TMP SELECT DISTINCT MSN, 16 FROM " + JAS002_T + " ";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
-
-/*  sql_stmt = "INSERT INTO idn_LIST_TMP SELECT DISTINCT MSN, 32 FROM " + DAM203 + " ";
-  command->CommandText = sql_stmt;
-  command->Execute();*/
 
   sql_stmt = "INSERT INTO IDN_LIST SELECT MSN, SUM(HIT) FROM IDN_LIST_TMP GROUP BY MSN";
   sql_stmt = sql_stmt.UpperCase();
@@ -1781,7 +1760,7 @@ void build_bam_bucket(TADOCommand *command, const AnsiString &bam086, int now)
 };
 
 //Input: data availability code :
-//0x01: krm023;
+//0x01: krm023 / krm037;
 //0x02: krm001;
 //0x04: bam086;
 //0x10: jas002
@@ -1796,7 +1775,9 @@ void build_bam_bucket(TADOCommand *command, const AnsiString &bam086, int now)
 //0x80: bam086 cash card utilization >= 100%;
 //0x100: bam086 pay_code_12 max > 3;
 //0x200:krm023 has data on the inquiry month only
-//0x400:sum of credit card revolving balance and cash card balance > NT$500,000
+//0x400:sum of credit card revolving balance, cash card balance, and revolver (cash advance user) spread payment >= NT$500,000;
+//0x800: KTB credit card black list (generated from credit_card_block_list function)
+//0x1000:sum of credit card revolving balance, cash card balance, total spread payment, and unsecured loan balance >= NT$1,000,000
 unsigned int in_pdaco(TADOQuery *query,
                 const AnsiString &krm023, const AnsiString &krm001,
                 const AnsiString &jas002, const AnsiString &bam085,
@@ -2091,14 +2072,15 @@ unsigned int in_pdaco(TADOQuery *query,
     exclusion |= 0x400;
 
   if(flag & 0x10){
-		sql_stmt ="SELECT msn, SUM(CASE WHEN :now - E_MON_SINCE <= 36 THEN 1 ELSE 0 END) AS CNT ";
+		sql_stmt ="SELECT msn, ";//SUM(CASE WHEN :now - E_MON_SINCE <= 36 THEN 1 ELSE 0 END) AS CNT ";
+    sql_stmt += " COUNT(*) AS CNT ";
 		sql_stmt +="FROM " + jas002 + " ";
 		sql_stmt +="WHERE msn = :msn GROUP BY msn;";
     sql_stmt = sql_stmt.UpperCase();
   	query->Close();
   	query->SQL->Clear();
   	query->SQL->Add(sql_stmt);
-	  query->Parameters->ParamValues["now"] = now;
+//	  query->Parameters->ParamValues["now"] = now;
 	  query->Parameters->ParamValues["msn"] = msn;
 	  query->Open();
 	  int count;
@@ -3807,15 +3789,17 @@ void store_result(TADOCommand *command,
 {
   AnsiString sql_stmt;
   AnsiString result_string;
+//Model calculated
   if(normal){
     int result_output;
-/*    if(npv > -1000 && npv < 0){
-      result_output = 4;
-      result_string = "模組建議人工試算。";
-    }
-    else*/ if(npv <=0){
+
+     unsigned int approved_amount_dac_rounded = approved_amount_dac / 50000;
+     approved_amount_dac_rounded *= 50000;    
+
+    if(npv <=0){
       result_output = 2;
-      result_string = "模組建議婉拒：經濟價值過低。";
+      result_string = "模組建議婉拒，經濟價值過低。";
+      approved_amount_dac_rounded = 0;
     }
     else if((application_amount >= APPROVED_AMT_CAP) && (approved_amount_dac >= APPROVED_AMT_CAP)){
       result_output = 1;
@@ -3825,9 +3809,6 @@ void store_result(TADOCommand *command,
       result_output = 1;
       result_string = "模組建議核准。";
     };
-
-    unsigned int approved_amount_dac_rounded = approved_amount_dac / 50000;
-    approved_amount_dac_rounded *= 50000;
 
     sql_stmt = "INSERT INTO Result (MSN, Input_Time, ";
     sql_stmt += "APPROVED_AMOUNT, PB, NPV, Suggestion, Suggestion_code, ";
@@ -3842,6 +3823,7 @@ void store_result(TADOCommand *command,
       output_npv = 0;
     else
       output_npv = npv;
+
     command->CommandText = sql_stmt;
     command->Parameters->ParamValues["idno"] = idno;
     command->Parameters->ParamValues["input_time"] = input_time;
@@ -3883,20 +3865,6 @@ void store_result(TADOCommand *command,
     switch (result_code){
       case 0:
       case 1:
-      case 301:
-      case 302:
-      case 303:
-      case 304:
-      case 305:
-      case 306:
-      case 307:
-      case 308:
-      case 309:
-      case 310:
-      case 311:
-      case 312:
-      case 313:
-      case 314:
         result_output = -1;
         break;
       case 101:
@@ -3989,17 +3957,27 @@ double get_pdaco_1_00_pb(TADOQuery *query, const AnsiString &msn)
 unsigned int check_credit_card_block(TADOQuery *query, const AnsiString &msn)
 {
   AnsiString sql_stmt;
+  AnsiString idn;
   unsigned int return_value = 0x0;
-  sql_stmt = "SELECT COUNT(*) AS CNT FROM CREDIT_BLOCK_LIST WHERE MSN = :msn ";
+  sql_stmt = "SELECT IDN FROM MAIL_LIST WHERE MSN = :msn";
   sql_stmt = sql_stmt.UpperCase();
   query->Close();
   query->SQL->Clear();
   query->SQL->Add(sql_stmt);
   query->Parameters->ParamValues["msn"] = msn;
   query->Open();
+  idn = query->FieldValues["IDN"];
+
+  sql_stmt = "SELECT COUNT(*) AS CNT FROM CREDIT_BLOCK_LIST WHERE IDN = :idn ";
+  sql_stmt = sql_stmt.UpperCase();
+  query->Close();
+  query->SQL->Clear();
+  query->SQL->Add(sql_stmt);
+  query->Parameters->ParamValues["idn"] = idn;
+  query->Open();
   if(query->FieldValues["CNT"] > 0)
     return_value = 0x800;
-  return return_value;  
+  return return_value;
 };
 
 unsigned int get_income(TADOQuery *query,

@@ -47,6 +47,7 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
   static int connection_error = 0;
   AnsiString message;
   try{
+//Connects to database
     Data->connection->Open();
     if(login(Data->query, frmLogin->edtUser->Text, frmLogin->edtPassword->Text)){
       Data->query->Close();
@@ -59,6 +60,7 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
       frmMainUI->Show();
     }
     else{
+//The user name or password mismatch
       ++login_error;
       message = "使用者帳號或密碼錯誤，請重新輸入。";
       MessageDlg(message, mtWarning, TMsgDlgButtons() << mbOK, 0);
@@ -73,6 +75,7 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
     }
   }
 	catch(Exception &E){
+//Can not connect to database  
     ++connection_error;
     message = "資料庫或網路連線失敗，請稍後再試。";
     MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);

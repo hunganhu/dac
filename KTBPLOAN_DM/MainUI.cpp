@@ -73,13 +73,13 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
   message = "";
   frmMainUI->Refresh();
   unsigned int no_phone_flag = 0;
-  unsigned int unsecured_balance_opt = 0;                                             \
+  unsigned int unsecured_balance_opt = 0;                                             
   unsigned int unsecured_balance_per = 0;
   unsigned int max_line = 0;
   unsigned int monthly_income;
   AnsiString msn, product_code;
   msn = medtMSN->Text;
-
+//Check input
   if(!check_income(medtMonthlyIncome->Text.Trim(), monthly_income)){
     message += "收入錯誤\n";
     lblMessage->Caption = message;
@@ -140,11 +140,14 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
   unsigned int hour;
   unsigned int min;
 
-  get_time(year, month, day, hour, min);
-
   frmMainUI->Refresh();
 
   if(!is_input_error){
+//Get data for scoring
+
+//Get gender from the first digit of national ID
+//The gender code on national ID is 1 for male and 2 for female
+//Our code is 1 for male and 0 for female
     AnsiString id = medtID->Text.Trim();
     if(id.SubString(2,1)!= "1" && id.SubString(2,1)!= "2")
       gender = -1;
@@ -153,12 +156,14 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
       gender -= 2;
       gender *= -1;
     };
+//Get systemn time as input time
+    get_time(year, month, day, hour, min);
     AnsiString year_str = static_cast<AnsiString>(year);
     AnsiString month_str = static_cast<AnsiString>(month);
     AnsiString day_str = static_cast<AnsiString>(day);
     AnsiString hour_str = static_cast<AnsiString>(hour);
     AnsiString min_str = static_cast<AnsiString>(min);
-
+//Format input time
     if(month_str.Length() == 1)
       month_str = "0" + month_str;
     if(day_str.Length() == 1)
@@ -175,8 +180,10 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
 
 
     try{
+//Get APR and fee
       get_product_code(msn, product_code, Data->query);
       get_product_feature(product_code, Data->query, apr, application_fee);
+//Check for duplication
       bool contiune = check_and_cleanup_result(msn, Data->query);
       if(!contiune)
         throw Exception("申請件重複，使用者選擇終止評分。");
@@ -194,12 +201,13 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
       int module_operation;
       bool success;
       int ejcic_error_code;
-
+//Send request for JCIC data to e-JCIC
       success = request_for_jcic_data(Data->ejcic_query, medtID->Text.Trim(), query_sn, jcic_inquiry_result, ejcic_error_code);
       if(success){
         message += "聯徵資料已取回，正在儲存資料。\n";
         lblMessage->Caption = message;
         frmMainUI->Refresh();
+//Store input data from GUI
         store_input(Data->command, Data->query,
                     msn, medtID->Text.Trim(),
                     input_time,
@@ -207,37 +215,30 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
                     medtRegion->Text.Trim() + medtPhone->Text.Trim(),
                     medtCellRegion->Text.Trim() + medtCellPhone->Text.Trim(),
                     application_amount, application_terms, apr, application_fee);
-
+//Store JCIC data
         jcic_inquiry_date =
           get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn, medtID->Text, input_time, medtMSN->Text);
-//              record_scoring_time(Data->command, medtPrimaryID->Text,
-//                                  input_time, true);
+
         message += "資料已儲存，正在評分中。\n";
         lblMessage->Caption = message;
         frmMainUI->Refresh();
+//Calculate pb and npv
+//The result will be store in table 'RESULT'
         module_operation =
             TNB_Ploan_AM_Campaign(medtMSN->Text.c_str(), jcic_inquiry_date.c_str(), input_time.c_str(),
                                   "054", ole_db.c_str(), gender, error);
-
-//            TNB_CC_AM(medtPrimaryID->Text.c_str(),
-//                      jcic_inquiry_date.c_str(), input_time.c_str(),
-//                      "054", ole_db.c_str(), gender, error);
-//              record_scoring_time(Data->command, medtPrimaryID->Text,
-//                                  input_time, false);
-        if(module_operation != 0){
+        if(module_operation < -1){
           lblMessage->Caption = static_cast<AnsiString>(error);
           frmMainUI->Refresh();
         };
       }
       else{
-  //        log_error(Data->command, medtPrimaryID->Text, jcic_inquiry_result, ejcic_error_code);
         message += ("e JCIC 錯誤，代碼：" + static_cast<AnsiString>(ejcic_error_code) + " 訊息：" + jcic_inquiry_result + "\n");
         lblMessage->Caption = message;
         frmMainUI->Refresh();
-        module_operation = 999;
+        module_operation = -2;
       };
       if(module_operation == 0){
-
         lblMessage->Caption = "評分完成。可以輸入下一筆。\n";
         frmMainUI->Refresh();
       };
@@ -306,7 +307,10 @@ bool check_id(const AnsiString &idn, const AnsiString &msn,
 };
 //---------------------------------------------------------------------------
 
-
+//0x0 for normal; 0x1 for month error; 0x2 for date error;
+//0x4 for born in the future; 0x8 for primary card applicant under age;
+//0x10 for secondary card applicant under age;
+//0x20 for missing birth year
 unsigned int check_birthday(const AnsiString &birth_year,
                             const AnsiString &birth_month,
                             const AnsiString &birth_date,
@@ -314,10 +318,6 @@ unsigned int check_birthday(const AnsiString &birth_year,
                             const unsigned int day,
                             bool primary_card_applicant)
 {
-//0x0 for normal; 0x1 for month error; 0x2 for date error;
-//0x4 for born in the future; 0x8 for primary card applicant under age;
-//0x10 for secondary card applicant under age;
-//0x20 for missing birth year;
   unsigned int return_value = 0;
 
   if(birth_year.Length()==0)
@@ -594,38 +594,8 @@ void store_input(TADOCommand *command, TADOQuery *query,
   command->Parameters->ParamValues["income"] = monthly_income;
 //  command->Parameters->ParamValues["dm_cell"] = dm_cell;
 //  command->Parameters->ParamValues["dm_batch"] = dm_batch;
-  command->Execute();                   
-
-//Codes to handle unicode, comment out due to c++'s inability to write unicode file
-/*  int pcount = 0;
-  AnsiString w_sql_stmt;
-  w_sql_stmt = "UPDATE APPLICANT SET CNAME = CONVERT(NVARCHAR(10), ?) WHERE MSN = ? AND INPUT_TIME = ?";
-  command->ParamCheck = false;
-  command->CommandText = w_sql_stmt;
-  command->Parameters->AddParameter();
-  pcount = command->Parameters->Count - 1;
-  command->Parameters->Items[pcount]->Direction = pdInput;
-  command->Parameters->Items[pcount]->DataType = ftVariant;
-  command->Parameters->Items[pcount]->Value =  name;
-
-  command->Parameters->AddParameter();
-  pcount = command->Parameters->Count - 1;
-  command->Parameters->Items[pcount]->Direction = pdInput;
-  command->Parameters->Items[pcount]->DataType = ftString;
-  command->Parameters->Items[pcount]->Value =  msn;
-
-
-  command->Parameters->AddParameter();
-  pcount = command->Parameters->Count - 1;
-  command->Parameters->Items[pcount]->Direction = pdInput;
-  command->Parameters->Items[pcount]->DataType = ftString;
-  command->Parameters->Items[pcount]->Value = input_time;
-
   command->Execute();
-  command->ParamCheck = true;*/
 };
-//The following is code from credit card, for edit to fit into personal loan
-
 //---------------------------------------------------------------------------
 
 AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
@@ -1177,7 +1147,7 @@ bool generate_report(TADOQuery *query, const AnsiString &report_dir,
       query->SQL->Add(sql_stmt);
       query->Open();
 
-      inbound << "台南企銀個人信貸行銷測試活動，網訊電通Inbound作業用名單" << endl;
+      inbound << "京城銀行個人信貸行銷測試活動，網訊電通Inbound作業用名單" << endl;
       inbound << "名單產生時間：" << ",";
       inbound << year.c_str() << "年 ";
       inbound << report_gen_time.SubString(5,2).c_str() << "月 ";
@@ -1353,7 +1323,7 @@ bool generate_report(TADOQuery *query, const AnsiString &report_dir,
 
 
     if(total && individual && report_individual){
-      total << "台南企銀個人信貸評分結果名單 (行銷測試活動版)" << endl;
+      total << "京城銀行個人信貸評分結果名單 (行銷測試活動版)" << endl;
       total << "名單產生時間：" << ",";
       total << year.c_str() << "年 ";
       total << report_gen_time.SubString(5,2).c_str() << "月 ";
@@ -1560,6 +1530,7 @@ bool request_for_jcic_data(TADOQuery *query, const AnsiString &id, AnsiString &q
   WideString check_idn = "Y";
   WideString program_id = "GSSJCIC30";
 
+//ejcic is the DCOM component developed by GSS
   Data->ejcic->set_AP_ID(program_id);
   Data->ejcic->set_ConStrName(program_id);
 
@@ -1585,8 +1556,6 @@ bool request_for_jcic_data(TADOQuery *query, const AnsiString &id, AnsiString &q
     ejcic_inquiry_status = get_ejcic_inquiry_result(query, query_sn, ejcic_inquiry_result, ejcic_inquiry_return_code);
 
     if(ejcic_inquiry_status != "R"){
-//      frmMainUI->timer->OnTimer;
-//      frmMainUI->timer->Enabled = true;
       for(int i=1; i < 4; ++i){
         if(ejcic_inquiry_status == "R")
           break;
@@ -1617,6 +1586,10 @@ bool request_for_jcic_data(TADOQuery *query, const AnsiString &id, AnsiString &q
       }
       else if(ejcic_inquiry_result == "F"){
         jcic_inquiry_result = "聯徵查詢錯誤，e-JCIC訊息：" + ejcic_inquiry_return_code + " 請聯絡e-JCIC維護人員與聯徵聯絡人員。\n";
+        return_value = false;
+      }
+      else{
+        jcic_inquiry_result = "eJCIC 聯徵查詢結果無法辨識。";
         return_value = false;
       }
     }
@@ -1814,7 +1787,7 @@ void __fastcall TfrmMainUI::medtIDExit(TObject *Sender)
   else{
     frmMainUI->btnClearClick(NULL);
     is_input_error = false;
-  };  
+  };
 }
 //---------------------------------------------------------------------------
 
