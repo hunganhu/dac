@@ -836,7 +836,6 @@ int PDACO::getFscCap()
 double PDACO::setLoanAmount()
 {
  LOAN_AMOUNT = principal = min(min(REQUEST_AMT, getCapAmount()),getFscCap());
-// LOAN_AMOUNT = 150000.0;
  return(LOAN_AMOUNT);
 }
 //---------------------------------------------------------------------------
@@ -920,30 +919,32 @@ int PDACO::getAppFee()
 void PDACO::postScreen()
 {
 //---------------------------------------------------------------
+// FS334B_1M	> 0	OR	204   BAM_MAX_BUCKET
+// DELINQUENT_FLAG	=1	OR	205   FS059_3M_1K
+// DEBT_CODE	=1	OR	207
+// DEBT_FLAG    =1
+// NOTE_FLAG    =1
+// STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
 // FS314B	>= 0.95	OR	201  cash_utilization
 // MS602	>= 500	OR	202  REVOLVING_AMT
 // MS606	>= 1000	OR	203  MS606
-// FS334B_1M	> 0	OR	204   BAM_MAX_BUCKET
-// DELINQUENT_FLAG	=1	OR	205   FS059_3M_1K
-// STOP_CODE_FLAG	=1	OR	206   CARD_FORCE_STOP
-// DEBT_CODE	=1	OR	207
 //---------------------------------------------------------------
- if (cash_utilization > 0)
+ if (FS334B_1M > 0)
+    {ps_code = PSCode(PSCODE_119); ps_msg = PSMsg(PSCODE_119);}
+ else if (FS059_3M_1K >= 1)
+    {ps_code = PSCode(PSCODE_121); ps_msg = PSMsg(PSCODE_121);}
+ else if (debt_flag > 0)
+    {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
+ else if (note_flag > 0)
+    {ps_code = PSCode(PSCODE_123); ps_msg = PSMsg(PSCODE_123);}
+ else if (card_force_stop >= 1)
+    {ps_code = PSCode(PSCODE_120); ps_msg = PSMsg(PSCODE_120);}
+ else if (cash_utilization > 0)
     {ps_code = PSCode(PSCODE_104); ps_msg = PSMsg(PSCODE_104);}
  else if (revolving_amt >= 500)
     {ps_code = PSCode(PSCODE_108); ps_msg = PSMsg(PSCODE_108);}
  else if (MS606 >= 1000)
     {ps_code = PSCode(PSCODE_116); ps_msg = PSMsg(PSCODE_116);}
- else if (FS334B_1M > 0)
-    {ps_code = PSCode(PSCODE_119); ps_msg = PSMsg(PSCODE_119);}
- else if (FS059_3M_1K >= 1)
-    {ps_code = PSCode(PSCODE_121); ps_msg = PSMsg(PSCODE_121);}
- else if (card_force_stop >= 1)
-    {ps_code = PSCode(PSCODE_120); ps_msg = PSMsg(PSCODE_120);}
- else if (debt_flag > 0)
-    {ps_code = PSCode(PSCODE_122); ps_msg = PSMsg(PSCODE_122);}
- else if (note_flag > 0)
-    {ps_code = PSCode(PSCODE_123); ps_msg = PSMsg(PSCODE_123);}
 }
 
 //---------------------------------------------------------------------------
