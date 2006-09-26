@@ -15,11 +15,11 @@ WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
   {
      Application->Initialize();
      Application->CreateForm(__classid(TfrmMainUI), &frmMainUI);
-     Application->CreateForm(__classid(TData), &Data);
-     Application->CreateForm(__classid(TfrmLogin), &frmLogin);
-     Application->CreateForm(__classid(TfrmDirUI), &frmDirUI);
-     Application->CreateForm(__classid(TfrmReDirUI), &frmReDirUI);
-     Application->Run();
+                 Application->CreateForm(__classid(TData), &Data);
+                 Application->CreateForm(__classid(TfrmLogin), &frmLogin);
+                 Application->CreateForm(__classid(TfrmDirUI), &frmDirUI);
+                 Application->CreateForm(__classid(TfrmReDirUI), &frmReDirUI);
+                 Application->Run();
   }
   catch (Exception &exception)
   {

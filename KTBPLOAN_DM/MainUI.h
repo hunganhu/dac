@@ -113,6 +113,10 @@ extern PACKAGE TfrmMainUI *frmMainUI;
 #endif
 using namespace std;
 
+extern "C" __declspec(dllexport)
+int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_time,
+                          char *bank_code, char *ole_db_str, int gender, char *error);
+
 bool check_msn(const AnsiString &msn, TADOQuery *query);
 bool check_id(const AnsiString &idn, const AnsiString &msn,
               unsigned int &gender, TADOQuery *query);

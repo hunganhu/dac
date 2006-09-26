@@ -5,13 +5,13 @@
     <VERSION value="BCB.06.00"/>
     <PROJECT value="Control_Program.exe"/>
     <OBJFILES value="Control_Program.obj MainUI.obj LoginUI.obj Data_Module.obj DirUI.obj 
-      ReDirUI.obj CPDACO.obj npv.obj cc_err.obj"/>
+      ReDirUI.obj cc_err.obj"/>
     <RESFILES value="Control_Program.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES) MainUI.dfm LoginUI.dfm Data_Module.dfm DirUI.dfm ReDirUI.dfm"/>
-    <LIBFILES value=""/>
+    <LIBFILES value="DAC_PLOAN_NPV.lib"/>
     <LIBRARIES value="GSS_eJCIC.lib"/>
     <SPARELIBS value="vcl.lib rtl.lib dbrtl.lib adortl.lib vclx.lib vcldb.lib GSS_eJCIC.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
@@ -62,9 +62,8 @@
       <FILE FILENAME="Data_Module.cpp" FORMNAME="Data" UNITNAME="Data_Module" CONTAINERID="CCompiler" DESIGNCLASS="TDataModule" LOCALCOMMAND=""/>
       <FILE FILENAME="DirUI.cpp" FORMNAME="frmDirUI" UNITNAME="DirUI" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="ReDirUI.cpp" FORMNAME="frmReDirUI" UNITNAME="ReDirUI" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="CPDACO.cpp" FORMNAME="" UNITNAME="CPDACO" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="npv.cpp" FORMNAME="" UNITNAME="npv" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="cc_err.cpp" FORMNAME="" UNITNAME="cc_err" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="DAC_PLOAN_NPV.lib" FORMNAME="" UNITNAME="DAC_PLOAN_NPV.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
