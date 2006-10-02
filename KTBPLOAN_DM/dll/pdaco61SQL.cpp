@@ -2020,6 +2020,17 @@ char *SQLCommands[] = {
 "   :message, :code, :unsecured_balance, :approved_amount_fsc, "
 "   :note, :unsecured_balance_dac, :version, :module_code);",
 
+/* Update_P1_PB */
+" UPDATE DAC_AUDIT "
+"    SET PB = NULL, "
+"        RSCORE= NULL "
+"    WHERE MSN = '%s' AND INPUT_TIME = '%s' AND PB = 1.1;",
+
+/* Update_P1_PB_RESULT */
+" UPDATE RESULT "
+"    SET PB = NULL "
+"    WHERE MSN = :v0 AND INPUT_TIME = :v1 AND PB = 1.1;",
+
 /* Get_VAM102_Note */
 "SELECT NOTE FROM VAM102 "
 " WHERE MSN = :v0 AND INPUT_TIME = :v1;"

@@ -57,6 +57,8 @@ enum SQLCodes { Get_AppInfo_Record,
                 Update_P4_Transform,
                 Update_P5_Transform,
                 Store_Result,
+                Update_P1_PB,
+                Update_P1_PB_RESULT,
                 Get_VAM102_Note 
 		};
 

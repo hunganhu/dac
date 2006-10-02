@@ -442,7 +442,7 @@ double PDACO::PDACO61P0Score()
 //---------------------------------------------------------------------------
 double PDACO::PDACO61P1Score()
 {
- rscore = pb = 1.0;
+ rscore = pb = 1.1; //set a temporary pb (> 1.0) which will be set to null
  twentile = 0;
 
  postScreen();
@@ -775,6 +775,8 @@ int PDACO::WriteTraceRecord(TADOHandler *handler)
     handler->ExecSQLCmd(buf);
 
     handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
+    sprintf(buf, SQLCommands[Update_P1_PB], msn, input_time);
+    handler->ExecSQLCmd(buf);
  } catch (Exception &E) {
      throw;
  }

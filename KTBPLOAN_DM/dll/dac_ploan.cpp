@@ -84,7 +84,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
           for (i = pdaco_app->getLoanAmount()-10000; i >= 150000;
                   i = i-10000) {
                pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
-               npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
+               npv_value = ptrLoan->recal_npv(0.0, i, pb_value); // delta_apr = 0.0
                if (npv_value > 0 && pb_value < pbCap) {
                   optimal_amount = i;
                   optimal_npv = npv_value;
@@ -113,7 +113,7 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
              for (i = pdaco_app->getLoanAmount()+10000; i <= pdaco_app->upperLendableAmount();
                   i = i + 10000) {
                 pb_value = pdaco_app->recal_Pdaco61Pb(i, pdaco_app->getApr(), pdaco_app->getTerm());
-                npv_value = ptrLoan->recal_npv(0.0, i); // delta_apr = 0.0
+                npv_value = ptrLoan->recal_npv(0.0, i, pb_value); // delta_apr = 0.0
                 if (npv_value > optimal_npv && pb_value < 0.01) {  // pb cannot be over 1% when upsell
                    optimal_amount = i;
                    optimal_npv = npv_value;
@@ -289,6 +289,7 @@ void store_result(const char *idno,
      hostVars[11] = version;
      hostVars[12] = ps_code;
      handler->ExecSQLCmd(SQLCommands[Store_Result], hostVars, 12);
+     handler->ExecSQLCmd(SQLCommands[Update_P1_PB_RESULT], hostVars, 1);
   }
  } catch (Exception &E) {
      throw;

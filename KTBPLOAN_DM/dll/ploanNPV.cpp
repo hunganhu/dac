@@ -240,7 +240,7 @@ double Loan::calculate_npv(double delta_apr)
   return (total_npv);
 }
 //---------------------------------------------------------------------------
-double Loan::recal_npv(double delta_apr, double loan_amt)
+double Loan::recal_npv(double delta_apr, double loan_amt, double new_pd)
 {
  double Interest_Revenue, Setup_Revenue, Late_Fee;
  double Interest_Cost, Commission, Setup_Cost, Acct_Mgmt_Cost, Late_Cost, Collection_Cost;
@@ -248,6 +248,7 @@ double Loan::recal_npv(double delta_apr, double loan_amt)
 
  try {
   principal = loan_amt;
+  pd = new_pd;
   npv_init();
   set_apr(delta_apr);
   set_attrition();

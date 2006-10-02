@@ -149,7 +149,7 @@ class Loan {
     ~Loan ();
     String error();
     double calculate_npv(double delta_apr);
-    double recal_npv(double delta_apr, double loan_amt);
+    double recal_npv(double delta_apr, double loan_amt, double new_pd);
     int calculate_optimal_line(int loops, double npv[][3], TADOHandler *handler);
     String Case_no();
     int appIncome();
