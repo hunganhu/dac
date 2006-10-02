@@ -727,8 +727,10 @@ int LoanApp::write_result_unsupported_product()
   apply_date[8] = System_date[6];
   apply_date[9] = '\0';
 
-  sprintf(oApproval_msg,
-          "%s 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)", apply_date);
+//  sprintf(oApproval_msg,
+//          "%s 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)", apply_date);
+  strcpy(oApproval_msg, apply_date); 
+  strcat(oApproval_msg, " 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)"); 
 
 //  oCut = cutpoint;
 // check if case_sn exist in the table app_result
@@ -782,15 +784,22 @@ int LoanApp::write_result_prescreen_failed()
   apply_date[8] = System_date[6];
   apply_date[9] = '\0';
 
-  if (ps_code_a == 3104 || ps_code_a == 3110)
-     sprintf(oApproval_msg,
-             "%s 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，%s",
-             apply_date, oPS_msg);
-  else
-     sprintf(oApproval_msg,
-             "%s 申請，初評未達核准標準(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，%s",
-             apply_date, oPS_msg);
-
+  if (ps_code_a == 3104 || ps_code_a == 3110) {
+//     sprintf(oApproval_msg,
+//             "%s 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，%s",
+//             apply_date, oPS_msg);
+     strcpy(oApproval_msg, apply_date); 
+     strcat(oApproval_msg, " 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，"); 
+     strcat(oApproval_msg, oPS_msg); 
+  }
+  else {
+//     sprintf(oApproval_msg,
+//             "%s 申請，初評未達核准標準(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，%s",
+//             apply_date, oPS_msg);
+     strcpy(oApproval_msg, apply_date); 
+     strcat(oApproval_msg, " 申請，初評未達核准標準(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，"); 
+     strcat(oApproval_msg, oPS_msg); 
+  }
 //  oCut = cutpoint;
 // check if case_sn exist in the table app_result
   EXEC SQL
@@ -830,7 +839,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
 {
   struct sqlca sqlca;
   char apply_date[10];
-  char apr_msg[64], msg1[24]; 
+  char apr_msg[128], msg1[64]; 
 
   Debug("Enter LoanApp.write_result()");
   strcpy(oCase_SN, case_sn);
@@ -865,6 +874,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
      oLowest_Rate_1_ind = 0;
      sprintf(msg1, "損益兩平之參考利率為第一期：%5.2f%%", Lowest_rate_1*100);
      strcpy (apr_msg, msg1);
+     Info("msg1= %s\n", msg1);
   }
   else 
      oLowest_Rate_1_ind = -1;
@@ -884,6 +894,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   }
   else 
      oLowest_Rate_3_ind = -1;
+  Info("apr_msg= %s\n", apr_msg);
   
 // write output message 
 /*
