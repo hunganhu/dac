@@ -76,7 +76,7 @@ int PDACO::Prescreen_New(TADOHandler *handler)
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         delinquent_months = ds->FieldValues["fs334"];
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
-        cash_max_bucket = ds->FieldValues["fs302"];
+        cash_max_bucket = ds->FieldValues["FS302"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
         if (!ds->FieldValues["MS101"].IsNull())
@@ -123,7 +123,7 @@ int PDACO::Prescreen_New(TADOHandler *handler)
               segment = seg_Ip;
         }
      }
-#ifdef _TRACE
+#ifdef _AUDIT
      handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
      DropWorkingTables(handler);
@@ -162,7 +162,7 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         delinquent_months = ds->FieldValues["fs334"];
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
-        cash_max_bucket = ds->FieldValues["fs302"];
+        cash_max_bucket = ds->FieldValues["FS302"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
         if (!ds->FieldValues["MS101"].IsNull())
@@ -208,7 +208,7 @@ int PDACO::Prescreen_Reload(TADOHandler *handler)
               segment = seg_Ip;
         }
      }
-#ifdef _TRACE
+#ifdef _AUDIT
      handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
      DropWorkingTables(handler);
@@ -248,7 +248,7 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
         fs059_1k_12m = ds->FieldValues["FS059_1K_12M"];
         delinquent_months = ds->FieldValues["fs334"];
         card_force_stop = ds->FieldValues["CARD_FORCE_STOP"];
-        cash_max_bucket = ds->FieldValues["fs302"];
+        cash_max_bucket = ds->FieldValues["FS302"];
         cash_utilization = ds->FieldValues["CASH_UTILIZATION"];
         revolving_amt = ds->FieldValues["REVOLVING_AMT"];
         if (!ds->FieldValues["MS101"].IsNull())
@@ -272,7 +272,7 @@ int PDACO::Prescreen_Transfer(TADOHandler *handler)
      else if (revolving_amt > 500) {
         ps_code = PSCODE_106; }
 
-#ifdef _TRACE
+#ifdef _AUDIT
      handler->ExecSQLCmd(SQLCommands[Insert_Audit_Table]);
 #endif
      DropWorkingTables(handler);
