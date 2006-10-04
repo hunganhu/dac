@@ -1,5 +1,5 @@
 object frmReloadInput: TfrmReloadInput
-  Left = 199
+  Left = 158
   Top = 106
   BorderStyle = bsDialog
   Caption = 'DAC '#19968#33324#36092#23627#25151#36024#35413#20998#31995#32113' - '#25552#20379#20140#22478#37504#34892#20351#29992
@@ -140,6 +140,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 52
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtAppID: TMaskEdit
@@ -150,6 +151,7 @@ object frmReloadInput: TfrmReloadInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -160,6 +162,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 2
     end
@@ -170,6 +173,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 3
     end
@@ -180,6 +184,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 4
     end
@@ -189,6 +194,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 54
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 5
       Items.Strings = (
@@ -201,6 +207,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 102
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 6
       Items.Strings = (
@@ -216,6 +223,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999999999;1;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 9
       TabOrder = 7
       Text = '         '
@@ -226,6 +234,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 39
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 8
       Items.Strings = (
@@ -334,6 +343,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 52
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtCoAppID: TMaskEdit
@@ -344,6 +354,7 @@ object frmReloadInput: TfrmReloadInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -354,6 +365,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 2
     end
@@ -364,6 +376,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 3
     end
@@ -374,6 +387,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 4
     end
@@ -383,6 +397,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 54
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 5
       Items.Strings = (
@@ -395,6 +410,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 102
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 6
       Items.Strings = (
@@ -410,6 +426,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999999999;1;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 9
       TabOrder = 7
       Text = '         '
@@ -420,6 +437,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 39
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 8
       Items.Strings = (
@@ -528,6 +546,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 52
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtGuarantorID: TMaskEdit
@@ -538,6 +557,7 @@ object frmReloadInput: TfrmReloadInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -548,6 +568,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 2
     end
@@ -558,6 +579,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 3
     end
@@ -568,6 +590,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 4
     end
@@ -577,6 +600,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 54
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 5
       Items.Strings = (
@@ -589,6 +613,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 102
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 6
       Items.Strings = (
@@ -604,6 +629,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999999999;1;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 9
       TabOrder = 7
       Text = '         '
@@ -614,6 +640,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 39
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 8
       Items.Strings = (
@@ -787,6 +814,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999999;1;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 6
       TabOrder = 0
       Text = '      '
@@ -798,6 +826,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 1
     end
@@ -808,6 +837,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 2
       TabOrder = 2
     end
@@ -818,6 +848,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!99999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 5
       TabOrder = 3
     end
@@ -827,6 +858,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 33
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 4
       OnChange = cmbInterestSectionsChange
@@ -842,6 +874,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 5
     end
@@ -851,6 +884,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 38
       Height = 21
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 6
     end
     object medtInterestPeriodTwo: TMaskEdit
@@ -860,6 +894,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 7
     end
@@ -869,6 +904,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 41
       Height = 21
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 8
     end
     object medtInterestPeriodThree: TMaskEdit
@@ -878,6 +914,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 3
       TabOrder = 9
     end
@@ -887,6 +924,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 44
       Height = 21
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 10
     end
   end
@@ -999,6 +1037,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 52
       Height = 21
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtOwnerID: TMaskEdit
@@ -1009,6 +1048,7 @@ object frmReloadInput: TfrmReloadInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -1018,6 +1058,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 63
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 2
       Items.Strings = (
@@ -1033,6 +1074,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 39
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 7
       Items.Strings = (
@@ -1045,6 +1087,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 39
       Height = 21
       Style = csDropDownList
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       ItemHeight = 13
       TabOrder = 8
       Items.Strings = (
@@ -1058,6 +1101,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 6
       TabOrder = 4
     end
@@ -1068,6 +1112,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 6
       TabOrder = 5
     end
@@ -1078,6 +1123,7 @@ object frmReloadInput: TfrmReloadInput
       Height = 21
       EditMask = '!9999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 7
       TabOrder = 6
     end
@@ -1087,6 +1133,7 @@ object frmReloadInput: TfrmReloadInput
       Width = 252
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 3
     end
   end
@@ -1097,6 +1144,7 @@ object frmReloadInput: TfrmReloadInput
     Height = 21
     EditMask = '!9999;0;_'
     ImeMode = imClose
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
     MaxLength = 4
     TabOrder = 7
   end
@@ -1130,21 +1178,23 @@ object frmReloadInput: TfrmReloadInput
   object medtUnderwriter: TMaskEdit
     Left = 72
     Top = 551
-    Width = 48
+    Width = 55
     Height = 21
-    EditMask = '!9999;0;_'
+    EditMask = '!9999999;0;_'
     ImeMode = imClose
-    MaxLength = 4
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
+    MaxLength = 7
     TabOrder = 9
   end
   object medtEmployee: TMaskEdit
     Left = 184
     Top = 527
-    Width = 48
+    Width = 55
     Height = 21
-    EditMask = '!9999;0;_'
+    EditMask = '!9999999;0;_'
     ImeMode = imClose
-    MaxLength = 4
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
+    MaxLength = 7
     TabOrder = 8
   end
   object ckbCoApp: TCheckBox

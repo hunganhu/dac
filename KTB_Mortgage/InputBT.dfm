@@ -1,5 +1,5 @@
 object frmBTInput: TfrmBTInput
-  Left = 195
+  Left = 154
   Top = 106
   BorderStyle = bsDialog
   Caption = 'DAC '#19968#33324#36092#23627#25151#36024#35413#20998#31995#32113' - '#25552#20379#20140#22478#37504#34892#20351#29992
@@ -88,6 +88,7 @@ object frmBTInput: TfrmBTInput
       Width = 52
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtAppID: TMaskEdit
@@ -98,6 +99,7 @@ object frmBTInput: TfrmBTInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -131,6 +133,7 @@ object frmBTInput: TfrmBTInput
       Width = 52
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtCoAppID: TMaskEdit
@@ -141,6 +144,7 @@ object frmBTInput: TfrmBTInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -174,6 +178,7 @@ object frmBTInput: TfrmBTInput
       Width = 52
       Height = 21
       ImeMode = imChinese
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
     object medtGuarantorID: TMaskEdit
@@ -184,6 +189,7 @@ object frmBTInput: TfrmBTInput
       CharCase = ecUpperCase
       EditMask = '!l999999999;0;_'
       ImeMode = imClose
+      ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       MaxLength = 10
       TabOrder = 1
     end
@@ -218,21 +224,23 @@ object frmBTInput: TfrmBTInput
   object medtUnderwriter: TMaskEdit
     Left = 72
     Top = 536
-    Width = 46
+    Width = 49
     Height = 21
-    EditMask = '!9999;0;_'
+    EditMask = '!9999999;0;_'
     ImeMode = imClose
-    MaxLength = 4
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
+    MaxLength = 7
     TabOrder = 7
   end
   object medtEmployee: TMaskEdit
     Left = 184
     Top = 512
-    Width = 46
+    Width = 47
     Height = 21
-    EditMask = '!9999;0;_'
+    EditMask = '!9999999;0;_'
     ImeMode = imClose
-    MaxLength = 4
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
+    MaxLength = 7
     TabOrder = 6
   end
   object medtBranch: TMaskEdit
@@ -242,6 +250,7 @@ object frmBTInput: TfrmBTInput
     Height = 21
     EditMask = '!9999;0;_'
     ImeMode = imClose
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
     MaxLength = 4
     TabOrder = 5
   end

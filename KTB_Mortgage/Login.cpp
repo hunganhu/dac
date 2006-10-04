@@ -25,14 +25,14 @@ void __fastcall TfrmLogin::btnExit01Click(TObject *Sender)
 
 void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
 {
-/*  Data->connection->Close();
+  Data->connection->Close();
   AnsiString connection_string;
   connection_string = "Provider=SQLOLEDB.1;";
-  connection_string += "Password=dac_user1;";
-  connection_string += "Persist Security Info=True;User ID=dac_user1;";
+  connection_string += "Password=fm_user1;";
+  connection_string += "Persist Security Info=True;User ID=fm_user1;";
   connection_string += "Initial Catalog=KTB_FM;Data Source=DAC-DB2";
   Data->connection->ConnectionString = connection_string;
-  Data->connection->ConnectionTimeout = 5; */
+  Data->connection->ConnectionTimeout = 5;
   static int login_error = 0;
   static int connection_error = 0;
   AnsiString message;

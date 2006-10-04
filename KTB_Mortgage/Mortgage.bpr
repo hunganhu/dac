@@ -16,7 +16,7 @@
       Reminder01.dfm ResultNewMortgage.dfm InputReload.dfm InputBT.dfm 
       ResultBT.dfm dm.dfm Reminder02.dfm Reminder03.dfm ResultReload.dfm 
       ReportGen.dfm ReDirUI.dfm DirUI.dfm"/>
-    <LIBFILES value="DAC_FM_NPV.lib"/>
+    <LIBFILES value="dll\DAC_FM_NPV.lib"/>
     <LIBRARIES value="GSS_eJCIC.lib"/>
     <SPARELIBS value="vcl.lib rtl.lib GSS_eJCIC.lib dbrtl.lib adortl.lib vclx.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
@@ -80,7 +80,7 @@
       <FILE FILENAME="ReportGen.cpp" FORMNAME="frmReportGen" UNITNAME="ReportGen" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="ReDirUI.cpp" FORMNAME="frmReDirUI" UNITNAME="ReDirUI" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="DirUI.cpp" FORMNAME="frmDirUI" UNITNAME="DirUI" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="DAC_FM_NPV.lib" FORMNAME="" UNITNAME="DAC_FM_NPV.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="dll\DAC_FM_NPV.lib" FORMNAME="" UNITNAME="DAC_FM_NPV.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

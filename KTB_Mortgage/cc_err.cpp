@@ -76,7 +76,7 @@ AnsiString keyin_error::ShowMessage()
     message = "未確認保證人基本資料是否符合承做條件。";
     break;
   case 22:
-    message = "申請金額未填寫或申請金額為零。";
+    message = "申請金額錯誤。";
     break;
   case 23:
     message = "借款期間錯誤，正確值為12至240。";

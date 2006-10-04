@@ -34,11 +34,11 @@ void __fastcall TfrmSelection::FormCreate(TObject *Sender)
   CoInitialize(NULL);
   cmbProduct->ItemIndex = -1;
   frmSelection->Hide();
-  connection_string_module = "Provider=SQLOLEDB.1;Password=test;Persist Security Info=True;User ID=test;Initial Catalog=KTB_FM;Data Source=NBCOMPUTER\NBCOMPUTER2K";
-/*  connection_string_module = "Provider=SQLOLEDB.1;";
-  connection_string_module += "Password=dac_user2;";
-  connection_string_module += "Persist Security Info=True;User ID=dac_user2;";
-  connection_string_module += "Initial Catalog=KTB_FM;Data Source=DAC-DB2";*/
+//  connection_string_module = "Provider=SQLOLEDB.1;Password=test;Persist Security Info=True;User ID=test;Initial Catalog=KTB_FM;Data Source=NBCOMPUTER\\NBCOMPUTER2K";
+  connection_string_module = "Provider=SQLOLEDB.1;";
+  connection_string_module += "Password=fm_user2;";
+  connection_string_module += "Persist Security Info=True;User ID=fm_user2;";
+  connection_string_module += "Initial Catalog=KTB_FM;Data Source=DAC-DB2";
 }
 //---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ void __fastcall TfrmSelection::FormShow(TObject *Sender)
 void __fastcall TfrmSelection::btnReportGenClick(TObject *Sender)
 {
   frmReportGen->Show();
-  frmReportGen->Hide();
+  frmSelection->Hide();
 }
 //---------------------------------------------------------------------------
 

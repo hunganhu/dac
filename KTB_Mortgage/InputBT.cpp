@@ -113,40 +113,40 @@ void __fastcall TfrmBTInput::btnScoreClick(TObject *Sender)
 
     availability = check_keyin();
 
-    if(availability && 0x1){
-/*      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_applicant, jcic_inquiry_result, ejcic_error_code)){
+    if(availability & 0x1){
+      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_applicant, jcic_inquiry_result, ejcic_error_code)){
         success = false;
         message = ("e JCIC ¿ù»~¡A¥N½X¡G" + static_cast<AnsiString>(ejcic_error_code) + " °T®§¡G" + jcic_inquiry_result + "\n");
         MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      }*/
+      }
     }
-    else if(availability && 0x2){
-/*      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_co_applicant, jcic_inquiry_result, ejcic_error_code)){
+    else if(availability & 0x2){
+      if(!request_for_jcic_data(Data->ejcic_query, medtCoAppID->Text.Trim(), query_sn_co_applicant, jcic_inquiry_result, ejcic_error_code)){
         success = false;
         message = ("e JCIC ¿ù»~¡A¥N½X¡G" + static_cast<AnsiString>(ejcic_error_code) + " °T®§¡G" + jcic_inquiry_result + "\n");
         MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      }*/
+      }
     }
-    else if(availability && 0x4){
-/*      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_guarantor, jcic_inquiry_result, ejcic_error_code)){
+    else if(availability & 0x4){
+      if(!request_for_jcic_data(Data->ejcic_query, medtGuarantorID->Text.Trim(), query_sn_guarantor, jcic_inquiry_result, ejcic_error_code)){
         success = false;
         message = ("e JCIC ¿ù»~¡A¥N½X¡G" + static_cast<AnsiString>(ejcic_error_code) + " °T®§¡G" + jcic_inquiry_result + "\n");
         MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      }*/
+      }
     };
     if(success){
       case_sn = generate_case_sn(Data->query);
-      if(availability && 0x1){
-//        applicant_jcic_inquiry_date =
-//          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_applicant, medtAppID->Text, case_sn);
+      if(availability & 0x1){
+        applicant_jcic_inquiry_date =
+          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_applicant, medtAppID->Text, case_sn);
       }
-      else if(availability && 0x2){
-//        coapplicant_jcic_inquiry_date =
-//          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_co_applicant, medtCoAppID->Text, case_sn);
+      else if(availability & 0x2){
+        coapplicant_jcic_inquiry_date =
+          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_co_applicant, medtCoAppID->Text, case_sn);
       }
-      else if(availability && 0x4){
-//        guarantor_jcic_inquiry_date =
-//         get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_guarantor, medtGuarantorID->Text, case_sn);
+      else if(availability & 0x4){
+        guarantor_jcic_inquiry_date =
+         get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_guarantor, medtGuarantorID->Text, case_sn);
       };
       store_input(Data->command, case_sn, applicant_jcic_inquiry_date, coapplicant_jcic_inquiry_date, guarantor_jcic_inquiry_date);
       frmBTInput->Hide();

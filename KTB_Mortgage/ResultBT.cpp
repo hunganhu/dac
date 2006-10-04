@@ -30,17 +30,22 @@ void __fastcall TfrmBTResult::btnScoreClick(TObject *Sender)
   init(case_sn);
   char c_message[256];
   int return_code = 0;
+  AnsiString message = lblExecution->Caption;
 
   return_code = FM_Transfer(case_sn.c_str(), connection_string_module.c_str(), c_message);
-  if(return_code != 0)
-    lblExecution->Caption += static_cast<AnsiString>(c_message);
+  if(return_code != 0){
+    message += static_cast<AnsiString>(c_message);
+    lblExecution->Caption = message;
+  }
   else{
-    lblExecution->Caption += "評分完成\n";
+    message += "評分完成\n";
+    lblExecution->Caption = message;
     try{
       fill_result(Data->query, case_sn);
     }
     catch(Exception &Err){
-      lblExecution->Caption += Err.Message;
+      message += Err.Message;
+      lblExecution->Caption = message;
     };
   };
   frmBTResult->Refresh();

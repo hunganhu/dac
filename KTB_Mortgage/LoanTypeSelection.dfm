@@ -1,6 +1,6 @@
 object frmSelection: TfrmSelection
-  Left = 192
-  Top = 107
+  Left = 154
+  Top = 98
   BorderStyle = bsDialog
   Caption = 'DAC '#19968#33324#36092#23627#25151#36024#35413#20998#31995#32113' - '#25552#20379#20140#22478#37504#34892#20351#29992
   ClientHeight = 606

@@ -149,40 +149,40 @@ void __fastcall TfrmRegularInput::btnScoreClick(TObject *Sender)
 
     availability = check_keyin(unqualified_msg);
 
-    if(availability && 0x1){
-/*      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_applicant, jcic_inquiry_result, ejcic_error_code)){
+    if(availability & 0x1){
+      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_applicant, jcic_inquiry_result, ejcic_error_code)){
         success = false;
         message = ("e JCIC ¿ù»~¡A¥N½X¡G" + static_cast<AnsiString>(ejcic_error_code) + " °T®§¡G" + jcic_inquiry_result + "\n");
         MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      }*/
+      }
     }
-    else if(availability && 0x2){
-/*      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_co_applicant, jcic_inquiry_result, ejcic_error_code)){
+    if(availability & 0x2){
+      if(!request_for_jcic_data(Data->ejcic_query, medtCoAppID->Text.Trim(), query_sn_co_applicant, jcic_inquiry_result, ejcic_error_code)){
         success = false;
         message = ("e JCIC ¿ù»~¡A¥N½X¡G" + static_cast<AnsiString>(ejcic_error_code) + " °T®§¡G" + jcic_inquiry_result + "\n");
         MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      }*/
+      }
     }
-    else if(availability && 0x4){
-/*      if(!request_for_jcic_data(Data->ejcic_query, medtAppID->Text.Trim(), query_sn_guarantor, jcic_inquiry_result, ejcic_error_code)){
+    if(availability & 0x4){
+      if(!request_for_jcic_data(Data->ejcic_query, medtGuarantorID->Text.Trim(), query_sn_guarantor, jcic_inquiry_result, ejcic_error_code)){
         success = false;
         message = ("e JCIC ¿ù»~¡A¥N½X¡G" + static_cast<AnsiString>(ejcic_error_code) + " °T®§¡G" + jcic_inquiry_result + "\n");
         MessageDlg(message, mtInformation, TMsgDlgButtons() << mbOK, 0);
-      } */
+      }
     };
     if(success){
       case_sn = generate_case_sn(Data->query);
-      if(availability && 0x1){
-//        applicant_jcic_inquiry_date =
-//          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_applicant, medtAppID->Text, case_sn);
+      if(availability & 0x1){
+        applicant_jcic_inquiry_date =
+          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_applicant, medtAppID->Text, case_sn);
       }
-      else if(availability && 0x2){
-//        coapplicant_jcic_inquiry_date =
-//          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_co_applicant, medtCoAppID->Text, case_sn);
+      if(availability & 0x2){
+        coapplicant_jcic_inquiry_date =
+          get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_co_applicant, medtCoAppID->Text, case_sn);
       }
-      else if(availability && 0x4){
-//        guarantor_jcic_inquiry_date =
-//         get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_guarantor, medtGuarantorID->Text, case_sn);
+      if(availability & 0x4){
+        guarantor_jcic_inquiry_date =
+         get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn_guarantor, medtGuarantorID->Text, case_sn);
       };
       store_input(Data->command, case_sn, applicant_jcic_inquiry_date, coapplicant_jcic_inquiry_date, guarantor_jcic_inquiry_date);
       frmRegularInput->Hide();
@@ -201,6 +201,7 @@ void __fastcall TfrmRegularInput::btnScoreClick(TObject *Sender)
         store_input(Data->command, case_sn, "", "", "");
         store_decline_result(Data->command, case_sn, unqualified_msg);
         frmRegularInput->Hide();
+        MessageDlg(unqualified_msg, mtInformation, TMsgDlgButtons() << mbOK, 0);
         frmSelection->Show();
       }
       catch(Exception &Err){
@@ -297,14 +298,18 @@ unsigned int __fastcall TfrmRegularInput::check_keyin(AnsiString &msg)
   if(!check_loan_periods(medtInterestPeriodOne->Text,
                          medtInterestPeriodTwo->Text,
                          medtInterestPeriodThree->Text,
-                         medtMaturity->Text))
+                         medtMaturity->Text, cmbInterestSections->ItemIndex + 1))
     throw keyin_error(30);
   if(!check_period(medtInterestOne->Text, 0, 10))
     throw keyin_error(27);
-  if(!check_period(medtInterestTwo->Text, 0, 10))
-    throw keyin_error(28);
-  if(!check_period(medtInterestThree->Text, 0, 10))
-    throw keyin_error(29);
+  if(cmbInterestSections->ItemIndex > 0){
+    if(!check_period(medtInterestTwo->Text, 0, 10))
+      throw keyin_error(28);
+    if(cmbInterestSections->ItemIndex > 1){
+      if(!check_period(medtInterestThree->Text, 0, 10))
+        throw keyin_error(29);
+    };
+  };
   if(edtOwnerName->Text.Trim().IsEmpty())
     throw keyin_error(32);
   if(!check_id(medtOwnerID->Text, gender))
@@ -315,7 +320,7 @@ unsigned int __fastcall TfrmRegularInput::check_keyin(AnsiString &msg)
     throw keyin_error(35);
   if(medtGAV->Text.Trim().IsEmpty() || medtGAV->Text.Trim().ToInt() == 0)
     throw keyin_error(36);
-  if(!check_period(medtNAV->Text, 12, medtGAV->Text.Trim().ToInt()))
+  if(!check_period(medtNAV->Text, 0, medtGAV->Text.Trim().ToInt()))
     throw keyin_error(37);
   if(cmbCollectralQualified->ItemIndex == -1)
     throw keyin_error(38);

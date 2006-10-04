@@ -363,7 +363,7 @@ bool generate_report(TADOQuery *query, const AnsiString &report_dir,
 
 
     if(total && individual && report_individual){
-      total << "台南企銀房貸評分結果名單" << endl;
+      total << "京城銀行房貸評分結果名單" << endl;
       total << "名單產生時間：" << ",";
       total << year.c_str() << "年 ";
       total << report_gen_time.SubString(5,2).c_str() << "月 ";

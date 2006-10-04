@@ -36,19 +36,24 @@ void __fastcall TfrmRegularResult::btnScoreClick(TObject *Sender)
 {
   init(case_sn);
   char c_message[256];
+  AnsiString message = lblExecution->Caption;
   int return_code = 0;
 
   return_code = FM_New(case_sn.c_str(), connection_string_module.c_str(), c_message);
 
-  if(return_code != 0)
-    lblExecution->Caption += static_cast<AnsiString>(c_message);
+  if(return_code != 0){
+    message += static_cast<AnsiString>(c_message);
+    lblExecution->Caption = message;
+  }
   else{
-    lblExecution->Caption += "評分完成\n";
+    message += "評分完成\n";
+    lblExecution->Caption = message;
     try{
       fill_result(Data->query, case_sn);
     }
     catch(Exception &Err){
-      lblExecution->Caption += Err.Message;
+      message += Err.Message;
+      lblExecution->Caption = message;
     };
   };
   frmRegularResult->Refresh();
@@ -77,33 +82,42 @@ void __fastcall TfrmRegularResult::fill_result(TADOQuery *query, const AnsiStrin
     else
       lblAmount->Caption = amount;
 
-    rate1 = query->FieldValues["MIN_RATE1"].IsNull() ? 0 : query->FieldValues["MIN_RATE1"];
+    if(query->FieldValues["MIN_RATE1"].IsNull())
+      rate1 = 0;
+    else
+      rate1 =  query->FieldValues["MIN_RATE1"];
     rate1 *= 100;
     if(query->FieldValues["MIN_RATE1"].IsNull())
       lblRate1->Caption = "";
     else
       lblRate1->Caption = rate1;
-    rate2 = query->FieldValues["MIN_RATE2"].IsNull() ? 0 : query->FieldValues["MIN_RATE2"];
+    if(query->FieldValues["MIN_RATE2"].IsNull())
+      rate2 = 0;
+    else
+      rate2 =  query->FieldValues["MIN_RATE2"];
     rate2 *= 100;
     if(query->FieldValues["MIN_RATE2"].IsNull())
       lblRate2->Caption = "";
     else
       lblRate2->Caption = rate2;
-    rate3 = query->FieldValues["MIN_RATE3"].IsNull() ? 0 : query->FieldValues["MIN_RATE3"];
+    if(query->FieldValues["MIN_RATE3"].IsNull())
+      rate3 = 0;
+    else
+      rate3 =  query->FieldValues["MIN_RATE3"];
     rate3 *= 100;
     if(query->FieldValues["MIN_RATE3"].IsNull())
       lblRate3->Caption = "";
     else
       lblRate3->Caption = rate3;
-    if(query->FieldValues["SEG1"].IsNull())
+    if(query->FieldValues["SEG1"].IsNull() || rate1 == 0)
       lblPeriod1->Caption = "";
     else
       lblPeriod1->Caption = query->FieldValues["SEG1"];
-    if(query->FieldValues["SEG2"].IsNull())
+    if(query->FieldValues["SEG2"].IsNull() || rate2 == 0)
       lblPeriod2->Caption = "";
     else
       lblPeriod2->Caption = query->FieldValues["SEG2"];
-    if(query->FieldValues["SEG3"].IsNull())
+    if(query->FieldValues["SEG3"].IsNull() || rate3 == 0)
       lblPeriod3->Caption = "";
     else
       lblPeriod3->Caption = query->FieldValues["SEG3"];

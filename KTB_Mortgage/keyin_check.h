@@ -30,5 +30,5 @@ bool check_period(const AnsiString &str_period,
 bool check_loan_periods(const AnsiString &str_period1,
                         const AnsiString &str_period2,
                         const AnsiString &str_period3,
-                        const AnsiString &str_period_total_yr);
+                        const AnsiString &str_period_total_yr, int sections);
 bool check_channel(string channel_code);

@@ -150,10 +150,10 @@ AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
   ejcic_query->Close();
   INQUIRY_DATE = INQUIRY_DATE.SubString(1,8);
 
-  unsigned int mg_year = INQUIRY_DATE.SubString(1,4).ToInt() - 1911;
-  AnsiString str_mg_year = static_cast<AnsiString>(mg_year);
-  str_mg_year = str_mg_year.Length() == 2 ? "0" + str_mg_year : str_mg_year;
-  INQUIRY_DATE = str_mg_year + "/" + INQUIRY_DATE.SubString(5,2) + "/" + INQUIRY_DATE.SubString(7,2);
+//  unsigned int mg_year = INQUIRY_DATE.SubString(1,4).ToInt() - 1911;
+//  AnsiString str_mg_year = static_cast<AnsiString>(mg_year);
+//  str_mg_year = str_mg_year.Length() == 2 ? "0" + str_mg_year : str_mg_year;
+//  INQUIRY_DATE = str_mg_year + "/" + INQUIRY_DATE.SubString(5,2) + "/" + INQUIRY_DATE.SubString(7,2);
 
 
   sql_stmt = "INSERT INTO KRM023(CASE_NO, IDN, INQUIRY_DATE, YRMON, ISSUE, ISSUE_NAME, ";

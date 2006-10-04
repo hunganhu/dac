@@ -285,14 +285,18 @@ bool check_period(const AnsiString &str_period,
 bool check_loan_periods(const AnsiString &str_period1,
                         const AnsiString &str_period2,
                         const AnsiString &str_period3,
-                        const AnsiString &str_period_total_yr)
+                        const AnsiString &str_period_total_yr, int sections)
 {
   bool return_value = true;
   unsigned int period1 = str_period1.Trim().IsEmpty() ? 0 : str_period1.Trim().ToInt();
   unsigned int period2 = str_period2.Trim().IsEmpty() ? 0 : str_period2.Trim().ToInt();
   unsigned int period3 = str_period3.Trim().IsEmpty() ? 0 : str_period3.Trim().ToInt();
   unsigned int period_total = str_period_total_yr.Trim().IsEmpty() ? 0 : str_period_total_yr.Trim().ToInt();
-  if((period1 == 0) || (period2 == 0) || (period3 == 0))
+  if(period1 == 0)
+    return_value = false;
+  else if((sections == 2) && (period2 == 0))
+    return_value = false;
+  else if ((sections == 3) &&((period2 == 0) || (period3 == 0)))
     return_value = false;
   else if(period_total != (period1 + period2 + period3))
     return_value = false;
