@@ -1287,3 +1287,9 @@ create index i_stm007_dedup on stm007_dedup(CASE_SN, IDN);
 	reserve9	varchar(20),
 	reserve10	varchar(20)
  ) IN "ESCORETABSP";
+
+create index i_systemdate on app_info(system_date_final);
+create index i_errcode on app_info(errcode);
+create index i_branch on app_info(branch);
+create index i_agentid on app_info(agent_id);
+create index i_systemtime on app_result(system_time);
