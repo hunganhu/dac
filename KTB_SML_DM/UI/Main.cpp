@@ -81,7 +81,7 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
      edtOwnerName2->Clear();
      relationship2->ItemIndex = 0;
    
-     edtPrimaryName->SetFocus();
+     edtCaseNo->SetFocus();
      lblMessage->Caption = "";
      message = "";
      }
@@ -125,7 +125,8 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
   unsigned int hour;
   unsigned int min;
   unsigned int sec;
-  double gav, nav;
+  int monthly_income;
+//  double gav, nav;
 //  double gav1, nav1, gav2, nav2;
   double apr;
   unsigned int application_fee;
@@ -190,7 +191,8 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
         Data->command->Parameters->ParamValues["applicant_id"] = medtPrimaryID->Text;
         Data->command->Parameters->ParamValues["applicant_name"] = edtPrimaryName->Text;
         Data->command->Parameters->ParamValues["zip"] = "700";
-        Data->command->Parameters->ParamValues["income"] = StrToInt(edtIncome->Text) * 10000;
+        monthly_income = StrToInt(edtIncome->Text) * 10000 / 12;
+        Data->command->Parameters->ParamValues["income"] = monthly_income;
         Data->command->Parameters->ParamValues["app_amt"] = StrToInt(edtAppAmount->Text) * 10000;
         switch(cbPeriod->ItemIndex) {
            case 1: period = 3 * 12; break;
@@ -238,8 +240,10 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
            lblMessage->Caption = message;
            formMain->Refresh();
 */
+           jcic_inquiry_date =
+             get_jcic_inquriy_date(msn, Data->query);  //**** temp function
            // insert into app_info after JCIC data is successfully retrieved.
-//           Data->command->Parameters->ParamValues["inquiry_date"] = jcic_inquiry_date;
+           Data->command->Parameters->ParamValues["inquiry_date"] = jcic_inquiry_date;
            Data->command->Execute();
            message += "案件 " + msn + " 已新增。\n";
            lblMessage->Caption = message;
@@ -247,13 +251,13 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
 
            // call prescreen function
            status = DAC_SML_PRESCREEN(medtPrimaryID->Text.c_str(), msn.c_str(), jcic_inquiry_date.c_str(),
-                                      ole_str.c_str(), gav, nav, error_msg);
+                                      ole_str.c_str(), monthly_income, error_msg);
            if (status < 0) {
-              message += error_msg;
+              message = message + error_msg + "\n";
            } else if (status > 0) {
-              message += error_msg;
-           lblMessage->Caption = message;
-           formMain->Refresh();
+              message = message + error_msg + "\n";
+              lblMessage->Caption = message;
+              formMain->Refresh();
           }
 /*
           else {
@@ -265,7 +269,10 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
           }
 */
       if(status >= 0){
-        lblMessage->Caption = "評分完成。可以輸入下一筆。\n";
+        message += "評分完成。可以輸入下一筆。\n";
+        lblMessage->Caption = message;
+//        lblMessage->Caption = "評分完成。可以輸入下一筆。\n";
+        init_UI();
         formMain->Refresh();
       }
 //////////////////////////////////////////
@@ -277,8 +284,8 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
     formMain->Refresh();
 //    MessageDlg(E.Message, mtWarning, TMsgDlgButtons() << mbOK, 0);
   }
-    if(lblMessage->Caption == "評分完成。可以輸入下一筆。\n")
-      init_UI();
+//    if(lblMessage->Caption == "評分完成。可以輸入下一筆。\n")
+//      init_UI();
 
 }
 //---------------------------------------------------------------------------
@@ -645,15 +652,15 @@ void __fastcall TformMain::finalReview_ClearClick(TObject *Sender)
    //  edtAppFee2->Clear();
    //  edtAppAmount2->Clear();
    //  edtAPR2->Clear();
-   
+
    // Property 1
      gav1->Clear();
      nav1->Clear();
-   
+
    // Property 2
      gav2->Clear();
      nav2->Clear();
-   
+
      gav1->SetFocus();
      lblMessage->Caption = "";
      message = "";
@@ -665,6 +672,7 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
 {
   AnsiString sql_stmt;
   int period, index;
+  int monthly_income;
 
   lblMessage->Caption = "";
   message = "";
@@ -672,7 +680,7 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
 
   try {
      sql_stmt = "select a.msn, system_date, applicant_id, applicant_name, app_amt, period, apr, app_fee, "
-                " owner_id1, owner_name1, land_num1, relationship1, "
+                " owner_id1, owner_name1, land_num1, relationship1, income"
                 " owner_id2, owner_name2, land_num2, relationship2, zip, inquiry_date "
                 " from app_info a, app_premier b "
                 " where a.msn = :msn and a.msn = b.msn and b.premier_code = 0;";
@@ -686,10 +694,14 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
         lblMSN->Caption = Data->query->FieldValues["MSN"];
         hidden_SystemDate->Caption = Data->query->FieldValues["SYSTEM_DATE"];
         hidden_Zip->Caption = Data->query->FieldValues["ZIP"];
-        hidden_InquiryDate->Caption = Data->query->FieldValues["INQUIRY_DATE"];
+        if (!Data->query->FieldValues["INQUIRY_DATE"].IsNull())
+           hidden_InquiryDate->Caption = Data->query->FieldValues["INQUIRY_DATE"];
+        else
+           hidden_InquiryDate->Caption = "";
         hidden_appAmount->Caption = Data->query->FieldValues["APP_AMT"];
         hidden_APR->Caption = Data->query->FieldValues["APR"];
         hidden_appFee->Caption = Data->query->FieldValues["APP_FEE"];
+        hidden_monthly_income->Caption = Data->query->FieldValues["INCOME"];
         lblPrimaryName->Caption = Data->query->FieldValues["APPLICANT_NAME"];
         lblPrimaryID->Caption = Data->query->FieldValues["APPLICANT_ID"];
 //        edtAppAmount2->Text = Data->query->FieldValues["APP_FEE"];
@@ -875,7 +887,7 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
         status = DAC_SML_NPV(lblPrimaryID->Caption.c_str(), lblMSN->Caption.c_str(), hidden_InquiryDate->Caption.c_str(),
                              ole_str.c_str(), StrToFloat(hidden_appAmount->Caption),
                              StrToFloat(hidden_APR->Caption), period, StrToFloat(hidden_appFee->Caption),
-                             gav, nav, zip.c_str(), first_lien, error_msg);
+                             gav, nav, zip.c_str(), first_lien, StrToInt(hidden_monthly_income->Caption), error_msg);
         if (status < 0) {
             message += error_msg;
         } else if (status > 0) {
@@ -890,8 +902,10 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
               message += "，但第二擔保品資格不符。" ;
           }
         }
+        message += "\n評分完成。可以輸入下一筆。\n" ;
         lblMessage->Caption = message;
         formMain->Refresh();
+        init_UI_final();
      }
   }
   catch(Exception &E){

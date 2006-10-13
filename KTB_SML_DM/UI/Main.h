@@ -19,12 +19,13 @@
 //---------------------------------------------------------------------------
 extern "C" __declspec(dllexport)
 int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
-                      double principal, double apr, int period, double app_fee,
-                      double gav, double nav, char *zip, double first_lien_value, char *error);
+                double principal, double apr, int period, double app_fee,
+                double gav, double nav, char *zip, double first_lien_value,
+                int monthly_income, char *error);
 
 extern "C" __declspec(dllexport)
 int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
-                      double gav, double nav, char *error);
+                      int monthly_income, char *error);
 
 //---------------------------------------------------------------------------
 class TformMain : public TForm
@@ -148,6 +149,7 @@ __published:	// IDE-managed Components
         TLabel *hidden_APR;
         TLabel *hidden_appFee;
         TLabel *hidden_InquiryDate;
+        TLabel *hidden_monthly_income;
         void __fastcall btnExit1Click(TObject *Sender);
         void __fastcall btnClearClick(TObject *Sender);
         void __fastcall btnPrescreenClick(TObject *Sender);

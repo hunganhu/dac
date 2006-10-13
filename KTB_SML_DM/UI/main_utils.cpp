@@ -56,12 +56,30 @@ void init_UI()
   formMain->edtOwnerName2->Clear();
   formMain->relationship2->ItemIndex = 0;
 
-  formMain->edtPrimaryName->SetFocus();
+  formMain->edtCaseNo->SetFocus();
 //  formMain->lblMessage->Caption = "";
   message = "";
   formMain->Refresh();
 };
 
+//---------------------------------------------------------------------------
+void init_UI_final()
+{
+  formMain->edtMSN->Clear();
+
+  // Property 1
+  formMain->gav1->Clear();
+  formMain->nav1->Clear();
+
+  // Property 2
+  formMain->gav2->Clear();
+  formMain->nav2->Clear();
+
+  formMain->gav1->SetFocus();
+  formMain->lblMessage->Caption = "";
+  message = "";
+  formMain->Refresh();
+};
 //---------------------------------------------------------------------------
 bool request_for_jcic_data(TADOQuery *query, const AnsiString &id, AnsiString &query_sn, AnsiString &jcic_inquiry_result, int &error_no)
 {
@@ -1490,6 +1508,22 @@ void get_product_feature(const AnsiString &product_code, TADOQuery *query, doubl
   query->Close();
 };
 
+//---------------------------------------------------------------------------
+AnsiString get_jcic_inquriy_date(const AnsiString &msn, TADOQuery *query)
+{
+  AnsiString sql_stmt;
+  AnsiString jcic_inquiry_date;
+
+  sql_stmt = "SELECT INQUIRY_DATE FROM MAIL_LIST WHERE MSN = :msn";
+  query->Close();
+  query->SQL->Clear();
+  query->SQL->Add(sql_stmt);
+  query->Parameters->ParamValues["msn"] = msn;
+  query->Open();
+  jcic_inquiry_date = query->FieldValues["INQUIRY_DATE"];
+  query->Close();
+  return(jcic_inquiry_date);
+};
 //---------------------------------------------------------------------------
 void get_product_code(const AnsiString &msn, AnsiString &product_code, TADOQuery *query)
 {

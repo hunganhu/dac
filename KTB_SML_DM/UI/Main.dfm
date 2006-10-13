@@ -38,8 +38,8 @@ object formMain: TformMain
     Top = 0
     Width = 857
     Height = 425
-    ActivePage = TabSheet1
-    TabIndex = 0
+    ActivePage = TabSheet2
+    TabIndex = 1
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = #21021#23529#26696#20214
@@ -585,9 +585,9 @@ object formMain: TformMain
       object edtMSN: TMaskEdit
         Left = 152
         Top = 8
-        Width = 95
+        Width = 89
         Height = 21
-        EditMask = '>L<0000000000000;1;_'
+        EditMask = 'a0000000000009;1;_'
         ImeMode = imClose
         ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
         MaxLength = 14
@@ -830,6 +830,15 @@ object formMain: TformMain
           Width = 92
           Height = 13
           Caption = 'hidden_InquiryDate'
+          Visible = False
+        end
+        object hidden_monthly_income: TLabel
+          Left = 648
+          Top = 32
+          Width = 114
+          Height = 13
+          Caption = 'hidden_monthly_income'
+          Visible = False
         end
         object nav1: TMaskEdit
           Left = 296

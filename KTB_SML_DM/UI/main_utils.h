@@ -21,10 +21,13 @@ bool generate_final_report(TADOQuery *query, const AnsiString &report_dir,
 AnsiString get_applicant_name(const AnsiString &msn, TADOQuery *query);
 bool check_msn(const AnsiString &msn, TADOQuery *query);
 bool check_id(const AnsiString &idn, const AnsiString &msn, TADOQuery *query);
+void init_UI_final();
 void init_UI();
 void get_product_feature(const AnsiString &product_code, TADOQuery *query, double &apr, unsigned int &application_fee);
 void get_product_code(const AnsiString &msn, AnsiString &product_code, TADOQuery *query);
 bool check_and_cleanup_result(const AnsiString &msn, TADOQuery *query);
+// test function to get mail date as jcic inquiry date
+AnsiString get_jcic_inquriy_date(const AnsiString &msn, TADOQuery *query);
 
 #endif
  
