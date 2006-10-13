@@ -9,7 +9,7 @@
 //---------------------------------------------------------------------------
 
 int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
-                      double gav, double nav, char *error)
+                      int monthly_income, char *error)
 {
   AnsiString error_message="";
   AnsiString msn_no = static_cast<AnsiString>(msn);
@@ -40,7 +40,7 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
   bool use_krm037 = true;
 
   try {
-    int now = yrmon_to_mon(inq_mon, time_lock, "20160531", archive, use_krm037);
+    int now = yrmon_to_mon(inq_mon, time_lock, "20990531", archive, use_krm037);
     if (now > 0) {
 	 AnsiString connection_string = static_cast<AnsiString>(ole_db);
 	 connect(connection, connection_string);
@@ -63,7 +63,7 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
      	 prepare_2xx_infra(command, now);
      	 get_idn_list(command, KRM001, KRM023, BAM086, STM007, JAS002_T);
      	 data_flag = get_data_availability(query, idno);
-         filter_flag = in_pdaco_1_00(query, KRM023, KRM001, JAS002_T, BAM086, STM007, msn_no, idno, time_stamp_no, data_flag, now);
+         filter_flag = in_pdaco_1_00(query, KRM023, KRM001, JAS002_T, BAM086, STM007, msn_no, idno, time_stamp_no, data_flag, monthly_income, now);
 
 // PREMIER REVIEW
          if (filter_flag & 0x20) {    // Major derug
@@ -90,18 +90,38 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
         	prescreen_code = DataErrorCode(OUTPUT_CODE_106);
          	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_106);
          }
+         else if (filter_flag & 0x2000){// loan deliquent in 30D
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_108);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_108);
+         }
+         else if (filter_flag & 0x4000){// unsecured loan >= 1M
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_109);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_109);
+         }
+         else if (filter_flag & 0x8000){// 22 fold of Monthly Income - unsecured loan < 0
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_110);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_110);
+         }
+         else if (filter_flag & 0x10000){// with VAM102 NOTE
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_111);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_111);
+         }
+         else if (filter_flag & 0x20000){// in KTB Credit Block list
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_112);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_112);
+         }
          else { // pass prescreen, test data sufficiency
          	if (filter_flag & 0x01 || filter_flag & 0x02 || filter_flag & 0x08) { // IND001=1, not scorable
          	   if (data_flag & 0x01) { // k23 hit, big gray
 		      if (filter_flag & 0x200){ // fs031 > 5
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_110);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_110);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_120);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_120);
 	              } else if (filter_flag & 0x400){ // bucket_ef_1k > 0
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_111);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_111);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_121);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_121);
 	              } else if (filter_flag & 0x800){ // k01 with stop_code=3
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_112);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_112);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_122);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_122);
 	              } else {
 	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_201);
 	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_201);
@@ -109,11 +129,11 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
          	   }
          	   else if (data_flag & 0x02 || data_flag & 0x04) { // k01 or b86 hit, small gray
 		      if (filter_flag & 0x1000){ // fs031 > 3
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_120);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_120);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_123);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_123);
 	              } else if (filter_flag & 0x800){ // k01 with stop_code=3
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_121);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_121);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_124);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_124);
 	              } else {
 	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_202);
 	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_202);
@@ -138,15 +158,15 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
             // get property info
             // Two qualified properties are combined into one
             // if 4 conditions match, gav = nav = 0
-            if (gav == 0 || nav == 0 ) {
-               prescreen_code = DataErrorCode(OUTPUT_CODE_301);
-               prescreen_msg  = DataErrorMsg(OUTPUT_CODE_301);
+//            if (gav == 0 || nav == 0 ) {
+//               prescreen_code = DataErrorCode(OUTPUT_CODE_301);
+//               prescreen_msg  = DataErrorMsg(OUTPUT_CODE_301);
                // write result - transfer to p-loan
-            } else {
+//            } else {
                // write normal result
                prescreen_code = DataErrorCode(PRESCREEN_PASS);
                prescreen_msg  = DataErrorMsg(PRESCREEN_PASS);
-            }
+//            }
             write_premier_result (command, msn_no, time_stamp_no, risk_score, prescreen_code, prescreen_msg);
          } else { // prescreen fails
             // write prescreen failure result
@@ -195,8 +215,9 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
 //---------------------------------------------------------------------------
 
 int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
-                      double principal, double apr, int period, double app_fee,
-                      double gav, double nav, char *zip, double first_lien_value, char *error)
+                double principal, double apr, int period, double app_fee,
+                double gav, double nav, char *zip, double first_lien_value,
+                int monthly_income, char *error)
 {
   AnsiString error_message="";
   AnsiString msn_no = static_cast<AnsiString>(msn);
@@ -252,7 +273,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
   bool use_krm037 = true;
 
   try {
-    int now = yrmon_to_mon(inq_mon, time_lock, "20160531", archive, use_krm037);
+    int now = yrmon_to_mon(inq_mon, time_lock, "20990531", archive, use_krm037);
     if (now > 0) {
 	 AnsiString connection_string = static_cast<AnsiString>(ole_db);
 	 connect(connection, connection_string);
@@ -275,7 +296,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
      	 prepare_2xx_infra(command, now);
      	 get_idn_list(command, KRM001, KRM023, BAM086, STM007, JAS002_T);
      	 data_flag = get_data_availability(query, idno);
-         filter_flag = in_pdaco_1_00(query, KRM023, KRM001, JAS002_T, BAM086, STM007, msn_no, idno, time_stamp_no, data_flag, now);
+         filter_flag = in_pdaco_1_00(query, KRM023, KRM001, JAS002_T, BAM086, STM007, msn_no, idno, time_stamp_no, data_flag, monthly_income, now);
 
 // PREMIER REVIEW
          if (filter_flag & 0x20) {    // Major derug
@@ -302,18 +323,38 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
         	prescreen_code = DataErrorCode(OUTPUT_CODE_106);
          	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_106);
          }
+         else if (filter_flag & 0x2000){// loan deliquent in 30D
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_108);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_108);
+         }
+         else if (filter_flag & 0x4000){// unsecured loan >= 1M
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_109);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_109);
+         }
+         else if (filter_flag & 0x8000){// 22 fold of Monthly Income - unsecured loan < 0
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_110);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_110);
+         }
+         else if (filter_flag & 0x10000){// with VAM102 NOTE
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_111);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_111);
+         }
+         else if (filter_flag & 0x20000){// in KTB Credit Block list
+        	prescreen_code = DataErrorCode(OUTPUT_CODE_112);
+         	prescreen_msg  = DataErrorMsg(OUTPUT_CODE_112);
+         }
          else { // pass prescreen, test data sufficiency
          	if (filter_flag & 0x01 || filter_flag & 0x02 || filter_flag & 0x08) { // IND001=1, not scorable
          	   if (data_flag & 0x01) { // k23 hit, big gray
 		      if (filter_flag & 0x200){ // fs031 > 5
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_110);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_110);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_120);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_120);
 	              } else if (filter_flag & 0x400){ // bucket_ef_1k > 0
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_111);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_111);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_121);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_121);
 	              } else if (filter_flag & 0x800){ // k01 with stop_code=3
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_112);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_112);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_122);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_122);
 	              } else {
 	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_201);
 	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_201);
@@ -321,11 +362,11 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
          	   }
          	   else if (data_flag & 0x02 || data_flag & 0x04) { // k01 or b86 hit, small gray
 		      if (filter_flag & 0x1000){ // fs031 > 3
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_120);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_120);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_123);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_123);
 	              } else if (filter_flag & 0x800){ // k01 with stop_code=3
-	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_121);
-	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_121);
+	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_124);
+	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_124);
 	              } else {
 	        	 prescreen_code = DataErrorCode(OUTPUT_CODE_202);
 	         	 prescreen_msg  = DataErrorMsg(OUTPUT_CODE_202);
@@ -988,14 +1029,15 @@ sql_stmt = " insert into krm037_convert (MSN, inquiry_date, IDN, issue, issue_na
            "          (case when right(left(last_paya,2),1) in ('H', 'M', 'L') then '0'+(left(last_paya,2)) "
            "          else last_paya end),"
            "          cast(revol_bal as int), cast(pre_owed as int), 'N',                  "
-           "          (case when pay_stat = 'X' and pay_code = 'X' then '*'                "
+           "          (case when debt_code in ('A', 'B') then 'F'                          "
+           "                when pay_stat = 'X' and pay_code = 'X' then '*'                "
            "                when pay_stat = '1' and pay_code = 'N' then 'A'                "
            "                when pay_stat = '1' and pay_code = '0' then 'B'                "
            "                when pay_stat = '2' and pay_code = 'N' then 'C'                "
            "                when pay_stat = '2' and pay_code = '0' then 'D'                "
            "                when pay_stat = '3' and pay_code between '1' and '7' then 'E'  "
            "                when pay_stat = '4' and pay_code between '1' and '7' then 'F'  "
-           "                when debt_code in ('A', 'B') then 'F' else null end), "
+           "                else null end), "
            "          (case when LEN(bill_date) = 4 and left(bill_date,1) between '1' and '9' "
            "                     then cast(left(bill_date, 2) as int) * 12 + cast(right(bill_date, 2) as int) "
            "                when LEN(bill_date) = 7 and cast(right(bill_date,2) as int) > 15 "
@@ -3322,27 +3364,41 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
                 const AnsiString &jas002, const AnsiString &bam085, const AnsiString &stm007,
                 const AnsiString &msn, const AnsiString &idno,
                 const AnsiString &time_stamp,
-                unsigned char flag, int now)
+                unsigned char flag, int monthly_income, int now)
 {
+//  flag:
+//  1: (0x01) krm023 hit
+//  2: (0x02) krm001 hit	
+//  3: (0x04) bam086 hit	
+//  4: (0x08) jas002 hit	
+//  5: (0x10) stm007 hit	
+//
 //  exclusion flag:
 //  1: (0x01) k23_hit = 0
-//  2: (0x02) k02_hit = 0
-//  3: (0x04) max_bucket_ef > 3
+//  2: (0x02) k01_hit = 0
+//  3: (0x04) max_bucket_ef > 3, 102- 信用卡一年內曾逾期超過90天 
 //  4: (0x08) IND001 = 1
-//  5: (0x10) FS044 > 0
-//  6: (0x20) jas002_defect > 0
-//  7: (0x40) FS302 > 0
-//  8: (0x80) cash_card_utilization > 95%
-//  9: (0x100) balance of credit and cash card >= 500k
-// 10: (0x200) fs031 > 5
-// 11: (0x400) bucket_ef_1k > 0
-// 12: (0x800) k01 with stop_code=3
-// 13: (0x1000) fs031 > 3
+//  5: (0x10) FS044 > 0 || FS334 > 3, 103- 貸款一年內曾逾期超過90天
+//  6: (0x20) jas002_defect > 0, 101- 重大信用瑕疵
+//  7: (0x40) FS302 > 0          104- 現金卡最近一個月遲繳
+//  8: (0x80) cash_card_utilization >= 95%  105- 信用卡動支比例達95%以上
+//  9: (0x100) balance of credit and cash card >= 500k,  106- 現金卡與信用卡餘額超過50萬元
+// 10: (0x200) fs031 > 5            120- JCIC資料不足且查詢過多
+// 11: (0x400) bucket_ef_1k > 0     121- JCIC資料不足且有信用卡逾繳紀錄
+// 12: (0x800) k01 with stop_code=3 122,124- JCIC資料不足且有強制停卡紀錄
+// 13: (0x1000) fs031 > 3           123- JCIC資料不足且查詢過多
+// 14: (0x2000) fs334b_1m > 0       108- 任一貸款最近一個月遲繳
+// 15: (0x4000) ms606 > 1M          109- 無擔保貸款總額超過100萬元
+// 16: (0x8000) MonIncome*22-ms606 < 0 110- 負債比率過高
+// 17: (0x10000) note_flag > 0      111- 聯徵特殊註記
+// 18: (0x20000) CREDIT_BLOCK_LIST > 0  112- 京城銀行黑名單
 
 
   AnsiString sql_stmt;
   double credit_card_rev_balance_opt = 0;
   double cash_card_balance = 0;
+  double credit_card_balance = 0;
+  double unsecured_balance = 0;
   int exclusion = 0;
   int count = 0;
 
@@ -3364,22 +3420,7 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
       exclusion |= 0x4;
     if (max_bucket > 0)
       exclusion |= 0x400;
-/*
-    try{
-      sql_stmt = "DROP TABLE KRM023_RANGE_TMP";
-      sql_stmt = sql_stmt.UpperCase();
-      query->Close();
-      query->SQL->Clear();
-      query->SQL->Add(sql_stmt);
-      query->ExecSQL();
-    }
-    catch(Exception &E){
-      if (AnsiString(E.ClassName()) == "EOleException")
-        if(query->Connection->Errors->Item[0]->NativeError == 3701)
-          query->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-    }
-*/
+      
     sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM023_RANGE_TMP]')"
                "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
                "   drop table [KRM023_RANGE_TMP]; "
@@ -3402,8 +3443,9 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
     query->Parameters->ParamValues["now"] = now;
     query->ExecSQL();
 
-    sql_stmt = "SELECT SUM(CASE WHEN PAY_CODE IN ('C', 'D', 'E', 'F') THEN PAYMENT_AMT ELSE 0 END) AS BAL, ";
-    sql_stmt += "SUM(CONVERT(FLOAT, LIMIT)) AS LINE ";
+    sql_stmt = "SELECT SUM(CASE WHEN PAY_CODE IN ('C', 'D', 'E', 'F') THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) "
+               "                WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>0 THEN ISNULL(SPREAD_PAYMENT,0) "
+               "                ELSE 0 END) AS BAL, ";
     sql_stmt += "FROM " + krm023 + " AS A ";
     sql_stmt += "INNER JOIN KRM023_RANGE_TMP AS B ON A.IDN = B.IDN AND ";
     sql_stmt += "A.ISSUE = B.ISSUE AND A.MON_SINCE = B.MON AND A.IDN = :idn";
@@ -3418,6 +3460,21 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
       credit_card_rev_balance_opt *= 1000;
     }
 
+    sql_stmt = "SELECT SUM((CASE WHEN PAY_CODE IN ('C', 'D', 'E', 'F') THEN ISNULL(PAYMENT_AMT,0) ELSE 0 END) "
+               "            + ISNULL(SPREAD_PAYMENT,0)) AS BAL ";
+    sql_stmt += "FROM " + krm023 + " AS A ";
+    sql_stmt += "INNER JOIN KRM023_RANGE_TMP AS B ON A.IDN = B.IDN AND ";
+    sql_stmt += "A.ISSUE = B.ISSUE AND A.MON_SINCE = B.MON AND A.IDN = :idn";
+    sql_stmt = sql_stmt.UpperCase();
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["idn"] = idno;
+    query->Open();
+    if(!query->FieldValues["BAL"].IsNull()){
+      credit_card_balance = query->FieldValues["BAL"];
+      credit_card_balance *= 1000;
+    }
 
 // IND001 =1
     sql_stmt = "SELECT MIN(MON_SINCE) AS MON FROM " + krm023 + " ";
@@ -3531,68 +3588,84 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
 
   if (flag & 0x4) { // bam085 hit
 /*----FS044----*/
-		sql_stmt ="SELECT IDN, SUM(CASE WHEN PASS_DUE_AMT > 0 THEN 1 ELSE 0 END) AS CNT ";
-		sql_stmt +="FROM " + bam085 + " ";
-		sql_stmt +="WHERE IDN = :idn GROUP BY IDN;";
-    sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["idn"] = idno;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
-    if (count > 0)
-       exclusion |= 0x10;
+     sql_stmt ="SELECT IDN, SUM(CASE WHEN PASS_DUE_AMT > 0 THEN 1 ELSE 0 END) AS CNT ";
+     sql_stmt +="FROM " + bam085 + " ";
+     sql_stmt +="WHERE IDN = :idn GROUP BY IDN;";
+     sql_stmt = sql_stmt.UpperCase();
+     query->Close();
+     query->SQL->Clear();
+     query->SQL->Add(sql_stmt);
+     query->Parameters->ParamValues["idn"] = idno;
+     query->Open();
+     count = query->FieldValues["CNT"];
+     query->Close();
+     if (count > 0)
+        exclusion |= 0x10;
 
 // FS334 > 3 曾經最高逾期月數
-    sql_stmt = " select IDN, max(bucket) AS CNT "
-               "    from bam086_bucket "
-               " WHERE IDN = :idn GROUP BY IDN;";
-        sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["idn"] = idno;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
-    if (count > 3)
-       exclusion |= 0x40;
+     sql_stmt = " select IDN, max(bucket) AS CNT "
+                "    from bam086_bucket "
+                " WHERE IDN = :idn GROUP BY IDN;";
+     sql_stmt = sql_stmt.UpperCase();
+     query->Close();
+     query->SQL->Clear();
+     query->SQL->Add(sql_stmt);
+     query->Parameters->ParamValues["idn"] = idno;
+     query->Open();
+     count = query->FieldValues["CNT"];
+     query->Close();
+     if (count > 3)
+        exclusion |= 0x10;
 // FS302
-    sql_stmt = "SELECT IDN, SUM(CASE WHEN ACCOUNT_CODE = 'Y' AND ";
-    sql_stmt+="                           ISNULL(LEFT(PAY_CODE_12,1), '0') NOT IN ('0', 'X') ";
-    sql_stmt+="                      THEN 1 ELSE 0 END) AS CNT ";
-    sql_stmt+="FROM " + bam085 + " ";
-    sql_stmt+="WHERE IDN = :idn GROUP BY IDN;";
-    sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["idn"] = idno;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
-    if(count > 0)
-      exclusion |= 0x40;
+     sql_stmt = "SELECT IDN, SUM(CASE WHEN ACCOUNT_CODE = 'Y' AND ";
+     sql_stmt+="                           ISNULL(LEFT(PAY_CODE_12,1), '0') NOT IN ('0', 'X') ";
+     sql_stmt+="                      THEN 1 ELSE 0 END) AS CNT ";
+     sql_stmt+="FROM " + bam085 + " ";
+     sql_stmt+="WHERE IDN = :idn GROUP BY IDN;";
+     sql_stmt = sql_stmt.UpperCase();
+     query->Close();
+     query->SQL->Clear();
+     query->SQL->Add(sql_stmt);
+     query->Parameters->ParamValues["idn"] = idno;
+     query->Open();
+     count = query->FieldValues["CNT"];
+     query->Close();
+     if (count > 0)
+        exclusion |= 0x40;
 
-// Cash card utilization > 95%
-    sql_stmt = "SELECT IDN, SUM(CASE WHEN ACCOUNT_CODE = 'Y' AND ";
-    sql_stmt+="        CAST(ISNULL(CONTRACT_AMT,0) AS FLOAT) * 0.95 <= (CAST(ISNULL(LOAN_AMT,0) AS FLOAT) + CAST(ISNULL(PASS_DUE_AMT,0) AS FLOAT)) AND ";
-    sql_stmt+="        ISNULL(CONTRACT_AMT,0) > 0 ";
-    sql_stmt+="                      THEN 1 ELSE 0 END) AS CNT ";
-		sql_stmt+="FROM " + bam085 + " ";
-    sql_stmt+="WHERE IDN = :idn GROUP BY IDN;";
-    sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["idn"] = idno;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
-    if (count > 0)
-       exclusion |= 0x80;
+// FS334_1B 
+     sql_stmt = "SELECT IDN, SUM(CASE WHEN ISNULL(LEFT(PAY_CODE_12,1), '0') NOT IN ('0', 'X') ";
+     sql_stmt+= "                     THEN 1 ELSE 0 END) AS CNT ";
+     sql_stmt+= "FROM " + bam085 + " ";
+     sql_stmt+= "WHERE IDN = :idn GROUP BY IDN;";
+     sql_stmt = sql_stmt.UpperCase();
+     query->Close();
+     query->SQL->Clear();
+     query->SQL->Add(sql_stmt);
+     query->Parameters->ParamValues["idn"] = idno;
+     query->Open();
+     count = query->FieldValues["CNT"];
+     query->Close();
+     if (count > 0)
+        exclusion |= 0x2000;
+
+// Cash card utilization >= 95%
+     sql_stmt = "SELECT IDN, SUM(CASE WHEN ACCOUNT_CODE = 'Y' AND ";
+     sql_stmt+="        CAST(ISNULL(CONTRACT_AMT,0) AS FLOAT) * 0.95 <= (CAST(ISNULL(LOAN_AMT,0) AS FLOAT) + CAST(ISNULL(PASS_DUE_AMT,0) AS FLOAT)) AND ";
+     sql_stmt+="        ISNULL(CONTRACT_AMT,0) > 0 ";
+     sql_stmt+="                      THEN 1 ELSE 0 END) AS CNT ";
+     sql_stmt+="FROM " + bam085 + " ";
+     sql_stmt+="WHERE IDN = :idn GROUP BY IDN;";
+     sql_stmt = sql_stmt.UpperCase();
+     query->Close();
+     query->SQL->Clear();
+     query->SQL->Add(sql_stmt);
+     query->Parameters->ParamValues["idn"] = idno;
+     query->Open();
+     count = query->FieldValues["CNT"];
+     query->Close();
+     if (count > 0)
+        exclusion |= 0x80;
 
     sql_stmt = "SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT)) ";
     sql_stmt += "AS BAL FROM " + bam085 + " ";
@@ -3607,8 +3680,27 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
       cash_card_balance = query->FieldValues["BAL"];
       cash_card_balance *= 1000;
     }
+
+    sql_stmt = "SELECT SUM(CAST(ISNULL(LOAN_AMT, 0) AS INT) + CAST(ISNULL(PASS_DUE_AMT, 0) AS INT)) ";
+    sql_stmt += "AS BAL FROM " + bam085 + " ";
+    sql_stmt += "WHERE IDN = :idn AND ((ACCOUNT_CODE2 = '') OR (ACCOUNT_CODE2 IS NULL) OR (ACCOUNT_CODE = 'N'));";
+    sql_stmt = sql_stmt.UpperCase();
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["idn"] = idno;
+    query->Open();
+    if (!query->FieldValues["BAL"].IsNull()){
+      unsecured_balance = query->FieldValues["BAL"];
+      unsecured_balance *= 1000;
+    }
+
     if ((credit_card_rev_balance_opt + cash_card_balance) >= 500000)
        exclusion |= 0x100;
+    if ((credit_card_balance + unsecured_balance) >= 1000000)
+       exclusion |= 0x4000;
+    if ((monthly_income * 22 - credit_card_balance - unsecured_balance) < 0)
+       exclusion |= 0x8000;
 
   }
 
@@ -3659,6 +3751,40 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
 	else if (count > 3)
            exclusion |= 0x1000;
     }  // end of stm007 hit
+
+
+ try {
+    sql_stmt = "SELECT COUNT(*) AS CNT FROM VAM102 WHERE IDN = :idn AND NOTE IS NOT NULL";
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["idn"] = idno;
+    query->Open();
+    if (query->FieldValues["CNT"].IsNull())
+       count = 0;
+    else
+       count = query->FieldValues["CNT"];
+    query->Close();
+    if (count > 0)
+       exclusion |= 0x10000;
+
+    sql_stmt = "SELECT COUNT(*) AS CNT FROM CREDIT_BLOCK_LIST WHERE IDN = :idn ";
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["idn"] = idno;
+    query->Open();
+    if (query->FieldValues["CNT"].IsNull())
+       count = 0;
+    else
+       count = query->FieldValues["CNT"];
+    query->Close();
+    if (count > 0)
+       exclusion |= 0x20000;
+       
+ } catch (Exception &E) {
+   throw;
+ }
   return exclusion;
 }
 

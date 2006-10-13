@@ -39,11 +39,16 @@ enum ErrorCodes {
 	OUTPUT_CODE_105, 
 	OUTPUT_CODE_106, 
 	OUTPUT_CODE_107, 
+	OUTPUT_CODE_108, 
+	OUTPUT_CODE_109, 
 	OUTPUT_CODE_110, 
 	OUTPUT_CODE_111,
 	OUTPUT_CODE_112, 
 	OUTPUT_CODE_120, 
 	OUTPUT_CODE_121, 
+	OUTPUT_CODE_122, 
+	OUTPUT_CODE_123, 
+	OUTPUT_CODE_124, 
 	OUTPUT_CODE_201, 
 	OUTPUT_CODE_202, 
 	OUTPUT_CODE_203, 
@@ -60,11 +65,16 @@ Output_Msg ktbMsg[] = {
 	{105, "模組建議婉拒：信用卡動支比例達95%以上 "},
 	{106, "模組建議婉拒：現金卡與信用卡餘額超過50萬元 "},
 	{107, "模組建議婉拒：個人信用風險過高 "},
-	{110, "模組建議婉拒：JCIC資料不足且查詢過多 "},
-	{111, "模組建議婉拒：JCIC資料不足且有信用卡逾繳紀錄 "},
-	{112, "模組建議婉拒：JCIC資料不足且有強制停卡紀錄 "},
+	{108, "模組建議婉拒：任一貸款最近一個月遲繳 "},
+	{109, "模組建議婉拒：無擔保貸款總額超過100萬元 "},
+	{110, "模組建議婉拒：負債比率過高 "},
+	{111, "模組建議婉拒：聯徵特殊註記 "},
+	{112, "模組建議婉拒：京城銀行黑名單 "},
 	{120, "模組建議婉拒：JCIC資料不足且查詢過多 "},
-	{121, "模組建議婉拒：JCIC資料不足且有強制停卡紀錄 "},
+	{121, "模組建議婉拒：JCIC資料不足且有信用卡逾繳紀錄 "},
+	{122, "模組建議婉拒：JCIC資料不足且有強制停卡紀錄 "},
+	{123, "模組建議婉拒：JCIC資料不足且查詢過多 "},
+	{124, "模組建議婉拒：JCIC資料不足且有強制停卡紀錄 "},
 	{201, "模組建議人工審核：請詳加核實收入相關資料；模組輸出僅供參考 "},
 	{202, "模組建議人工審核：請詳加核實收入相關資料；模組輸出僅供參考 "},
 	{203, "模組建議人工審核：請詳加核實收入相關資料；模組輸出僅供參考 "},
@@ -78,11 +88,11 @@ Output_Msg ktbMsg[] = {
 extern "C" __declspec(dllexport)
 int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                 double principal, double apr, int period, double app_fee,
-                double gav, double nav, char *zip, double first_lien_value, char *error);
+                double gav, double nav, char *zip, double first_lien_value, int monthly_income, char *error);
 
 extern "C" __declspec(dllexport)
 int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db, 
-                      double gav, double nav, char *error);
+                      int monthly_income, char *error);
 
 void prepare_2xx_infra(TADOCommand *command, int now);
 
@@ -161,7 +171,7 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
                 const AnsiString &jas002, const AnsiString &bam085, const AnsiString &stm007,
                 const AnsiString &msn, const AnsiString &idno,
                 const AnsiString &time_stamp,
-                unsigned char flag, int now);
+                unsigned char flag, int monthly_income, int now);
 unsigned char get_data_availability(TADOQuery *query,const AnsiString &idno); 
 double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case_no,
                 const AnsiString &idn, const AnsiString &time_stamp, double gender, 
