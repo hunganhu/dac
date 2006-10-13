@@ -779,9 +779,56 @@ catch(Exception &E){
       command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 }
-
   sql_stmt = "SELECT * INTO " + destination_table;
-  sql_stmt+= " FROM " + source_table + " WHERE MSN = :msn AND INQUIRY_DATE = :time_stamp;";
+  sql_stmt+= " FROM " + source_table + " WHERE MSN = :msn AND INQUIRY_DATE = :time_stamp ";
+
+  if(source_table == "KRM021"){
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, CARD_BRAND, CARD_TYPE, ISSUE, ";
+    sql_stmt += "ISSUE_NAME, START_DATE, STOP_DATE, STOP_CODE, AB_CODE, M_S, ";
+    sql_stmt += "LIMIT, Input_Time, RELA, RISK, CLEAR_DATE, IDN_PRI, ";
+    sql_stmt += "CNAME, REMARK";
+  }
+  else if(source_table == "KRM023"){
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, YRMON, ISSUE, ISSUE_NAME, ";
+    sql_stmt += "KR_CODE, LIMIT, PAYMENT, CASH, PAY_CODE, Input_Time";
+  }
+  else if(source_table == "BAM087"){
+    sql_stmt += "GROUP BY MSN, IDN, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ";
+    sql_stmt += "ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, ";
+    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
+    sql_stmt += "Input_Time, ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
+  }
+  else if(source_table == "BAM086"){
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, ";
+    sql_stmt += "BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, ";
+    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
+    sql_stmt += "Input_Time";
+  }
+  else if(source_table == "STM007"){
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, QUERY_DATE, BANK_CODE, ";
+    sql_stmt += "BANK_NAME, ITEM_LIST, Input_Time, INQ_PURPOSE_1, INQ_PURPOSE";
+  }
+  else if(source_table == "JAS002"){
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, EVER_DELINQUENT, ";
+    sql_stmt += "DELINQUENT_DATE, EVER_BAD_CHECK, BAD_CHECK_DATE, ";
+    sql_stmt += "EVER_REJECT, REJECT_DATE, EVER_STOP_CARD, STOP_CARD_DATE, ";
+    sql_stmt += "Input_Time";
+  }
+  else if(source_table == "KRM037"){
+    sql_stmt += "AND ISSUE <> 'TOT' ";
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, INPUT_TIME, BILL_DATE, ISSUE, ";
+    sql_stmt += "ISSUE_NAME, CARD_TYPE, PERM_LIMIT, TEMP_LIMIT, CASH_LIMIT, ";
+    sql_stmt += "PAYABLE, CASH_LENT, LAST_PAYA, REVOL_BAL, PAY_STAT, PAY_CODE, ";
+    sql_stmt += "REVOL_RATE, PRE_OWED, DEBT_CODE, CLOSE_CODE, CLEAR_DATE";
+  }
+  else if(source_table == "KRM034"){
+    sql_stmt += "AND ISSUE <> 'TOT' ";
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, INPUT_TIME, BILL_DATE, ISSUE, ";
+    sql_stmt += "ISSUE_NAME, CARD_TYPE, PERM_LIMIT, CASH_YN, ";
+    sql_stmt += "LAST_PAYA, PAY_STAT, PAY_CODE, ";
+    sql_stmt += "DEBT_CODE, CLOSE_CODE, CLEAR_DATE";
+  };
+
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Parameters->ParamValues["msn"] = msn;
@@ -941,40 +988,27 @@ void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
                                  const AnsiString &krm037, int now)
 {
   AnsiString sql_stmt;
-
-  sql_stmt = "ALTER TABLE " + krm023 + " "
-             " ADD PAYMENT_AMT FLOAT, BUCKET_DEF_1K INT, BUCKET_EF_1K INT, BUCKET_F_1K INT, MON_SINCE INT, "
-             " REVOL_BAL INT, PRE_OWED INT ";
+  sql_stmt = "UPDATE " + krm037 + " SET ";
+  sql_stmt += "BILL_DATE = (CASE WHEN BILL_DATE = '' THEN NULL ELSE LTRIM(RTRIM(BILL_DATE)) END), ";
+  sql_stmt += "ISSUE = (CASE WHEN ISSUE = '' THEN NULL ELSE ISSUE END), ";
+  sql_stmt += "ISSUE_NAME = (CASE WHEN ISSUE_NAME = '' THEN NULL ELSE ISSUE_NAME END), ";
+  sql_stmt += "CARD_TYPE = (CASE WHEN CARD_TYPE = '' THEN NULL ELSE CARD_TYPE END), ";
+  sql_stmt += "PAYABLE = (CASE WHEN PAYABLE = '' THEN NULL ELSE PAYABLE END), ";
+  sql_stmt += "LAST_PAYA = (CASE WHEN LAST_PAYA = '' THEN NULL ELSE LAST_PAYA END), ";
+  sql_stmt += "PAY_STAT = (CASE WHEN PAY_STAT = '' THEN NULL ELSE PAY_STAT END), ";
+  sql_stmt += "PAY_CODE = (CASE WHEN PAY_CODE = '' THEN NULL ELSE PAY_CODE END), ";
+  sql_stmt += "DEBT_CODE = (CASE WHEN DEBT_CODE = '' THEN NULL ELSE DEBT_CODE END), ";
+  sql_stmt += "CLOSE_CODE = (CASE WHEN CLOSE_CODE = '' THEN NULL ELSE CLOSE_CODE END), ";
+  sql_stmt += "CLEAR_DATE = (CASE WHEN CLEAR_DATE = '' THEN NULL ELSE CLEAR_DATE END) ";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
-  sql_stmt = "UPDATE " + krm037 + " SET "
-             " bill_date  = (case when ltrim(bill_date)  = '' then null else ltrim(rtrim(bill_date)) end), "
-             " issue      = (case when ltrim(issue)      = '' then null else issue end), "
-             " issue_name = (case when ltrim(issue_name) = '' then null else issue_name end), "
-             " card_type  = (case when ltrim(card_type)  = '' then null else card_type end), "
-             " perm_limit = (case when ltrim(perm_limit) = '' then null else perm_limit end), "
-             " temp_limit = (case when ltrim(temp_limit) = '' then null else temp_limit end), "
-             " cash_limit = (case when ltrim(cash_limit) = '' then null else cash_limit end), "
-             " payable    = (case when ltrim(payable)    = '' then null else payable end), "
-             " cash_lent  = (case when ltrim(cash_lent)  = '' then null else cash_lent end), "
-             " last_paya  = (case when ltrim(last_paya)  = '' then null else last_paya end), "
-             " revol_bal  = (case when ltrim(revol_bal)  = '' then null else revol_bal end), "
-             " pay_stat   = (case when ltrim(pay_stat)   = '' then null else pay_stat end), "
-             " pay_code   = (case when ltrim(pay_code)   = '' then null else pay_code end), "
-             " revol_rate = (case when ltrim(revol_rate) = '' then null else revol_rate end), "
-             " pre_owed   = (case when ltrim(pre_owed)   = '' then null else pre_owed end), "
-             " debt_code  = (case when ltrim(debt_code)  = '' then null else debt_code end), "
-             " close_code = (case when ltrim(close_code) = '' then null else close_code end), "
-             " clear_date = (case when ltrim(clear_date) = '' then null else clear_date end) ";
-  sql_stmt = sql_stmt.UpperCase();
-  command->CommandText = sql_stmt;
-  command->Execute();
-/*
   try{
-    sql_stmt = "DROP TABLE KRM023_TMP";
-    sql_stmt = sql_stmt.UpperCase();
+    sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM023_TMP]')"
+             "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
+             "   DROP TABLE KRM023_TMP; ";
+//    sql_stmt = sql_stmt.UpperCase();
     command->CommandText = sql_stmt;
     command->Execute();
   }
@@ -983,105 +1017,116 @@ void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
       if(command->Connection->Errors->Item[0]->NativeError == 3701)
         command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  }
-*/
+  };
 
-  sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM037_CONVERT]')"
+ try {
+    sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM023_TMP1]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
-             "   drop table [KRM037_CONVERT]; "
-             " CREATE TABLE KRM037_CONVERT ("
-             " 	MSN		CHAR(20),      "
-             " 	IDN		CHAR(14),      "
-             "	INQUIRY_DATE	CHAR(10),      "
-             " 	YRMON		CHAR(5),       "
-             " 	ISSUE		CHAR(3),       "
-             " 	ISSUE_NAME	CHAR(40),      "
-             " 	KR_CODE		CHAR(7),       "
-             " 	LIMIT		INT,           "
-             " 	PAYMENT		CHAR(3),       "
-             " 	CASH		CHAR(1),       "
-             " 	PAY_CODE	CHAR(1),       "
-             " 	MON_SINCE	INT,           "
-             " 	PAYMENT_AMT	FLOAT,         "
-             " 	BUCKET_DEF_1K	INT DEFAULT 0, "
-             " 	BUCKET_EF_1K	INT DEFAULT 0, "
-             " 	BUCKET_F_1K	INT DEFAULT 0, "
-             "	NOW		INT,           "
-             "	CURR_INQMON	INT,           "
-             " 	CNT		INT,           "
-             "	REVOL_BAL 	INT,           "
-             "	PRE_OWED 	INT            "
-             " )";
-//  sql_stmt = sql_stmt.UpperCase();
-  command->CommandText = sql_stmt;
-  command->Execute();
+             "   DROP TABLE KRM023_TMP1; ";
+//    sql_stmt = sql_stmt.UpperCase();
+    command->CommandText = sql_stmt;
+    command->Execute();
+  }
+  catch(Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+  };
 
-sql_stmt = " insert into krm037_convert (MSN, inquiry_date, IDN, issue, issue_name, limit, kr_code, payment, revol_bal, pre_owed, cash, pay_code, mon_since)"
-           "   select MSN, inquiry_date, IDN,                                              "
-           "          (case when (issue = 'A82' and card_type = 'A') then 'AEA'            "
-           "                when (issue = 'A82' and card_type = 'E') then 'AEE'            "
-           "                when (issue = '021' and card_type = 'V') then 'CTV'            "
-           "                when (issue = '021' and card_type = 'M') then 'CTM'            "
-           "                when (issue = '021' and card_type = 'D') then 'CTD'            "
-           "                when issue = '150' then '103'                                  "
-           "                else issue end),                                               "
-           "          issue_name, cast(perm_limit as int), card_type,"
-           "          (case when right(left(last_paya,2),1) in ('H', 'M', 'L') then '0'+(left(last_paya,2)) "
-           "          else last_paya end),"
-           "          cast(revol_bal as int), cast(pre_owed as int), 'N',                  "
-           "          (case when debt_code in ('A', 'B') then 'F'                          "
-           "                when pay_stat = 'X' and pay_code = 'X' then '*'                "
-           "                when pay_stat = '1' and pay_code = 'N' then 'A'                "
-           "                when pay_stat = '1' and pay_code = '0' then 'B'                "
-           "                when pay_stat = '2' and pay_code = 'N' then 'C'                "
-           "                when pay_stat = '2' and pay_code = '0' then 'D'                "
-           "                when pay_stat = '3' and pay_code between '1' and '7' then 'E'  "
-           "                when pay_stat = '4' and pay_code between '1' and '7' then 'F'  "
-           "                else null end), "
-           "          (case when LEN(bill_date) = 4 and left(bill_date,1) between '1' and '9' "
-           "                     then cast(left(bill_date, 2) as int) * 12 + cast(right(bill_date, 2) as int) "
-           "                when LEN(bill_date) = 7 and cast(right(bill_date,2) as int) > 15 "
-           "                     then cast(left(bill_date, 3)as int) * 12 + cast(SUBSTRING(bill_date, 4, 2) as int) "
-           "                when LEN(bill_date) = 7 then cast(left(bill_date, 3) as int) * 12 + cast(SUBSTRING(bill_date, 4, 2) as int) - 1 "
-           "                else null end) "
-           "   from " + krm037 + "; "
-           " update krm037_convert "
-           "   set payment_amt = "
-           "         (case right(payment,1) when 'L' then 2 when 'M' then 5 when 'H' then 8 "
-           "          else 0 end) * power(10, cast(left(payment,2) as int)-1) / 1000.0; "
-           " insert into " + krm023 + " (MSN, inquiry_date, IDN, issue, issue_name, limit, payment_amt, revol_bal, pre_owed, cash, pay_code, mon_since) "
-           "   select MSN, inquiry_date, IDN, issue, "
-           "          issue_name, cast(sum(limit) as char(5)), sum(payment_amt),  "
-           "          sum(revol_bal), sum(pre_owed), cash, max(pay_code), mon_since "
-           "   from krm037_convert "
-           "   where mon_since > 1140 "
-           "   group by MSN, inquiry_date, IDN, issue, issue_name, cash, mon_since; "
-           " update " + krm023 + " "
-           "    set pay_code = 'X' "
-           "  where pay_code='*'; "
-           " update " + krm023 + " "
-           "    set cash = 'Y' "
-           "    where exists (select * "
-           "                  from " + krm037 + " s "
-           "                  where " + krm023 + ".msn = s.msn "
-           "                    and " + krm023 + ".mon_since = cast(left(s.bill_date, 3) as int) * 12 * cast(SUBSTRING(s.bill_date, 4, 2) as int) "
-           "                    and " + krm023 + ".issue = s.issue "
-           "                    and cast(s.cash_lent as int) > 0); ";
+  sql_stmt = "CREATE TABLE KRM023_TMP ";
+  sql_stmt += "(MSN CHAR(14), IDN CHAR(11), ";
+  sql_stmt += "MON_SINCE INT, ISSUE CHAR(3), ISSUE_NAME CHAR(40), LIMIT CHAR(5),";
+  sql_stmt += "PAYMENT CHAR(3), PAYMENT_AMT FLOAT, CASH CHAR, PAY_CODE CHAR, SPREAD_PAYMENT FLOAT)";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
+  sql_stmt = "INSERT INTO KRM023_TMP (MSN, IDN, ";
+  sql_stmt += "MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT, PAYMENT_AMT, ";
+  sql_stmt += "CASH, PAY_CODE, SPREAD_PAYMENT) SELECT MSN, IDN, ";
+  sql_stmt += "(CASE WHEN LEFT(BILL_DATE,1) = '*' THEN NULL ";
+  sql_stmt += "WHEN LEN(BILL_DATE) = 4 AND LEFT(BILL_DATE,1) BETWEEN '1' AND '9' ";
+  sql_stmt += "THEN CONVERT(INT, LEFT(BILL_DATE, 2)) * 12 + CONVERT(INT, RIGHT(BILL_DATE, 2)) ";
+  sql_stmt += "WHEN LEN(BILL_DATE) = 5 AND LEFT(BILL_DATE,1) BETWEEN '0' AND '9' THEN ";
+  sql_stmt += "CONVERT(INT, LEFT(BILL_DATE, 3)) * 12 + CONVERT(INT, RIGHT(BILL_DATE, 2)) ";
+  sql_stmt += "WHEN LEN(BILL_DATE) = 7 ";//AND CONVERT(INT, RIGHT(BILL_DATE,2)) > 15 ";
+  sql_stmt += "THEN CONVERT(INT, LEFT(BILL_DATE, 3)) * 12 + CONVERT(INT, SUBSTRING(BILL_DATE, 4, 2)) ";
+//  sql_stmt += "WHEN LEN(BILL_DATE) = 7 THEN CONVERT(INT,LEFT(BILL_DATE, 3)) * 12 + CONVERT(INT, SUBSTRING(BILL_DATE, 4, 2)) - 1 ";
+  sql_stmt += "ELSE NULL END), (CASE WHEN ISSUE = '021' AND CARD_TYPE = 'V' THEN 'CTV' ";
+  sql_stmt += "WHEN ISSUE = '021' AND CARD_TYPE = 'M' THEN 'CTM' ";
+  sql_stmt += "WHEN ISSUE = '021' AND CARD_TYPE = 'D' THEN 'CTD' ";
+  sql_stmt += "WHEN ISSUE = 'A82' AND CARD_TYPE = 'A' THEN 'AEA' ";
+  sql_stmt += "WHEN ISSUE = 'A82' AND CARD_TYPE = 'E' THEN 'AEE' ELSE ISSUE END), ";
+  sql_stmt += "ISSUE_NAME, PERM_LIMIT, LAST_PAYA, REVOL_BAL / 1000.0, ";
+  sql_stmt += "(CASE WHEN CASH_LENT > 0 THEN 'Y' ELSE 'N' END), ";
+  sql_stmt += "(CASE WHEN DEBT_CODE IN ('A', 'B') THEN 'F' ";
+  sql_stmt += "WHEN PAY_STAT = 'X' AND PAY_CODE = 'X' THEN 'X' ";
+  sql_stmt += "WHEN PAY_STAT = '1' AND PAY_CODE = 'N' THEN 'A' ";
+  sql_stmt += "WHEN PAY_STAT = '1' AND PAY_CODE = '0' THEN 'B' ";
+  sql_stmt += "WHEN PAY_STAT = '2' AND PAY_CODE = 'N' THEN 'C' ";
+  sql_stmt += "WHEN PAY_STAT = '2' AND PAY_CODE = '0' THEN 'D' ";
+  sql_stmt += "WHEN PAY_STAT = '3' AND PAY_CODE BETWEEN '1' AND '7' THEN 'E' ";
+  sql_stmt += "WHEN PAY_STAT = '4' AND PAY_CODE BETWEEN '1' AND '7' THEN 'F' ";
+  sql_stmt += "ELSE NULL END), ";
+  sql_stmt += "PRE_OWED / 1000.0 ";
+  sql_stmt += "FROM " + krm037;
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
 
+  sql_stmt = "UPDATE KRM023_TMP SET PAYMENT_AMT = ";
+  sql_stmt += "(CASE RIGHT(PAYMENT,1) WHEN 'L' THEN 2 WHEN 'M' THEN 5 WHEN 'H' THEN 8 ";
+  sql_stmt += "ELSE 0 END) * POWER(10, ISNULL(LEFT(PAYMENT,2),0)-1) / 1000.0 ";
+  sql_stmt += "WHERE ((PAYMENT_AMT IS NULL) OR (PAYMENT_AMT = 0))";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
 
+  sql_stmt = "CREATE TABLE KRM023_TMP1 ";
+  sql_stmt += "(MSN CHAR(14), IDN CHAR(11), ";
+  sql_stmt += "MON_SINCE INT, ISSUE CHAR(3), ISSUE_NAME CHAR(40), LIMIT CHAR(5),";
+  sql_stmt += "PAYMENT_AMT FLOAT, CASH CHAR, PAY_CODE CHAR, SPREAD_PAYMENT FLOAT)";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
 
-//  sql_stmt = "INSERT INTO " + krm023 + "(MSN, IDN, TIME_STAMP, INQUIRY_DATE, ";
-//  sql_stmt += "MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT, PAYMENT_AMT, ";
-//  sql_stmt += "CASH, PAY_CODE) SELECT MSN, IDN, TIME_STAMP, INQUIRY_DATE, MON_SINCE, ";
-//  sql_stmt += "ISSUE, ISSUE_NAME, LIMIT, PAYMENT, PAYMENT_AMT, CASH, PAY_CODE ";
-//  sql_stmt += "FROM KRM023_TMP WHERE MON_SINCE > 1140"; //1140 = 94 * 12 + 12
-//  sql_stmt = sql_stmt.UpperCase();
-//  command->CommandText = sql_stmt;
-//  command->Execute();
+  sql_stmt = "INSERT INTO KRM023_TMP1 (MSN, IDN, MON_SINCE, ISSUE, ISSUE_NAME, ";
+  sql_stmt += "LIMIT, PAYMENT_AMT, CASH, PAY_CODE, SPREAD_PAYMENT) ";
+  sql_stmt += "SELECT MSN, IDN, MON_SINCE, ISSUE, ISSUE_NAME, SUM(CONVERT(INT, LIMIT)), ";
+  sql_stmt += "SUM(PAYMENT_AMT), MAX(CASH), ";
+  sql_stmt += "MAX(CASE WHEN PAY_CODE = 'X' THEN '0' ELSE PAY_CODE END), ";
+  sql_stmt += "SUM(SPREAD_PAYMENT) FROM KRM023_TMP ";
+  sql_stmt += "GROUP BY MSN, IDN, MON_SINCE, ISSUE, ISSUE_NAME";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE KRM023_TMP1 SET ";
+  sql_stmt += "CASH = A.CASH FROM KRM023_TMP1 AS A INNER JOIN KRM023_TMP1 ";
+  sql_stmt += "ON KRM023_TMP1.IDN = A.IDN AND ";
+  sql_stmt += "KRM023_TMP1.MON_SINCE = A.MON_SINCE + 1 AND ";
+  sql_stmt += "KRM023_TMP1.ISSUE = A.ISSUE AND ";
+  sql_stmt += "KRM023_TMP1.MSN = A.MSN";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "ALTER TABLE " + krm023 + " ";
+  sql_stmt += "ADD PAYMENT_AMT FLOAT, BUCKET_DEF_1K INT, BUCKET_EF_1K INT, BUCKET_F_1K INT, MON_SINCE INT, SPREAD_PAYMENT FLOAT;";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "INSERT INTO " + krm023 + "(MSN, IDN, ";
+  sql_stmt += "MON_SINCE, ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, ";
+  sql_stmt += "CASH, PAY_CODE, SPREAD_PAYMENT) SELECT MSN, IDN, MON_SINCE, ";
+  sql_stmt += "ISSUE, ISSUE_NAME, LIMIT, PAYMENT_AMT, CASH, ";
+  sql_stmt += "(CASE WHEN PAY_CODE = '0' THEN 'X' ELSE PAY_CODE END), SPREAD_PAYMENT ";
+  sql_stmt += "FROM KRM023_TMP1 WHERE MON_SINCE > 1140"; //1140 = 94 * 12 + 12
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
 
   sql_stmt = "UPDATE " + krm023 + " SET ";
   sql_stmt += "YRMON = (CASE WHEN YRMON = '' THEN NULL ELSE YRMON END), ";
@@ -1125,21 +1170,6 @@ sql_stmt = " insert into krm037_convert (MSN, inquiry_date, IDN, issue, issue_na
   sql_stmt = "UPDATE " + krm023 + " SET PAYMENT = ";
   sql_stmt += "(CASE WHEN RIGHT(LEFT(PAYMENT,2),1) IN ('H', 'M', 'L') THEN '0' + (LEFT(PAYMENT,2)) ELSE PAYMENT END) ";
   sql_stmt += "WHERE PAYMENT IS NOT NULL";
-  sql_stmt = sql_stmt.UpperCase();
-  command->CommandText = sql_stmt;
-  command->Execute();
-
-  sql_stmt = " update " + krm023 + " "
-             "   set payment_amt = 0 "
-             "   where payment_amt is null; "
-             " update " + krm023 + " "
-             "   set payment_amt = cast(limit as int) "
-             "   where payment_amt > cast(limit as int) "
-             "     and issue != 'AEE' "
-             " update " + krm023 + " "
-             "   set revol_bal = payment_amt * 1000, "
-             "       pre_owed = 0 "
-             "   where revol_bal is null " ;
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
@@ -1188,6 +1218,13 @@ sql_stmt = " insert into krm037_convert (MSN, inquiry_date, IDN, issue, issue_na
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Parameters->ParamValues["inq_mon"] = now;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + krm023 + " SET ";
+  sql_stmt += "PAYMENT_AMT = (CASE WHEN PAYMENT_AMT > LIMIT THEN LIMIT ";
+  sql_stmt += "ELSE PAYMENT_AMT END) WHERE LIMIT > 0 ";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
   command->Execute();
 }
 
@@ -3445,7 +3482,7 @@ unsigned int in_pdaco_1_00(TADOQuery *query,
 
     sql_stmt = "SELECT SUM(CASE WHEN PAY_CODE IN ('C', 'D', 'E', 'F') THEN ISNULL(PAYMENT_AMT,0)+ISNULL(SPREAD_PAYMENT,0) "
                "                WHEN CASH = 'Y' AND ISNULL(SPREAD_PAYMENT,0)>0 THEN ISNULL(SPREAD_PAYMENT,0) "
-               "                ELSE 0 END) AS BAL, ";
+               "                ELSE 0 END) AS BAL ";
     sql_stmt += "FROM " + krm023 + " AS A ";
     sql_stmt += "INNER JOIN KRM023_RANGE_TMP AS B ON A.IDN = B.IDN AND ";
     sql_stmt += "A.ISSUE = B.ISSUE AND A.MON_SINCE = B.MON AND A.IDN = :idn";
