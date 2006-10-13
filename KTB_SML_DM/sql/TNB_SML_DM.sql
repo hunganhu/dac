@@ -134,7 +134,7 @@ CREATE TABLE APP_INFO (
 	APPLICANT_ID	CHAR(10) NOT NULL,     -- 申請人身份證字號姓名  
 	APPLICANT_NAME	VARCHAR(30) NOT NULL,  -- 申請人姓名
 	ZIP		CHAR(3),               -- 三位郵遞區號
-	INCOME		INT NOT NULL,          -- 年收入
+	INCOME		INT NOT NULL,          -- 月收入
 	APP_AMT		INT NOT NULL,          -- 申貸金額 
 	PERIOD		INT NOT NULL,          -- 申貸期間
 	APR		DECIMAL(8,5) NOT NULL, -- 申貸利率
