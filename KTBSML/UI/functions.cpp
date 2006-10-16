@@ -9,7 +9,7 @@
 
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
-bool check_id(const AnsiString &idn, unsigned int &gender)
+bool check_valid_id(const AnsiString &idn, unsigned int &gender)
 {
   bool result = false;
   int number;

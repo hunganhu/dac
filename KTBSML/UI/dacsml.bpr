@@ -5,7 +5,7 @@
     <VERSION value="BCB.06.00"/>
     <PROJECT value="dacsml.exe"/>
     <OBJFILES value="dacsml.obj Data_Module.obj LoginUI.obj Main.obj functions.obj dirui.obj 
-      redirui.obj"/>
+      redirui.obj main_utils.obj"/>
     <RESFILES value="dacsml.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -64,6 +64,7 @@
       <FILE FILENAME="DAC_SML_NPV.lib" FORMNAME="" UNITNAME="DAC_SML_NPV.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="dirui.cpp" FORMNAME="frmDirUI" UNITNAME="dirui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="redirui.cpp" FORMNAME="frmReDirUI" UNITNAME="redirui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="main_utils.cpp" FORMNAME="" UNITNAME="main_utils" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

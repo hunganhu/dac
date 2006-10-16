@@ -1,5 +1,5 @@
 object frmReDirUI: TfrmReDirUI
-  Left = 827
+  Left = 752
   Top = 185
   BorderStyle = bsDialog
   Caption = #35373#23450#24501#23529#22577#34920#29986#29983#30446#37636

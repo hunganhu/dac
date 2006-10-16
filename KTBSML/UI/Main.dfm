@@ -1,9 +1,10 @@
 object formMain: TformMain
-  Left = 125
-  Top = 77
+  Left = 94
+  Top = 82
   Width = 868
-  Height = 688
-  Caption = 'DAC'#20108#38918#20301#25151#36024#35413#20998#31995#32113#9472#25552#20379#20140#22478#37504#34892#20351#29992
+  Height = 595
+  VertScrollBar.Position = 2
+  Caption = 'DAC'#28136#20540#25151#36024#35413#20998#31995#32113#9472#25552#20379#20140#22478#37504#34892#20351#29992
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,50 +18,42 @@ object formMain: TformMain
   TextHeight = 13
   object lblMessage: TLabel
     Left = -1
-    Top = 578
+    Top = 454
     Width = 858
-    Height = 71
+    Height = 106
     AutoSize = False
     Color = clBtnHighlight
     ParentColor = False
     WordWrap = True
   end
+  object Label4: TLabel
+    Left = 0
+    Top = 430
+    Width = 65
+    Height = 13
+    AutoSize = False
+    Caption = #22519#34892#35338#24687
+  end
   object PageControlMain: TPageControl
     Left = 0
-    Top = 0
+    Top = -2
     Width = 857
-    Height = 577
-    ActivePage = TabSheet3
-    TabIndex = 2
+    Height = 425
+    ActivePage = TabSheet1
+    TabIndex = 0
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = #21021#23529#26696#20214
-      object Label67: TLabel
-        Left = 8
-        Top = 515
-        Width = 65
-        Height = 13
-        AutoSize = False
-        Caption = #36914#20214#20998#34892
-      end
-      object Label68: TLabel
-        Left = 152
-        Top = 515
-        Width = 65
-        Height = 13
-        AutoSize = False
-        Caption = #36914#20214#21729#24037
-      end
       object GroupBoxApp: TGroupBox
         Left = 8
         Top = 8
         Width = 825
-        Height = 81
+        Height = 57
         Caption = #30003#35531#20154#22522#26412#36039#26009
         TabOrder = 0
         object Label15: TLabel
-          Left = 180
-          Top = 20
+          Left = 8
+          Top = 28
           Width = 73
           Height = 13
           AutoSize = False
@@ -73,69 +66,12 @@ object formMain: TformMain
           ParentFont = False
         end
         object Label1: TLabel
-          Left = 370
-          Top = 20
-          Width = 73
+          Left = 512
+          Top = 28
+          Width = 95
           Height = 13
           AutoSize = False
-          Caption = #20986#29983#24180#26376#26085
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label16: TLabel
-          Left = 525
-          Top = 20
-          Width = 12
-          Height = 16
-          AutoSize = False
-          Caption = #24180
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label17: TLabel
-          Left = 575
-          Top = 20
-          Width = 12
-          Height = 16
-          AutoSize = False
-          Caption = #26376
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label18: TLabel
-          Left = 625
-          Top = 20
-          Width = 12
-          Height = 16
-          AutoSize = False
-          Caption = #26085
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label7: TLabel
-          Left = 450
-          Top = 20
-          Width = 29
-          Height = 13
-          Alignment = taRightJustify
-          AutoSize = False
-          Caption = #27665#22283
+          Caption = #19977#20301#37109#36958#21312#34399
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
@@ -144,9 +80,9 @@ object formMain: TformMain
           ParentFont = False
         end
         object Label14: TLabel
-          Left = 8
-          Top = 20
-          Width = 73
+          Left = 176
+          Top = 28
+          Width = 65
           Height = 16
           AutoSize = False
           Caption = #22995'        '#21517
@@ -157,73 +93,26 @@ object formMain: TformMain
           Font.Style = []
           ParentFont = False
         end
-        object Label6: TLabel
-          Left = 8
-          Top = 50
-          Width = 57
-          Height = 13
-          AutoSize = False
-          Caption = #23130#23035#29376#27841
-        end
-        object Label8: TLabel
-          Left = 180
-          Top = 50
-          Width = 73
-          Height = 13
-          AutoSize = False
-          Caption = #25771#39178#23376#22899#25976
-        end
-        object Label9: TLabel
-          Left = 370
-          Top = 50
-          Width = 65
-          Height = 13
-          AutoSize = False
-          Caption = #25945#32946#31243#24230
-        end
-        object Label10: TLabel
-          Left = 544
-          Top = 50
-          Width = 33
-          Height = 13
-          AutoSize = False
-          Caption = #32887#26989
-        end
         object Label11: TLabel
-          Left = 688
-          Top = 50
+          Left = 354
+          Top = 28
           Width = 49
           Height = 13
           AutoSize = False
           Caption = #24180#25910#20837
         end
         object Label2: TLabel
-          Left = 785
-          Top = 50
+          Left = 456
+          Top = 28
           Width = 32
-          Height = 13
+          Height = 15
           AutoSize = False
           Caption = #33836#20803
         end
-        object Label48: TLabel
-          Left = 324
-          Top = 50
-          Width = 12
-          Height = 13
-          Caption = #20154
-        end
-        object Label70: TLabel
-          Left = 688
-          Top = 20
-          Width = 65
-          Height = 13
-          AutoSize = False
-          Caption = ' '#37109#36958#21312#34399
-        end
         object medtPrimaryID: TMaskEdit
-          Left = 260
-          Top = 20
-          Width = 85
+          Left = 92
+          Top = 28
+          Width = 69
           Height = 21
           AutoSize = False
           CharCase = ecUpperCase
@@ -231,143 +120,50 @@ object formMain: TformMain
           ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 10
-          TabOrder = 1
+          TabOrder = 0
           Text = '          '
         end
-        object medtPrimaryBirthYear: TMaskEdit
-          Left = 490
-          Top = 18
-          Width = 28
-          Height = 21
-          AutoSize = False
-          EditMask = '!999;0;_'
-          ImeMode = imClose
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 3
-          TabOrder = 2
-        end
-        object medtPrimaryBirthMonth: TMaskEdit
-          Left = 544
-          Top = 18
-          Width = 25
-          Height = 21
-          AutoSize = False
-          EditMask = '!99;0;_'
-          ImeMode = imClose
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 2
-          TabOrder = 3
-        end
-        object medtPrimaryBirthDate: TMaskEdit
-          Left = 595
-          Top = 18
-          Width = 25
-          Height = 21
-          AutoSize = False
-          EditMask = '!99;0;_'
-          ImeMode = imClose
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 2
-          TabOrder = 4
-        end
         object edtPrimaryName: TEdit
-          Left = 72
-          Top = 18
+          Left = 240
+          Top = 28
           Width = 95
           Height = 21
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          TabOrder = 0
-        end
-        object marriage: TComboBox
-          Left = 72
-          Top = 48
-          Width = 97
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 6
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            #26410#23130
-            #24050#23130
-            #38626#23130)
-        end
-        object child: TComboBox
-          Left = 260
-          Top = 50
-          Width = 61
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 7
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            '0'
-            '1'
-            '2'
-            '2'#20154#20197#19978)
-        end
-        object education: TComboBox
-          Left = 432
-          Top = 50
-          Width = 89
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 8
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            #30740#31350#25152
-            #22823#23416
-            #23560#31185
-            #39640#12289#22283#20013)
-        end
-        object edtCareer: TEdit
-          Left = 576
-          Top = 50
-          Width = 89
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          TabOrder = 9
+          TabOrder = 1
         end
         object edtIncome: TMaskEdit
-          Left = 736
-          Top = 50
+          Left = 412
+          Top = 28
           Width = 37
           Height = 21
           EditMask = '99999;0;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 5
-          TabOrder = 10
+          TabOrder = 2
         end
-        object edtZip: TMaskEdit
-          Left = 752
-          Top = 18
-          Width = 30
+        object medtZip: TMaskEdit
+          Left = 600
+          Top = 28
+          Width = 25
           Height = 21
           EditMask = '000;1;_'
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 3
-          TabOrder = 5
+          TabOrder = 3
           Text = '   '
         end
       end
       object GroupBoxProd: TGroupBox
         Left = 8
-        Top = 96
+        Top = 72
         Width = 825
         Height = 49
         Caption = #36024#27454#36039#26009
         TabOrder = 1
         object Label3: TLabel
           Left = 8
-          Top = 16
+          Top = 20
           Width = 65
           Height = 13
           AutoSize = False
@@ -379,27 +175,13 @@ object formMain: TformMain
           Font.Style = []
           ParentFont = False
         end
-        object Label4: TLabel
-          Left = 180
-          Top = 16
-          Width = 65
-          Height = 13
-          AutoSize = False
-          Caption = #30003#36024#21033#29575
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
         object Label5: TLabel
-          Left = 370
-          Top = 16
+          Left = 354
+          Top = 20
           Width = 57
           Height = 13
           AutoSize = False
-          Caption = #30003#36024#26399#38291
+          Caption = #30003#36024#26399#25976
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
@@ -409,92 +191,104 @@ object formMain: TformMain
         end
         object Label12: TLabel
           Left = 112
-          Top = 16
+          Top = 20
           Width = 33
           Height = 13
           AutoSize = False
           Caption = #33836#20803
         end
-        object Label19: TLabel
-          Left = 330
-          Top = 16
-          Width = 23
-          Height = 13
-          AutoSize = False
-          Caption = '%'
-        end
         object Label20: TLabel
-          Left = 512
-          Top = 16
+          Left = 488
+          Top = 20
           Width = 12
           Height = 13
           AutoSize = False
           Caption = #24180
         end
-        object Label21: TLabel
-          Left = 544
-          Top = 16
-          Width = 49
+        object Label6: TLabel
+          Left = 176
+          Top = 20
+          Width = 65
+          Height = 13
+          AutoSize = False
+          Caption = #30003#36024#21033#29575
+        end
+        object Label7: TLabel
+          Left = 288
+          Top = 20
+          Width = 12
+          Height = 13
+          AutoSize = False
+          Caption = #65285
+        end
+        object Label8: TLabel
+          Left = 512
+          Top = 20
+          Width = 57
           Height = 13
           AutoSize = False
           Caption = #38283#36774#36027
         end
-        object Label22: TLabel
-          Left = 648
-          Top = 16
-          Width = 25
+        object Label9: TLabel
+          Left = 616
+          Top = 20
+          Width = 17
           Height = 13
           AutoSize = False
           Caption = #20803
         end
         object edtAppAmount: TMaskEdit
           Left = 72
-          Top = 16
+          Top = 20
           Width = 27
           Height = 21
           EditMask = '999;0;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 3
           TabOrder = 0
         end
         object cbPeriod: TComboBox
-          Left = 440
-          Top = 16
+          Left = 412
+          Top = 18
           Width = 65
           Height = 21
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 2
+          TabOrder = 1
           Text = #35531#36984#25799
           Items.Strings = (
             #35531#36984#25799
+            '1'
+            '2'
             '3'
+            '4'
             '5'
+            '6'
             '7')
         end
-        object edtAppFee: TMaskEdit
-          Left = 595
-          Top = 16
-          Width = 40
+        object edtAPR: TEdit
+          Left = 240
+          Top = 20
+          Width = 41
           Height = 21
-          EditMask = '999999;0;_'
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
+          TabOrder = 2
+        end
+        object medtAppFee: TMaskEdit
+          Left = 560
+          Top = 20
+          Width = 46
+          Height = 21
+          EditMask = '999999;1;_'
           MaxLength = 6
           TabOrder = 3
-        end
-        object edtAPR: TEdit
-          Left = 260
-          Top = 16
-          Width = 61
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          TabOrder = 1
+          Text = '      '
         end
       end
       object btnPrescreen: TButton
-        Left = 392
-        Top = 514
+        Left = 200
+        Top = 354
         Width = 75
         Height = 25
         Caption = #35413#20998
@@ -504,12 +298,12 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 4
         OnClick = btnPrescreenClick
       end
       object btnClear: TButton
-        Left = 488
-        Top = 514
+        Left = 376
+        Top = 354
         Width = 75
         Height = 25
         Caption = #28165#38500
@@ -519,12 +313,12 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 7
+        TabOrder = 5
         OnClick = btnClearClick
       end
       object btnExit1: TButton
-        Left = 760
-        Top = 514
+        Left = 752
+        Top = 354
         Width = 75
         Height = 25
         Caption = #32080#26463#31243#24335
@@ -534,14 +328,14 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 6
         OnClick = btnExit1Click
       end
       object GroupBox_p1: TGroupBox
         Left = 7
-        Top = 154
+        Top = 130
         Width = 826
-        Height = 175
+        Height = 87
         Caption = #31532#19968#20214#25812#20445#21697#36039#26009
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -581,38 +375,10 @@ object formMain: TformMain
         object Label58: TLabel
           Left = 8
           Top = 48
-          Width = 73
+          Width = 105
           Height = 13
           AutoSize = False
-          Caption = #22320#34399'/'#24314#34399
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label60: TLabel
-          Left = 488
-          Top = 48
-          Width = 89
-          Height = 13
-          AutoSize = False
-          Caption = #24231#33853#21312#22495
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label62: TLabel
-          Left = 8
-          Top = 72
-          Width = 89
-          Height = 13
-          AutoSize = False
-          Caption = #30446#21069#25269#25276#38918#20301
+          Caption = #25812#20445#21697#38272#29260#34399#30908
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
@@ -628,107 +394,30 @@ object formMain: TformMain
           AutoSize = False
           Caption = #33287#30003#35531#20154#38364#20418
         end
-        object Label46: TLabel
-          Left = 248
-          Top = 72
-          Width = 84
-          Height = 13
-          AutoSize = False
-          Caption = #32317#25269#25276#37329#38989
-        end
-        object Label47: TLabel
-          Left = 440
-          Top = 72
-          Width = 12
-          Height = 13
-          AutoSize = False
-          Caption = #20803
-        end
-        object Label13: TLabel
-          Left = 8
-          Top = 104
-          Width = 121
-          Height = 13
-          AutoSize = False
-          Caption = #22303#22320#26159#21542#21015#28858#31105#24314
-        end
-        object Label49: TLabel
-          Left = 248
-          Top = 104
-          Width = 185
-          Height = 13
-          AutoSize = False
-          Caption = #22303#22320#26159#21542#28858#37117#24066#35336#30059#24501#25910#23565#35937
-        end
-        object Label50: TLabel
-          Left = 544
-          Top = 104
-          Width = 185
-          Height = 13
-          AutoSize = False
-          Caption = #22303#22320#26159#21542#28858#37117#24066#35336#30059#25286#38500#23565#35937
-        end
-        object Label24: TLabel
-          Left = 8
-          Top = 140
-          Width = 121
-          Height = 13
-          AutoSize = False
-          Caption = #25151#23627#26159#21542#28858#36667#23556#23627
-        end
-        object Label25: TLabel
-          Left = 248
-          Top = 140
-          Width = 121
-          Height = 13
-          AutoSize = False
-          Caption = #25151#23627#26159#21542#28858#28023#30722#23627
-        end
-        object Label28: TLabel
-          Left = 544
-          Top = 140
-          Width = 113
-          Height = 13
-          AutoSize = False
-          Caption = #25151#23627#26159#21542#28858#21361#27155
-        end
         object edtOwnerName1: TEdit
-          Left = 96
+          Left = 112
           Top = 24
           Width = 121
           Height = 21
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 0
         end
         object edtLandNum1: TEdit
-          Left = 96
+          Left = 112
           Top = 48
-          Width = 361
+          Width = 553
           Height = 21
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 3
         end
-        object lien1: TComboBox
-          Left = 96
-          Top = 72
-          Width = 81
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 5
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            #28961
-            #31532#19968#38918#20301
-            #31532#20108#38918#20301#25110#20197#19978)
-        end
         object relationship1: TComboBox
           Left = 576
-          Top = 24
+          Top = 22
           Width = 89
           Height = 21
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           ItemHeight = 13
           ItemIndex = 0
@@ -742,122 +431,24 @@ object formMain: TformMain
             #23376#22899
             #20854#20182)
         end
-        object location1: TComboBox
-          Left = 576
-          Top = 48
-          Width = 89
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 4
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            #20303#23429#21312
-            #21830#26989#21312
-            #20303#21830#28151#21512#21312
-            #20854#20182)
-        end
         object edtOwnerID1: TMaskEdit
           Left = 368
           Top = 24
           Width = 85
           Height = 21
           EditMask = '>L<000000000;1;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 10
           TabOrder = 1
           Text = '          '
         end
-        object edtLienValue1: TMaskEdit
-          Left = 368
-          Top = 72
-          Width = 65
-          Height = 21
-          EditMask = '99999999;0;_'
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 8
-          TabOrder = 6
-        end
-        object rgForbit1: TRadioGroup
-          Left = 132
-          Top = 92
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 7
-        end
-        object rgCollect1: TRadioGroup
-          Left = 440
-          Top = 92
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 8
-        end
-        object rgDemolish1: TRadioGroup
-          Left = 728
-          Top = 92
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 9
-        end
-        object rgHouseRay1: TRadioGroup
-          Left = 132
-          Top = 128
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 10
-        end
-        object rgSeasand1: TRadioGroup
-          Left = 368
-          Top = 128
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 11
-        end
-        object rgDangerous1: TRadioGroup
-          Left = 656
-          Top = 128
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 12
-        end
       end
       object GroupBox_p2: TGroupBox
         Left = 7
-        Top = 330
+        Top = 226
         Width = 826
-        Height = 175
+        Height = 87
         Caption = #31532#20108#20214#25812#20445#21697#36039#26009
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -899,40 +490,10 @@ object formMain: TformMain
         object Label38: TLabel
           Left = 8
           Top = 48
-          Width = 73
+          Width = 113
           Height = 13
           AutoSize = False
-          Caption = #22320#34399'/'#24314#34399
-          Enabled = False
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label51: TLabel
-          Left = 488
-          Top = 48
-          Width = 89
-          Height = 13
-          AutoSize = False
-          Caption = #24231#33853#21312#22495
-          Enabled = False
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label52: TLabel
-          Left = 8
-          Top = 72
-          Width = 89
-          Height = 13
-          AutoSize = False
-          Caption = #30446#21069#25269#25276#38918#20301
+          Caption = #25812#20445#21697#38272#29260#34399#30908
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -950,119 +511,33 @@ object formMain: TformMain
           Caption = #33287#30003#35531#20154#38364#20418
           Enabled = False
         end
-        object Label54: TLabel
-          Left = 248
-          Top = 72
-          Width = 84
-          Height = 13
-          AutoSize = False
-          Caption = #32317#25269#25276#37329#38989
-          Enabled = False
-        end
-        object Label57: TLabel
-          Left = 440
-          Top = 72
-          Width = 12
-          Height = 13
-          AutoSize = False
-          Caption = #20803
-          Enabled = False
-        end
-        object Label59: TLabel
-          Left = 8
-          Top = 104
-          Width = 121
-          Height = 13
-          AutoSize = False
-          Caption = #22303#22320#26159#21542#21015#28858#31105#24314
-          Enabled = False
-        end
-        object Label61: TLabel
-          Left = 248
-          Top = 104
-          Width = 185
-          Height = 13
-          AutoSize = False
-          Caption = #22303#22320#26159#21542#28858#37117#24066#35336#30059#24501#25910#23565#35937
-          Enabled = False
-        end
-        object Label63: TLabel
-          Left = 544
-          Top = 104
-          Width = 185
-          Height = 13
-          AutoSize = False
-          Caption = #22303#22320#26159#21542#28858#37117#24066#35336#30059#25286#38500#23565#35937
-          Enabled = False
-        end
-        object Label64: TLabel
-          Left = 8
-          Top = 140
-          Width = 121
-          Height = 13
-          AutoSize = False
-          Caption = #25151#23627#26159#21542#28858#36667#23556#23627
-          Enabled = False
-        end
-        object Label65: TLabel
-          Left = 248
-          Top = 140
-          Width = 121
-          Height = 13
-          AutoSize = False
-          Caption = #25151#23627#26159#21542#28858#28023#30722#23627
-          Enabled = False
-        end
-        object Label66: TLabel
-          Left = 544
-          Top = 140
-          Width = 113
-          Height = 13
-          AutoSize = False
-          Caption = #25151#23627#26159#21542#28858#21361#27155
-          Enabled = False
-        end
         object edtOwnerName2: TEdit
-          Left = 96
+          Left = 112
           Top = 24
           Width = 121
           Height = 21
           Enabled = False
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 1
         end
         object edtLandNum2: TEdit
-          Left = 96
+          Left = 112
           Top = 48
-          Width = 361
+          Width = 553
           Height = 21
           Enabled = False
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 4
         end
-        object lien2: TComboBox
-          Left = 96
-          Top = 72
-          Width = 81
-          Height = 21
-          Enabled = False
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 6
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            #28961
-            #31532#19968#38918#20301
-            #31532#20108#38918#20301#25110#20197#19978)
-        end
         object relationship2: TComboBox
           Left = 576
-          Top = 24
+          Top = 22
           Width = 89
           Height = 21
           Enabled = False
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           ItemHeight = 13
           ItemIndex = 0
@@ -1076,24 +551,6 @@ object formMain: TformMain
             #23376#22899
             #20854#20182)
         end
-        object location2: TComboBox
-          Left = 576
-          Top = 48
-          Width = 89
-          Height = 21
-          Enabled = False
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 5
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            #20303#23429#21312
-            #21830#26989#21312
-            #20303#21830#28151#21512#21312
-            #20854#20182)
-        end
         object edtOwnerID2: TMaskEdit
           Left = 368
           Top = 24
@@ -1101,99 +558,11 @@ object formMain: TformMain
           Height = 21
           Enabled = False
           EditMask = '>L<000000000;1;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 10
           TabOrder = 2
           Text = '          '
-        end
-        object edtLienValue2: TMaskEdit
-          Left = 368
-          Top = 72
-          Width = 65
-          Height = 21
-          Enabled = False
-          EditMask = '99999999;0;_'
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 8
-          TabOrder = 7
-        end
-        object rgForbit2: TRadioGroup
-          Left = 132
-          Top = 92
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 8
-        end
-        object rgCollect2: TRadioGroup
-          Left = 440
-          Top = 92
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 9
-        end
-        object rgDemolish2: TRadioGroup
-          Left = 728
-          Top = 92
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 10
-        end
-        object rgHouseRay2: TRadioGroup
-          Left = 132
-          Top = 128
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 11
-        end
-        object rgSeasand2: TRadioGroup
-          Left = 368
-          Top = 128
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 12
-        end
-        object rgDangerous2: TRadioGroup
-          Left = 656
-          Top = 128
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 13
         end
         object cbP2: TCheckBox
           Left = 120
@@ -1203,22 +572,6 @@ object formMain: TformMain
           TabOrder = 0
           OnClick = cbP2Click
         end
-      end
-      object edtBranch: TMaskEdit
-        Left = 72
-        Top = 512
-        Width = 57
-        Height = 21
-        ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-        TabOrder = 4
-      end
-      object edtAgent: TMaskEdit
-        Left = 224
-        Top = 512
-        Width = 57
-        Height = 21
-        ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-        TabOrder = 5
       end
     end
     object TabSheet2: TTabSheet
@@ -1254,8 +607,8 @@ object formMain: TformMain
         OnClick = SelectClick
       end
       object finalReview: TButton
-        Left = 192
-        Top = 504
+        Left = 184
+        Top = 360
         Width = 75
         Height = 25
         Caption = #35413#20998
@@ -1265,12 +618,12 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 5
         OnClick = finalReviewClick
       end
       object btnExit2: TButton
         Left = 744
-        Top = 504
+        Top = 360
         Width = 75
         Height = 25
         Caption = #32080#26463#31243#24335
@@ -1280,15 +633,16 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 7
         OnClick = btnExit1Click
       end
       object edtMSN: TMaskEdit
         Left = 152
         Top = 8
-        Width = 95
+        Width = 89
         Height = 21
-        EditMask = '>L<0000000000000;1;_'
+        EditMask = 'a0000000000009;1;_'
+        ImeMode = imClose
         ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
         MaxLength = 14
         TabOrder = 0
@@ -1337,10 +691,11 @@ object formMain: TformMain
           AutoSize = False
         end
         object lblPrimaryName: TLabel
-          Left = 260
+          Left = 263
           Top = 24
-          Width = 3
+          Width = 98
           Height = 13
+          AutoSize = False
         end
         object Label72: TLabel
           Left = 8
@@ -1373,145 +728,11 @@ object formMain: TformMain
           Visible = False
         end
       end
-      object GroupBox2: TGroupBox
-        Left = 0
-        Top = 96
-        Width = 825
-        Height = 49
-        Caption = #36024#27454#36039#26009
-        TabOrder = 3
-        object Label83: TLabel
-          Left = 8
-          Top = 16
-          Width = 65
-          Height = 13
-          AutoSize = False
-          Caption = #30003#36024#37329#38989
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label84: TLabel
-          Left = 180
-          Top = 16
-          Width = 65
-          Height = 13
-          AutoSize = False
-          Caption = #30003#36024#21033#29575
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label85: TLabel
-          Left = 370
-          Top = 16
-          Width = 57
-          Height = 13
-          AutoSize = False
-          Caption = #30003#36024#26399#38291
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'MS Sans Serif'
-          Font.Style = []
-          ParentFont = False
-        end
-        object Label86: TLabel
-          Left = 112
-          Top = 16
-          Width = 33
-          Height = 13
-          AutoSize = False
-          Caption = #33836#20803
-        end
-        object Label87: TLabel
-          Left = 330
-          Top = 16
-          Width = 23
-          Height = 13
-          AutoSize = False
-          Caption = '%'
-        end
-        object Label88: TLabel
-          Left = 504
-          Top = 16
-          Width = 12
-          Height = 13
-          AutoSize = False
-          Caption = #24180
-        end
-        object Label89: TLabel
-          Left = 544
-          Top = 16
-          Width = 49
-          Height = 13
-          AutoSize = False
-          Caption = #38283#36774#36027
-        end
-        object Label90: TLabel
-          Left = 648
-          Top = 16
-          Width = 25
-          Height = 13
-          AutoSize = False
-          Caption = #20803
-        end
-        object edtAppAmount2: TMaskEdit
-          Left = 72
-          Top = 16
-          Width = 29
-          Height = 21
-          EditMask = '999;0;_'
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 3
-          TabOrder = 0
-        end
-        object cbPeriod2: TComboBox
-          Left = 440
-          Top = 16
-          Width = 65
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          ItemHeight = 13
-          ItemIndex = 0
-          TabOrder = 2
-          Text = #35531#36984#25799
-          Items.Strings = (
-            #35531#36984#25799
-            '3'
-            '5'
-            '7')
-        end
-        object edtAppFee2: TMaskEdit
-          Left = 595
-          Top = 16
-          Width = 40
-          Height = 21
-          EditMask = '999999;0;_'
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          MaxLength = 6
-          TabOrder = 3
-        end
-        object edtAPR2: TEdit
-          Left = 260
-          Top = 16
-          Width = 65
-          Height = 21
-          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-          TabOrder = 1
-        end
-      end
       object GroupBox3: TGroupBox
         Left = -1
-        Top = 146
+        Top = 106
         Width = 826
-        Height = 175
+        Height = 119
         Caption = #31532#19968#20214#25812#20445#21697#36039#26009
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -1519,7 +740,7 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 4
+        TabOrder = 3
         object Label92: TLabel
           Left = 8
           Top = 24
@@ -1537,10 +758,10 @@ object formMain: TformMain
         object Label93: TLabel
           Left = 232
           Top = 24
-          Width = 73
+          Width = 105
           Height = 13
           AutoSize = False
-          Caption = #22320#34399'/'#24314#34399#65306
+          Caption = #25812#20445#21697#38272#29260#34399#30908#65306
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
@@ -1554,7 +775,7 @@ object formMain: TformMain
           Width = 65
           Height = 13
           AutoSize = False
-          Caption = #25151#23627#27611#20540
+          Caption = #37969#20272#32317#20540
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -11
@@ -1568,7 +789,7 @@ object formMain: TformMain
           Width = 65
           Height = 13
           AutoSize = False
-          Caption = #25151#23627#28136#20540
+          Caption = #37969#20272#28136#20540
         end
         object Label98: TLabel
           Left = 360
@@ -1579,44 +800,11 @@ object formMain: TformMain
           Caption = #20803
         end
         object Label99: TLabel
-          Left = 8
+          Left = 80
           Top = 80
-          Width = 321
+          Width = 193
           Height = 13
           AutoSize = False
-          Caption = #26159#21542#28858#39192#23627#21450#23627#27841#28961#20154#31649#29702#19988#22806#35264#12289#20839#37096#30772#25613#22196#37325
-        end
-        object Label100: TLabel
-          Left = 8
-          Top = 112
-          Width = 313
-          Height = 13
-          AutoSize = False
-          Caption = #30446#21069#26377#25928#20043#31199#36035#22865#32004#26159#21542#36229#36942#20116#24180#25110#26159#19981#23450#26399#32773
-        end
-        object Label101: TLabel
-          Left = 432
-          Top = 112
-          Width = 129
-          Height = 13
-          AutoSize = False
-          Caption = #26159#21542#20844#23507#22823#27155#22320#19979#23460
-        end
-        object Label102: TLabel
-          Left = 8
-          Top = 148
-          Width = 377
-          Height = 13
-          AutoSize = False
-          Caption = #29992#36884#26159#21542#28858#31085#31040#20844#26989#12289#23546#24287#12289#31070#22727#12289#36077#22580#12289#31072#22530#12289#25945#22530#12289#24066#22580#12289#37202#24215
-        end
-        object Label103: TLabel
-          Left = 432
-          Top = 80
-          Width = 273
-          Height = 13
-          AutoSize = False
-          Caption = #26159#21542#20986#20837#35079#38620#25110#26159#38468#36817#26377#29305#31278#29151#26989#30340#23567#22871#25151
         end
         object lblOwnerID1: TLabel
           Left = 136
@@ -1626,114 +814,136 @@ object formMain: TformMain
           AutoSize = False
         end
         object lblLandHouseNum1: TLabel
-          Left = 320
+          Left = 344
           Top = 24
           Width = 369
           Height = 13
           AutoSize = False
         end
         object Label74: TLabel
-          Left = 144
+          Left = 152
           Top = 48
           Width = 12
           Height = 13
           AutoSize = False
           Caption = #20803
         end
-        object hidden_FirstLien1: TLabel
-          Left = 624
-          Top = 32
-          Width = 83
+        object Label13: TLabel
+          Left = 232
+          Top = 80
+          Width = 161
           Height = 13
-          Caption = 'hidden_FirstLien1'
+          AutoSize = False
+          Caption = #25812#20445#21697#26159#21542#31526#21512#25215#20316#26781#20214
+        end
+        object Label24: TLabel
+          Left = 8
+          Top = 80
+          Width = 89
+          Height = 13
+          AutoSize = False
+          Caption = #25269#25276#32317#37329#38989
+        end
+        object Label26: TLabel
+          Left = 152
+          Top = 80
+          Width = 12
+          Height = 13
+          AutoSize = False
+          Caption = #20803
+        end
+        object hidden_appAmount: TLabel
+          Left = 648
+          Top = 80
+          Width = 92
+          Height = 13
+          AutoSize = False
+          Caption = 'hidden_appAmount'
+          Visible = False
+        end
+        object hidden_APR: TLabel
+          Left = 648
+          Top = 64
+          Width = 60
+          Height = 13
+          AutoSize = False
+          Caption = 'hidden_APR'
+          Visible = False
+        end
+        object hidden_appFee: TLabel
+          Left = 649
+          Top = 96
+          Width = 74
+          Height = 13
+          Caption = 'hidden_appFee'
+          Visible = False
+        end
+        object hidden_InquiryDate: TLabel
+          Left = 648
+          Top = 48
+          Width = 92
+          Height = 13
+          Caption = 'hidden_InquiryDate'
+          Visible = False
+        end
+        object hidden_monthly_income: TLabel
+          Left = 648
+          Top = 32
+          Width = 114
+          Height = 13
+          Caption = 'hidden_monthly_income'
           Visible = False
         end
         object nav1: TMaskEdit
-          Left = 288
+          Left = 296
           Top = 44
           Width = 61
           Height = 21
           EditMask = '99999999;0;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 8
           TabOrder = 1
         end
-        object rgDamage1: TRadioGroup
-          Left = 332
+        object rgQualified1: TRadioGroup
+          Left = 396
           Top = 68
           Width = 90
           Height = 35
           Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 2
-        end
-        object rgLent1: TRadioGroup
-          Left = 332
-          Top = 102
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 4
-        end
-        object rgBasement1: TRadioGroup
-          Left = 560
-          Top = 102
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 5
-        end
-        object rgMisuse1: TRadioGroup
-          Left = 408
-          Top = 136
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 6
-        end
-        object rgComplex1: TRadioGroup
-          Left = 704
-          Top = 68
-          Width = 90
-          Height = 35
-          Columns = 2
-          ItemIndex = 0
+          ItemIndex = 1
           Items.Strings = (
             #21542
             #26159)
           TabOrder = 3
         end
         object gav1: TMaskEdit
-          Left = 72
+          Left = 80
           Top = 44
-          Width = 61
+          Width = 65
           Height = 21
           EditMask = '99999999;0;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 8
           TabOrder = 0
         end
+        object edtLienValue1: TMaskEdit
+          Left = 80
+          Top = 72
+          Width = 65
+          Height = 21
+          EditMask = '999999999;0;_'
+          ImeMode = imClose
+          MaxLength = 9
+          TabOrder = 2
+        end
       end
       object GroupBox4: TGroupBox
         Left = -1
-        Top = 322
+        Top = 234
         Width = 826
-        Height = 175
+        Height = 111
         Caption = #31532#20108#20214#25812#20445#21697#36039#26009
         Enabled = False
         Font.Charset = DEFAULT_CHARSET
@@ -1742,8 +952,7 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 5
-        Visible = False
+        TabOrder = 4
         object Label76: TLabel
           Left = 8
           Top = 24
@@ -1762,10 +971,10 @@ object formMain: TformMain
         object Label77: TLabel
           Left = 232
           Top = 24
-          Width = 73
+          Width = 105
           Height = 13
           AutoSize = False
-          Caption = #22320#34399'/'#24314#34399#65306
+          Caption = #25812#20445#21697#38272#29260#34399#30908#65306
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -1780,7 +989,7 @@ object formMain: TformMain
           Width = 65
           Height = 13
           AutoSize = False
-          Caption = #25151#23627#27611#20540
+          Caption = #37969#20272#32317#20540
           Enabled = False
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
@@ -1795,7 +1004,7 @@ object formMain: TformMain
           Width = 65
           Height = 13
           AutoSize = False
-          Caption = #25151#23627#28136#20540
+          Caption = #37969#20272#28136#20540
           Enabled = False
         end
         object Label80: TLabel
@@ -1808,48 +1017,12 @@ object formMain: TformMain
           Enabled = False
         end
         object Label81: TLabel
-          Left = 8
+          Left = 232
           Top = 80
-          Width = 329
+          Width = 169
           Height = 13
           AutoSize = False
-          Caption = #26159#21542#28858#39192#23627#21450#23627#27841#28961#20154#31649#29702#19988#22806#35264#12289#20839#37096#30772#25613#22196#37325
-          Enabled = False
-        end
-        object Label82: TLabel
-          Left = 8
-          Top = 112
-          Width = 321
-          Height = 13
-          AutoSize = False
-          Caption = #30446#21069#26377#25928#20043#31199#36035#22865#32004#26159#21542#36229#36942#20116#24180#25110#26159#19981#23450#26399#32773
-          Enabled = False
-        end
-        object Label91: TLabel
-          Left = 432
-          Top = 112
-          Width = 129
-          Height = 13
-          AutoSize = False
-          Caption = #26159#21542#20844#23507#22823#27155#22320#19979#23460
-          Enabled = False
-        end
-        object Label94: TLabel
-          Left = 8
-          Top = 148
-          Width = 377
-          Height = 13
-          AutoSize = False
-          Caption = #29992#36884#26159#21542#28858#31085#31040#20844#26989#12289#23546#24287#12289#31070#22727#12289#36077#22580#12289#31072#22530#12289#25945#22530#12289#24066#22580#12289#37202#24215
-          Enabled = False
-        end
-        object Label96: TLabel
-          Left = 432
-          Top = 80
-          Width = 273
-          Height = 13
-          AutoSize = False
-          Caption = #26159#21542#20986#20837#35079#38620#25110#26159#38468#36817#26377#29305#31278#29151#26989#30340#23567#22871#25151
+          Caption = #25812#20445#21697#26159#21542#31526#21512#25215#20316#26781#20214
           Enabled = False
         end
         object lblOwnerID2: TLabel
@@ -1858,20 +1031,18 @@ object formMain: TformMain
           Width = 61
           Height = 13
           AutoSize = False
-          Caption = 'A123456789'
           Enabled = False
         end
         object lblLandHouseNum2: TLabel
-          Left = 320
+          Left = 352
           Top = 24
           Width = 369
           Height = 13
           AutoSize = False
-          Caption = '160-70-159/1080'
           Enabled = False
         end
         object Label106: TLabel
-          Left = 144
+          Left = 152
           Top = 48
           Width = 12
           Height = 13
@@ -1879,117 +1050,79 @@ object formMain: TformMain
           Caption = #20803
           Enabled = False
         end
-        object hidden_FirstLien2: TLabel
-          Left = 632
-          Top = 32
-          Width = 83
-          Height = 13
-          Caption = 'hidden_FirstLien2'
-          Visible = False
-        end
-        object hidden_InquiryDate: TLabel
-          Left = 728
-          Top = 32
-          Width = 62
+        object Label25: TLabel
+          Left = 8
+          Top = 80
+          Width = 81
           Height = 13
           AutoSize = False
-          Visible = False
+          Caption = #25269#25276#32317#37329#38989
+          Enabled = False
+        end
+        object Label27: TLabel
+          Left = 152
+          Top = 80
+          Width = 12
+          Height = 13
+          AutoSize = False
+          Caption = #20803
+          Enabled = False
         end
         object nav2: TMaskEdit
-          Left = 288
+          Left = 296
           Top = 44
           Width = 61
           Height = 21
           Enabled = False
           EditMask = '99999999;0;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 8
           TabOrder = 1
         end
-        object rgDamage2: TRadioGroup
-          Left = 332
+        object rgQualified2: TRadioGroup
+          Left = 396
           Top = 68
           Width = 90
           Height = 35
           Columns = 2
           Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 2
-        end
-        object rgLent2: TRadioGroup
-          Left = 332
-          Top = 102
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 4
-        end
-        object rgBasement2: TRadioGroup
-          Left = 560
-          Top = 102
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 5
-        end
-        object rgMisuse2: TRadioGroup
-          Left = 408
-          Top = 136
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
-          Items.Strings = (
-            #21542
-            #26159)
-          TabOrder = 6
-        end
-        object rgComplex2: TRadioGroup
-          Left = 704
-          Top = 68
-          Width = 90
-          Height = 35
-          Columns = 2
-          Enabled = False
-          ItemIndex = 0
+          ItemIndex = 1
           Items.Strings = (
             #21542
             #26159)
           TabOrder = 3
         end
         object gav2: TMaskEdit
-          Left = 72
+          Left = 80
           Top = 44
-          Width = 61
+          Width = 65
           Height = 21
           Enabled = False
           EditMask = '99999999;0;_'
+          ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 8
           TabOrder = 0
         end
+        object edtLienValue2: TMaskEdit
+          Left = 80
+          Top = 72
+          Width = 65
+          Height = 21
+          EditMask = '999999999;0;_'
+          ImeMode = imClose
+          MaxLength = 9
+          TabOrder = 2
+        end
       end
       object finalReview_Clear: TButton
-        Left = 304
-        Top = 504
+        Left = 296
+        Top = 360
         Width = 75
         Height = 25
         Caption = #28165#38500
-        TabOrder = 7
+        TabOrder = 6
         OnClick = finalReview_ClearClick
       end
     end
@@ -2008,7 +1141,7 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 0
+        TabOrder = 1
         object Label41: TLabel
           Left = 169
           Top = 30
@@ -2151,7 +1284,7 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 1
+        TabOrder = 2
         OnClick = btnExit1Click
       end
       object GroupBox5: TGroupBox
@@ -2166,7 +1299,7 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 2
+        TabOrder = 0
         object Label40: TLabel
           Left = 169
           Top = 30

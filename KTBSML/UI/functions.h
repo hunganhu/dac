@@ -9,7 +9,7 @@
 #include <string>
 using namespace std;
 
-bool check_id(const AnsiString &idn, unsigned int &gender);
+bool check_valid_id(const AnsiString &idn, unsigned int &gender);
 unsigned int check_birthday(const AnsiString &birthyear,
                             const AnsiString &birthmonth,
                             const AnsiString &birthdate,
