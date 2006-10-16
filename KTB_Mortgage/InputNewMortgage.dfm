@@ -1,6 +1,6 @@
 object frmRegularInput: TfrmRegularInput
-  Left = 158
-  Top = 106
+  Left = 107
+  Top = 68
   BorderStyle = bsDialog
   Caption = 'DAC '#19968#33324#36092#23627#25151#36024#35413#20998#31995#32113' - '#25552#20379#20140#22478#37504#34892#20351#29992
   ClientHeight = 580
@@ -962,10 +962,10 @@ object frmRegularInput: TfrmRegularInput
     object Label57: TLabel
       Left = 8
       Top = 48
-      Width = 73
+      Width = 105
       Height = 13
       AutoSize = False
-      Caption = #22320#34399' / '#24314#34399
+      Caption = #25812#20445#21697#38272#29260#34399#30908
     end
     object Label59: TLabel
       Left = 8
@@ -989,7 +989,7 @@ object frmRegularInput: TfrmRegularInput
       Width = 57
       Height = 13
       AutoSize = False
-      Caption = #25151#23627#27611#20540
+      Caption = #37969#20272#32317#20540
     end
     object Label63: TLabel
       Left = 144
@@ -1005,7 +1005,7 @@ object frmRegularInput: TfrmRegularInput
       Width = 57
       Height = 13
       AutoSize = False
-      Caption = #25151#23627#28136#20540
+      Caption = #37969#20272#28136#20540
     end
     object Label65: TLabel
       Left = 336
@@ -1100,7 +1100,7 @@ object frmRegularInput: TfrmRegularInput
       TabOrder = 5
     end
     object edtLandSerial: TEdit
-      Left = 77
+      Left = 109
       Top = 43
       Width = 252
       Height = 21
