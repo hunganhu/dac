@@ -1,9 +1,8 @@
 object formMain: TformMain
-  Left = 94
-  Top = 82
+  Left = 129
+  Top = 116
   Width = 868
-  Height = 595
-  VertScrollBar.Position = 2
+  Height = 600
   Caption = 'DAC'#28136#20540#25151#36024#35413#20998#31995#32113#9472#25552#20379#20140#22478#37504#34892#20351#29992
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,9 +17,9 @@ object formMain: TformMain
   TextHeight = 13
   object lblMessage: TLabel
     Left = -1
-    Top = 454
+    Top = 464
     Width = 858
-    Height = 106
+    Height = 98
     AutoSize = False
     Color = clBtnHighlight
     ParentColor = False
@@ -28,7 +27,7 @@ object formMain: TformMain
   end
   object Label4: TLabel
     Left = 0
-    Top = 430
+    Top = 448
     Width = 65
     Height = 13
     AutoSize = False
@@ -36,24 +35,48 @@ object formMain: TformMain
   end
   object PageControlMain: TPageControl
     Left = 0
-    Top = -2
+    Top = 0
     Width = 857
-    Height = 425
+    Height = 441
     ActivePage = TabSheet1
     TabIndex = 0
     TabOrder = 0
     object TabSheet1: TTabSheet
       Caption = #21021#23529#26696#20214
+      object Label32: TLabel
+        Left = 8
+        Top = 328
+        Width = 57
+        Height = 13
+        AutoSize = False
+        Caption = #36914#20214#20998#34892
+      end
+      object Label33: TLabel
+        Left = 168
+        Top = 328
+        Width = 65
+        Height = 13
+        AutoSize = False
+        Caption = #24501#23529#20154#21729
+      end
+      object Label34: TLabel
+        Left = 328
+        Top = 328
+        Width = 65
+        Height = 13
+        AutoSize = False
+        Caption = #36914#20214#21729#24037
+      end
       object GroupBoxApp: TGroupBox
         Left = 8
         Top = 8
         Width = 825
-        Height = 57
+        Height = 81
         Caption = #30003#35531#20154#22522#26412#36039#26009
         TabOrder = 0
         object Label15: TLabel
           Left = 8
-          Top = 28
+          Top = 20
           Width = 73
           Height = 13
           AutoSize = False
@@ -67,7 +90,7 @@ object formMain: TformMain
         end
         object Label1: TLabel
           Left = 512
-          Top = 28
+          Top = 20
           Width = 95
           Height = 13
           AutoSize = False
@@ -81,7 +104,7 @@ object formMain: TformMain
         end
         object Label14: TLabel
           Left = 176
-          Top = 28
+          Top = 20
           Width = 65
           Height = 16
           AutoSize = False
@@ -95,7 +118,7 @@ object formMain: TformMain
         end
         object Label11: TLabel
           Left = 354
-          Top = 28
+          Top = 20
           Width = 49
           Height = 13
           AutoSize = False
@@ -103,15 +126,23 @@ object formMain: TformMain
         end
         object Label2: TLabel
           Left = 456
-          Top = 28
+          Top = 20
           Width = 32
           Height = 15
           AutoSize = False
           Caption = #33836#20803
         end
+        object Label35: TLabel
+          Left = 8
+          Top = 48
+          Width = 233
+          Height = 13
+          AutoSize = False
+          Caption = #24050#30906#35469#30003#35531#20154#22522#26412#36039#26009#31526#21512#25215#20316#26781#20214
+        end
         object medtPrimaryID: TMaskEdit
           Left = 92
-          Top = 28
+          Top = 20
           Width = 69
           Height = 21
           AutoSize = False
@@ -125,7 +156,7 @@ object formMain: TformMain
         end
         object edtPrimaryName: TEdit
           Left = 240
-          Top = 28
+          Top = 20
           Width = 95
           Height = 21
           ImeMode = imClose
@@ -134,7 +165,7 @@ object formMain: TformMain
         end
         object edtIncome: TMaskEdit
           Left = 412
-          Top = 28
+          Top = 20
           Width = 37
           Height = 21
           EditMask = '99999;0;_'
@@ -145,7 +176,7 @@ object formMain: TformMain
         end
         object medtZip: TMaskEdit
           Left = 600
-          Top = 28
+          Top = 20
           Width = 25
           Height = 21
           EditMask = '000;1;_'
@@ -153,10 +184,29 @@ object formMain: TformMain
           TabOrder = 3
           Text = '   '
         end
+        object rgAppQualified: TRadioGroup
+          Left = 240
+          Top = 40
+          Width = 89
+          Height = 33
+          Columns = 2
+          ItemIndex = 1
+          Items.Strings = (
+            #21542
+            #26159)
+          TabOrder = 4
+        end
+        object edtCaseNo: TEdit
+          Left = 352
+          Top = 48
+          Width = 121
+          Height = 21
+          TabOrder = 5
+        end
       end
       object GroupBoxProd: TGroupBox
         Left = 8
-        Top = 72
+        Top = 88
         Width = 825
         Height = 49
         Caption = #36024#27454#36039#26009
@@ -219,7 +269,7 @@ object formMain: TformMain
           Width = 12
           Height = 13
           AutoSize = False
-          Caption = #65285
+          Caption = '%'
         end
         object Label8: TLabel
           Left = 512
@@ -240,7 +290,7 @@ object formMain: TformMain
         object edtAppAmount: TMaskEdit
           Left = 72
           Top = 20
-          Width = 27
+          Width = 33
           Height = 21
           EditMask = '999;0;_'
           ImeMode = imClose
@@ -256,7 +306,8 @@ object formMain: TformMain
           ImeMode = imClose
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           ItemHeight = 13
-          TabOrder = 1
+          ItemIndex = 0
+          TabOrder = 2
           Text = #35531#36984#25799
           Items.Strings = (
             #35531#36984#25799
@@ -273,7 +324,7 @@ object formMain: TformMain
           Top = 20
           Width = 41
           Height = 21
-          TabOrder = 2
+          TabOrder = 1
         end
         object medtAppFee: TMaskEdit
           Left = 560
@@ -288,7 +339,7 @@ object formMain: TformMain
       end
       object btnPrescreen: TButton
         Left = 200
-        Top = 354
+        Top = 370
         Width = 75
         Height = 25
         Caption = #35413#20998
@@ -298,12 +349,12 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 4
+        TabOrder = 7
         OnClick = btnPrescreenClick
       end
       object btnClear: TButton
         Left = 376
-        Top = 354
+        Top = 370
         Width = 75
         Height = 25
         Caption = #28165#38500
@@ -313,12 +364,12 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 8
         OnClick = btnClearClick
       end
       object btnExit1: TButton
         Left = 752
-        Top = 354
+        Top = 370
         Width = 75
         Height = 25
         Caption = #32080#26463#31243#24335
@@ -328,12 +379,12 @@ object formMain: TformMain
         Font.Name = 'MS Sans Serif'
         Font.Style = []
         ParentFont = False
-        TabOrder = 6
+        TabOrder = 9
         OnClick = btnExit1Click
       end
       object GroupBox_p1: TGroupBox
         Left = 7
-        Top = 130
+        Top = 138
         Width = 826
         Height = 87
         Caption = #31532#19968#20214#25812#20445#21697#36039#26009
@@ -446,7 +497,7 @@ object formMain: TformMain
       end
       object GroupBox_p2: TGroupBox
         Left = 7
-        Top = 226
+        Top = 234
         Width = 826
         Height = 87
         Caption = #31532#20108#20214#25812#20445#21697#36039#26009
@@ -573,6 +624,27 @@ object formMain: TformMain
           OnClick = cbP2Click
         end
       end
+      object edtBranch: TEdit
+        Left = 72
+        Top = 328
+        Width = 57
+        Height = 21
+        TabOrder = 4
+      end
+      object edtAuditor: TEdit
+        Left = 232
+        Top = 328
+        Width = 57
+        Height = 21
+        TabOrder = 5
+      end
+      object edtEmpID: TEdit
+        Left = 392
+        Top = 328
+        Width = 65
+        Height = 21
+        TabOrder = 6
+      end
     end
     object TabSheet2: TTabSheet
       Caption = #35079#23529#26696#20214
@@ -608,10 +680,11 @@ object formMain: TformMain
       end
       object finalReview: TButton
         Left = 184
-        Top = 360
+        Top = 376
         Width = 75
         Height = 25
         Caption = #35413#20998
+        Enabled = False
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -11
@@ -623,7 +696,7 @@ object formMain: TformMain
       end
       object btnExit2: TButton
         Left = 744
-        Top = 360
+        Top = 376
         Width = 75
         Height = 25
         Caption = #32080#26463#31243#24335
@@ -650,7 +723,7 @@ object formMain: TformMain
       end
       object GroupBox1: TGroupBox
         Left = 0
-        Top = 48
+        Top = 40
         Width = 825
         Height = 49
         Caption = #30003#35531#20154#22522#26412#36039#26009
@@ -658,7 +731,7 @@ object formMain: TformMain
         object Label69: TLabel
           Left = 370
           Top = 24
-          Width = 73
+          Width = 87
           Height = 13
           AutoSize = False
           Caption = #36523#20998#35657#23383#34399#65306
@@ -691,7 +764,7 @@ object formMain: TformMain
           AutoSize = False
         end
         object lblPrimaryName: TLabel
-          Left = 263
+          Left = 247
           Top = 24
           Width = 98
           Height = 13
@@ -700,8 +773,9 @@ object formMain: TformMain
         object Label72: TLabel
           Left = 8
           Top = 24
-          Width = 60
+          Width = 73
           Height = 13
+          AutoSize = False
           Caption = #26696#20214#32232#34399#65306
         end
         object lblMSN: TLabel
@@ -712,8 +786,8 @@ object formMain: TformMain
           AutoSize = False
         end
         object hidden_SystemDate: TLabel
-          Left = 616
-          Top = 24
+          Left = 728
+          Top = 8
           Width = 95
           Height = 13
           Caption = 'hidden_SystemDate'
@@ -727,12 +801,35 @@ object formMain: TformMain
           Caption = 'hidden_Zip'
           Visible = False
         end
+        object Label19: TLabel
+          Left = 552
+          Top = 24
+          Width = 57
+          Height = 13
+          AutoSize = False
+          Caption = #24180#25910#20837#65306
+        end
+        object Label21: TLabel
+          Left = 656
+          Top = 24
+          Width = 25
+          Height = 13
+          AutoSize = False
+          Caption = #20803
+        end
+        object lblincome: TLabel
+          Left = 600
+          Top = 24
+          Width = 57
+          Height = 13
+          AutoSize = False
+        end
       end
       object GroupBox3: TGroupBox
         Left = -1
-        Top = 106
+        Top = 146
         Width = 826
-        Height = 119
+        Height = 111
         Caption = #31532#19968#20214#25812#20445#21697#36039#26009
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -852,32 +949,6 @@ object formMain: TformMain
           AutoSize = False
           Caption = #20803
         end
-        object hidden_appAmount: TLabel
-          Left = 648
-          Top = 80
-          Width = 92
-          Height = 13
-          AutoSize = False
-          Caption = 'hidden_appAmount'
-          Visible = False
-        end
-        object hidden_APR: TLabel
-          Left = 648
-          Top = 64
-          Width = 60
-          Height = 13
-          AutoSize = False
-          Caption = 'hidden_APR'
-          Visible = False
-        end
-        object hidden_appFee: TLabel
-          Left = 649
-          Top = 96
-          Width = 74
-          Height = 13
-          Caption = 'hidden_appFee'
-          Visible = False
-        end
         object hidden_InquiryDate: TLabel
           Left = 648
           Top = 48
@@ -941,7 +1012,7 @@ object formMain: TformMain
       end
       object GroupBox4: TGroupBox
         Left = -1
-        Top = 234
+        Top = 258
         Width = 826
         Height = 111
         Caption = #31532#20108#20214#25812#20445#21697#36039#26009
@@ -1110,6 +1181,7 @@ object formMain: TformMain
           Top = 72
           Width = 65
           Height = 21
+          Enabled = False
           EditMask = '999999999;0;_'
           ImeMode = imClose
           MaxLength = 9
@@ -1118,12 +1190,112 @@ object formMain: TformMain
       end
       object finalReview_Clear: TButton
         Left = 296
-        Top = 360
+        Top = 376
         Width = 75
         Height = 25
         Caption = #28165#38500
+        Enabled = False
         TabOrder = 6
         OnClick = finalReview_ClearClick
+      end
+      object GroupBox2: TGroupBox
+        Left = 0
+        Top = 96
+        Width = 825
+        Height = 49
+        Caption = #36024#27454#36039#26009
+        TabOrder = 8
+        object Label10: TLabel
+          Left = 8
+          Top = 24
+          Width = 65
+          Height = 13
+          AutoSize = False
+          Caption = #30003#36024#37329#38989#65306
+        end
+        object Label16: TLabel
+          Left = 180
+          Top = 24
+          Width = 65
+          Height = 13
+          AutoSize = False
+          Caption = #30003#36024#21033#29575#65306
+        end
+        object Label17: TLabel
+          Left = 370
+          Top = 24
+          Width = 65
+          Height = 13
+          AutoSize = False
+          Caption = #30003#36024#26399#25976#65306
+        end
+        object Label18: TLabel
+          Left = 552
+          Top = 24
+          Width = 48
+          Height = 13
+          Caption = #38283#36774#36027#65306
+        end
+        object lblAppAmount: TLabel
+          Left = 80
+          Top = 24
+          Width = 57
+          Height = 13
+          AutoSize = False
+        end
+        object lblAPR: TLabel
+          Left = 259
+          Top = 24
+          Width = 29
+          Height = 13
+          AutoSize = False
+        end
+        object lblPeriod: TLabel
+          Left = 448
+          Top = 24
+          Width = 17
+          Height = 13
+          AutoSize = False
+        end
+        object lblAppFee: TLabel
+          Left = 608
+          Top = 24
+          Width = 38
+          Height = 13
+          AutoSize = False
+        end
+        object Label28: TLabel
+          Left = 656
+          Top = 24
+          Width = 25
+          Height = 13
+          AutoSize = False
+          Caption = #20803
+        end
+        object Label29: TLabel
+          Left = 472
+          Top = 24
+          Width = 25
+          Height = 13
+          AutoSize = False
+          Caption = #24180
+        end
+        object Label30: TLabel
+          Left = 144
+          Top = 24
+          Width = 25
+          Height = 13
+          AutoSize = False
+          Caption = #20803
+        end
+        object Label31: TLabel
+          Left = 288
+          Top = 24
+          Width = 17
+          Height = 13
+          AutoSize = False
+          Caption = '%'
+        end
       end
     end
     object TabSheet3: TTabSheet

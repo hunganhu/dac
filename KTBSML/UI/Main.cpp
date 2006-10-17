@@ -32,7 +32,6 @@ __fastcall TformMain::TformMain(TComponent* Owner)
 void __fastcall TformMain::btnExit1Click(TObject *Sender)
 {
   message = "確定要離開？";
-//  MessageDlg(message, mtWarning, TMsgDlgButtons() << mbOK, 0);
   if (MessageDlg(message, mtWarning, TMsgDlgButtons() << mbYes << mbNo, 0) == mrYes)
      Application->Terminate();
 }
@@ -41,7 +40,6 @@ void __fastcall TformMain::btnExit1Click(TObject *Sender)
 void __fastcall TformMain::btnClearClick(TObject *Sender)
 {
   message = "確定要清除所有的欄位？";
-//  MessageDlg(message, mtWarning, TMsgDlgButtons() << mbOK, 0);
   if (MessageDlg(message, mtWarning, TMsgDlgButtons() << mbYes << mbNo, 0) == mrYes) {
 
    // Applicant Info
@@ -56,13 +54,14 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
    //  education->ItemIndex = 0;
      edtIncome->Clear();
      medtZip->Clear();
+     rgAppQualified->ItemIndex = 1;
 
    // Product Info
-     cbPeriod->Clear();
-   //  edtAppFee->Clear();
+     cbPeriod->ItemIndex = 0;
+     medtAppFee->Clear();
      edtAppAmount->Clear();
-   //  edtAPR->Clear();
-   
+     edtAPR->Clear();
+
    // Property 1
    //  edtLienValue1->Clear();
      edtOwnerID1->Clear();
@@ -71,7 +70,7 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
    //  location1->ItemIndex = 0;
      edtOwnerName1->Clear();
      relationship1->ItemIndex = 0;
-   
+
    // Property 2
    //  edtLienValue2->Clear();
      edtOwnerID2->Clear();
@@ -80,7 +79,11 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
    //  location2->ItemIndex = 0;
      edtOwnerName2->Clear();
      relationship2->ItemIndex = 0;
-   
+
+     edtBranch->Clear();
+     edtAuditor->Clear();
+     edtEmpID->Clear();
+
      medtPrimaryID->SetFocus();
      lblMessage->Caption = "";
      message = "";
@@ -125,7 +128,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
   unsigned int hour;
   unsigned int min;
   unsigned int sec;
-  int monthly_income;
+  int income;
 //  double gav, nav;
 //  double gav1, nav1, gav2, nav2;
   double apr;
@@ -154,34 +157,32 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
         get_time(year, month, day, hour, min, sec);
         sprintf(header, "A%04d%02d%02d", year, month, day);
         msn = get_case_sn(header);
-//        msn = edtCaseNo->Text;
-        sprintf(system_date, "%04d%02d%02d%02d%02d00", year, month, day, hour, min);
+        msn = edtCaseNo->Text;     // comment out after test
+        sprintf(system_date, "%04d%02d%02d%02d%02d%02d", year, month, day, hour, min, sec);
      // insert into app_info
         if (cbP2->Checked)
            sql_stmt = "insert into app_info (msn, system_date, applicant_id, applicant_name, "
-                   " zip, income, app_amt, period, "
-                   " apr, app_fee, branch, agent, owner_id1, "
-                   " owner_name1, land_num1, relationship1, "
-                   " owner_id2, owner_name2, "
-                   " land_num2, relationship2, "
+                   " zip, income, app_qualified, app_amt, period, "
+                   " apr, app_fee, branch, emp_id, auditor,"
+                   " owner_id1, owner_name1, land_num1, relationship1, "
+                   " owner_id2, owner_name2, land_num2, relationship2, "
                    " inquiry_date) values "
                    "(:msn, :system_date, :applicant_id, :applicant_name, "
-                   " :zip, :income, :app_amt, :period, "
-                   " :apr, :app_fee, :branch, :agent, :owner_id1, "
-                   " :owner_name1, :land_num1, :relationship1, "
-                   " :owner_id2, :owner_name2, "
-                   " :land_num2, :relationship2, "
+                   " :zip, :income, :app_qualified, :app_amt, :period, "
+                   " :apr, :app_fee, :branch, :emp_id, :auditor, "
+                   " :owner_id1, :owner_name1, :land_num1, :relationship1, "
+                   " :owner_id2, :owner_name2, :land_num2, :relationship2, "
                    " :inquiry_date);";
         else
            sql_stmt = "insert into app_info (msn, system_date, applicant_id, applicant_name, "
-                   " zip, income, app_amt, period, "
-                   " apr, app_fee, branch, agent, owner_id1, "
-                   " owner_name1, land_num1, relationship1, "
+                   " zip, income, app_qualified, app_amt, period, "
+                   " apr, app_fee, branch, emp_id, auditor, "
+                   " owner_id1, owner_name1, land_num1, relationship1, "
                    " inquiry_date) values "
                    "(:msn, :system_date, :applicant_id, :applicant_name, "
-                   " :zip, :income, :app_amt, :period, "
-                   " :apr, :app_fee, :branch, :agent, :owner_id1, "
-                   " :owner_name1, :land_num1, :relationship1, "
+                   " :zip, :income, :app_qualified, :app_amt, :period, "
+                   " :apr, :app_fee, :branch, :emp_id, :auditor, "
+                   " :owner_id1, :owner_name1, :land_num1, :relationship1, "
                    " :inquiry_date);";
 
         sql_stmt = sql_stmt.UpperCase();
@@ -190,19 +191,21 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
         Data->command->Parameters->ParamValues["system_date"] = system_date;
         Data->command->Parameters->ParamValues["applicant_id"] = medtPrimaryID->Text;
         Data->command->Parameters->ParamValues["applicant_name"] = edtPrimaryName->Text;
-        Data->command->Parameters->ParamValues["zip"] = "700";
-        monthly_income = StrToInt(edtIncome->Text) * 10000 / 12;
-        Data->command->Parameters->ParamValues["income"] = monthly_income;
+        Data->command->Parameters->ParamValues["zip"] = medtZip->Text;
+        income = StrToInt(edtIncome->Text) * 10000;
+        Data->command->Parameters->ParamValues["income"] = income;
+        Data->command->Parameters->ParamValues["app_qualified"] = rgAppQualified->ItemIndex;
         Data->command->Parameters->ParamValues["app_amt"] = StrToInt(edtAppAmount->Text) * 10000;
-        switch(cbPeriod->ItemIndex) {
-           case 1: period = 3 * 12; break;
-           case 2: period = 5 * 12; break;
-           case 3: period = 7 * 12; break;
-        }
-//        period = cbPeriod->ItemIndex * 12;
+//        switch(cbPeriod->ItemIndex) {
+//           case 1: period = 3 * 12; break;
+//           case 2: period = 5 * 12; break;
+//           case 3: period = 7 * 12; break;
+//        }
+        period = cbPeriod->ItemIndex * 12;
         Data->command->Parameters->ParamValues["period"] = period;
-        Data->command->Parameters->ParamValues["branch"] = "0489";   // 台南一區 府城分行
-        Data->command->Parameters->ParamValues["agent"] = "00000";
+        Data->command->Parameters->ParamValues["branch"] = edtBranch->Text;
+        Data->command->Parameters->ParamValues["auditor"] = edtAuditor->Text;
+        Data->command->Parameters->ParamValues["emp_id"] = edtEmpID->Text;
         Data->command->Parameters->ParamValues["owner_id1"] = edtOwnerID1->Text;
         Data->command->Parameters->ParamValues["owner_name1"] = edtOwnerName1->Text;
         Data->command->Parameters->ParamValues["land_num1"] = edtLandNum1->Text;
@@ -214,10 +217,12 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
            Data->command->Parameters->ParamValues["land_num2"] = edtLandNum2->Text;
            Data->command->Parameters->ParamValues["relationship2"] = relationship2->ItemIndex - 1;
         }
-        get_product_code(msn, product_code, Data->query);
-        get_product_feature(product_code, Data->query, apr, application_fee);
-        Data->command->Parameters->ParamValues["apr"] = apr;
-        Data->command->Parameters->ParamValues["app_fee"] = application_fee;
+//        get_product_code(msn, product_code, Data->query);
+//        get_product_feature(product_code, Data->query, apr, application_fee);
+//        Data->command->Parameters->ParamValues["apr"] = apr;
+//        Data->command->Parameters->ParamValues["app_fee"] = application_fee;
+        Data->command->Parameters->ParamValues["apr"] = StrToFloat(edtAPR->Text) / 100.0;
+        Data->command->Parameters->ParamValues["app_fee"] = StrToInt(medtAppFee->Text);
         bool contiune = check_and_cleanup_result(msn, Data->query);
         if (!contiune)
            throw Exception("申請件重複，使用者選擇終止評分。");
@@ -235,23 +240,23 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
            formMain->Refresh();
            jcic_inquiry_date =
              get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn, msn, medtPrimaryID->Text, system_date);
-
+*/
            message += "聯徵資料已儲存，正在評分中. . .\n";
            lblMessage->Caption = message;
            formMain->Refresh();
-*/
+
            jcic_inquiry_date =
              get_jcic_inquriy_date(msn, Data->query);  //**** temp function
            // insert into app_info after JCIC data is successfully retrieved.
            Data->command->Parameters->ParamValues["inquiry_date"] = jcic_inquiry_date;
-           Data->command->Execute();
+           Data->command->Execute();   // save to app_info
            message += "案件 " + msn + " 已新增。\n";
            lblMessage->Caption = message;
            formMain->Refresh();
 
            // call prescreen function
            status = DAC_SML_PRESCREEN(medtPrimaryID->Text.c_str(), msn.c_str(), jcic_inquiry_date.c_str(),
-                                      ole_str.c_str(), monthly_income, error_msg);
+                                      ole_str.c_str(), income/12, error_msg);
            if (status < 0) {
               message = message + error_msg + "\n";
            } else if (status > 0) {
@@ -271,9 +276,8 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
       if(status >= 0){
         message += "評分完成。可以輸入下一筆。\n";
         lblMessage->Caption = message;
-//        lblMessage->Caption = "評分完成。可以輸入下一筆。\n";
-        init_UI();
         formMain->Refresh();
+        init_UI();
       }
 //////////////////////////////////////////
      } // end of if(!is_input_error)
@@ -282,7 +286,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
     message += E.Message;
     lblMessage->Caption = message;
     formMain->Refresh();
-//    MessageDlg(E.Message, mtWarning, TMsgDlgButtons() << mbOK, 0);
+    MessageDlg(E.Message, mtWarning, TMsgDlgButtons() << mbOK, 0);
   }
 //    if(lblMessage->Caption == "評分完成。可以輸入下一筆。\n")
 //      init_UI();
@@ -298,58 +302,52 @@ bool TformMain::validate_application()
   message = "";
   formMain->Refresh();
 // CHECK APPLICANT INFO
-// check Name
-  if(edtPrimaryName->Text == ""){
-    message += "申請人姓名未填。";
-    is_input_error = true;
-  }
 // check ID
-  if(medtPrimaryID->Text == "          "){
-    message += "申請人身分證字號未填。";
-    is_input_error = true;
+  if (medtPrimaryID->Text.Trim() == ""){
+     message += "申請人身分證字號未填。";
+     is_input_error = true;
   }
   else if(!check_valid_id(medtPrimaryID->Text, gender)){
-    message += "申請人身分證號錯誤。";
-    is_input_error = true;
+     message += "申請人身分證號錯誤。";
+     is_input_error = true;
   }
-// check Zip
-  if(medtZip->Text == "  "){
-    message += "郵遞區號未填。";
-    is_input_error = true;
-  }
-  if (!check_zip(medtZip->Text.Trim().c_str())){
-     message += "郵遞區號錯誤\n";
+// check Name
+  if (edtPrimaryName->Text.Trim() == ""){
+     message += "申請人姓名未填。";
      is_input_error = true;
   }
 // check Income
-  if (edtIncome->Text == ""){
+  if (edtIncome->Text.Trim() == ""){
      message += "年收入未填。";
      is_input_error = true;
   } else if (StrToInt(edtIncome->Text) < 15) {
      message += "年收入輸入錯誤。";
      is_input_error = true;
   }
+// check Zip
+  if (medtZip->Text.Trim() == ""){
+     message += "郵遞區號未填。";
+     is_input_error = true;
+  }
+  else if (!check_zip(medtZip->Text.Trim().c_str())){
+     message += "郵遞區號錯誤\n";
+     is_input_error = true;
+  }
 
 //CHECK PRODUCT INFO
-// check App amount
-  if (edtAppAmount->Text == ""){
+// check App amount, capped at $3M by 20060826 jeff's mail
+  if (edtAppAmount->Text.Trim() == ""){
      message += "申貸金額未填。";
      is_input_error = true;
-  } else if (StrToInt(edtAppAmount->Text) < 10 ||StrToInt(edtAppAmount->Text) > 500) {
+  } else if (StrToInt(edtAppAmount->Text) < 10 ||StrToInt(edtAppAmount->Text) > 300) {
      message += "申貸金額輸入錯誤。";
      is_input_error = true;
   }
 // check APR
-  try {
-     if (edtAPR->Text == ""){
-        message += "申貸利率未填。";
-        is_input_error = true;
-     } else if (StrToFloat(edtAPR->Text) < 0.0 || StrToFloat(edtAPR->Text) > 20.0) {
-        message += "申貸利率輸入錯誤。";
-        is_input_error = true;
-     }
-  }
-  catch (...){
+  if (edtAPR->Text.Trim() == ""){
+     message += "申貸利率未填。";
+     is_input_error = true;
+  } else if (StrToFloat(edtAPR->Text) < 0.0 || StrToFloat(edtAPR->Text) > 20.0) {
      message += "申貸利率輸入錯誤。";
      is_input_error = true;
   }
@@ -359,7 +357,7 @@ bool TformMain::validate_application()
      is_input_error = true;
   }
 // check App Fee
-  if(medtAppFee->Text == ""){
+  if(medtAppFee->Text.Trim() == ""){
     message += "開辦費未填。";
     is_input_error = true;
   } else if (StrToInt(medtAppFee->Text) < 0){
@@ -369,12 +367,12 @@ bool TformMain::validate_application()
 
 //CHECK PROPERTY 1
 // check owner name 1
-  if (edtOwnerName1->Text == ""){
+  if (edtOwnerName1->Text.Trim() == ""){
      message += "第一件擔保品所有人姓名未填。";
      is_input_error = true;
   }
 // check owner id 1
-  if (edtOwnerID1->Text == "          "){
+  if (edtOwnerID1->Text.Trim() == ""){
      message += "第一件擔保品所有人身分證字號未填。";
      is_input_error = true;
   }
@@ -388,11 +386,11 @@ bool TformMain::validate_application()
      is_input_error = true;
   }
 // check land and house num 1
-  if (edtLandNum1->Text == ""){
+  if (edtLandNum1->Text.Trim() == ""){
      message += "第一件擔保品門牌號碼未填。";
      is_input_error = true;
   }
-//// check lien value 1
+// check lien value 1
 //  if (edtLienValue1->Text == ""){
 //     message += "第一件擔保品總抵押金額未填。";
 //     is_input_error = true;
@@ -405,12 +403,12 @@ bool TformMain::validate_application()
 if (cbP2->Checked == true)
 {
 // check owner name 2
-  if (edtOwnerName2->Text == ""){
+  if (edtOwnerName2->Text.Trim() == ""){
      message += "第二件擔保品所有人姓名未填。";
      is_input_error = true;
   }
 // check owner id 2
-  if (edtOwnerID2->Text == "          "){
+  if (edtOwnerID2->Text.Trim() == ""){
      message += "第二件擔保品所有人身分證字號未填。";
      is_input_error = true;
   } else if(!check_valid_id(edtOwnerID2->Text, gender)){
@@ -423,7 +421,7 @@ if (cbP2->Checked == true)
      is_input_error = true;
   }
 // check land and house num 2
-  if (edtLandNum2->Text == ""){
+  if (edtLandNum2->Text.Trim() == ""){
      message += "第二件擔保品門牌號碼未填。";
      is_input_error = true;
   }
@@ -436,21 +434,26 @@ if (cbP2->Checked == true)
 //    is_input_error = true;
 //  }
 }
-//// check Branch
-//  if(edtBranch->Text == ""){
-//    message += "進件分行未填。";
-//    is_input_error = true;
-//  }else {
-//     if (!check_channel(edtBranch->Text.Trim().c_str())){
-//	message += "分行代號輸入錯誤。";
-//	is_input_error = true;
-//     }
-//  }
-//// check Agent
-//  if(edtAgent->Text == ""){
-//    message += "進件員工未填。";
-//    is_input_error = true;
-//  }
+// check Branch
+  if (edtBranch->Text.Trim() == ""){
+     message += "進件分行未填。";
+     is_input_error = true;
+  } else {
+     if (!check_channel(edtBranch->Text.Trim().c_str())){
+	message += "分行代號輸入錯誤。";
+	is_input_error = true;
+     }
+  }
+// check Auditor
+  if(edtAuditor->Text.Trim() == ""){
+    message += "徵審人員未填。";
+    is_input_error = true;
+  }
+// check EmpID
+  if(edtEmpID->Text.Trim() == ""){
+    message += "進件員工未填。";
+    is_input_error = true;
+  }
 
   lblMessage->Caption = message;
   formMain->Refresh();
@@ -467,46 +470,9 @@ bool TformMain::validate_property()
   message = "";
   formMain->Refresh();
 
-////CHECK PRODUCT INFO
-//// check App amount
-//  if(edtAppAmount2->Text == ""){
-//    message += "申貸金額未填。";
-//    is_input_error = true;
-//  } else if (StrToInt(edtAppAmount2->Text) < 15 ||StrToInt(edtAppAmount2->Text) > 100) {
-//    message += "申貸金額輸入錯誤。";
-//    is_input_error = true;
-//  }
-//// check APR
-//  try {
-//     if (edtAPR2->Text == ""){
-//        message += "申貸利率未填。";
-//        is_input_error = true;
-//     } else if (StrToFloat(edtAPR2->Text) < 0.0 || StrToFloat(edtAPR2->Text) > 20.0) {
-//        message += "申貸利率輸入錯誤。";
-//        is_input_error = true;
-//     }
-//  }
-//  catch (...){
-//     message += "申貸利率輸入錯誤。";
-//     is_input_error = true;
-//  }
-//// check Period
-//  if(cbPeriod2->ItemIndex == 0){
-//    message += "申貸期數未填。";
-//    is_input_error = true;
-// }
-//// check App Fee
-//  if(edtAppFee2->Text == ""){
-//    message += "開辦費未填。";
-//    is_input_error = true;
-//  } else if (StrToInt(edtAppFee2->Text) < 0){
-//    message += "開辦費輸入錯誤。";
-//    is_input_error = true;
-//  }
-
 //CHECK PROPERTY 1
 // check GAV 1
-  if(gav1->Text == ""){
+  if(gav1->Text.Trim() == ""){
     message += "第一件擔保品鑑估總值未填。";
     is_input_error = true;
   } else if (StrToInt(gav1->Text) < 0) {
@@ -514,7 +480,7 @@ bool TformMain::validate_property()
     is_input_error = true;
   }
 // check NAV 1
-  if(nav1->Text == ""){
+  if(nav1->Text.Trim() == ""){
     message += "第一件擔保品鑑估淨值未填。";
     is_input_error = true;
   } else if (StrToInt(nav1->Text) < 0) {
@@ -525,7 +491,7 @@ bool TformMain::validate_property()
     is_input_error = true;
   }
 // check lien value 1
-  if(edtLienValue1->Text == ""){
+  if(edtLienValue1->Text.Trim() == ""){
     message += "第一件擔保品總抵押金額未填。";
     is_input_error = true;
   } else if (StrToInt(edtLienValue1->Text) < 0){
@@ -537,7 +503,7 @@ bool TformMain::validate_property()
 if (lblOwnerID2->Enabled == true)
 {
 // check GAV 2
-  if(gav2->Text == ""){
+  if(gav2->Text.Trim() == ""){
     message += "第二件擔保品鑑估總值未填。";
     is_input_error = true;
   } else if (StrToInt(gav2->Text) < 0) {
@@ -545,7 +511,7 @@ if (lblOwnerID2->Enabled == true)
     is_input_error = true;
   }
 // check NAV 2
-  if(nav2->Text == ""){
+  if(nav2->Text.Trim() == ""){
     message += "第二件擔保品鑑估淨值未填。";
     is_input_error = true;
   } else if (StrToInt(nav2->Text) < 0) {
@@ -556,7 +522,7 @@ if (lblOwnerID2->Enabled == true)
     is_input_error = true;
   }
 // check lien value 2
-  if(edtLienValue2->Text == ""){
+  if(edtLienValue2->Text.Trim() == ""){
     message += "第二件擔保品總抵押金額未填。";
     is_input_error = true;
   } else if (StrToInt(edtLienValue2->Text) < 0){
@@ -656,10 +622,13 @@ void __fastcall TformMain::finalReview_ClearClick(TObject *Sender)
    // Property 1
      gav1->Clear();
      nav1->Clear();
-
+     edtLienValue1->Clear();
+     rgQualified1->ItemIndex = 1;
    // Property 2
      gav2->Clear();
      nav2->Clear();
+     edtLienValue2->Clear();
+     rgQualified2->ItemIndex = 1;
 
      gav1->SetFocus();
      lblMessage->Caption = "";
@@ -698,35 +667,24 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
            hidden_InquiryDate->Caption = Data->query->FieldValues["INQUIRY_DATE"];
         else
            hidden_InquiryDate->Caption = "";
-        hidden_appAmount->Caption = Data->query->FieldValues["APP_AMT"];
-        hidden_APR->Caption = Data->query->FieldValues["APR"];
-        hidden_appFee->Caption = Data->query->FieldValues["APP_FEE"];
-        hidden_monthly_income->Caption = Data->query->FieldValues["INCOME"];
+        hidden_monthly_income->Caption = Data->query->FieldValues["INCOME"]/12;
         lblPrimaryName->Caption = Data->query->FieldValues["APPLICANT_NAME"];
         lblPrimaryID->Caption = Data->query->FieldValues["APPLICANT_ID"];
-//        edtAppAmount2->Text = Data->query->FieldValues["APP_FEE"];
-//        edtAPR2->Text = Data->query->FieldValues["APR"] * 100;
-//        edtAppAmount2->Text = Data->query->FieldValues["APP_AMT"] / 10000;
-//        period = Data->query->FieldValues["PERIOD"];
-//        switch (period) {
-//           case 36: index = 1; break;
-//           case 60: index = 2; break;
-//           case 84: index = 3; break;
-//        }
-//        cbPeriod2->ItemIndex =index;
+        lblAppFee->Caption = Data->query->FieldValues["APP_FEE"];
+        lblAPR->Caption = Data->query->FieldValues["APR"] * 100;
+        lblAppAmount->Caption = Data->query->FieldValues["APP_AMT"];
+        lblPeriod->Caption = Data->query->FieldValues["PERIOD"] / 12;
+        lblincome->Caption = Data->query->FieldValues["INCOME"];
 
-//        cbPeriod2->ItemIndex = period / 12;
-//        edtAppFee2->Text = Data->query->FieldValues["APP_FEE"];
         lblOwnerID1->Caption = Data->query->FieldValues["OWNER_ID1"];
         lblLandHouseNum1->Caption = Data->query->FieldValues["LAND_NUM1"];
-//        hidden_FirstLien1->Caption = Data->query->FieldValues["FIRST_LIEN1"];
         if (!Data->query->FieldValues["OWNER_ID2"].IsNull()) {
            // enable Property 2
            lblOwnerID2->Caption = Data->query->FieldValues["OWNER_ID2"];
            lblLandHouseNum2->Caption = Data->query->FieldValues["LAND_NUM2"];
-//           hidden_FirstLien2->Caption = Data->query->FieldValues["FIRST_LIEN2"];
            lblOwnerID2->Enabled = true;
            lblLandHouseNum2->Enabled = true;
+           edtLienValue2->Enabled = true;
            gav2->Enabled = true;
            Label106->Enabled = true;
            Label76->Enabled = true;
@@ -738,15 +696,13 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
            Label25->Enabled = true;
            Label27->Enabled = true;
            nav2->Enabled = true;
-//           rgBasement2->Enabled = true;
-//           rgComplex2->Enabled = true;
-//           rgDamage2->Enabled = true;
-//           rgLent2->Enabled = true;
-//           rgMisuse2->Enabled = true;
+           rgQualified2->Enabled = true;
            GroupBox4->Enabled = true;
         }
+        finalReview->Enabled = true;
+        finalReview_Clear->Enabled = true;
      } else {
-        lblMessage->Caption = "案件編號不存在";
+        lblMessage->Caption = "案件編號不存在或未通過初審。";
         formMain->Refresh();
      }
   }
@@ -779,7 +735,7 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
   AnsiString ole_str = Data->connection->ConnectionString;
   AnsiString system_date = hidden_SystemDate->Caption;
   AnsiString zip = hidden_Zip->Caption;
-  double first_lien1 = edtLienValue1->Text.Trim().ToDouble();
+  double first_lien1;
   double first_lien2;
   double first_lien;
 
@@ -790,47 +746,20 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
      if (!is_input_error) {
         // update app_info
         sql_stmt = "update app_info "
-//                   "  set app_amt = :app_amt, "
-//                   "  period = :period, "
-//                   "  apr = :apr, "
-//                   "  app_fee = :app_fee, "
                    "  set nav1 = :nav1, "
                    "  gav1 = :gav1, "
                    "  firstlien1 = :firstlien1, "
-//                   "  house_damage1 = :house_damage1, "
-//                   "  house_lent1 = :house_lent1, "
-//                   "  house_misuse1 = :house_misuse1, "
-//                   "  house_complex1 = :house_complex1, "
-//                   "  house_basement1 = :house_basement1 "
                    "where msn = :msn;";
         sql_stmt = sql_stmt.UpperCase();
         Data->command->CommandText = sql_stmt;
-//        Data->command->Parameters->ParamValues["app_amt"] = StrToInt(edtAppAmount2->Text) * 10000;
-//        switch(cbPeriod2->ItemIndex) {
-//           case 1: period = 3 * 12; break;
-//           case 2: period = 5 * 12; break;
-//           case 3: period = 7 * 12; break;
-//        }
-//        period = cbPeriod2->ItemIndex * 12;
-//        Data->command->Parameters->ParamValues["period"] = period;
-//        Data->command->Parameters->ParamValues["apr"] = StrToFloat(edtAPR2->Text) / 100.0;
-//        Data->command->Parameters->ParamValues["app_fee"] = edtAppFee2->Text;
+        first_lien1 = edtLienValue1->Text.Trim().ToDouble();
         Data->command->Parameters->ParamValues["firstlien1"] = edtLienValue1->Text.Trim().ToInt();
         Data->command->Parameters->ParamValues["nav1"] = nav1->Text.Trim().ToInt();
         Data->command->Parameters->ParamValues["gav1"] = gav1->Text.Trim().ToInt();
+        Data->command->Parameters->ParamValues["msn"] = lblMSN->Caption;
+        Data->command->Execute();
         gav_1 = gav1->Text.Trim().ToDouble();
         nav_1 = nav1->Text.Trim().ToDouble();
-//        Data->command->Parameters->ParamValues["house_damage1"] = rgDamage1->ItemIndex;
-//        Data->command->Parameters->ParamValues["house_lent1"] = rgLent1->ItemIndex;
-//        Data->command->Parameters->ParamValues["house_misuse1"] = rgMisuse1->ItemIndex;
-//        Data->command->Parameters->ParamValues["house_complex1"] = rgComplex1->ItemIndex;
-//        Data->command->Parameters->ParamValues["house_basement1"] = rgBasement1->ItemIndex;
-//        Data->command->Parameters->ParamValues["msn"] = lblMSN->Caption;
-//        Data->command->Execute();
-//        if ((rgDamage1->ItemIndex + rgLent1->ItemIndex + rgMisuse1->ItemIndex +
-//             rgComplex1->ItemIndex + rgBasement1->ItemIndex) > 0) {
-//           gav_1 = nav_1 = first_lien1 = 0;
-//        }
         if (rgQualified1->ItemIndex == 0) {
            gav_1 = nav_1 = first_lien1 = 0;
         }
@@ -841,11 +770,6 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
                       "  set nav2 = :nav2, "
                       "  gav2 = :gav2, "
                       "  firstlien2 = :firstlien2 "
-//                      "  house_damage2 = :house_damage2, "
-//                      "  house_lent2 = :house_lent2, "
-//                      "  house_misuse2 = :house_misuse2, "
-//                      "  house_complex2 = :house_complex2, "
-//                      "  house_basement2 = :house_basement2 "
                       "where msn = :msn;";
            sql_stmt = sql_stmt.UpperCase();
            Data->command->CommandText = sql_stmt;
@@ -854,17 +778,8 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
            Data->command->Parameters->ParamValues["gav2"] = gav2->Text.Trim().ToInt();
            gav_1 = gav1->Text.Trim().ToDouble();
            nav_1 = nav1->Text.Trim().ToDouble();
-//           Data->command->Parameters->ParamValues["house_damage2"] = rgDamage2->ItemIndex;
-//           Data->command->Parameters->ParamValues["house_lent2"] = rgLent2->ItemIndex;
-//           Data->command->Parameters->ParamValues["house_misuse2"] = rgMisuse2->ItemIndex;
-//           Data->command->Parameters->ParamValues["house_complex2"] = rgComplex2->ItemIndex;
-//           Data->command->Parameters->ParamValues["house_basement2"] = rgBasement2->ItemIndex;
            Data->command->Parameters->ParamValues["msn"] = lblMSN->Caption;
            Data->command->Execute();
-//           if ((rgDamage2->ItemIndex + rgLent2->ItemIndex + rgMisuse2->ItemIndex +
-//                rgComplex2->ItemIndex + rgBasement2->ItemIndex) > 0) {
-//               gav_2 = nav_2 = first_lien2 = 0;
-//           }
         if (rgQualified2->ItemIndex == 0) {
            gav_2 = nav_2 = first_lien2 = 0;
         }
@@ -885,9 +800,9 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
         }
         // call final review function
         status = DAC_SML_NPV(lblPrimaryID->Caption.c_str(), lblMSN->Caption.c_str(), hidden_InquiryDate->Caption.c_str(),
-                             ole_str.c_str(), StrToFloat(hidden_appAmount->Caption),
-                             StrToFloat(hidden_APR->Caption), period, StrToFloat(hidden_appFee->Caption),
-                             gav, nav, zip.c_str(), first_lien, StrToInt(hidden_monthly_income->Caption), error_msg);
+                             ole_str.c_str(), StrToFloat(lblAppAmount->Caption)/1000.0,
+                             StrToFloat(lblAPR->Caption)/100.0, period, StrToFloat(lblAppFee->Caption)/1000.0,
+                             gav/1000.0, nav/1000.0, zip.c_str(), first_lien/1000.0, StrToFloat(hidden_monthly_income->Caption), error_msg);
         if (status < 0) {
             message += error_msg;
         } else if (status > 0) {
