@@ -800,9 +800,9 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
         }
         // call final review function
         status = DAC_SML_NPV(lblPrimaryID->Caption.c_str(), lblMSN->Caption.c_str(), hidden_InquiryDate->Caption.c_str(),
-                             ole_str.c_str(), StrToFloat(lblAppAmount->Caption)/1000.0,
-                             StrToFloat(lblAPR->Caption)/100.0, period, StrToFloat(lblAppFee->Caption)/1000.0,
-                             gav/1000.0, nav/1000.0, zip.c_str(), first_lien/1000.0, StrToFloat(hidden_monthly_income->Caption), error_msg);
+                             ole_str.c_str(), StrToFloat(lblAppAmount->Caption),
+                             StrToFloat(lblAPR->Caption)/100.0, period, StrToFloat(lblAppFee->Caption),
+                             gav, nav, zip.c_str(), first_lien, StrToFloat(hidden_monthly_income->Caption), error_msg);
         if (status < 0) {
             message += error_msg;
         } else if (status > 0) {
