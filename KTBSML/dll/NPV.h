@@ -38,7 +38,8 @@
 #define COMMISSION 0.0004 //one time, of loan amount or line 0.03% (Jan 31, 2006)
 #define M2_3_EXPENSE 5.25 //NT$5.25K
 #define M4P_EXPENSE 22.5  //NT$22500 per account per month
-#define MAX_LENDING_SECURED 5000 //NT$500MM
+//#define MAX_LENDING_SECURED 5000 //NT$500MM
+#define MAX_LENDING_SECURED 3000 //NT$300MM by jeff's mail 20060826
 #define MAX_LENDING_UNSECURED 1000 //NT$100MM
 #define MIN_LENDING_AMOUNT 100 //NT$10K
 
@@ -52,7 +53,7 @@
 #define Default_recovery 0.15 //recovery rate for credit card, used for unsecured recovery
 
 #define Loan_Base 500.0 //NT$500K, for unsecured IL risk
-#define Max_Granting_Ratio 1.3 //120% of nav(Oct. 14, 2005)
+#define Max_Granting_Ratio 1.0 //100% of nav(Oct. 12, 2006)
 #define Max_Granting_Ratio_CASHCARD 0.6 // 60% of nav
 #define Max_Granting_Ratio_DATA 0.8 // 80%
 #define min(a,b)  ((a) > (b)) ? (b): (a)

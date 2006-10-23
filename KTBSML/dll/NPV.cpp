@@ -885,7 +885,7 @@ il::il(double apr, int period, double gav, double nav, double existing_mortgage,
     _existing_mortgage = existing_mortgage / 1000.0;
     _nav = nav<=0? 0.000000000000001 : nav / 1000.0;
     _principal = principal / 1000.0;
-    _app_fee = app_fee;
+    _app_fee = app_fee /1000.0;
     _coe = COE / 12.0;
     _cof = COF / 12.0;
 
@@ -1257,7 +1257,7 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
   };
   int cap;
   double upper = secured ? MAX_LENDING_SECURED : MAX_LENDING_UNSECURED;
-  double upper_bound = min(MAX_LENDING_SECURED, (1.3 * _nav - _existing_mortgage));
+  double upper_bound = min(MAX_LENDING_SECURED, (Max_Granting_Ratio * _nav - _existing_mortgage));
   if(!secured){
   	upper = (upper > secured_amount) ? secured_amount : upper;
     if(_personal_risk > 0.04759){
