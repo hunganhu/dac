@@ -91,8 +91,14 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                 double gav, double nav, char *zip, double first_lien_value, int monthly_income, char *error);
 
 extern "C" __declspec(dllexport)
-int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db, 
+int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
                       int monthly_income, char *error);
+
+extern "C" __declspec(dllexport)
+int TEST_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
+                double principal, double apr, int period, double app_fee,
+                double gav, double nav, char *zip, double first_lien_value,
+                double balance, double risk_score, int filter_flag, char *error);
 
 void prepare_2xx_infra(TADOCommand *command, int now);
 

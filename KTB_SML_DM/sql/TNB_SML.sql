@@ -128,84 +128,39 @@ CREATE TABLE STM007 (
 CREATE INDEX I_STM007 ON STM007(MSN, IDN);
 GO
 
-CREATE TABLE COUNTER ( 
-	SEQ_TYPE	CHAR(9) NOT NULL,               -- '序號類型, Ayyyymmdd: A20060412';    
-	SEQ_NO		NUMERIC(5) NOT NULL DEFAULT 1   -- '序號值';                            
-);
-ALTER TABLE COUNTER ADD CONSTRAINT P_COUNTER PRIMARY KEY (SEQ_TYPE);
-GO
-
-CREATE TABLE AGENT ( 
-	USERID		VARCHAR(32) NOT NULL,             -- 'USER ID';
-	USERPW		VARCHAR(32),                      -- 'USER PASSWORD';         
-	USERNAME	VARCHAR(32),                      -- 'USER NAME';         
-	USERBRANCH	VARCHAR(32)                       -- BRANCH NAME
-);
-ALTER TABLE AGENT ADD CONSTRAINT P_AGENT PRIMARY KEY (USERID);
-
-INSERT INTO AGENT VALUES ('test', 'test', 'test', 'test');
-GO
-
 CREATE TABLE APP_INFO (
 	MSN		CHAR(14) NOT NULL,     -- 案件編號
 	SYSTEM_DATE	CHAR(14) NOT NULL,     -- 案件輸入時間 YYYYMMDDHHMMSS
 	APPLICANT_ID	CHAR(10) NOT NULL,     -- 申請人身份證字號姓名  
 	APPLICANT_NAME	VARCHAR(30) NOT NULL,  -- 申請人姓名
-	BIRTHDAY	CHAR(7) NOT NULL,      -- 生日 YYYMMDD
 	ZIP		CHAR(3),               -- 三位郵遞區號
-	MARRIAGE	INT,                   -- 婚姻 0:未婚 / 1:已婚 / 2:離婚               
-	CHILD		INT,                   -- 子女數 0 / 1 / 2 / 3:大於2個                  
-	EDUCATION	INT,                   -- 教育 0:研究所 / 1:大學 / 2:專科 / 3:高、國中
-	CAREER		VARCHAR(30) NOT NULL,  -- 職業
 	INCOME		INT NOT NULL,          -- 年收入
+	APP_QUALIFIED	INT,		       -- 申請人符合承作條件 0: NO / 1:YES
 	APP_AMT		INT NOT NULL,          -- 申貸金額 
 	PERIOD		INT NOT NULL,          -- 申貸期間
 	APR		DECIMAL(8,5) NOT NULL, -- 申貸利率
 	APP_FEE		INT NOT NULL,          -- 開辦費
-	BRANCH		CHAR(4),               -- 進件分行  
-	AGENT		CHAR(4),               -- 進件員工  
+	BRANCH		VARCHAR(10),           -- 進件分行
+	EMP_ID		VARCHAR(10),           -- 進件員工
+	AUDITOR		VARCHAR(10),	       -- 徵審人員
 -- PROPERTY1
 	OWNER_ID1	CHAR(10) NOT NULL,     -- 所有人身分證字號
 	OWNER_NAME1	VARCHAR(30) NOT NULL,  -- 所有人姓名
-	LAND_NUM1	VARCHAR(30) NOT NULL,  -- 地號/建號
-	LIEN1		INT,           -- 目前抵押順位 0: 無 / 1:第一順位 / 2:第二順位或以上          
+	LAND_NUM1	VARCHAR(30) NOT NULL,  -- 擔保品門牌號碼
 	FIRST_LIEN1	INT,           -- 已抵押總金額                                                  
 	RELATIONSHIP1	INT, 	       -- 與申請人關係 0:本人 / 1:父母 / 2;配偶 / 3:子女 / 4:其他     
-	LOCATION1	INT,           -- 座落區域 0:住宅區 / 1:商業區 / 2:住商混合區 / 3:其他    
-	LAND_FORBIT1	INT,           -- 土地是否列為禁建 0: NO / 1:YES                                  
-	LAND_DEMOLISH1	INT,           -- 土地是否為都市計劃拆除 0: NO / 1:YES                                  
-	LAND_COLLECT1	INT,           -- 土地是否為都市計劃徵收對象 0: NO / 1:YES                                  
-	HOUSE_RAY1	INT,           -- 房屋是否為輻射屋 0: NO / 1:YES                                  
-	HOUSE_SEASAND1	INT,           -- 房屋是否為海砂屋0: NO / 1:YES                                  
-	HOUSE_DANGEROUS1	INT,   -- 房屋是否為危樓 0: NO / 1:YES                          
-	NAV1		FLOAT,         -- 房屋淨值
-	GAV1		FLOAT,         -- 房屋毛值
-	HOUSE_DAMAGE1	INT,           -- 是否為餘屋及屋況無人管理且外觀、內部破損嚴重 0: NO / 1:YES
-	HOUSE_LENT1	INT,           -- 目前有效之租賃契約是否超過五年或是不定期者 0: NO / 1:YES
-	HOUSE_MISUSE1	INT,           -- 用途是否為祭祀公業、寺廟、神壇、賭場、祠堂、教堂、市場、酒店 0: NO / 1:YES
-	HOUSE_COMPLEX1	INT,           -- 是否出入複雜或是附近有特種營業的小套房 0: NO / 1:YES
-	HOUSE_BASEMENT1	INT,           -- 是否公寓大樓地下室 0: NO / 1:YES
+	NAV1		FLOAT,         -- 鑑估淨值
+	GAV1		FLOAT,         -- 鑑估總值
+	QUALIFIED1	INT,           -- 0: NO / 1:YES                                  
 -- PROPERTY2 
 	OWNER_ID2	CHAR(10),      -- 所有人身分證字號 
 	OWNER_NAME2	VARCHAR(30),   -- 所有人姓名       
-	LAND_NUM2	VARCHAR(30),   -- 地號/建號        
-	LIEN2		INT,           -- 目前抵押順位 0: 無 / 1:第一順位 / 2:第二順位或以上                           
+	LAND_NUM2	VARCHAR(30),   -- 擔保品門牌號碼        
 	FIRST_LIEN2	INT,           -- 已抵押總金額                                                                 
 	RELATIONSHIP2	INT,           -- 與申請人關係 0:本人 / 1:父母 / 2;配偶 / 3:子女 / 4:其他                                   
-	LOCATION2	INT,           -- 座落區域 0:住宅區 / 1:商業區 / 2:住商混合區 / 3:其他                         
-	LAND_FORBIT2	INT,           -- 土地是否列為禁建 0: NO / 1:YES                                               
-	LAND_DEMOLISH2	INT,           -- 土地是否為都市計劃拆除 0: NO / 1:YES                                         
-	LAND_COLLECT2	INT,           -- 土地是否為都市計劃徵收對象 0: NO / 1:YES                                     
-	HOUSE_RAY2	INT,           -- 房屋是否為輻射屋 0: NO / 1:YES                                               
-	HOUSE_SEASAND2	INT,           -- 房屋是否為海砂屋0: NO / 1:YES                                                
-	HOUSE_DANGEROUS2	INT,   -- 房屋是否為危樓 0: NO / 1:YES                                                 
-	NAV2		FLOAT,         -- 房屋淨值                                                                     
-	GAV2		FLOAT,         -- 房屋毛值                                                                     
-	HOUSE_DAMAGE2	INT,           -- 是否為餘屋及屋況無人管理且外觀、內部破損嚴重 0: NO / 1:YES                   
-	HOUSE_LENT2	INT,           -- 目前有效之租賃契約是否超過五年或是不定期者 0: NO / 1:YES                     
-	HOUSE_MISUSE2	INT,           -- 用途是否為祭祀公業、寺廟、神壇、賭場、祠堂、教堂、市場、酒店 0: NO / 1:YES   
-	HOUSE_COMPLEX2	INT,           -- 是否出入複雜或是附近有特種營業的小套房 0: NO / 1:YES                         
-	HOUSE_BASEMENT2	INT,           -- 是否公寓大樓地下室 0: NO / 1:YES                                              
+	NAV2		FLOAT,         -- 鑑估淨值                                                                     
+	GAV2		FLOAT,         -- 鑑估總值                                                                     
+	QUALIFIED2	INT,           -- 0: NO / 1:YES                                  
 	INQUIRY_DATE	CHAR(8)        -- JCIC 查詢日期 YYYYMMDD
 );
 ALTER TABLE APP_INFO ADD CONSTRAINT P_APP_INFO PRIMARY KEY (MSN);
@@ -229,9 +184,43 @@ CREATE TABLE APP_FINAL (
 	PB		DECIMAL(8,5),     -- PB
 	NPV		INT,              -- NPV
 	OPTIMAL_AMOUNT	INT,              -- 最高可貸金額
-	AUDIT_AGENT	CHAR(4),          -- 複審人員
+--	AUDIT_AGENT	CHAR(4),          -- 複審人員
 	FINAL_CODE	INT,              -- 複審結果代碼 
 	FINAL_MSG	VARCHAR(256)      -- 複審結果訊息
 );
 ALTER TABLE APP_FINAL ADD CONSTRAINT P_APP_FINAL PRIMARY KEY (MSN);
+GO
+
+CREATE TABLE COUNTER ( 
+	SEQ_TYPE	CHAR(9) NOT NULL,               -- '序號類型, Ayyyymmdd: A20060412';    
+	SEQ_NO		NUMERIC(5) NOT NULL DEFAULT 1   -- '序號值';                            
+);
+ALTER TABLE COUNTER ADD CONSTRAINT P_COUNTER PRIMARY KEY (SEQ_TYPE);
+GO
+
+CREATE TABLE AGENT ( 
+	USERID		VARCHAR(32) NOT NULL,             -- 'USER ID';
+	USERPW		VARCHAR(32),                      -- 'USER PASSWORD';         
+	USERNAME	VARCHAR(32),                      -- 'USER NAME';
+	EMP_ID		VARCHAR(32),                      -- 'USER EMPLOYEE ID';         
+	USERBRANCH	CHAR(4)                           -- BRANCH CODE
+);
+ALTER TABLE AGENT ADD CONSTRAINT P_AGENT PRIMARY KEY (USERID);
+
+INSERT INTO AGENT VALUES ('test', 'test', 'test', '99999', '0489');
+GO
+
+CREATE TABLE CFC (
+	CFC_CODE	 char(4) NOT NULL,  -- 區域中心代碼
+	CFC		 varchar(60),       -- 區域中心名稱
+);
+ALTER TABLE CFC ADD CONSTRAINT P_CFC PRIMARY KEY (CFC_CODE);
+GO
+
+CREATE TABLE BRANCH (
+	BRANCH_CODE	 char(4) NOT NULL,  -- 分行代碼
+	BRANCH		 varchar(60),       -- 分行名稱
+	CFC_CODE	 char(4)            -- 區域中心代碼
+);
+ALTER TABLE BRANCH ADD CONSTRAINT P_BRANCH PRIMARY KEY (BRANCH_CODE);
 GO

@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
+#define EXPIRED_DATE "20070131"
+const char *EXPIRATION_MSG = "聯徵資料日期超過期限。"; // expiration message
 
 //---------------------------------------------------------------------------
 
@@ -40,7 +42,7 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
   bool use_krm037 = true;
 
   try {
-    int now = yrmon_to_mon(inq_mon, time_lock, "20990531", archive, use_krm037);
+    int now = yrmon_to_mon(inq_mon, time_lock, EXPIRED_DATE, archive, use_krm037);
     if (now > 0) {
 	 AnsiString connection_string = static_cast<AnsiString>(ole_db);
 	 connect(connection, connection_string);
@@ -177,7 +179,7 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
 //      } // end of error_check() >0
     } // end of now >0
     else {
-    	error_message = "This module has expired!";
+    	error_message = EXPIRATION_MSG;
     	status = -1;
     }//end of expiration check
   } //end of try
@@ -245,7 +247,6 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
   int gender = ((idn[1]== '1')? 1: 0);
 //  gender = 1; // remove after test
 
-
   unsigned char data_flag = 0x0;
   unsigned int filter_flag = 0x0;
   unsigned int filter;
@@ -273,7 +274,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
   bool use_krm037 = true;
 
   try {
-    int now = yrmon_to_mon(inq_mon, time_lock, "20990531", archive, use_krm037);
+    int now = yrmon_to_mon(inq_mon, time_lock, EXPIRED_DATE, archive, use_krm037);
     if (now > 0) {
 	 AnsiString connection_string = static_cast<AnsiString>(ole_db);
 	 connect(connection, connection_string);
@@ -405,14 +406,14 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                write_final_result_fail (command, msn_no, final_code, final_msg);
             } else {  // qualified property
                // calculate npv, pb, max. loan amount
-   	       il loan(apr, period, gav, nav, existing_mortgage, zip_no, principal, app_fee/1000.0, balance,
+   	       il loan(apr, period, gav, nav, existing_mortgage, zip_no, principal, app_fee, balance,
        	            risk_score, msn_no, idno, time_stamp_no, &error_message);
    	       if (loan.status() != 0) {
 		  status = 0;
                   filter = filter_flag & 0x1ff;  // Only the first 9 bits are checked
        	          loan_amount_secured = loan.npv(true, secured_npv, secured_pb, filter, -1);
-       	          loan_amount_secured *= 1000.0;
-                  secured_npv_amount = static_cast<int>(secured_npv + 0.5) * 1000;
+//       	          loan_amount_secured *= 1000.0;
+                  secured_npv_amount = static_cast<int>(secured_npv + 0.5);
                }
                else {
                   strcpy(error,error_message.c_str());
@@ -424,7 +425,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                	  if (principal > loan_amount_secured) {
                	     if ((risk_score <= 0.01836) &&
                	         (((principal - loan_amount_secured) <= 100) ||
-                          ((loan_amount_secured / principal) > 0.9)))
+                          ((loan_amount_secured / (principal)) > 0.9)))
                	     	loan_amount_secured = principal;
                	  }
                   final_code = DataErrorCode(OUTPUT_CODE_0);
@@ -433,8 +434,8 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
                   final_code = DataErrorCode(OUTPUT_CODE_204);
                   final_msg  = DataErrorMsg(OUTPUT_CODE_204);
                }
-               write_final_result (command, msn_no, secured_pb, secured_npv_amount,
-                       loan_amount_secured, final_code, final_msg);
+               write_final_result (command, msn_no, secured_pb, secured_npv_amount*1000,
+                       loan_amount_secured*1000, final_code, final_msg);
             }
          } else { // prescreen fails
             // write prescreen failure result
@@ -446,7 +447,7 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
 //      } // end of error_check() >0
     } // end of now >0
     else {
-    	error_message = "This module has expired!";
+    	error_message = EXPIRATION_MSG;
     	status = -1;
     }//end of expiration check
   } //end of try
@@ -483,231 +484,126 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
   return status;
 } // end of DAC_SML_NPV()
 //---------------------------------------------------------------------------
-/*
-int DAC_SML_NPV(char *idn, char *idn1, char *idn2,
-  char *msn, char *time_stamp, char *ole_db, int gender, int sc,
-  double principal, int test_cell,
-  double gav, double nav, char *zip, double first_lien_value,
-  char *error)
+int TEST_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
+                double principal, double apr, int period, double app_fee,
+                double gav, double nav, char *zip, double first_lien_value,
+                double balance, double risk_score, int filter_flag, char *error)
 {
   AnsiString error_message="";
   AnsiString msn_no = static_cast<AnsiString>(msn);
   AnsiString time_stamp_no = static_cast<AnsiString>(time_stamp);
   AnsiString idno = static_cast<AnsiString>(idn);
-  AnsiString idno1 = static_cast<AnsiString>(idn1);
-  AnsiString idno2 = static_cast<AnsiString>(idn2);
   AnsiString zip_no = static_cast<AnsiString>(zip);
+
+//  int prescreen_code = 0;
+//  AnsiString prescreen_msg = "";
+  int final_code = 0;
+  AnsiString final_msg = "";
+
   double secured_npv = 0;
-  double unsecured_npv = 0;
-  double unsecured_pb = 0;
   double secured_pb = 0;
-  double p_score;
   double loan_amount_secured = 0;  //for secured LOC and IL
-  double loan_amount_unsecured = 0; //for unsecured LOC and IL
-  double risk_score = 0;
-  double existing_mortgage = first_lien_value / 1.2;
-  int propensity_decile = 0;
-  int product_type = -1;
-  bool is_il;
+  int filter = 0;
+//  double unsecured_npv = 0;
+//  double unsecured_pb = 0;
+//  double p_score;
+//  double loan_amount_unsecured = 0; //for unsecured LOC and IL
+//  double risk_score = 0;
+  double existing_mortgage = first_lien_value;
+//  int propensity_decile = 0;
+//  int product_type = -1;
+//  bool is_il;
+//  int gender = ((idn[1]== '1')? 1: 0);
+//  gender = 1; // remove after test
 
-  unsigned char data_flag = 0x0;
-  unsigned int filter_flag = 0x0;
-  double balance = 0;
-
-  unsigned char group;
-  bool bsp_exclusion = ((nav == 0) && (gav == 0)) ? true : false;
-  int decline_code = 0;
-
-  if(bsp_exclusion)
-  	decline_code = 1;
+//  unsigned char data_flag = 0x0;
+//  unsigned int filter_flag = 0x0;
+//  unsigned int filter;
+//  double balance = 0;
+  int secured_npv_amount;
 
   int status = 0;
   CoInitialize(NULL);
 
   TADOConnection *connection = new TADOConnection(NULL);
-  TADOQuery *query = new TADOQuery(NULL);
-  TADOQuery *query2 = new TADOQuery(NULL);
+//  TADOQuery *query = new TADOQuery(NULL);
+//  TADOQuery *query2 = new TADOQuery(NULL);
   TADOCommand *command = new TADOCommand(NULL);
 
-  AnsiString inq_mon = "";//time_stamp_no.SubString(1,8);
-  bool time_lock = true;
-  bool archive = false;
-  bool use_krm037 = true;
+  AnsiString inq_mon = time_stamp_no.SubString(1,8);
+//  bool time_lock = true;
+//  bool archive = false;
+//  bool use_krm037 = true;
 
   try {
-    int now = yrmon_to_mon(inq_mon, time_lock, "20160531", archive, use_krm037);
-    if (now > 0) {
-      product_type = get_product_type(test_cell) ;
-      is_il = product_type == 1 ? true: false;
-
-      if (error_checking(gender, test_cell, gav, nav, first_lien_value, principal, is_il, msn, &error_message)){
-  	 status = -1;
-      }
-      else {
+// FINAL REVIEW
 	 AnsiString connection_string = static_cast<AnsiString>(ole_db);
 	 connect(connection, connection_string);
- 	 initialize_ado_objects(connection, query, query2, command);
-//   	 store_input(command, idno, msn_no, time_stamp_no, gender, principal,
-//     		     test_cell, gav, nav, zip_no, first_lien_value, sc);
+// 	 initialize_ado_objects(connection, query, query2, command);
+  command->Connection = connection;
+  command->CommandTimeout = 300;
+  command->CommandType = cmdText;
 
-//         if (nav == 0)
-//            nav = 0.000000000000001;
-//   	 if ((existing_mortgage / nav > 0.95) && decline_code != 1)
-//   	    decline_code = 2;
-	 copy_table(command, "KRM001", KRM001, msn_no, time_stamp_no);
- 	 copy_table(command, "KRM023", KRM023, msn_no, time_stamp_no);
-         copy_table(command, "KRM037", KRM037, msn_no, time_stamp_no);
-   	 copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
-     	 copy_table(command, "STM007", STM007, msn_no, time_stamp_no);
-     	 copy_table(command, "JAS002", JAS002, msn_no, time_stamp_no);
-
-//       prepare_KRM023(command, KRM023, now);
-         merge_prepare_KRM023_KRM037(command, KRM023, KRM037, now);
-  	 prepare_KRM001(command, KRM001, now);
- 	 prepare_BAM086(command, BAM086);
- 	 prepare_STM007(command, STM007);
-	 prepare_JAS002(command, JAS002, JAS002_T);
- 	 create_common_working_tables(command);
-     	 prepare_2xx_infra(command, now);
-     	 get_idn_list(command, KRM001, KRM023, BAM086, STM007, JAS002_T);
-     	 data_flag = get_data_availability(query, idno);
-         filter_flag = in_pdaco_1_00(query, KRM023, KRM001, JAS002_T, BAM086, STM007, msn_no, idno, time_stamp_no, data_flag, now);
-
-         if (decline_code != 1){
-            if (data_flag == 0)
-               decline_code = 101;
-            else if((filter_flag & 0x1) || (filter_flag & 0x2) || (filter_flag & 0x8))
-               decline_code = 102;
-            else if(filter_flag == 0x80)
-               decline_code = 107;
-         }
-
- 	 if ((decline_code == 0) &&((filter_flag & 0x01) || (filter_flag & 0x02)))
- 	    decline_code = 5;
- 	 else if (((filter_flag & 0x04) || (filter_flag & 0x10) ||
-                   (filter_flag & 0x20) || (filter_flag & 0x40)))
-    	    decline_code = 4;
-
-         if (decline_code == 0 || decline_code ==2 || decline_code > 100) {
-            if (filter_flag == 0 || filter_flag == 0x80){
-//               p_score = propensity(command, query, idno, now);
-//     	       propensity_decile = propensity_cut(query, idno);
-               risk_score =
-           		pdaco_1_00(command, query, msn_no, idno, time_stamp_no, gender, data_flag, KRM023, KRM001,
-             		       BAM086, JAS002, STM007, now, true);
-               balance = krm023_balance(query, idno, now) + bam009_balance(query, idno);
-
-            }
-
-            if (is_il){ //IL
-   	       il loan(test_cell, gav, nav, existing_mortgage, zip_no, principal, balance,
+            if (gav == 0 || nav == 0) {  // unqualified property
+               final_code = DataErrorCode(OUTPUT_CODE_301);
+               final_msg  = DataErrorMsg(OUTPUT_CODE_301);
+               write_final_result_fail (command, msn_no, final_code, final_msg);
+            } else {  // qualified property
+               // calculate npv, pb, max. loan amount
+   	       il loan(apr, period, gav, nav, existing_mortgage, zip_no, principal, app_fee, balance,
        	            risk_score, msn_no, idno, time_stamp_no, &error_message);
-   	       if (loan.status()!=0) {
-       	          loan_amount_secured = loan.npv(true, secured_npv, secured_pb, filter_flag, -1);
-          	       loan_amount_unsecured = loan.npv(false, unsecured_npv, unsecured_pb, filter_flag, loan_amount_secured);
+   	       if (loan.status() != 0) {
+		  status = 0;
+                  filter = filter_flag & 0x1ff;  // Only the first 9 bits are checked
+       	          loan_amount_secured = loan.npv(true, secured_npv, secured_pb, filter, -1);
+//       	          loan_amount_secured *= 1000.0;
+                  secured_npv_amount = static_cast<int>(secured_npv + 0.5);
                }
                else {
                   strcpy(error,error_message.c_str());
                   status = -1;
                }
+               // lending amount and credit line  policy for scorable
+               // within boundary
+               if (loan_amount_secured >= 100 && secured_npv >= 0) {
+               	  if (principal > loan_amount_secured) {
+               	     if ((risk_score <= 0.01836) &&
+               	         (((principal - loan_amount_secured) <= 100) ||
+                          ((loan_amount_secured / (principal)) > 0.9)))
+               	     	loan_amount_secured = principal;
+               	  }
+                  final_code = DataErrorCode(OUTPUT_CODE_0);
+                  final_msg  = DataErrorMsg(OUTPUT_CODE_0);
+               } else {
+                  final_code = DataErrorCode(OUTPUT_CODE_204);
+                  final_msg  = DataErrorMsg(OUTPUT_CODE_204);
+               }
+               write_final_result (command, msn_no, secured_pb, secured_npv_amount*1000,
+                       loan_amount_secured*1000, final_code, final_msg);
             }
-            else {  //LOC
-               loc loan(test_cell, gav, nav, existing_mortgage, zip_no, principal, balance,
-                        propensity_decile, risk_score, msn_no, idno, time_stamp_no, &error_message);
-   	       if (loan.status()!=0){
-       	          loan_amount_secured = loan.npv(true, secured_npv, secured_pb, filter_flag, -1);
-                  loan_amount_unsecured = loan.npv(false, unsecured_npv, unsecured_pb, filter_flag, loan_amount_secured);
-               }
-               else {
-   		  strcpy(error,error_message.c_str());
-       		  status = -1;
-               }
-            }//End of IL / LOC
-        } // end of if (decline_code == 0 || decline_code ==2 || decline_code > 100)
 
-        if (risk_score == 0){
-            int risk_code = 0;
-	    if (data_flag == 0)
-    	       risk_code |= 0x01; //No JCIC data
-	    if (filter_flag & 0x01)
-      	       risk_code |= 0x02; //No KRM023 data
-            if (filter_flag & 0x02)
- 	       risk_code |= 0x04; //No KRM001 data
-    	    if (filter_flag & 0x08)
-               risk_code |= 0x08; //IND001
-            if (filter_flag & 0x04)
-     	       risk_code |= 0x10; //App max bucket >= 3
-            if (filter_flag & 0x10)
-	       risk_code |= 0x20;  //Fs044, BAM009 with pass due amount
-      	    if (filter_flag & 0x20)
-               risk_code |= 0x40; //Major derug
-	    if (filter_flag & 0x40)
-    	       risk_code |= 0x80; //Cash card delinquent in most recent month
-            if (filter_flag & 0x80)
- 	       risk_code |= 0x100; //Cash card utilization >= 100%
-      	    risk_code += 100;
-            risk_score = risk_code;
-         }
-         if (status != -1){
-            if ((loan_amount_secured + loan_amount_unsecured) > 0 && decline_code < 100)
-           	decline_code = 0;
-            else if(decline_code == 0)
-           	decline_code = 3;
-
-            if (((filter_flag == 0) && (decline_code == 0)) || (decline_code > 100)){
-               AnsiString msn_no_space = msn_no.TrimRight();
-               double lending_ratio = (first_lien_value / 1.2 +
-                	                 loan_amount_secured * 1000) / nav;
-
-               store_result(command, idno, msn_no, time_stamp_no, test_cell,
-   		      loan_amount_secured, loan_amount_unsecured,
-                         risk_score, propensity_decile, principal,
-                         lending_ratio, bsp_exclusion,
-                         secured_npv, unsecured_npv, secured_pb, unsecured_pb, decline_code, sc, balance);
-            } //end of normal case adjustment
-            else {
-
-              store_result(command, idno, msn_no, time_stamp_no, test_cell,
-               	         0, 0, risk_score, 0, principal, 0, bsp_exclusion, 0, 0,
-                         0, 0, decline_code, sc, balance);
-      	   }//end of abnormal case output
-        } //end of if status != -1
-      } // end of error_check() >0
-    } // end of now >0
-    else {
-    	error_message = "This module has expired!";
-    	status = -1;
-    }//end of expiration check
   } //end of try
   catch (Exception &E){
      error_message += E.Message.c_str();
      status = -1;
   }
 
-  try{
-   	clean_up(command);
-  }
-  catch(Exception &E){
-   	error_message += E.Message.c_str();
-   	status = -1;
-  }
-
-  query->Close();
-  query2->Close();
   connection->Close();
-  delete query;
-  delete query2;
   delete command;
   delete connection;
   CoUninitialize();
 
-  if (error_message.Length()>0)
+  if (status < 0) { // system error
      status = -1;
-  strcpy(error, error_message.c_str());
+     strcpy(error, error_message.c_str());
+  } else { // normal output
+     strcpy (error, final_msg.c_str());
+     status = final_code;
+  }
 
   return status;
-}
-*/
+} // end of DAC_SML_NPV()
+//---------------------------------------------------------------------------
 void connect(TADOConnection *connection, const AnsiString &connection_string,
              int connection_timeout, int command_timeout)
 {
@@ -2467,9 +2363,9 @@ void write_final_result(TADOCommand *command, AnsiString msn_no, double pb, int 
   AnsiString sql_stmt;
   AnsiString curr_dtime = CurrDateTime();
 
-  sql_stmt = "INSERT INTO app_final (msn, final_date, pb, npv, optimal_amount, final_code, final_msg) "
+  sql_stmt = "INSERT INTO APP_FINAL (MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, FINAL_CODE, FINAL_MSG) "
              " VALUES (:msn, :final_date, :pb, :npv, :optimal_amount, :final_code, :final_msg);";
-  sql_stmt = sql_stmt.UpperCase();
+//  sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Parameters->ParamValues["msn"] = msn_no;
   command->Parameters->ParamValues["final_date"] = curr_dtime;
@@ -2482,7 +2378,7 @@ void write_final_result(TADOCommand *command, AnsiString msn_no, double pb, int 
 }
 
 //---------------------------------------------------------------------------
-void write_final_result_fail(TADOCommand *command, AnsiString msn_no, 
+void write_final_result_fail(TADOCommand *command, AnsiString msn_no,
                   int code, AnsiString msg)
 {
   AnsiString sql_stmt;
@@ -3877,23 +3773,23 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 	try{
 		sql_stmt = "CREATE TABLE PDACO_V1_00_CAL (CASE_NO Char(20), IDN Char(14), ";
 		sql_stmt += "TIME_STAMP Char(12), FS014_9M int, FS101_9M int, ";
-    sql_stmt += "FS016_3M int, FS101_3M int, FS005_3M_1k int, ";
+                sql_stmt += "FS016_3M int, FS101_3M int, FS005_3M_1k int, ";
 		sql_stmt += "FS059_3M_1K int, FS059_6M_1K int, FS059_9M_1K int, SEX float, ";
 		sql_stmt += "FS212_3M_1K float, FS212_6M_1K float, FS031 int, MS117_6M float, ";
 		sql_stmt += "FS102_3M int, FS102_6M int, FS102_9M int, FS051 int, ";
 		sql_stmt += "APP_LAST_MONTH_BUCKET int, FS205_3M_1K int, ";
 		sql_stmt += "INT015_3M float, INT028_9M float, ";
-    sql_stmt += "FT059_1K_42 int, FT212_43_1K float, FT102_42 int, ";
+                sql_stmt += "FT059_1K_42 int, FT212_43_1K float, FT102_42 int, ";
 		sql_stmt += "FT059_1K_43 int, ";
 		sql_stmt += "FT059_1K_42_Q int, FT212_43_1K_Q float, FT102_42_R float, ";
 		sql_stmt += "FS205_3M_1K_Q int, FT059_1K_43_R float, ";
 		sql_stmt += "INT015_3M_T float, INT028_9M_T float, ";
-    sql_stmt += "FT059_1k_42_Q_T int, FT212_43_1K_Q_T float, ";
+                sql_stmt += "FT059_1k_42_Q_T int, FT212_43_1K_Q_T float, ";
 		sql_stmt += "FT102_42_R_T float, FS031_T int, SEX_T float, APP_LAST_MONTH_BUCKET_T int, ";
 		sql_stmt += "FS205_3M_1K_Q_T int, FT059_1K_43_R_T float, ";
 		sql_stmt += "FS051_T int, ";
 		sql_stmt += "EXCLUSION int, AVAIL int, SCORE float, CUT int, PB1 float, PB2 float);";
-    sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
 		command->CommandText = sql_stmt;
 		command->Execute();
   }
@@ -3971,7 +3867,7 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 //create temp tables
 		try{
   		sql_stmt = "DROP TABLE TMP;";
-      sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
   		command->CommandText = sql_stmt;
   		command->Execute();
 		}
@@ -3983,7 +3879,7 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 		}
 		try{
   		sql_stmt = "DROP TABLE TMP1;";
-      sql_stmt = sql_stmt.UpperCase();
+                sql_stmt = sql_stmt.UpperCase();
   		command->CommandText = sql_stmt;
   		command->Execute();
 		}
@@ -3994,14 +3890,14 @@ double pdaco_1_00(TADOCommand *command, TADOQuery *query, const AnsiString &case
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 		}
 		sql_stmt = "CREATE TABLE TMP ";
-	  sql_stmt += "(IDN Char(14), Mon INT, V1 FLOAT, V2 FLOAT, V3 FLOAT);";
+    	        sql_stmt += "(IDN Char(14), Mon INT, V1 FLOAT, V2 FLOAT, V3 FLOAT);";
     sql_stmt = sql_stmt.UpperCase();
 	  command->CommandText = sql_stmt;
 	  command->Execute();
 
 	  sql_stmt = "CREATE TABLE TMP1 ";
 	  sql_stmt += "(IDN Char(14), Mon INT, V1 FLOAT);";
-    sql_stmt = sql_stmt.UpperCase();
+          sql_stmt = sql_stmt.UpperCase();
 	  command->CommandText = sql_stmt;
 	  command->Execute();
 

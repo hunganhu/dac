@@ -885,7 +885,7 @@ il::il(double apr, int period, double gav, double nav, double existing_mortgage,
     _existing_mortgage = existing_mortgage / 1000.0;
     _nav = nav<=0? 0.000000000000001 : nav / 1000.0;
     _principal = principal / 1000.0;
-    _app_fee = app_fee;
+    _app_fee = app_fee /1000.0;
     _coe = COE / 12.0;
     _cof = COF / 12.0;
 
