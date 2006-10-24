@@ -71,17 +71,55 @@ void init_UI()
 void init_UI_final()
 {
   formMain->edtMSN->Clear();
+  // Applicant
+  formMain->lblMSN->Caption = "";
+  formMain->lblincome->Caption = "";
+  formMain->lblPrimaryID->Caption = "";
+  formMain->lblPrimaryName->Caption = "";
+  formMain->hidden_SystemDate->Caption = "";
+  formMain->hidden_Zip->Caption = "";
+  // Loan info
+  formMain->lblAppAmount->Caption = "";
+  formMain->lblAppFee->Caption = "";
+  formMain->lblAPR->Caption = "";
+  formMain->lblPeriod->Caption = "";
 
   // Property 1
+  formMain->lblLandHouseNum1->Caption = "";
+  formMain->lblOwnerID1->Caption = "";
   formMain->gav1->Clear();
   formMain->nav1->Clear();
+  formMain->edtLienValue1->Clear();
+  formMain->rgQualified1->ItemIndex = 1;
+  formMain->hidden_InquiryDate->Caption = "";
+  formMain->hidden_monthly_income->Caption = "";
 
-  // Property 2
+  // Property 2  clean and disable
+  formMain->lblLandHouseNum2->Caption = "";
+  formMain->lblOwnerID2->Caption = "";
   formMain->gav2->Clear();
   formMain->nav2->Clear();
+  formMain->edtLienValue2->Clear();
+  formMain->rgQualified2->ItemIndex = 1;
+  formMain->lblOwnerID2->Enabled = false;
+  formMain->lblLandHouseNum2->Enabled = false;
+  formMain->edtLienValue2->Enabled = false;
+  formMain->gav2->Enabled = false;
+  formMain->nav2->Enabled = false;
+  formMain->Label106->Enabled = false;
+  formMain->Label76->Enabled = false;
+  formMain->Label77->Enabled = false;
+  formMain->Label78->Enabled = false;
+  formMain->Label79->Enabled = false;
+  formMain->Label80->Enabled = false;
+  formMain->Label81->Enabled = false;
+  formMain->Label25->Enabled = false;
+  formMain->Label27->Enabled = false;
+  formMain->rgQualified2->Enabled = false;
+  formMain->GroupBox4->Enabled = false;
 
   formMain->gav1->SetFocus();
-  formMain->lblMessage->Caption = "";
+//  formMain->lblMessage->Caption = "";
   message = "";
   formMain->Refresh();
 };
@@ -90,13 +128,13 @@ bool request_for_jcic_data(TADOQuery *query, const AnsiString &id, AnsiString &q
 {
   bool return_value = true;
 
-  WideString jcic_inquiry_package_code = "004";
-  WideString branch_code = "5330";//"8160":資訊室; For testing machine:GSS
-  WideString user_id = "DAC";//"01922":李政達; For testing machine:AUSTIN;
+  WideString jcic_inquiry_package_code = "001";
+  WideString branch_code = "5400";//"8160":資訊室; For testing machine:GSS
+  WideString user_id = "DAC_1";//"01922":李政達; For testing machine:AUSTIN;
   WideString jcic_inquiry_criteria = id.Trim() + "^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^";
   WideString inquiry_style = "D"; //for data; "H" for html
   WideString AS400 = "N";
-  WideString inquiry_reason = "A1A";
+  WideString inquiry_reason = "A4A";
   WideString check_idn = "Y";
   WideString program_id = "GSSJCIC30";
 
@@ -356,12 +394,6 @@ AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
      ejcic_query->Next();
   };
 
-
-/*  sql_stmt = "INSERT INTO STM007(IDN, INQUIRY_DATE, QUERY_DATE, BANK_CODE, BANK_NAME, ";
-  sql_stmt += "ITEM_LIST, INQ_PURPOSE_1, INQ_PURPOSE, INPUT_TIME) VALUES (:idn, :INQUIRY_DATE, :query_date, ";
-  sql_stmt += ":bank_code, :bank_name, :item_list, :inq_purpose_1, :inq_purose, :input_time);";
-	command->CommandText = sql_stmt;*/
-
 //  sql_stmt = "INSERT INTO STM007(IDN, INQUIRY_DATE, QUERY_DATE, BANK_CODE, BANK_NAME, ";
 //  sql_stmt += "ITEM_LIST, INPUT_TIME, INQ_PURPOSE_1, INQ_PURPOSE) VALUES (:idn, :INQUIRY_DATE, :query_date, ";
 //  sql_stmt += ":bank_code, :bank_name, :item_list, :input_time, :inq_purpose_1, :inq_purpose);";
@@ -498,126 +530,41 @@ AnsiString get_ejcic_inquiry_result(TADOQuery *query, const AnsiString &query_sn
   return return_value;
 }
 //---------------------------------------------------------------------------
-void prepare_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time)
+void clean_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time)
 {
   AnsiString sql_stmt;
-  try{
-    sql_stmt = " IF OBJECT_ID('tempdb..#PRELIMITARY_REPORT') IS NOT NULL"
-               " DROP TABLE #PRELIMITARY_REPORT";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-    command->Execute();
-
-  sql_stmt =  " CREATE TABLE #PRELIMITARY_REPORT ("
-              " 	MSN CHAR (14),"
-              " 	PREMIER_DATE CHAR (14),"
-              " 	RSCORE DECIMAL(7, 4),"
-              " 	PREMIER_CODE INT,"
-              " 	PREMIER_MSG VARCHAR (256),"
-              " 	SYSTEM_DATE CHAR (14),"
-              " 	APPLICANT_ID CHAR (10),"
-              " 	APPLICANT_NAME VARCHAR (30),"
-//              " 	BIRTHDAY CHAR (7),"
-//              " 	MARRIAGE INT,"
-//              " 	CHILD INT,"
-//              " 	EDUCATION INT,"
-//              " 	CAREER VARCHAR (30),"
-              " 	INCOME INT,"
-              " 	APP_AMT INT,"
-              " 	PERIOD INT,"
-              " 	APR DECIMAL(7, 4),"
-              " 	APP_FEE INT,"
-              " 	BRANCH CHAR (4),"
-              " 	BRANCH_NAME VARCHAR (20),"
-              " 	REGION_NAME VARCHAR (20),"
-              " 	AGENT CHAR (4),"
-              " 	OWNER_ID1 CHAR (10),"
-              " 	OWNER_NAME1 VARCHAR (30),"
-              " 	LAND_NUM1 VARCHAR (30),"
-//              " 	LIEN1 INT,"
-              " 	FIRST_LIEN1 INT,"
-              " 	RELATIONSHIP1 INT,"
-//              " 	LOCATION1 INT,"
-//              " 	LAND_FORBIT1 INT,"
-//              " 	LAND_DEMOLISH1 INT,"
-//              " 	LAND_COLLECT1 INT,"
-//              " 	HOUSE_RAY1 INT,"
-//              " 	HOUSE_SEASAND1 INT,"
-//              " 	HOUSE_DANGEROUS1 INT,"
-              " 	NAV1 FLOAT,"
-              " 	GAV1 FLOAT,"
-//              " 	HOUSE_DAMAGE1 INT,"
-//              " 	HOUSE_LENT1 INT,"
-//              " 	HOUSE_MISUSE1 INT,"
-//              " 	HOUSE_COMPLEX1 INT,"
-//              " 	HOUSE_BASEMENT1 INT,"
-              " 	OWNER_ID2 CHAR (10),"
-              " 	OWNER_NAME2 VARCHAR (30),"
-              " 	LAND_NUM2 VARCHAR (30),"
-//              " 	LIEN2 INT,"
-              " 	FIRST_LIEN2 INT,"
-              " 	RELATIONSHIP2 INT,"
-//              " 	LOCATION2 INT,"
-//              " 	LAND_FORBIT2 INT,"
-//              " 	LAND_DEMOLISH2 INT,"
-//              " 	LAND_COLLECT2 INT,"
-//              " 	HOUSE_RAY2 INT,"
-//              " 	HOUSE_SEASAND2 INT,"
-//              " 	HOUSE_DANGEROUS2 INT,"
-              " 	NAV2 FLOAT,"
-              " 	GAV2 FLOAT,"
-//              " 	HOUSE_DAMAGE2 INT,"
-//              " 	HOUSE_LENT2 INT,"
-//              " 	HOUSE_MISUSE2 INT,"
-//              " 	HOUSE_COMPLEX2 INT,"
-//              " 	HOUSE_BASEMENT2 INT,"
-              " 	ZIP CHAR (3),"
-              " 	INQUIRY_DATE CHAR (8)"
-              " );";
+  try {
+  sql_stmt = " DELETE FROM PRELIMITARY_REPORT "
+             " WHERE LEFT(PREMIER_DATE, 8) = :report_gen_time; ";
 
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
+  command->Parameters->ParamValues["report_gen_time"] = report_gen_time.SubString(1,8);
   command->Execute();
-/*
-  sql_stmt = " INSERT INTO #PRELIMITARY_REPORT (MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
-             "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, BIRTHDAY, MARRIAGE, CHILD, EDUCATION, CAREER, "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-             "          LIEN1, FIRST_LIEN1, RELATIONSHIP1, LOCATION1, LAND_FORBIT1, LAND_DEMOLISH1, LAND_COLLECT1, "
-             "          HOUSE_RAY1, HOUSE_SEASAND1, HOUSE_DANGEROUS1, NAV1, GAV1, HOUSE_DAMAGE1, HOUSE_LENT1, "
-             "          HOUSE_MISUSE1, HOUSE_COMPLEX1, HOUSE_BASEMENT1, OWNER_ID2, OWNER_NAME2, LAND_NUM2, LIEN2, "
-             "          FIRST_LIEN2, RELATIONSHIP2, LOCATION2, LAND_FORBIT2, LAND_DEMOLISH2, LAND_COLLECT2, HOUSE_RAY2, "
-             "          HOUSE_SEASAND2, HOUSE_DANGEROUS2, NAV2, GAV2, HOUSE_DAMAGE2, HOUSE_LENT2, HOUSE_MISUSE2, "
-             "          HOUSE_COMPLEX2, HOUSE_BASEMENT2, ZIP, INQUIRY_DATE)"
-             " SELECT A.MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
-             "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, BIRTHDAY, MARRIAGE, CHILD, EDUCATION, CAREER, "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-             "          LIEN1, FIRST_LIEN1, RELATIONSHIP1, LOCATION1, LAND_FORBIT1, LAND_DEMOLISH1, LAND_COLLECT1, "
-             "          HOUSE_RAY1, HOUSE_SEASAND1, HOUSE_DANGEROUS1, NAV1, GAV1, HOUSE_DAMAGE1, HOUSE_LENT1, "
-             "          HOUSE_MISUSE1, HOUSE_COMPLEX1, HOUSE_BASEMENT1, OWNER_ID2, OWNER_NAME2, LAND_NUM2, LIEN2, "
-             "          FIRST_LIEN2, RELATIONSHIP2, LOCATION2, LAND_FORBIT2, LAND_DEMOLISH2, LAND_COLLECT2, HOUSE_RAY2, "
-             "          HOUSE_SEASAND2, HOUSE_DANGEROUS2, NAV2, GAV2, HOUSE_DAMAGE2, HOUSE_LENT2, HOUSE_MISUSE2, "
-             "          HOUSE_COMPLEX2, HOUSE_BASEMENT2, ZIP, INQUIRY_DATE "
-             " FROM APP_PREMIER A, APP_INFO B "
-             " WHERE A.MSN = B.MSN "
-             " AND   LEFT(PREMIER_DATE, 8) = :report_gen_time; ";
-*/
-  sql_stmt = " INSERT INTO #PRELIMITARY_REPORT (MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
+  }
+  catch(Exception &E){
+    formMain->lblMessage->Caption = E.Message;
+    formMain->Refresh();
+  }
+}
+//---------------------------------------------------------------------------
+bool prepare_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time)
+{
+  AnsiString sql_stmt;
+  try {
+  sql_stmt = " INSERT INTO PRELIMITARY_REPORT (MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
              "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME,  "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-             "          FIRST_LIEN1, RELATIONSHIP1, "
-             "          NAV1, GAV1, "
+             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AUDITOR, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
+             "          RELATIONSHIP1, "
              "          OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
-             "          FIRST_LIEN2, RELATIONSHIP2, "
-             "          NAV2, GAV2, "
+             "          RELATIONSHIP2, "
              "          ZIP, INQUIRY_DATE)"
              " SELECT A.MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
              "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-             "          FIRST_LIEN1, RELATIONSHIP1, "
-             "          NAV1, GAV1, "
+             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AUDITOR, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
+             "          RELATIONSHIP1, "
              "          OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
-             "          FIRST_LIEN2, RELATIONSHIP2, "
-             "          NAV2, GAV2, "
+             "          RELATIONSHIP2, "
              "          ZIP, INQUIRY_DATE "
              " FROM APP_PREMIER A, APP_INFO B "
              " WHERE A.MSN = B.MSN "
@@ -628,20 +575,22 @@ void prepare_prelimitary_report(TADOCommand *command, const AnsiString &report_g
   command->Parameters->ParamValues["report_gen_time"] = report_gen_time.SubString(1,8);
   command->Execute();
 
-  sql_stmt = "UPDATE #PRELIMITARY_REPORT SET "
+  sql_stmt = "UPDATE PRELIMITARY_REPORT SET "
              "  BRANCH_NAME = B.BRANCH, "
              "  REGION_NAME = C.CFC "
              "  FROM BRANCH AS B, CFC AS C "
-             "  WHERE #PRELIMITARY_REPORT.BRANCH = B.BRANCH_CODE "
+             "  WHERE PRELIMITARY_REPORT.BRANCH = B.BRANCH_CODE "
              "    AND B.CFC_CODE = C.CFC_CODE ";
   command->CommandText = sql_stmt;
   command->Execute();
+  return true;
   }
   catch(Exception &E){
-     throw;
-  };
-
-};
+    formMain->lblMessage->Caption = E.Message;
+    formMain->Refresh();
+    return false;
+  }
+}
 
 //---------------------------------------------------------------------------
 bool generate_prelimitary_report(TADOQuery *query, const AnsiString &report_dir,
@@ -649,24 +598,17 @@ bool generate_prelimitary_report(TADOQuery *query, const AnsiString &report_dir,
 {
   AnsiString sql_stmt, sql_stmt2;
 
-//select a.msn, a.final_date, a.pb, a.npv, a.optimal_amount, a.audit_agent, a.final_code, a.final_msg,
-// system_date, applicant_id, applicant_name, birthday, marriage, child, education, career, income, app_amt, period, apr, app_fee, branch, agent, owner_id1, owner_name1, land_num1, lien1, first_lien1, relationship1, location1, land_forbit1, land_demolish1, land_collect1, house_ray1, house_seasand1, house_dangerous1, nav1, gav1, house_damage1, house_lent1, house_misuse1, house_complex1, house_basement1, owner_id2, owner_name2, land_num2, lien2, first_lien2, relationship2, location2, land_forbit2, land_demolish2, land_collect2, house_ray2, house_seasand2, house_dangerous2, nav2, gav2, house_damage2, house_lent2, house_misuse2, house_complex2, house_basement2, zip, INQUIRY_DATE
-//from app_final a left join app_info b
-//  on a.msn = b.msn
-//where left(a.final_date, 8) = '20060428'
-
 AnsiString msn, premier_date, premier_code, premier_msg, system_date, applicant_id, applicant_name, birthday, career;
-int marriage, child, education, income, app_amt, period, app_fee;
+int income, app_amt, period, app_fee;
 float rscore, apr;
-AnsiString branch, branch_name, region_name, agent;
+AnsiString branch, branch_name, region_name;
 AnsiString owner_id1, owner_name1, land_num1;
-int lien1, first_lien1, relationship1, location1, land_forbit1, land_demolish1, land_collect1;
-int house_ray1, house_seasand1, house_dangerous1;
-int nav1, gav1, house_damage1, house_lent1, house_misuse1, house_complex1, house_basement1;
+int lien1, first_lien1, relationship1;
+int nav1, gav1;
 AnsiString owner_id2, owner_name2, land_num2;
-int lien2, first_lien2, relationship2, location2, land_forbit2, land_demolish2, land_collect2;
-int house_ray2, house_seasand2, house_dangerous2;
-int nav2, gav2, house_damage2, house_lent2, house_misuse2, house_complex2, house_basement2;
+int lien2, first_lien2, relationship2;
+int nav2, gav2;
+int qualified1, qualified2;
 AnsiString head_region = "EMPTY";
 AnsiString head_branch = "EMPTY";
 int index, branch_count;
@@ -688,34 +630,21 @@ get_time(year, month, day, hour, min, sec);
 sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, hour, min, sec);
 
   try {
-/*
-    sql_stmt = " SELECT MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
-               "   SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, BIRTHDAY, MARRIAGE, CHILD, EDUCATION, CAREER, "
-               "   INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, BRANCH_NAME, REGION_NAME, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-               "   LIEN1, FIRST_LIEN1, RELATIONSHIP1, LOCATION1, LAND_FORBIT1, LAND_DEMOLISH1, LAND_COLLECT1, "
-               "   HOUSE_RAY1, HOUSE_SEASAND1, HOUSE_DANGEROUS1, NAV1, GAV1, HOUSE_DAMAGE1, HOUSE_LENT1, "
-               "   HOUSE_MISUSE1, HOUSE_COMPLEX1, HOUSE_BASEMENT1, OWNER_ID2, OWNER_NAME2, LAND_NUM2, LIEN2, "
-               "   FIRST_LIEN2, RELATIONSHIP2, LOCATION2, LAND_FORBIT2, LAND_DEMOLISH2, LAND_COLLECT2, HOUSE_RAY2, "
-               "   HOUSE_SEASAND2, HOUSE_DANGEROUS2, NAV2, GAV2, HOUSE_DAMAGE2, HOUSE_LENT2, HOUSE_MISUSE2, "
-               "   HOUSE_COMPLEX2, HOUSE_BASEMENT2, ZIP, INQUIRY_DATE "
-               " FROM #PRELIMITARY_REPORT "
-               " ORDER BY REGION_NAME, BRANCH, MSN; ";
-*/
     sql_stmt = " SELECT MSN, PREMIER_DATE, RSCORE, PREMIER_CODE, PREMIER_MSG, "
                "   SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, "
-               "   INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, BRANCH_NAME, REGION_NAME, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-               "   FIRST_LIEN1, RELATIONSHIP1, "
-               "   NAV1, GAV1, "
+               "   INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, BRANCH_NAME, REGION_NAME, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
+               "   RELATIONSHIP1, "
                "   OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
-               "   FIRST_LIEN2, RELATIONSHIP2, "
-               "   NAV2, GAV2, "
+               "   RELATIONSHIP2, "
                "   ZIP, INQUIRY_DATE "
-               " FROM #PRELIMITARY_REPORT "
+               " FROM PRELIMITARY_REPORT "
+               " WHERE LEFT(PREMIER_DATE, 8) = :report_gen_time "
                " ORDER BY REGION_NAME, BRANCH, MSN; ";
     sql_stmt = sql_stmt.UpperCase();
     query->Close();
     query->SQL->Clear();
     query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["report_gen_time"] = report_gen_time.SubString(1,8);
 
     query->Open();
     if(query->RecordCount == 0){
@@ -734,67 +663,33 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        system_date = query->FieldByName("SYSTEM_DATE")->AsString;
        applicant_id = query->FieldByName("APPLICANT_ID")->AsString;
        applicant_name = query->FieldByName("APPLICANT_NAME")->AsString;
-//       birthday = query->FieldByName("BIRTHDAY")->AsString;
-//       marriage = query->FieldByName("MARRIAGE")->AsInteger;
-//       child = query->FieldByName("CHILD")->AsInteger;
-//       education = query->FieldByName("EDUCATION")->AsInteger;
-//       career = query->FieldByName("CAREER")->AsString;
-//       income = query->FieldByName("INCOME")->AsInteger;
-//       app_amt = query->FieldByName("APP_AMT")->AsInteger;
-//       period = query->FieldByName("PERIOD")->AsInteger;
-//       apr = query->FieldByName("APR")->AsFloat;
-//       app_fee = query->FieldByName("APP_FEE")->AsInteger;
        branch = query->FieldByName("BRANCH")->AsString;
        branch_name = query->FieldByName("BRANCH_NAME")->AsString;
        region_name = query->FieldByName("REGION_NAME")->AsString;
-//       agent = query->FieldByName("AGENT")->AsString;
 
        owner_id1 = query->FieldByName("OWNER_ID1")->AsString;
        owner_name1 = query->FieldByName("OWNER_NAME1")->AsString;
        land_num1 = query->FieldByName("LAND_NUM1")->AsString;
-//       lien1 = query->FieldByName("LIEN1")->AsInteger;
-//       first_lien1 = query->FieldByName("FIRST_LIEN1")->AsInteger;
        relationship1 = query->FieldByName("RELATIONSHIP1")->AsInteger;
-//       location1 = query->FieldByName("LOCATION1")->AsInteger;
-//       land_forbit1 = query->FieldByName("LAND_FORBIT1")->AsInteger;
-//       land_demolish1 = query->FieldByName("LAND_DEMOLISH1")->AsInteger;
-//       land_collect1 = query->FieldByName("LAND_COLLECT1")->AsInteger;
-//       house_ray1 = query->FieldByName("HOUSE_RAY1")->AsInteger;
-//       house_seasand1 = query->FieldByName("HOUSE_SEASAND1")->AsInteger;
-//       house_dangerous1 = query->FieldByName("HOUSE_DANGEROUS1")->AsInteger;
-//       nav1 = query->FieldByName("NAV1")->AsInteger;
-//       gav1 = query->FieldByName("GAV1")->AsInteger;
 
        owner_id2 = query->FieldByName("OWNER_ID2")->AsString;
-       owner_name2 = query->FieldByName("OWNER_NAME2")->AsString;
-       land_num2 = query->FieldByName("LAND_NUM2")->AsString;
-//       lien2 = query->FieldByName("LIEN2")->AsInteger;
-//       first_lien2 = query->FieldByName("FIRST_LIEN2")->AsInteger;
-       relationship2 = query->FieldByName("RELATIONSHIP2")->AsInteger;
-//       location2 = query->FieldByName("LOCATION2")->AsInteger;
-//       land_forbit2 = query->FieldByName("LAND_FORBIT2")->AsInteger;
-//       land_demolish2 = query->FieldByName("LAND_DEMOLISH2")->AsInteger;
-//       land_collect2 = query->FieldByName("LAND_COLLECT2")->AsInteger;
-//       house_ray2 = query->FieldByName("HOUSE_RAY2")->AsInteger;
-//       house_seasand2 = query->FieldByName("HOUSE_SEASAND2")->AsInteger;
-//       house_dangerous2 = query->FieldByName("HOUSE_DANGEROUS2")->AsInteger;
-//       nav2 = query->FieldByName("NAV2")->AsInteger;
-//       gav2 = query->FieldByName("GAV2")->AsInteger;
-
+       if (owner_id2 != "") {
+          owner_name2 = query->FieldByName("OWNER_NAME2")->AsString;
+          land_num2 = query->FieldByName("LAND_NUM2")->AsString;
+          relationship2 = query->FieldByName("RELATIONSHIP2")->AsInteger;
+       }
        if (head_region != region_name) {
             if (head_region != "EMPTY") {
                // close current file
                report_total << "/EOF" << endl;
                report_total.clear();
                report_total.close();
-//               report_individual << "/EOF" << endl;
                report_individual.clear();
                report_individual.close();
             }
            // open new file
            file_name_total = report_dir + "Pre_" + region_name + "_" + report_gen_time + "_total.csv";
            report_total.open (file_name_total.c_str(), ios_base::out);
-           head_region = region_name;
            file_name_individual = report_dir + "Pre_" + region_name + "_" + report_gen_time + "_individual.csv";
            report_individual.open(file_name_individual.c_str(), ios_base::out);
            report_individual << "region_name,branch_name,premier_time,msn,report_time,applicant_name,applicant_id,";
@@ -804,6 +699,9 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        if (head_branch != branch) {
            // get count of current branch
            // write header
+           if (head_region == region_name) {
+               report_total << endl << endl << endl;
+           }
            report_total << "京城銀行淨值房貸" << endl;
            report_total << "DAC核准模組初審結果回覆總表" << endl;
            report_total << "報表產生時間：" << ",";
@@ -812,7 +710,7 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
            report_total << "所屬分行：" << "," << branch_name.c_str() << endl;
 
            sql_stmt2 = " SELECT COUNT(*) AS CNT "
-                       " FROM #PRELIMITARY_REPORT "
+                       " FROM PRELIMITARY_REPORT "
                        " WHERE REGION_NAME = :REGION_NAME AND BRANCH = :BRANCH ";
 
            sql_stmt2 = sql_stmt2.UpperCase();
@@ -832,7 +730,6 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
            report_total << ",,申請人姓名,身分證字號,申請人資格,擔保品1所有人姓名,擔保品1門牌號碼,擔保品1資格,";
            report_total << "擔保品2所有人姓名,擔保品2門牌號碼,擔保品2資格,初審結果,初審建議" << endl;
 
-           head_branch = branch;
            index = 0;
        }
        report_total << ++index << ",";
@@ -845,25 +742,13 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
           report_total << "不合格" << ",";
        report_total << owner_name1.c_str() << ",";
        report_total << land_num1.c_str() << ",";
-       if ((lien1 > 1) || (relationship1 > 3) || (location1 > 2) ||
-           ((land_forbit1 + land_demolish1 + land_collect1 + house_ray1 +
-             house_seasand1 + house_dangerous1) > 0) ) {
-          report_total << "不合格" << ",";
-       }
-       else
-          report_total << "合格" << ",";
-       if (owner_name2 == "") {
+       report_total << ",";
+       if (owner_id2 == "") {
           report_total << ",,,";
        } else {
           report_total << owner_name2.c_str() << ",";
           report_total << land_num2.c_str() << ",";
-          if ((lien2 > 2) || (relationship2 > 3) || (location2 > 2) ||
-              ((land_forbit2 + land_demolish2 + land_collect2 + house_ray2 +
-                house_seasand2 + house_dangerous2) > 0) ) {
-             report_total << "不合格" << ",";
-          }
-          else
-             report_total << "合格" << ",";
+          report_total << ",";
        }
        report_individual << region_name.c_str() << ",";
        report_individual << branch_name.c_str() << ",";
@@ -874,20 +759,16 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
                                                      premier_date.SubString(9,2),
                                                      premier_date.SubString(11,2),
                                                      premier_date.SubString(13,2));
-//       sprintf (birthday_str, "%s/%s/%s", birthday.SubString(1,3),
-//                                          birthday.SubString(4,2),
-//                                          birthday.SubString(6,2));
        report_individual << premier_time << ",";
        report_individual << msn.c_str() << ",";
        report_individual << report_time << ",";
        report_individual << applicant_name.c_str() << ",";
        report_individual << applicant_id.c_str() << ",";
-//       report_individual << birthday_str << ",";
        report_individual << owner_name1.c_str() << ",";
        report_individual << owner_id1.c_str() << ",";
        report_individual << Relation[relationship1] << ",";
        report_individual << land_num1.c_str() << ",";
-       if (owner_name2 == "") {
+       if (owner_id2 == "") {
           report_individual << ",,,,";
        } else {
           report_individual << owner_name2.c_str() << ",";
@@ -900,44 +781,12 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        else
           report_individual << "不合格（" << premier_msg.c_str() << "）,";
 
-//       if ((lien1 > 1) || (relationship1 > 3) || (location1 > 2) ||
-//           ((land_forbit1 + land_demolish1 + land_collect1 + house_ray1 +
-//             house_seasand1 + house_dangerous1) > 0) ) {
-//          reason = "";
-//          if (lien1 > 1) reason += "抵押順位為第二順位或以上 ";
-//          if (relationship1 > 3) reason += "與申請人關係為其他 ";
-//          if (location1 > 2) reason += "座落區域為其他 ";
-//          if (land_forbit1) reason += "土地為禁建 ";
-//          if (land_demolish1) reason += "都市計畫拆除對象 ";
-//          if (land_collect1) reason += "都市計畫徵收對象 ";
-//          if (house_ray1) reason += "輻射屋 ";
-//          if (house_seasand1) reason += "海砂屋 ";
-//          if (house_dangerous1) reason += "危樓 ";
-//          report_individual << "不合格（" << reason.c_str() << "）,";
-//       }
-//       else
-          report_individual << "合格" << ",";
+       report_individual << ",";
 
-       if (owner_name2 == "") {
+       if (owner_id2 == "") {
           report_individual << ",";
        } else {
-//          if ((lien2 > 2) || (relationship2 > 3) || (location2 > 2) ||
-//              ((land_forbit2 + land_demolish2 + land_collect2 + house_ray2 +
-//                house_seasand2 + house_dangerous2) > 0) ) {
-//             reason = "";
-//             if (lien2 > 2) reason += "抵押順位為第二順位或以上 ";
-//             if (relationship2 > 3) reason += "與申請人關係為其他 ";
-//             if (location2 > 2) reason += "座落區域為其他 ";
-//             if (land_forbit2) reason += "土地為禁建 ";
-//             if (land_demolish2) reason += "都市計畫拆除對象 ";
-//             if (land_collect2) reason += "都市計畫徵收對象 ";
-//             if (house_ray2) reason += "輻射屋 ";
-//             if (house_seasand2) reason += "海砂屋 ";
-//             if (house_dangerous2) reason += "危樓 ";
-//             report_individual << "不合格（" << reason.c_str() << "）,";
-//          }
-//          else
-             report_individual << "合格" << ",";
+          report_individual << ",";
        }
        if (premier_code == 0 || premier_code == 301) {
           if (premier_code == 301) {
@@ -945,26 +794,16 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
              report_individual << "不合格" << "," << "建議轉個人信貸產品" << endl;
           }
           else {
-             if (gav1 > 0) {
-                if (gav2 > 0) {
-                    report_total << "合格" << "," << "票交查詢通過後，進行鑑價" << endl;
-                    report_individual << "合格" << "," << "票交查詢通過後，進行鑑價" << endl;
-                }
-                else {
-                    report_total << "合格" << "," << "票交查詢通過後，依第一擔保品進行鑑價" << endl;
-                    report_individual << "合格" << "," << "票交查詢通過後，依第一擔保品進行鑑價" << endl;
-                }
-             }
-             else {
-                report_total << "合格" << "," << "票交查詢通過後，依第二擔保品進行鑑價" << endl;
-                report_individual << "合格" << "," << "票交查詢通過後，依第二擔保品進行鑑價" << endl;
-             }
+             report_total << "合格" << "," << "票交查詢通過後，進行鑑價" << endl;
+             report_individual << "合格" << "," << "票交查詢通過後，進行鑑價" << endl;
           }
        }
        else {
           report_total << "不合格" << "," << "建議婉拒" << endl;
           report_individual << "不合格" << "," << "建議婉拒" << endl;
        }
+      head_region = region_name;
+      head_branch = branch;
       query->Next();
     }
 
@@ -984,129 +823,45 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
   }
 }
 //---------------------------------------------------------------------------
-void prepare_final_report(TADOCommand *command, const AnsiString &report_gen_time)
+void clean_final_report(TADOCommand *command, const AnsiString &report_gen_time)
 {
   AnsiString sql_stmt;
-  try{
-    sql_stmt = " IF OBJECT_ID('tempdb..#FINAL_REPORT') IS NOT NULL"
-               " DROP TABLE #FINAL_REPORT";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-    command->Execute();
-
-  sql_stmt =  " CREATE TABLE #FINAL_REPORT ("
-              " 	MSN CHAR (14),"
-              " 	FINAL_DATE CHAR (14),"
-              " 	PB DECIMAL(7, 4),"
-              " 	NPV INT,"
-              " 	OPTIMAL_AMOUNT INT,"
-              " 	AUDIT_AGENT CHAR (4),"
-              " 	FINAL_CODE INT,"
-              " 	FINAL_MSG VARCHAR (256),"
-              " 	SYSTEM_DATE CHAR (14),"
-              " 	APPLICANT_ID CHAR (10),"
-              " 	APPLICANT_NAME VARCHAR (30),"
-//              " 	BIRTHDAY CHAR (7),"
-//              " 	MARRIAGE INT,"
-//              " 	CHILD INT,"
-//              " 	EDUCATION INT,"
-//              " 	CAREER VARCHAR (30),"
-              " 	INCOME INT,"
-              " 	APP_AMT INT,"
-              " 	PERIOD INT,"
-              " 	APR DECIMAL(7, 4),"
-              " 	APP_FEE INT,"
-              " 	BRANCH CHAR (4),"
-              " 	BRANCH_NAME VARCHAR (20),"
-              " 	REGION_NAME VARCHAR (20),"
-              " 	AGENT CHAR (4),"
-              " 	OWNER_ID1 CHAR (10),"
-              " 	OWNER_NAME1 VARCHAR (30),"
-              " 	LAND_NUM1 VARCHAR (30),"
-//              " 	LIEN1 INT,"
-              " 	FIRST_LIEN1 INT,"
-              " 	RELATIONSHIP1 INT,"
-//              " 	LOCATION1 INT,"
-//              " 	LAND_FORBIT1 INT,"
-//              " 	LAND_DEMOLISH1 INT,"
-//              " 	LAND_COLLECT1 INT,"
-//              " 	HOUSE_RAY1 INT,"
-//              " 	HOUSE_SEASAND1 INT,"
-//              " 	HOUSE_DANGEROUS1 INT,"
-              " 	NAV1 FLOAT,"
-              " 	GAV1 FLOAT,"
-//              " 	HOUSE_DAMAGE1 INT,"
-//              " 	HOUSE_LENT1 INT,"
-//              " 	HOUSE_MISUSE1 INT,"
-//              " 	HOUSE_COMPLEX1 INT,"
-//              " 	HOUSE_BASEMENT1 INT,"
-              " 	OWNER_ID2 CHAR (10),"
-              " 	OWNER_NAME2 VARCHAR (30),"
-              " 	LAND_NUM2 VARCHAR (30),"
-//              " 	LIEN2 INT,"
-              " 	FIRST_LIEN2 INT,"
-              " 	RELATIONSHIP2 INT,"
-//              " 	LOCATION2 INT,"
-//              " 	LAND_FORBIT2 INT,"
-//              " 	LAND_DEMOLISH2 INT,"
-//              " 	LAND_COLLECT2 INT,"
-//              " 	HOUSE_RAY2 INT,"
-//              " 	HOUSE_SEASAND2 INT,"
-//              " 	HOUSE_DANGEROUS2 INT,"
-              " 	NAV2 FLOAT,"
-              " 	GAV2 FLOAT,"
-//              " 	HOUSE_DAMAGE2 INT,"
-//              " 	HOUSE_LENT2 INT,"
-//              " 	HOUSE_MISUSE2 INT,"
-//              " 	HOUSE_COMPLEX2 INT,"
-//              " 	HOUSE_BASEMENT2 INT,"
-              " 	ZIP CHAR (3),"
-              " 	INQUIRY_DATE CHAR (8)"
-              " );";
+  try {
+  sql_stmt = " DELETE FROM FINAL_REPORT "
+             " WHERE LEFT(FINAL_DATE, 8) = :report_gen_time; ";
 
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
+  command->Parameters->ParamValues["report_gen_time"] = report_gen_time.SubString(1,8);
   command->Execute();
-/*
-  sql_stmt = " INSERT INTO #FINAL_REPORT (MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, AUDIT_AGENT, FINAL_CODE, FINAL_MSG, "
-             "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, BIRTHDAY, MARRIAGE, CHILD, EDUCATION, CAREER, "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-             "          LIEN1, FIRST_LIEN1, RELATIONSHIP1, LOCATION1, LAND_FORBIT1, LAND_DEMOLISH1, LAND_COLLECT1, "
-             "          HOUSE_RAY1, HOUSE_SEASAND1, HOUSE_DANGEROUS1, NAV1, GAV1, HOUSE_DAMAGE1, HOUSE_LENT1, "
-             "          HOUSE_MISUSE1, HOUSE_COMPLEX1, HOUSE_BASEMENT1, OWNER_ID2, OWNER_NAME2, LAND_NUM2, LIEN2, "
-             "          FIRST_LIEN2, RELATIONSHIP2, LOCATION2, LAND_FORBIT2, LAND_DEMOLISH2, LAND_COLLECT2, HOUSE_RAY2, "
-             "          HOUSE_SEASAND2, HOUSE_DANGEROUS2, NAV2, GAV2, HOUSE_DAMAGE2, HOUSE_LENT2, HOUSE_MISUSE2, "
-             "          HOUSE_COMPLEX2, HOUSE_BASEMENT2, ZIP, INQUIRY_DATE)"
-             " SELECT A.MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, AUDIT_AGENT, FINAL_CODE, FINAL_MSG, "
-             "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, BIRTHDAY, MARRIAGE, CHILD, EDUCATION, CAREER, "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-             "          LIEN1, FIRST_LIEN1, RELATIONSHIP1, LOCATION1, LAND_FORBIT1, LAND_DEMOLISH1, LAND_COLLECT1, "
-             "          HOUSE_RAY1, HOUSE_SEASAND1, HOUSE_DANGEROUS1, NAV1, GAV1, HOUSE_DAMAGE1, HOUSE_LENT1, "
-             "          HOUSE_MISUSE1, HOUSE_COMPLEX1, HOUSE_BASEMENT1, OWNER_ID2, OWNER_NAME2, LAND_NUM2, LIEN2, "
-             "          FIRST_LIEN2, RELATIONSHIP2, LOCATION2, LAND_FORBIT2, LAND_DEMOLISH2, LAND_COLLECT2, HOUSE_RAY2, "
-             "          HOUSE_SEASAND2, HOUSE_DANGEROUS2, NAV2, GAV2, HOUSE_DAMAGE2, HOUSE_LENT2, HOUSE_MISUSE2, "
-             "          HOUSE_COMPLEX2, HOUSE_BASEMENT2, ZIP, INQUIRY_DATE "
-             " FROM APP_FINAL A, APP_INFO B "
-             " WHERE A.MSN = B.MSN "
-             " AND   LEFT(FINAL_DATE, 8) = :report_gen_time; ";
-*/
-  sql_stmt = " INSERT INTO #FINAL_REPORT (MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, AUDIT_AGENT, FINAL_CODE, FINAL_MSG, "
+  }
+  catch(Exception &E){
+    formMain->lblMessage->Caption = E.Message;
+    formMain->Refresh();
+  }
+}
+//---------------------------------------------------------------------------
+bool prepare_final_report(TADOCommand *command, const AnsiString &report_gen_time)
+{
+  AnsiString sql_stmt;
+  try {
+  sql_stmt = " INSERT INTO FINAL_REPORT (MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, FINAL_CODE, FINAL_MSG, "
              "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
+             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
              "          FIRST_LIEN1, RELATIONSHIP1, "
-             "          NAV1, GAV1, "
+             "          NAV1, GAV1, QUALIFIED1,"
              "          OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
              "          FIRST_LIEN2, RELATIONSHIP2, "
-             "          NAV2, GAV2, "
+             "          NAV2, GAV2, QUALIFIED2, "
              "          ZIP, INQUIRY_DATE)"
-             " SELECT A.MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, AUDIT_AGENT, FINAL_CODE, FINAL_MSG, "
-             "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME "
-             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
+             " SELECT A.MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, FINAL_CODE, FINAL_MSG, "
+             "          SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, "
+             "          INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
              "          FIRST_LIEN1, RELATIONSHIP1, "
-             "          NAV1, GAV1, "
+             "          NAV1, GAV1, QUALIFIED1,"
              "          OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
              "          FIRST_LIEN2, RELATIONSHIP2, "
-             "          NAV2, GAV2, "
+             "          NAV2, GAV2, QUALIFIED2,"
              "          ZIP, INQUIRY_DATE "
              " FROM APP_FINAL A, APP_INFO B "
              " WHERE A.MSN = B.MSN "
@@ -1117,29 +872,27 @@ void prepare_final_report(TADOCommand *command, const AnsiString &report_gen_tim
   command->Parameters->ParamValues["report_gen_time"] = report_gen_time.SubString(1,8);
   command->Execute();
 
-  sql_stmt = "UPDATE #FINAL_REPORT SET "
+  sql_stmt = "UPDATE FINAL_REPORT SET "
              "  BRANCH_NAME = B.BRANCH, "
              "  REGION_NAME = C.CFC "
              "  FROM BRANCH AS B, CFC AS C "
-             "  WHERE #FINAL_REPORT.BRANCH = B.BRANCH_CODE "
+             "  WHERE FINAL_REPORT.BRANCH = B.BRANCH_CODE "
              "    AND B.CFC_CODE = C.CFC_CODE ";
   command->CommandText = sql_stmt;
   command->Execute();
+  return true;
   }
   catch(Exception &E){
-     throw;
-  };
-};
+    formMain->lblMessage->Caption = E.Message;
+    formMain->Refresh();
+    return false;
+  }
+}
 //---------------------------------------------------------------------------
 bool generate_final_report(TADOQuery *query, const AnsiString &report_dir,
                      const AnsiString &report_gen_time)
 {
   AnsiString sql_stmt, sql_stmt2;
-//select a.msn, a.final_date, a.pb, a.npv, a.optimal_amount, a.audit_agent, a.final_code, a.final_msg,
-// system_date, applicant_id, applicant_name, birthday, marriage, child, education, career, income, app_amt, period, apr, app_fee, branch, agent, owner_id1, owner_name1, land_num1, lien1, first_lien1, relationship1, location1, land_forbit1, land_demolish1, land_collect1, house_ray1, house_seasand1, house_dangerous1, nav1, gav1, house_damage1, house_lent1, house_misuse1, house_complex1, house_basement1, owner_id2, owner_name2, land_num2, lien2, first_lien2, relationship2, location2, land_forbit2, land_demolish2, land_collect2, house_ray2, house_seasand2, house_dangerous2, nav2, gav2, house_damage2, house_lent2, house_misuse2, house_complex2, house_basement2, zip, INQUIRY_DATE
-//from app_final a left join app_info b
-//  on a.msn = b.msn
-//where left(a.final_date, 8) = '20060428'
 
 AnsiString msn, final_date, audit_agent,  final_msg, system_date, applicant_id, applicant_name, birthday, career;
 int marriage, child, education, income, app_amt, period, app_fee, final_code;
@@ -1153,6 +906,7 @@ AnsiString owner_id2, owner_name2, land_num2;
 int lien2, first_lien2, relationship2, location2, land_forbit2, land_demolish2, land_collect2;
 int house_ray2, house_seasand2, house_dangerous2;
 int nav2, gav2, house_damage2, house_lent2, house_misuse2, house_complex2, house_basement2;
+int qualified1, qualified2;
 AnsiString head_region = "EMPTY";
 AnsiString head_branch = "EMPTY";
 int index, branch_count;
@@ -1174,34 +928,23 @@ get_time(year, month, day, hour, min, sec);
 sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, hour, min, sec);
 
   try {
-/*
-    sql_stmt = " SELECT MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, AUDIT_AGENT, FINAL_CODE, FINAL_MSG, "
-       "   SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, BIRTHDAY, MARRIAGE, CHILD, EDUCATION, CAREER, "
-       "   INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, BRANCH_NAME, REGION_NAME, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-       "   LIEN1, FIRST_LIEN1, RELATIONSHIP1, LOCATION1, LAND_FORBIT1, LAND_DEMOLISH1, LAND_COLLECT1, "
-       "   HOUSE_RAY1, HOUSE_SEASAND1, HOUSE_DANGEROUS1, NAV1, GAV1, HOUSE_DAMAGE1, HOUSE_LENT1, "
-       "   HOUSE_MISUSE1, HOUSE_COMPLEX1, HOUSE_BASEMENT1, OWNER_ID2, OWNER_NAME2, LAND_NUM2, LIEN2, "
-       "   FIRST_LIEN2, RELATIONSHIP2, LOCATION2, LAND_FORBIT2, LAND_DEMOLISH2, LAND_COLLECT2, HOUSE_RAY2, "
-       "   HOUSE_SEASAND2, HOUSE_DANGEROUS2, NAV2, GAV2, HOUSE_DAMAGE2, HOUSE_LENT2, HOUSE_MISUSE2, "
-       "   HOUSE_COMPLEX2, HOUSE_BASEMENT2, ZIP, INQUIRY_DATE "
-       " FROM #FINAL_REPORT "
-       " ORDER BY REGION_NAME, BRANCH, MSN; ";
-*/
-    sql_stmt = " SELECT MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, AUDIT_AGENT, FINAL_CODE, FINAL_MSG, "
-       "   SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME "
-       "   INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, BRANCH_NAME, REGION_NAME, AGENT, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
-       "   FIRST_LIEN1, RELATIONSHIP1, "
-       "   NAV1, GAV1, "
-       "   OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
-       "   FIRST_LIEN2, RELATIONSHIP2, "
-       "   NAV2, GAV2, "
-       "   ZIP, INQUIRY_DATE "
-       " FROM #FINAL_REPORT "
-       " ORDER BY REGION_NAME, BRANCH, MSN; ";
+    sql_stmt = " SELECT MSN, FINAL_DATE, PB, NPV, OPTIMAL_AMOUNT, FINAL_CODE, FINAL_MSG, "
+               "   SYSTEM_DATE, APPLICANT_ID, APPLICANT_NAME, "
+               "   INCOME, APP_AMT, PERIOD, APR, APP_FEE, BRANCH, BRANCH_NAME, REGION_NAME, OWNER_ID1, OWNER_NAME1, LAND_NUM1, "
+               "   FIRST_LIEN1, RELATIONSHIP1, "
+               "   NAV1, GAV1, QUALIFIED1, "
+               "   OWNER_ID2, OWNER_NAME2, LAND_NUM2, "
+               "   FIRST_LIEN2, RELATIONSHIP2, "
+               "   NAV2, GAV2, QUALIFIED2, "
+               "   ZIP, INQUIRY_DATE "
+               " FROM FINAL_REPORT "
+               " WHERE LEFT(FINAL_DATE, 8) = :report_gen_time; ";
+               " ORDER BY REGION_NAME, BRANCH, MSN; ";
     sql_stmt = sql_stmt.UpperCase();
     query->Close();
     query->SQL->Clear();
     query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["report_gen_time"] = report_gen_time.SubString(1,8);
 
     query->Open();
     if(query->RecordCount == 0){
@@ -1222,12 +965,6 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        system_date = query->FieldByName("SYSTEM_DATE")->AsString;
        applicant_id = query->FieldByName("APPLICANT_ID")->AsString;
        applicant_name = query->FieldByName("APPLICANT_NAME")->AsString;
-//       birthday = query->FieldByName("BIRTHDAY")->AsString;
-//       marriage = query->FieldByName("MARRIAGE")->AsInteger;
-//       child = query->FieldByName("CHILD")->AsInteger;
-//       education = query->FieldByName("EDUCATION")->AsInteger;
-//       career = query->FieldByName("CAREER")->AsString;
-//       income = query->FieldByName("INCOME")->AsInteger;
        app_amt = query->FieldByName("APP_AMT")->AsInteger;
        period = query->FieldByName("PERIOD")->AsInteger;
        apr = query->FieldByName("APR")->AsFloat;
@@ -1235,52 +972,36 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        branch = query->FieldByName("BRANCH")->AsString;
        branch_name = query->FieldByName("BRANCH_NAME")->AsString;
        region_name = query->FieldByName("REGION_NAME")->AsString;
-//       agent = query->FieldByName("AGENT")->AsString;
 
        owner_id1 = query->FieldByName("OWNER_ID1")->AsString;
        owner_name1 = query->FieldByName("OWNER_NAME1")->AsString;
        land_num1 = query->FieldByName("LAND_NUM1")->AsString;
-//       lien1 = query->FieldByName("LIEN1")->AsInteger;
-//       first_lien1 = query->FieldByName("FIRST_LIEN1")->AsInteger;
        relationship1 = query->FieldByName("RELATIONSHIP1")->AsInteger;
-//       location1 = query->FieldByName("LOCATION1")->AsInteger;
        nav1 = query->FieldByName("NAV1")->AsInteger;
        gav1 = query->FieldByName("GAV1")->AsInteger;
-//       house_damage1 = query->FieldByName("HOUSE_DAMAGE1")->AsInteger;
-//       house_lent1 = query->FieldByName("HOUSE_LENT1")->AsInteger;
-//       house_misuse1 = query->FieldByName("HOUSE_MISUSE1")->AsInteger;
-//       house_complex1 = query->FieldByName("HOUSE_COMPLEX1")->AsInteger;
-//       house_basement1 = query->FieldByName("HOUSE_BASEMENT1")->AsInteger;
+       qualified1 = query->FieldByName("QUALIFIED1")->AsInteger;
 
        owner_id2 = query->FieldByName("OWNER_ID2")->AsString;
-       owner_name2 = query->FieldByName("OWNER_NAME2")->AsString;
-       land_num2 = query->FieldByName("LAND_NUM2")->AsString;
-//       lien2 = query->FieldByName("LIEN2")->AsInteger;
-//       first_lien2 = query->FieldByName("FIRST_LIEN2")->AsInteger;
-       relationship2 = query->FieldByName("RELATIONSHIP2")->AsInteger;
-//       location2 = query->FieldByName("LOCATION2")->AsInteger;
-       nav2 = query->FieldByName("NAV2")->AsInteger;
-       gav2 = query->FieldByName("GAV2")->AsInteger;
-//       house_damage2 = query->FieldByName("HOUSE_DAMAGE2")->AsInteger;
-//       house_lent2 = query->FieldByName("HOUSE_LENT2")->AsInteger;
-//       house_misuse2 = query->FieldByName("HOUSE_MISUSE2")->AsInteger;
-//       house_complex2 = query->FieldByName("HOUSE_COMPLEX2")->AsInteger;
-//       house_basement2 = query->FieldByName("HOUSE_BASEMENT2")->AsInteger;
-
+       if (owner_id2 != "") {
+          owner_name2 = query->FieldByName("OWNER_NAME2")->AsString;
+          land_num2 = query->FieldByName("LAND_NUM2")->AsString;
+          relationship2 = query->FieldByName("RELATIONSHIP2")->AsInteger;
+          nav2 = query->FieldByName("NAV2")->AsInteger;
+          gav2 = query->FieldByName("GAV2")->AsInteger;
+          qualified2 = query->FieldByName("QUALIFIED2")->AsInteger;
+       }
        if (head_region != region_name) {
             if (head_region != "EMPTY") {
                // close current file
                report_total << "/EOF" << endl;
                report_total.clear();
                report_total.close();
-//               report_individual << "/EOF" << endl;
                report_individual.clear();
                report_individual.close();
             }
            // open new file
            file_name_total = report_dir + "Final_" + region_name + "_" + report_gen_time + "_total.csv";
            report_total.open (file_name_total.c_str(), ios_base::out);
-           head_region = region_name;
            file_name_individual = report_dir + "Final_" + region_name + "_" + report_gen_time + "_individual.csv";
            report_individual.open(file_name_individual.c_str(), ios_base::out);
            report_individual << "region_name,branch_name,final_date,msn,report_time,applicant_name,applicant_id,";
@@ -1291,6 +1012,9 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        if (head_branch != branch) {
            // get count of current branch
            // write header
+           if (head_region == region_name) {
+               report_total << endl << endl << endl;
+           }
            report_total << "京城銀行淨值房貸" << endl;
            report_total << "DAC核准模組複審結果回覆總表" << endl;
            report_total << "報表產生時間：" << ",";
@@ -1299,7 +1023,7 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
            report_total << "所屬分行：" << "," << branch_name.c_str() << endl;
 
            sql_stmt2 = " SELECT COUNT(*) AS CNT "
-                       " FROM #FINAL_REPORT "
+                       " FROM FINAL_REPORT "
                        " WHERE REGION_NAME = :REGION_NAME AND BRANCH = :BRANCH ";
 
            sql_stmt2 = sql_stmt2.UpperCase();
@@ -1316,10 +1040,9 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
 
            report_total << endl;
            report_total << "報表號碼,審核序號,申請人資料,,擔保品資料暨鑑價狀況,,,,,,,,,,審核結果,,," << endl;
-           report_total << ",,申請人姓名,身分證字號,擔保品1所有人姓名,擔保品1門牌號碼,擔保品1鑑價結果,擔保品1毛鑑價值,擔保品1淨鑑價值,";
-           report_total << "擔保品2所有人姓名,擔保品2門牌號碼,擔保品2鑑價結果,擔保品2毛鑑價值,擔保品2淨鑑價值,最高可貸金額,PB,NPV,准駁建議" << endl;
+           report_total << ",,申請人姓名,身分證字號,擔保品1所有人姓名,擔保品1門牌號碼,擔保品1鑑價結果,擔保品1鑑估總值,擔保品1鑑估淨值,";
+           report_total << "擔保品2所有人姓名,擔保品2門牌號碼,擔保品2鑑價結果,擔保品2鑑估總值,擔保品2鑑估淨值,最高准貸金額,PB,NPV,准駁建議" << endl;
 
-           head_branch = branch;
            index = 0;
        }
 
@@ -1329,27 +1052,27 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        report_total << applicant_id.c_str() << ",";
        report_total << owner_name1.c_str() << ",";
        report_total << land_num1.c_str() << ",";
-//       if ((house_damage1 + house_lent1 + house_misuse1 + house_complex1 + house_basement1) > 0) {
-//          report_total << "不合格" << ",";
-//          report_total << 0 << "," << 0 << ",";
-//       }
-//       else {
+       if (qualified1 == 0) {
+          report_total << "不合格" << ",";
+          report_total << 0 << "," << 0 << ",";
+       }
+       else {
           report_total << "合格" << ",\"";
           report_total << FloatToStrF(gav1, ffNumber, 9, 0).c_str() << "\",\"" << FloatToStrF(nav1, ffNumber, 9, 0).c_str() << "\",";
-//       }
-       if (owner_name2 == "") {
+       }
+       if (owner_id2 == "") {
           report_total << ",,,,,";
        } else {
           report_total << owner_name2.c_str() << ",";
           report_total << land_num2.c_str() << ",";
-//          if ((house_damage2 + house_lent2 + house_misuse2 + house_complex2 + house_basement2) > 0) {
-//             report_total << "不合格" << ",";
-//             report_total << 0 << "," << 0 << ",";
-//          }
-//          else {
+          if (qualified2 == 0) {
+             report_total << "不合格" << ",";
+             report_total << 0 << "," << 0 << ",";
+          }
+          else {
              report_total << "合格" << ",\"";
              report_total << FloatToStrF(gav2, ffNumber, 9, 0).c_str() << "\",\"" << FloatToStrF(nav2, ffNumber, 9, 0).c_str() << "\",";
-//          }
+          }
        }
        report_total << "\"" << FloatToStrF(optimal_amount, ffNumber, 9, 0).c_str() << "\"," << pb << ",\"" << FloatToStrF(npv, ffNumber, 9, 0).c_str() << "\",";
        if (optimal_amount > 100000 && npv >0)
@@ -1366,15 +1089,11 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
                                                           final_date.SubString(9,2),
                                                           final_date.SubString(11,2),
                                                           final_date.SubString(13,2));
-//       sprintf (birthday_str, "%s/%s/%s", birthday.SubString(1,3),
-//                                          birthday.SubString(4,2),
-//                                          birthday.SubString(6,2));
        report_individual << final_time << ",\"";
        report_individual << msn.c_str() << "\",";
        report_individual << report_time << ",";
        report_individual << applicant_name.c_str() << ",";
-       report_individual << applicant_id.c_str() << ",";
-//       report_individual << birthday_str << ",\"";
+       report_individual << applicant_id.c_str() << ",\"";
        report_individual << FloatToStrF(app_amt, ffNumber, 9, 0).c_str() << "\",";
        report_individual << apr << ",";
        report_individual << period << ",\"";
@@ -1383,41 +1102,29 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        report_individual << owner_id1.c_str() << ",";
        report_individual << Relation[relationship1] << ",";
        report_individual << land_num1.c_str() << ",";
-//       if ((house_damage1 + house_lent1 + house_misuse1 + house_complex1 + house_basement1) > 0) {
-//          reason = "";
-//           if (house_damage1) reason += "屋況無人管理 ";
-//           if (house_lent1) reason += "租賃契約超過五年或不定期者 ";
-//           if (house_misuse1) reason += "非正常用途 ";
-//           if (house_complex1) reason += "出入環境複雜 ";
-//           if (house_basement1) reason += "地下室 ";
-//          report_individual << "不合格（" << reason.c_str() << "）,";
-//          report_individual << 0 << "," << 0 << ",";
-//       }
-//       else {
+       if (qualified1 == 0) {
+          report_individual << "不合格" << ",";
+          report_individual << 0 << "," << 0 << ",";
+       }
+       else {
           report_individual << "合格" << ",\"";
-          report_individual << FloatToStrF(gav1, ffNumber, 9, 0).c_str()<< "\",\"" << FloatToStrF(nav1, ffNumber, 9, 0).c_str()<< "\",";
-//       }
-       if (owner_name2 == "") {
+          report_individual << FloatToStrF(gav1, ffNumber, 9, 0).c_str() << "\",\"" << FloatToStrF(nav1, ffNumber, 9, 0).c_str() << "\",";
+       }
+       if (owner_id2 == "") {
           report_individual << ",,,,,,,";
        } else {
           report_individual << owner_name2.c_str() << ",";
           report_individual << owner_id2.c_str() << ",";
           report_individual << Relation[relationship2] << ",";
           report_individual << land_num2.c_str() << ",";
-//          if ((house_damage2 + house_lent2 + house_misuse2 + house_complex2 + house_basement2) > 0) {
-//              reason = "";
-//              if (house_damage2) reason += "屋況無人管理 ";
-//              if (house_lent2) reason += "租賃契約超過五年或不定期者 ";
-//              if (house_misuse2) reason += "非正常用途 ";
-//              if (house_complex2) reason += "出入環境複雜 ";
-//              if (house_basement2) reason += "地下室 ";
-//             report_individual << "不合格（" << reason.c_str() << "）,";
-//             report_individual << 0 << "," << 0 << ",";
-//          }
-//          else {
+          if (qualified2 == 0) {
+             report_individual << "不合格" << ",";
+             report_individual << 0 << "," << 0 << ",";
+          }
+          else {
              report_individual << "合格" << ",\"";
-             report_individual << FloatToStrF(gav2, ffNumber, 9, 0).c_str()<< "\",\"" << FloatToStrF(nav2, ffNumber, 9, 0).c_str()<< "\",";
-//          }
+             report_individual << FloatToStrF(gav1, ffNumber, 9, 0).c_str() << "\",\"" << FloatToStrF(nav1, ffNumber, 9, 0).c_str() << "\",";
+          }
        }
        report_individual << "\"" << FloatToStrF(optimal_amount, ffNumber, 9, 0).c_str() << "\"," << pb << ",\"" << FloatToStrF(npv, ffNumber, 9, 0).c_str() << "\",";
        if (optimal_amount >= 100000 && npv > 0)
@@ -1425,10 +1132,11 @@ sprintf (report_time, "%03d/%02d/%02d %02d:%02d:%02d", year-1911, month, day, ho
        else
           report_individual << "建議轉個人信貸產品" << endl;
 
+       head_region = region_name;
+       head_branch = branch;
        query->Next();
     }
 
-//    report_individual << "/EOF" << endl;
     report_total << "/EOF" << endl;
     report_total.clear();
     report_total.close();

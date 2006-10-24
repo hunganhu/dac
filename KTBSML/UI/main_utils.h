@@ -12,8 +12,10 @@ AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
                          const AnsiString &input_time);
 AnsiString get_ejcic_inquiry_result(TADOQuery *query, const AnsiString &query_sn,
                              AnsiString &result, AnsiString &result_code);
-void prepare_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time);
-void prepare_final_report(TADOCommand *command, const AnsiString &report_gen_time);
+void clean_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time);
+void clean_final_report(TADOCommand *command, const AnsiString &report_gen_time);
+bool prepare_prelimitary_report(TADOCommand *command, const AnsiString &report_gen_time);
+bool prepare_final_report(TADOCommand *command, const AnsiString &report_gen_time);
 bool generate_prelimitary_report(TADOQuery *query, const AnsiString &report_dir,
                      const AnsiString &report_gen_time);
 bool generate_final_report(TADOQuery *query, const AnsiString &report_dir,

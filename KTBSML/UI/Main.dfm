@@ -1,6 +1,6 @@
 object formMain: TformMain
-  Left = 129
-  Top = 116
+  Left = 131
+  Top = 108
   Width = 868
   Height = 600
   Caption = 'DAC'#28136#20540#25151#36024#35413#20998#31995#32113#9472#25552#20379#20140#22478#37504#34892#20351#29992
@@ -16,7 +16,7 @@ object formMain: TformMain
   PixelsPerInch = 96
   TextHeight = 13
   object lblMessage: TLabel
-    Left = -1
+    Left = 1
     Top = 464
     Width = 858
     Height = 98
@@ -329,12 +329,11 @@ object formMain: TformMain
         object medtAppFee: TMaskEdit
           Left = 560
           Top = 20
-          Width = 46
+          Width = 44
           Height = 21
-          EditMask = '999999;1;_'
+          EditMask = '999999;0;_'
           MaxLength = 6
           TabOrder = 3
-          Text = '      '
         end
       end
       object btnPrescreen: TButton

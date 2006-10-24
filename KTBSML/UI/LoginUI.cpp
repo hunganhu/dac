@@ -48,7 +48,8 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
   // KTB online OLE DB connection string
 //  connection_string = "Provider=SQLOLEDB.1;Password=dac_sml;Persist Security Info=True;User ID=dac_sml;Initial Catalog=KTB_SML;Data Source=DAC-DB2";
   // local test string
-  connection_string = "Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=True;User ID=sa;Initial Catalog=KTB_SML;Data Source=oliver\\daisy";
+  connection_string = "Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=True;User ID=sa;Initial Catalog=KTB_PLOAN_20060710;Data Source=oliver\\daisy";
+//  connection_string = "Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=True;User ID=sa;Initial Catalog=KTB_SML;Data Source=oliver\\daisy";
   Data->connection->ConnectionString = connection_string;
   Data->connection->ConnectionTimeout = 5;
 

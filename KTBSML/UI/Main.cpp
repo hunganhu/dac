@@ -73,6 +73,7 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
 
    // Property 2
    //  edtLienValue2->Clear();
+     cbP2->Checked = false;
      edtOwnerID2->Clear();
      edtLandNum2->Clear();
    //  lien2->ItemIndex = 1;
@@ -226,7 +227,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
         bool contiune = check_and_cleanup_result(msn, Data->query);
         if (!contiune)
            throw Exception("申請件重複，使用者選擇終止評分。");
-/*
+/* //comment out
 ////////// Connect to GSS EJCIC SYSTEM ////////////////////////////////
         message += "申請件資料通過檢核，正在取回聯徵資料。\n";
         lblMessage->Caption = message;
@@ -240,7 +241,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
            formMain->Refresh();
            jcic_inquiry_date =
              get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn, msn, medtPrimaryID->Text, system_date);
-*/
+//comment out */
            message += "聯徵資料已儲存，正在評分中. . .\n";
            lblMessage->Caption = message;
            formMain->Refresh();
@@ -257,27 +258,29 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
            // call prescreen function
            status = DAC_SML_PRESCREEN(medtPrimaryID->Text.c_str(), msn.c_str(), jcic_inquiry_date.c_str(),
                                       ole_str.c_str(), income/12, error_msg);
-           if (status < 0) {
-              message = message + error_msg + "\n";
-           } else if (status > 0) {
-              message = message + error_msg + "\n";
-              lblMessage->Caption = message;
-              formMain->Refresh();
-          }
-/*
-          else {
+//           if (status < 0) {
+//              message = message + error_msg + "\n";
+//           } else if (status > 0) {
+//              message = message + error_msg + "\n";
+//           }
+           message = message + error_msg + "\n";
+           lblMessage->Caption = message;
+           formMain->Refresh();
+/* // comment out
+        }
+        else {
   //        log_error(Data->command, medtPrimaryID->Text, jcic_inquiry_result, ejcic_error_code);
             message += ("e JCIC 錯誤，代碼：" + static_cast<AnsiString>(ejcic_error_code) + " 訊息：" + jcic_inquiry_result + "\n");
             lblMessage->Caption = message;
             formMain->Refresh();
             status = -1;
-          }
-*/
-      if(status >= 0){
-        message += "評分完成。可以輸入下一筆。\n";
-        lblMessage->Caption = message;
-        formMain->Refresh();
-        init_UI();
+        } // end of if (success)
+// comment out */
+      if (status >= 0){
+         message += "評分完成。可以輸入下一筆。\n";
+         lblMessage->Caption = message;
+         formMain->Refresh();
+         init_UI();
       }
 //////////////////////////////////////////
      } // end of if(!is_input_error)
@@ -390,14 +393,6 @@ bool TformMain::validate_application()
      message += "第一件擔保品門牌號碼未填。";
      is_input_error = true;
   }
-// check lien value 1
-//  if (edtLienValue1->Text == ""){
-//     message += "第一件擔保品總抵押金額未填。";
-//     is_input_error = true;
-//  } else if (StrToInt(edtLienValue1->Text) < 0){
-//     message += "第一件擔保品總抵押金額不能小於0。";
-//     is_input_error = true;
-//  }
 
 //CHECK PROPERTY 2
 if (cbP2->Checked == true)
@@ -425,14 +420,6 @@ if (cbP2->Checked == true)
      message += "第二件擔保品門牌號碼未填。";
      is_input_error = true;
   }
-//// check lien value 2
-//  if(edtLienValue2->Text == ""){
-//    message += "第二件擔保品總抵押金額未填。";
-//    is_input_error = true;
-//  } else if (StrToInt(edtLienValue2->Text) < 0){
-//    message += "第二件擔保品總抵押金額不能小於0。";
-//    is_input_error = true;
-//  }
 }
 // check Branch
   if (edtBranch->Text.Trim() == ""){
@@ -639,7 +626,7 @@ void __fastcall TformMain::finalReview_ClearClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TformMain::SelectClick(TObject *Sender)
 {
-  AnsiString sql_stmt;
+  AnsiString sql_stmt, msn;
   int period, index;
   int monthly_income;
 
@@ -649,7 +636,7 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
 
   try {
      sql_stmt = "select a.msn, system_date, applicant_id, applicant_name, app_amt, period, apr, app_fee, "
-                " owner_id1, owner_name1, land_num1, relationship1, income"
+                " owner_id1, owner_name1, land_num1, relationship1, income, "
                 " owner_id2, owner_name2, land_num2, relationship2, zip, inquiry_date "
                 " from app_info a, app_premier b "
                 " where a.msn = :msn and a.msn = b.msn and b.premier_code = 0;";
@@ -660,7 +647,7 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
      Data->query->Parameters->ParamValues["msn"] = edtMSN->Text;
      Data->query->Open();
      if (!Data->query->FieldValues["MSN"].IsNull()) {
-        lblMSN->Caption = Data->query->FieldValues["MSN"];
+        lblMSN->Caption = msn = Data->query->FieldValues["MSN"];
         hidden_SystemDate->Caption = Data->query->FieldValues["SYSTEM_DATE"];
         hidden_Zip->Caption = Data->query->FieldValues["ZIP"];
         if (!Data->query->FieldValues["INQUIRY_DATE"].IsNull())
@@ -698,6 +685,30 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
            nav2->Enabled = true;
            rgQualified2->Enabled = true;
            GroupBox4->Enabled = true;
+        } else {
+          // Property 2  clean and disable
+          lblLandHouseNum2->Caption = "";
+          lblOwnerID2->Caption = "";
+          gav2->Clear();
+          nav2->Clear();
+          edtLienValue2->Clear();
+          rgQualified2->ItemIndex = 1;
+          lblOwnerID2->Enabled = false;
+          lblLandHouseNum2->Enabled = false;
+          edtLienValue2->Enabled = false;
+          gav2->Enabled = false;
+          nav2->Enabled = false;
+          Label106->Enabled = false;
+          Label76->Enabled = false;
+          Label77->Enabled = false;
+          Label78->Enabled = false;
+          Label79->Enabled = false;
+          Label80->Enabled = false;
+          Label81->Enabled = false;
+          Label25->Enabled = false;
+          Label27->Enabled = false;
+          rgQualified2->Enabled = false;
+          GroupBox4->Enabled = false;
         }
         finalReview->Enabled = true;
         finalReview_Clear->Enabled = true;
@@ -705,6 +716,9 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
         lblMessage->Caption = "案件編號不存在或未通過初審。";
         formMain->Refresh();
      }
+     bool contiune = check_and_cleanup_final_result(msn, Data->query);
+     if (!contiune)
+        throw Exception("申請件重複，使用者選擇終止評分。");
   }
   catch(Exception &E){
     lblMessage->Caption = E.Message;
@@ -748,15 +762,17 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
         sql_stmt = "update app_info "
                    "  set nav1 = :nav1, "
                    "  gav1 = :gav1, "
-                   "  firstlien1 = :firstlien1, "
+                   "  first_lien1 = :first_lien1, "
+                   "  qualified1 = :qualified1 "
                    "where msn = :msn;";
         sql_stmt = sql_stmt.UpperCase();
         Data->command->CommandText = sql_stmt;
         first_lien1 = edtLienValue1->Text.Trim().ToDouble();
-        Data->command->Parameters->ParamValues["firstlien1"] = edtLienValue1->Text.Trim().ToInt();
+        Data->command->Parameters->ParamValues["first_lien1"] = edtLienValue1->Text.Trim().ToInt();
         Data->command->Parameters->ParamValues["nav1"] = nav1->Text.Trim().ToInt();
         Data->command->Parameters->ParamValues["gav1"] = gav1->Text.Trim().ToInt();
         Data->command->Parameters->ParamValues["msn"] = lblMSN->Caption;
+        Data->command->Parameters->ParamValues["qualified1"] = rgQualified1->ItemIndex;
         Data->command->Execute();
         gav_1 = gav1->Text.Trim().ToDouble();
         nav_1 = nav1->Text.Trim().ToDouble();
@@ -769,20 +785,22 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
            sql_stmt = "update app_info "
                       "  set nav2 = :nav2, "
                       "  gav2 = :gav2, "
-                      "  firstlien2 = :firstlien2 "
+                      "  first_lien2 = :first_lien2, "
+                      "  qualified2 = :qualified2 "
                       "where msn = :msn;";
            sql_stmt = sql_stmt.UpperCase();
            Data->command->CommandText = sql_stmt;
-           Data->command->Parameters->ParamValues["firstlien2"] = edtLienValue2->Text.Trim().ToInt();
+           Data->command->Parameters->ParamValues["first_lien2"] = edtLienValue2->Text.Trim().ToInt();
            Data->command->Parameters->ParamValues["nav2"] = nav2->Text.Trim().ToInt();
            Data->command->Parameters->ParamValues["gav2"] = gav2->Text.Trim().ToInt();
-           gav_1 = gav1->Text.Trim().ToDouble();
-           nav_1 = nav1->Text.Trim().ToDouble();
+           gav_2 = gav2->Text.Trim().ToDouble();
+           nav_2 = nav2->Text.Trim().ToDouble();
            Data->command->Parameters->ParamValues["msn"] = lblMSN->Caption;
+           Data->command->Parameters->ParamValues["qualified2"] = rgQualified2->ItemIndex;
            Data->command->Execute();
-        if (rgQualified2->ItemIndex == 0) {
-           gav_2 = nav_2 = first_lien2 = 0;
-        }
+           if (rgQualified2->ItemIndex == 0) {
+              gav_2 = nav_2 = first_lien2 = 0;
+           }
         }
      // call final review function
         message += "評分中. . .\n";
@@ -817,7 +835,7 @@ void __fastcall TformMain::finalReviewClick(TObject *Sender)
               message += "，但第二擔保品資格不符。" ;
           }
         }
-        message += "\n評分完成。可以輸入下一筆。\n" ;
+        message += "\n評分完成，可以輸入下一筆。\n" ;
         lblMessage->Caption = message;
         formMain->Refresh();
         init_UI_final();
@@ -879,7 +897,7 @@ void __fastcall TformMain::btnPreviewDirClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TformMain::btnPreviewReportClick(TObject *Sender)
 {
-  AnsiString dir_message = (report_final_dir.Length() == 0) ? static_cast<AnsiString>("程式所在目錄") : report_final_dir;
+  AnsiString dir_message = (report_dir.Length() == 0) ? static_cast<AnsiString>("程式所在目錄") : report_dir;
   dir_message += "\n";
   message = "報表將會儲存在: " + dir_message;
   lblMessage->Caption = message;
@@ -909,8 +927,8 @@ void __fastcall TformMain::btnPreviewReportClick(TObject *Sender)
 
   AnsiString report_gen_time = report_year + report_month + report_date;
 
-  prepare_prelimitary_report(Data->command, report_gen_time);
-  bool success = generate_prelimitary_report(Data->query, report_dir, report_gen_time);
+  bool success =prepare_prelimitary_report(Data->command, report_gen_time);
+  if (success) success = generate_prelimitary_report(Data->query, report_dir, report_gen_time);
   if (!success){
      message += "審核報表產生錯誤。\n";
      lblMessage->Caption = message;
@@ -920,6 +938,7 @@ void __fastcall TformMain::btnPreviewReportClick(TObject *Sender)
      message += "審核報表已產生。";
      lblMessage->Caption = message;
   };
+  clean_prelimitary_report(Data->command, report_gen_time);
   formMain->Refresh();
 //  clean_report(Data->command);
 
@@ -958,8 +977,8 @@ void __fastcall TformMain::btnFinalReportClick(TObject *Sender)
 
   AnsiString report_gen_time = report_year + report_month + report_date;
 
-  prepare_final_report(Data->command, report_gen_time);
-  bool success = generate_final_report(Data->query, report_dir, report_gen_time);
+  bool success = prepare_final_report(Data->command, report_gen_time);
+  if (success) success = generate_final_report(Data->query, report_dir, report_gen_time);
   if (!success){
      message += "審核報表產生錯誤。\n";
      lblMessage->Caption = message;
@@ -968,6 +987,7 @@ void __fastcall TformMain::btnFinalReportClick(TObject *Sender)
      message += "審核報表已產生。";
      lblMessage->Caption = message;
   };
+  clean_final_report(Data->command, report_gen_time);
   formMain->Refresh();
 //  clean_report(Data->command);
 
@@ -981,6 +1001,7 @@ void __fastcall TformMain::btnFinalreviewDirClick(TObject *Sender)
    frmReDirUI->ShowModal();
 }
 //---------------------------------------------------------------------------
+
 
 
 
