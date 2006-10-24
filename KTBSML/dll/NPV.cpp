@@ -1351,7 +1351,7 @@ double il::npv(bool secured, double &max_npv_value, double &pb_max_npv, unsigned
   if(trails > 0)
     optimal_amount = max_npv_amount(trails, npv_value, pb_value, npv, filter);
 //  if((secured == false) /*&& (_msn == "0003-0242533-CC-29-2")*/)
-    dump_npv(trails,npv);
+//    dump_npv(trails,npv);
 
   max_npv_value = npv_value;
   pb_max_npv = pb_value;

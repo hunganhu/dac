@@ -681,45 +681,43 @@ catch(Exception &E){
   if(source_table == "KRM021"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, CARD_BRAND, CARD_TYPE, ISSUE, ";
     sql_stmt += "ISSUE_NAME, START_DATE, STOP_DATE, STOP_CODE, AB_CODE, M_S, ";
-    sql_stmt += "LIMIT, Input_Time, RELA, RISK, CLEAR_DATE, IDN_PRI, ";
+    sql_stmt += "LIMIT, RELA, RISK, CLEAR_DATE, IDN_PRI, ";
     sql_stmt += "CNAME, REMARK";
   }
   else if(source_table == "KRM023"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, YRMON, ISSUE, ISSUE_NAME, ";
-    sql_stmt += "KR_CODE, LIMIT, PAYMENT, CASH, PAY_CODE, Input_Time";
+    sql_stmt += "KR_CODE, LIMIT, PAYMENT, CASH, PAY_CODE";
   }
   else if(source_table == "BAM087"){
     sql_stmt += "GROUP BY MSN, IDN, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ";
     sql_stmt += "ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, ";
     sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
-    sql_stmt += "Input_Time, ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
+    sql_stmt += "ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
   }
   else if(source_table == "BAM086"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, ";
     sql_stmt += "BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, ";
-    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
-    sql_stmt += "Input_Time";
+    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN ";
   }
   else if(source_table == "STM007"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, QUERY_DATE, BANK_CODE, ";
-    sql_stmt += "BANK_NAME, ITEM_LIST, Input_Time, INQ_PURPOSE_1, INQ_PURPOSE";
+    sql_stmt += "BANK_NAME, ITEM_LIST, INQ_PURPOSE_1, INQ_PURPOSE";
   }
   else if(source_table == "JAS002"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, EVER_DELINQUENT, ";
     sql_stmt += "DELINQUENT_DATE, EVER_BAD_CHECK, BAD_CHECK_DATE, ";
-    sql_stmt += "EVER_REJECT, REJECT_DATE, EVER_STOP_CARD, STOP_CARD_DATE, ";
-    sql_stmt += "Input_Time";
+    sql_stmt += "EVER_REJECT, REJECT_DATE, EVER_STOP_CARD, STOP_CARD_DATE ";
   }
   else if(source_table == "KRM037"){
     sql_stmt += "AND ISSUE <> 'TOT' ";
-    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, INPUT_TIME, BILL_DATE, ISSUE, ";
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, BILL_DATE, ISSUE, ";
     sql_stmt += "ISSUE_NAME, CARD_TYPE, PERM_LIMIT, TEMP_LIMIT, CASH_LIMIT, ";
     sql_stmt += "PAYABLE, CASH_LENT, LAST_PAYA, REVOL_BAL, PAY_STAT, PAY_CODE, ";
     sql_stmt += "REVOL_RATE, PRE_OWED, DEBT_CODE, CLOSE_CODE, CLEAR_DATE";
   }
   else if(source_table == "KRM034"){
     sql_stmt += "AND ISSUE <> 'TOT' ";
-    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, INPUT_TIME, BILL_DATE, ISSUE, ";
+    sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, BILL_DATE, ISSUE, ";
     sql_stmt += "ISSUE_NAME, CARD_TYPE, PERM_LIMIT, CASH_YN, ";
     sql_stmt += "LAST_PAYA, PAY_STAT, PAY_CODE, ";
     sql_stmt += "DEBT_CODE, CLOSE_CODE, CLEAR_DATE";
