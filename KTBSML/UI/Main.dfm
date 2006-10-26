@@ -912,7 +912,7 @@ object formMain: TformMain
         object lblLandHouseNum1: TLabel
           Left = 344
           Top = 24
-          Width = 369
+          Width = 457
           Height = 13
           AutoSize = False
         end
@@ -1098,7 +1098,7 @@ object formMain: TformMain
         object lblOwnerID2: TLabel
           Left = 136
           Top = 24
-          Width = 61
+          Width = 81
           Height = 13
           AutoSize = False
           Enabled = False
@@ -1106,7 +1106,7 @@ object formMain: TformMain
         object lblLandHouseNum2: TLabel
           Left = 352
           Top = 24
-          Width = 369
+          Width = 457
           Height = 13
           AutoSize = False
           Enabled = False
