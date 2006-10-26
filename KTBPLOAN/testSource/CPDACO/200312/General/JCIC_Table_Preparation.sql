@@ -1,0 +1,333 @@
+USE TF_GX
+GO
+/*SELECT IDN, reject_date_1, reject_bank_1, reject_reason_1, reject_date_2, reject_bank_2, reject_reason_2, reject_date_3, reject_bank_3, reject_reason_3, count(*) as records
+INTO dbo.NCCC_200312_DEDUP
+FROM dbo.NCCC_200312
+GROUP BY IDN, reject_date_1, reject_bank_1, reject_reason_1, reject_date_2, reject_bank_2, reject_reason_2, reject_date_3, reject_bank_3, reject_reason_3 
+
+CREATE TABLE NCCC_200312_DEDUP_NEW
+(IDN Char(10),
+ Reject_Date char(7),
+ Reject_Bank char(2),
+ Reject_Reason char(2))
+ 
+INSERT INTO NCCC_200312_DEDUP_NEW
+SELECT IDN,
+       reject_date_1,
+       reject_bank_1,
+       reject_reason_1
+FROM NCCC_200312_DEDUP
+
+INSERT INTO NCCC_200312_DEDUP_NEW
+SELECT IDN,
+       reject_date_2,
+       reject_bank_2,
+       reject_reason_2
+FROM NCCC_200312_DEDUP
+
+INSERT INTO NCCC_200312_DEDUP_NEW
+SELECT IDN,
+       reject_date_3,
+       reject_bank_3,
+       reject_reason_3
+FROM NCCC_200312_DEDUP
+
+SELECT IDN, COUNT(*) AS Records
+INTO AAS001_200312_DEDUP
+FROM AAS001_200312
+GROUP BY IDN
+
+SELECT IDN, EVER_DELINQUENT, DATE_YYYMMDD, COUNT(*) AS Records
+INTO BAS001_200312_DEDUP
+FROM BAS001_200312
+GROUP BY IDN, EVER_DELINQUENT, DATE_YYYMMDD
+
+SELECT IDN, CARD_BRAND, CARD_TYPE, ISSUE, ISSUE_NAME, START_DATE, STOP_DATE, STOP_CODE, AB_CODE, M_S, LIMIT, LIMIT_TYPE, USAGE_TYPE, SECURE, COUNT(*) AS Records
+INTO KRM001_200312_DEDUP
+FROM KRM001_200312
+GROUP BY IDN, CARD_BRAND, CARD_TYPE, ISSUE, ISSUE_NAME, START_DATE, STOP_DATE, STOP_CODE, AB_CODE, M_S, LIMIT, LIMIT_TYPE, USAGE_TYPE, SECURE
+
+SELECT IDN, ISSUE, ISSUE_NAME, LIMIT, YRMON, KR_CODE, PAYMENT1, PAYMENT2, CASH, PAY_CODE, COUNT(*) AS Records
+INTO KRM023_200312_DEDUP
+FROM KRM023_200312
+GROUP BY IDN, ISSUE, ISSUE_NAME, LIMIT, YRMON, KR_CODE, PAYMENT1, PAYMENT2, CASH, PAY_CODE
+
+SELECT IDN, QUERY_DATE, BANK_CODE, BANK_NAME, ITEM_LIST, COUNT(*) AS Records
+INTO STM001_200312_DEDUP
+FROM STM001_200312
+GROUP BY IDN, QUERY_DATE, BANK_CODE, BANK_NAME, ITEM_LIST
+
+SELECT IDN, INQUIRY_DATE, BANK_CODE, BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, CO_LOAN, COUNT(*) AS Records
+INTO BAM009_200312_DEDUP
+FROM BAM009_200312
+GROUP BY IDN, INQUIRY_DATE, BANK_CODE, BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, CO_LOAN
+*/
+DROP TABLE JAS002_200312_T
+GO
+CREATE TABLE JAS002_200312_T (IDN Char(6), Reason char, Date_Happen char(7), Mon_Since int)
+GO
+INSERT INTO JAS002_200312_T
+SELECT IDN, 'D', Delinquent_date, NULL
+FROM JAS002_200312
+WHERE delinquent_date is not null
+GO
+--2
+INSERT INTO JAS002_200312_T
+SELECT IDN, 'B', Bad_check_date, NULL
+FROM JAS002_200312
+WHERE Bad_check_date is not null
+GO
+--0
+INSERT INTO JAS002_200312_T
+SELECT IDN, 'R', Reject_date, NULL
+FROM JAS002_200312
+WHERE Reject_date is not null
+GO
+--2
+INSERT INTO JAS002_200312_T
+SELECT IDN, 'S', Stop_Card_date, NULL
+FROM JAS002_200312
+WHERE Stop_Card_date is not null
+GO
+--8
+DROP TABLE JAS002_200312_T_DEDUP
+GO
+SELECT IDN, Reason, Date_Happen, Mon_Since, COUNT(*) AS Records
+INTO JAS002_200312_T_DEDUP
+FROM JAS002_200312_T
+GROUP BY IDN, Reason, Date_Happen, Mon_Since
+GO
+--12
+SELECT COUNT(*), COUNT(DISTINCT IDN), SUM(RECORDS)
+FROM JAS002_200312_T_DEDUP
+/*12	10	12*/
+/*select max(date_yyymmdd), min(date_yyymmdd) from BAS001_200312_DEDUP
+
+ALTER TABLE BAS001_200312_DEDUP ADD Delinquent_Date_Since int
+
+UPDATE BAS001_200312_DEDUP
+SET
+Date_YYYMMDD =
+(CASE
+ WHEN LEFT(Date_YYYMMDD,1) NOT IN ('1', '0', '*') THEN '0' + (Date_YYYMMDD)
+ ELSE Date_YYYMMDD 
+ END)
+
+UPDATE BAS001_200312_DEDUP
+SET
+Delinquent_Date_Since = 
+(CASE
+   WHEN LEFT(Date_YYYMMDD,1) = '*' THEN NULL
+   ELSE LEFT(Date_YYYMMDD, 3) * 12 + Right(LEFT(Date_YYYMMDD, 5), 2)
+ END)
+
+select min(date_yyymmdd), min(delinquent_date_since),  max(date_yyymmdd), max(delinquent_date_since)
+from BAS001_200312_DEDUP*/
+
+ALTER TABLE KRM001_200312 ADD Start_Mon_Since int, End_Mon_Since int
+GO
+UPDATE KRM001_200312
+SET
+Start_Date =
+(CASE
+ WHEN LEFT(Start_Date,1) NOT IN ('1', '0', '*') THEN '0' + (Start_Date)
+ ELSE Start_Date 
+ END),
+Stop_Date =
+(CASE
+ WHEN LEFT(Stop_Date,1) NOT IN ('1', '0', '*') THEN '0' + (Stop_Date)
+ ELSE Stop_Date 
+ END)
+/*1310*/
+UPDATE KRM001_200312
+SET
+Start_Mon_Since =
+(CASE
+   WHEN LEFT(Start_Date,1) = '*' THEN NULL
+   ELSE LEFT(Start_Date, 3) * 12 + Right(LEFT(Start_Date, 5), 2)
+ END),
+End_Mon_Since =
+(CASE
+   WHEN LEFT(Stop_Date, 1) = '*' THEN NULL
+   ELSE LEFT(Stop_Date, 3) * 12 + Right(LEFT(Stop_Date, 5), 2)
+ END)
+GO
+/*1310*/
+UPDATE KRM001_200312
+SET
+End_Mon_Since = 999 * 12 + 12
+WHERE End_Mon_Since IS NULL
+GO
+/*945*/
+select end_mon_since from krm001_200312 where stop_date is null
+select max(stop_date), max(end_mon_since) from krm001_200312 where stop_date is not null
+select start_date, start_mon_since from krm001_200312 where start_date like '%*%'
+
+UPDATE JAS002_200312_T_DEDUP
+SET
+Date_Happen =
+(CASE
+ WHEN LEFT(LTRIM(Date_Happen),1) NOT IN ('1', '0', '*') THEN '0' + (LTRIM(Date_Happen))
+ ELSE Date_Happen 
+ END)
+GO
+/*2*/
+UPDATE JAS002_200312_T_DEDUP
+SET
+Mon_Since =
+(CASE
+   WHEN LEFT(LTRIM(Date_Happen),1) = '*' THEN NULL
+   ELSE LEFT(LTRIM(Date_Happen), 3) * 12 + Right(LEFT(RTRIM(Date_Happen), 5), 2)
+ END)
+GO
+/*2*/
+SELECT * FROM JAS002_200312_T_DEDUP
+GO
+
+ALTER TABLE KRM023_200312 ADD Mon_Since int
+GO
+UPDATE KRM023_200312
+SET
+YRMON =
+(CASE
+ WHEN LEFT(YRMON,1) NOT IN ('1', '0', '*') THEN '0' + (YRMON)
+ ELSE YRMON 
+ END)
+GO
+/*6053*/
+UPDATE KRM023_200312
+SET
+Mon_Since =
+(CASE
+   WHEN LEFT(YRMON,1) = '*' THEN NULL
+   ELSE LEFT(YRMON, 3) * 12 + Right(LEFT(YRMON, 5), 2)
+ END)
+GO
+/*6053*/
+ALTER TABLE STM001_200312 ADD Query_Mon_Since int
+GO
+UPDATE STM001_200312
+SET
+Query_Date =
+(CASE
+ WHEN LEFT(Query_Date,1) NOT IN ('1', '0', '*') THEN '0' + (Query_Date)
+ ELSE Query_Date 
+ END)
+GO
+/*986*/
+UPDATE STM001_200312
+SET
+Query_Mon_Since =
+(CASE
+   WHEN LEFT(Query_Date,1) = '*' THEN NULL
+   ELSE LEFT(Query_Date, 3) * 12 + Right(LEFT(Query_Date, 5), 2)
+ END)
+GO
+/*986*/
+/*SELECT IDN, ISSUE, ISSUE_NAME, LIMIT, YRMON, KR_CODE, PAYMENT, PAYMENT2, CASH, PAY_CODE, Mon_Since
+INTO KRM023_200312_WITH_THREE_BUCKET
+FROM KRM023_200312_DEDUP*/
+GO
+/*341699*/
+ALTER TABLE KRM023_200312 ADD Payment_Amt float
+GO
+UPDATE KRM023_200312
+SET
+Payment_Amt = 
+(CASE RIGHT(RTRIM(Payment),1)
+   WHEN 'L' THEN 2
+   WHEN 'M' THEN 5
+   WHEN 'H' THEN 8
+   ELSE 0
+ END) * POWER(10, ISNULL(LEFT(LTRIM(Payment),2),0)-1) / 1000.0
+GO
+/*6053*/
+ALTER TABLE KRM023_200312 ADD Bucket_def_1K INT, Bucket_ef_1K INT, Bucket_f_1K INT;
+GO
+UPDATE KRM023_200312
+SET 
+BUCKET_DEF_1k = 0,
+BUCKET_EF_1k = 0,
+BUCKET_F_1k = 0;
+GO
+/*6053*/ 
+UPDATE KRM023_200312
+SET BUCKET_DEF_1k = (CASE WHEN pay_code in ('D', 'E', 'F') AND Payment_Amt > 1 THEN 1 
+                       ELSE 0
+                       END), 
+    BUCKET_EF_1k = (CASE WHEN pay_code in ('E', 'F') AND Payment_Amt > 1 THEN 1
+                      ELSE 0 END), 
+    BUCKET_F_1k = (CASE WHEN pay_code = 'F' AND Payment_Amt > 1 THEN 1
+                     ELSE 0 END);
+GO
+/*6053*/
+DECLARE @i INT, @NOW INT
+SET @NOW = 92 * 12 + 12
+SET @i=12 
+WHILE @i > 0
+BEGIN
+  UPDATE KRM023_200312
+  SET  
+  bucket_def_1k =(CASE WHEN KRM023_200312.PAY_code IN ('D', 'E', 'F') AND
+                            KRM023_200312.Payment_Amt > 1 
+                       THEN a.bucket_def_1k + 1 
+                       ELSE 0 END), 
+  bucket_ef_1k =(CASE WHEN  KRM023_200312.pay_code in ('E', 'F') AND
+                            KRM023_200312.Payment_Amt > 1 
+                      THEN a.bucket_ef_1k + 1 
+                      ELSE 0 END), 
+  bucket_f_1k =(CASE WHEN  KRM023_200312.pay_code = 'F' AND
+                           KRM023_200312.Payment_Amt > 1 
+                     THEN a.bucket_f_1k + 1 
+                     ELSE 0 END) 
+  FROM  KRM023_200312 AS A INNER JOIN  KRM023_200312 ON 
+        A.IDN =  KRM023_200312.IDN AND 
+        A.Issue =  KRM023_200312.Issue AND 
+        A.Mon_Since = ( KRM023_200312.Mon_Since - 1) 
+  WHERE (@NOW - A.Mon_Since) = @i 
+SET @i = @i - 1 
+END;
+GO
+
+ALTER TABLE BAM085_200312 ADD Bank_Code2 char(3)
+GO
+UPDATE BAM085_200312
+SET
+Bank_Code2 = LEFT(BANK_CODE,3)
+GO
+--653
+/*
+DROP TABLE BASE_TF_GX, BASE_TMP
+
+SELECT DISTINCT IDN, 1 AS AVAIL_FLAG INTO BASE_TMP
+FROM KRM001_TF_GX_DEDUP
+--6381
+INSERT INTO BASE_TMP
+SELECT DISTINCT IDN, 2
+FROM KRM023_TF_GX_WITH_THREE_BUCKET
+--6150
+INSERT INTO BASE_TMP
+SELECT DISTINCT IDN, 4
+FROM BAM009_TF_GX_DEDUP
+--6082
+INSERT INTO BASE_TMP
+SELECT DISTINCT IDN, 8
+FROM STM001_TF_GX_DEDUP
+--4125
+INSERT INTO BASE_TMP
+SELECT DISTINCT IDN, 16
+FROM AAS001_TF_GX_DEDUP
+--6898
+SELECT IDN, SUM(AVAIL_FLAG) AS AVAIL_FLAG
+INTO BASE_TF_GX
+FROM BASE_TMP
+GROUP BY IDN
+--10056*/
+DROP TABLE BASE_200312
+GO
+SELECT IDN, MIN_INQUIRY_DATE, ACTUAL_DATA_FLAG AS AVAIL_FLAG, INQUIRY_DATE_DIFF
+INTO BASE_200312
+FROM data_availability
+WHERE JCIC_MONTH = '200312'
+GO
+--220

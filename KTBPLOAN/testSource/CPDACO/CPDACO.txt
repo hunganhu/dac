@@ -1,0 +1,76 @@
+
+**********************************************CI*****************************************************************
+
+--transformation
+
+monthly_rate=apr / 12;
+amortization_rate=(((1+(monthly_rate/100))**total_term)*(monthly_rate/100))/(((1+(monthly_rate/100))**total_term)-1);
+monthly_payment=loan_amount*amortization_rate;
+if monthly_payment =. then mp_in = 0;
+else mp_in = monthly_payment;
+
+
+ln_35_047=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000) / ms047;					
+ln_35_080=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000) / ms080;								
+ln_35_006_9m=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000)	/	wi006_9m	;
+ln_35_008_3m=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000)	/	wi008_3m	;
+ln_35_008_9m=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000)	/	wi008_9m	;
+ln_35_002_12m=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000)/	wi002_12m	;
+ln_35_004_12m=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000)/	wi004_12m	;
+
+
+ln_35_004_12m_q=ln_35_004_12m**2;
+ln_35_004_12m_q_t1=ln_35_004_12m_q/1000;
+if ln_35_004_12m_q_t1=. then ln_35_004_12m_q_t4=300;
+	else if ln_35_004_12m_q_t1>300 then ln_35_004_12m_q_t4=300;
+	else ln_35_004_12m_q_t4=ln_35_004_12m_q_t1;
+
+ln_35_002_12m_t1=ln_35_002_12m/1000;
+if ln_35_002_12m_t1=. then ln_35_002_12m_t3=200;
+	else if ln_35_002_12m_t1>200 then ln_35_002_12m_t3=200;
+	else ln_35_002_12m_t3=ln_35_002_12m_t1;
+
+if ln_35_080=. then ln_35_080_t=700;
+	else if ln_35_080<0 then ln_35_080_t=700;
+	else if ln_35_080>10000 then ln_35_080_t=10000;
+	else ln_35_080_t=ln_35_080;
+
+if wi006_9m=0 and wi008_3m>0 then wi006_9mb=13;
+	else wi006_9mb=wi006_9m;
+ln_35_006_9mb=(mp_in+(ms093+(ms094+ms105+50)*0.35)*1000)	/	wi006_9mb	;
+ln_35_006_9mb_t1=ln_35_006_9mb/1000;
+if ln_35_006_9mb_t1=. then ln_35_006_9mb_t4=1;
+	else ln_35_006_9mb_t4=0;
+
+if ln_35_047=. then ln_35_047_t=260;
+	else if ln_35_047>260 then ln_35_047_t=260;
+	else ln_35_047_t=ln_35_047;
+
+ln_35_008_9m_r=ln_35_008_9m**0.5;
+if ln_35_008_9m_r=. then ln_35_008_9m_r_t2=1;
+	else ln_35_008_9m_r_t2=0;
+
+--formula
+
+ci_score	=	-0.0376	+
+ln_35_004_12m_q_t4	*	0.00032495	+
+ln_35_002_12m_t3	*	0.00025644	+
+ln_35_080_t	*	0.00000761	+
+ln_35_006_9mb_t4	*	0.03049	+
+ln_35_047_t	*	0.00011161	+
+ln_35_008_9m_r_t2	*	0.01753	;
+
+
+
+**********************************************CPDACO*****************************************************************
+
+--transformation
+
+pic=pdaco_score*ci_score;
+
+--formula
+
+cpdaco_score	=	0.00742	+
+pic	*	7.73177	+
+pdaco_score	*	0.28397	;
+
