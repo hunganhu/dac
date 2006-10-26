@@ -22,8 +22,8 @@
 #include "pdaco61.h"
 #include "ploanNPV.h"
 
-const int EXPIRATION_DATE = 20251231; // expiration date of this module
-const char *EXPIRATION_MSG = "核准模組使用期限已過，請洽DAC解決使用權限問題。"; // expiration message
+const int EXPIRATION_DATE = 20070131; // expiration date of this module
+const char *EXPIRATION_MSG = "聯徵資料日期超過期限。"; // expiration message
 const char *VERSION = "2.0"; // PDACO 6.1 for KTB PLOAN DM  the 1st release
 
 //---------------------------------------------------------------------------
