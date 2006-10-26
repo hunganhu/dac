@@ -22,13 +22,6 @@ void init_UI()
 // Applicant Info
   formMain->edtPrimaryName->Clear();
   formMain->medtPrimaryID->Clear();
-//  medtPrimaryBirthYear->Clear();
-//  medtPrimaryBirthMonth->Clear();
-//  medtPrimaryBirthDate->Clear();
-//  marriage->ItemIndex = 0;
-//  edtCareer->Clear();
-//  child->ItemIndex = 0;
-//  education->ItemIndex = 0;
   formMain->edtIncome->Clear();
   formMain->medtZip->Clear();
   formMain->rgAppQualified->ItemIndex = 1;
@@ -40,29 +33,23 @@ void init_UI()
   formMain->edtAPR->Clear();
 
 // Property 1
-//  edtLienValue1->Clear();
   formMain->edtOwnerID1->Clear();
   formMain->edtLandNum1->Clear();
-//  lien1->ItemIndex = 1;
-//  location1->ItemIndex = 0;
   formMain->edtOwnerName1->Clear();
   formMain->relationship1->ItemIndex = 0;
 
 // Property 2
-//  edtLienValue2->Clear();
   formMain->edtOwnerID2->Clear();
   formMain->edtLandNum2->Clear();
-//  lien2->ItemIndex = 1;
-//  location2->ItemIndex = 0;
   formMain->edtOwnerName2->Clear();
   formMain->relationship2->ItemIndex = 0;
+  formMain->cbP2->Checked = false;
 
   formMain->edtBranch->Clear();
   formMain->edtAuditor->Clear();
   formMain->edtEmpID->Clear();
 
   formMain->medtPrimaryID->SetFocus();
-//  formMain->lblMessage->Caption = "";
   message = "";
   formMain->Refresh();
 };

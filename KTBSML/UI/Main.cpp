@@ -45,13 +45,6 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
    // Applicant Info
      edtPrimaryName->Clear();
      medtPrimaryID->Clear();
-   //  medtPrimaryBirthYear->Clear();
-   //  medtPrimaryBirthMonth->Clear();
-   //  medtPrimaryBirthDate->Clear();
-   //  marriage->ItemIndex = 0;
-   //  edtCareer->Clear();
-   //  child->ItemIndex = 0;
-   //  education->ItemIndex = 0;
      edtIncome->Clear();
      medtZip->Clear();
      rgAppQualified->ItemIndex = 1;
@@ -63,21 +56,15 @@ void __fastcall TformMain::btnClearClick(TObject *Sender)
      edtAPR->Clear();
 
    // Property 1
-   //  edtLienValue1->Clear();
      edtOwnerID1->Clear();
      edtLandNum1->Clear();
-   //  lien1->ItemIndex = 1;
-   //  location1->ItemIndex = 0;
      edtOwnerName1->Clear();
      relationship1->ItemIndex = 0;
 
    // Property 2
-   //  edtLienValue2->Clear();
      cbP2->Checked = false;
      edtOwnerID2->Clear();
      edtLandNum2->Clear();
-   //  lien2->ItemIndex = 1;
-   //  location2->ItemIndex = 0;
      edtOwnerName2->Clear();
      relationship2->ItemIndex = 0;
 
@@ -116,7 +103,6 @@ void __fastcall TformMain::medtPrimaryIDExit(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
 {
-// to be added
   bool is_input_error = false;
   unsigned int gender;
   AnsiString msn, product_code;
@@ -130,8 +116,6 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
   unsigned int min;
   unsigned int sec;
   int income;
-//  double gav, nav;
-//  double gav1, nav1, gav2, nav2;
   double apr;
   unsigned int application_fee;
   int period;
@@ -150,7 +134,6 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
   bool success;
   int ejcic_error_code;
 
-//  gav1 = nav1 = gav2 = nav2 = 1; // initial to a non-zero value which means qualified property
   is_input_error = validate_application();
   try {
      if (!is_input_error) {
@@ -227,7 +210,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
         bool contiune = check_and_cleanup_result(msn, Data->query);
         if (!contiune)
            throw Exception("申請件重複，使用者選擇終止評分。");
-/* //comment out
+/* //comment out- start
 ////////// Connect to GSS EJCIC SYSTEM ////////////////////////////////
         message += "申請件資料通過檢核，正在取回聯徵資料。\n";
         lblMessage->Caption = message;
@@ -236,12 +219,12 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
 
         success = request_for_jcic_data(Data->ejcic_query, medtPrimaryID->Text.Trim(), query_sn, jcic_inquiry_result, ejcic_error_code);
         if (success) {
-           message += "聯徵資料已取回，正在儲存聯徵資料。 ";
+           message += "聯徵資料已取回，正在儲存聯徵資料。\n";
            lblMessage->Caption = message;
            formMain->Refresh();
            jcic_inquiry_date =
              get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn, msn, medtPrimaryID->Text, system_date);
-//comment out */
+//comment out- end */
            message += "聯徵資料已儲存，正在評分中. . .\n";
            lblMessage->Caption = message;
            formMain->Refresh();
@@ -266,7 +249,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
            message = message + error_msg + "\n";
            lblMessage->Caption = message;
            formMain->Refresh();
-/* // comment out
+/* // comment out- start
         }
         else {
   //        log_error(Data->command, medtPrimaryID->Text, jcic_inquiry_result, ejcic_error_code);
@@ -275,7 +258,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
             formMain->Refresh();
             status = -1;
         } // end of if (success)
-// comment out */
+// comment out- end */
       if (status >= 0){
          message += "評分完成。可以輸入下一筆。\n";
          lblMessage->Caption = message;
@@ -333,7 +316,7 @@ bool TformMain::validate_application()
      is_input_error = true;
   }
   else if (!check_zip(medtZip->Text.Trim().c_str())){
-     message += "郵遞區號錯誤\n";
+     message += "郵遞區號錯誤。";
      is_input_error = true;
   }
 
