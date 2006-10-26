@@ -17,15 +17,15 @@ CREATE TABLE BAM086 (
 	PASS_DUE_AMT        CHAR(10),          -- '逾期未還金額 (千元)';                                                           
 	PAY_CODE_12         CHAR(12),          -- '最近12個月還款紀錄  (對照表)';                                                  
 	CO_LOAN             CHAR(1),           -- '共同借款註記  * 表示有共同借款';                                                
-	UN_MARK             CHAR(1),           -- '國際聯貸註記  * 表示為國際聯貸';                                                
-	U_YYYMMDD           CHAR(8),           -- '聯貸日期  西元YYYYMMDD';                                                        
-	U_RATE              CHAR(3),           -- '參貸比例';                                                                      
-	IB_MARK             CHAR(1),           -- '資金流向註記  * 表示為資金流向非法人組織';                                      
-	IAB_BAN             CHAR(8),           -- '非法人組織統編';                                                                
-	IAB_NAME            CHAR(60),          -- '非法人組織名稱';                                                                
-	R_YYYMMDD           CHAR(7),           -- '還款日期';                                                                      
-	REFUND_AMT          CHAR(10),          -- '還款金額 (千元)';                                                               
-	CK_REF              CHAR(1)            -- '還款記錄  Y:全部還清 N:部分還清 1.還清 2.清償積欠本息 3.清償積欠利息 4.轉正常'; 
+--	UN_MARK             CHAR(1),           -- '國際聯貸註記  * 表示為國際聯貸';                                                
+--	U_YYYMMDD           CHAR(8),           -- '聯貸日期  西元YYYYMMDD';                                                        
+--	U_RATE              CHAR(3),           -- '參貸比例';                                                                      
+--	IB_MARK             CHAR(1),           -- '資金流向註記  * 表示為資金流向非法人組織';                                      
+--	IAB_BAN             CHAR(8),           -- '非法人組織統編';                                                                
+--	IAB_NAME            CHAR(60),          -- '非法人組織名稱';                                                                
+--	R_YYYMMDD           CHAR(7),           -- '還款日期';                                                                      
+--	REFUND_AMT          CHAR(10),          -- '還款金額 (千元)';                                                               
+--	CK_REF              CHAR(1)            -- '還款記錄  Y:全部還清 N:部分還清 1.還清 2.清償積欠本息 3.清償積欠利息 4.轉正常'; 
 );
 CREATE INDEX I_BAM086 ON BAM086(MSN, IDN);
 GO
@@ -72,7 +72,7 @@ GO
 
 CREATE TABLE KRM023 (
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                        
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';       
+	INQUIRY_DATE	CHAR(10),          -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';       
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                                  
 	YRMON 		CHAR (5),          -- '資料年月';                                        
 	ISSUE 		CHAR (3),          -- '發卡機構代號';                                    
@@ -90,7 +90,6 @@ CREATE TABLE KRM037 (
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                                                                                                                                                                                 
 	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';                                                                                                                                                                
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                                                                                                                                                                                           
-	IDN_BAN		CHAR(10),          -- '繳款人ID';                                                                                                                                                                                                 
 	BILL_DATE	CHAR(7),           -- '結帳日';                                                                                                                                                                                                   
 	ISSUE		CHAR(3),           -- '發卡機構代號';                                                                                                                                                                                             
 	ISSUE_NAME 	CHAR(24),          -- '發卡機構名稱';                                                                                                                                                                                             
@@ -300,5 +299,13 @@ CREATE TABLE FINAL_REPORT (
 );
 ALTER TABLE FINAL_REPORT ADD CONSTRAINT P_FINAL_REPORT PRIMARY KEY (MSN);
 GO
+
+CREATE TABLE CREDIT_BLOCK_LIST (
+	IDN char (11) NOT NULL ,
+	MSN char (14) 
+);
+ALTER TABLE CREDIT_BLOCK_LIST ADD CONSTRAINT P_CREDIT_BLOCK_LIST PRIMARY KEY (IDN);
+GO
+
 
 
