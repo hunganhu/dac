@@ -13,7 +13,7 @@
     <RESDEPEN value="$(RESFILES) MainUI.dfm LoginUI.dfm Data_Module.dfm DirUI.dfm ReDirUI.dfm"/>
     <LIBFILES value=""/>
     <LIBRARIES value="GSS_eJCIC.lib"/>
-    <SPARELIBS value="vcl.lib rtl.lib dbrtl.lib adortl.lib GSS_eJCIC.lib"/>
+    <SPARELIBS value="vcl.lib rtl.lib dbrtl.lib adortl.lib GSS_eJCIC.lib vclx.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
       vcldbx.bpi ibxpress.bpi dsnap.bpi cds.bpi bdecds.bpi qrpt.bpi teeui.bpi 
       teedb.bpi tee.bpi dss.bpi teeqr.bpi visualclx.bpi visualdbclx.bpi 

@@ -5,6 +5,9 @@
 #include <math.h>
 #include "CPDACO.h"
 #include "npv.h"
+#define EXPIRED_DATE "20070131"
+const char *EXPIRATION_MSG = "聯徵資料日期超過期限。"; // expiration message
+
 /*
 #pragma hdrstop
 //---------------------------------------------------------------------------
@@ -69,7 +72,7 @@ int TNB_Ploan_AM(char *idno, char *jcic_inquiry_date, char *app_input_time,
 
   try{
 //Check date validity
-    int now = yrmon_to_mon(jcic_date, timelock, "20070101", no_archive, use_krm037);
+    int now = yrmon_to_mon(jcic_date, timelock, EXPIRED_DATE, no_archive, use_krm037);
 
     if(now > 0){
 //Initialize ado objects and establish database connection
@@ -187,7 +190,7 @@ int TNB_Ploan_AM(char *idno, char *jcic_inquiry_date, char *app_input_time,
           fsc_lendable = fsc_lendable / portion_unsecured;
         if(fsc_lendable < 0)
           fsc_lendable = 0;
-        unsigned int fsc_lendable_rounding = (fsc_lendable / 10000) * 10000;  
+        unsigned int fsc_lendable_rounding = (fsc_lendable / 10000) * 10000;
 
 //        if(fsc_lendable < trial_amount)
 //          trial_amount = fsc_lendable;
@@ -4190,3 +4193,6 @@ unsigned int data_insufficiency(TADOQuery *query,
     return_value = 0;
   return return_value;
 };
+
+
+
