@@ -1,0 +1,6 @@
+LIBRARY     CC_AM.DLL
+
+EXPORTS
+    _@System@TObject@ClassName$qqrv= @System@TObject@ClassName$qqrv      ; __fastcall System::TObject::ClassName()
+    _BOOC_CC_BT_AM                 @1   ; _BOOC_CC_BT_AM
+    ___CPPdebugHook                @3   ; ___CPPdebugHook

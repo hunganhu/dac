@@ -1,0 +1,5 @@
+LIBRARY     CC_AM.DLL
+
+EXPORTS
+    _TNB_CC_AM                     @1   ; _TNB_CC_AM
+    ___CPPdebugHook                @2   ; ___CPPdebugHook

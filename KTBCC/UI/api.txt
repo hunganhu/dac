@@ -1,0 +1,66 @@
+揚愷,
+ 
+API介面
+ 
+1. AND
+2. 不可以
+3. 登錄到e-JCIC系統的查詢者
+4. 你可以不管這些
+5. 是
+6. 目前沒有清單, 交貨時會一併給
+7. 你可以不管這些
+8. 目前是直接取table的內容, 你可以不管這些
+ 
+Best regards,
+Carol Yang 楊清萍
+Finance Business Unit 金融事業處
+Galaxy Software Services 叡揚資訊
+Tel: 886-2-2586-7890 ext. 302
+Mobile: 886-937-198-856
+Fax: 886-2-2586-8787
+
+    -----Original Message-----
+    From: YangKai Liu [mailto:yangkai.liu@burkelee.com]
+    Sent: Monday, August 29, 2005 6:37 PM
+    To: Carol Yang (楊清萍)
+    Cc: Anrita Ho; Millicent Hsu (許家綾); 王董事長全喜; 蔡副董事長炅廷; 周科長恬世; 陳科長奇邦; Yeh, Guang-yue (DAC); Li, Teresa (DAC)
+    Subject: e-JCIC 整合問題
+
+    楊小姐，
+
+    感謝您對我們日前就e-JCIC介面整合提出問題的回答。您的答覆對於協助整合南企核准系統上線，非常有幫助。
+    在詳讀了您的回答後，我們有以下問題需要您進一步的協助。
+
+        * 關於「測試用程式」(Sample Test Program)
+              o 我們原想在整合測試之前，對元件聯結部份先行測試，以節省整合測試時間，幫助如期完成整合﹝9/15-9/30﹞。
+              o 在叡揚無法提供該「測試用程式」的情況下，DAC 只能以自行設計的測試用 COM+ 元件，進行測試。
+              o 這個作法的風險是，對整體時程可能無法幫助太多。 因為DAC 自行設計的元件，與實際的叡揚元件聯結時，可能仍有不同。而導致整合測試所需的時間無法減少。
+              o 如果您有其它看法或建議，能幫助如期完成整合﹝9/15-9/30﹞，歡迎您提供。 
+
+            * 關於API 介面：
+                 1. 參數 StrPar (查詢條件) 中的^|^，是將所有查詢條件以 AND 連結起來，還是以 OR 連結起來？
+                 2. 如果要同時查詢兩個身份證字號，是否可以使用參數 StrPar？
+                        o 例如： A123456789^|^C245678901^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^^|^。 
+                 3. strUID﹝查詢者之代碼﹞： 是指登錄至 e-JCIC 系統的查詢者？ 還是登錄至聯徵MQ的查詢者？
+                 4. blnInstantSend：如果查詢時將該值設為FALSE，該查詢結果會於下次(blnInstantSend=TRUE)的查詢時一齊送出並回傳嗎？例如：
+                        o 在如果有九個查詢以 (blnInstantSend = false)方式送出，而之後的第十個查詢是以 (blnInstantSend = true)方式送出。在第十個查詢送出時，這個查詢會
+                              + 跳過之前九個先前以 (blnInstantSend = false)方式送出的查詢？
+                              + 或是連同前九個查詢與該查詢(第十個)同時一齊送到聯徵？ 
+                 5. 檢查查詢結果時，請確認是否以下四個條件皆須同時成立?
+                       1. objJCIC.Error_Number = objJCIC.Error_Number = 0
+                       2. objJCIC.QSEQNO 回傳有查詢序號
+                       3. JC_T_REQ.STATUS = R
+                       4. JC_T_REQ.RESULT = S 
+                 6. 是否可以提供 objJCIC.Error_Number清單？以及相對應的objJCIC.JC_ReturnCode訊息清單？
+                        o 例如： objJCIC.Error_Number  = 16101； 對應到 objJCIC.JC_ReturnCode = "此查詢不允許資料查詢"？ 
+                 7. 您對 objJCIC.IsNewQuery  所做的注解"丟出聯徵中心的新查詢"  是否可以舉例說明？
+                 8. 如您所述：DAC 應該不會用到 objJCIC.ReGetQueryInfo
+                        o 是否可以在此確認，在method objJCIC.PutRequest 結束後，objJCIC.QSEQNO 和objJCIC.QueryResult 的值都已自動填入，不需再使用objJCIC.ReGetQueryInfo 來取得？
+                        o 是否會有例外情形？(您先前提供的範例程式是用 objJCIC.ReGetQueryInfo 來取得objJCIC.QSEQNO 和objJCIC.QueryResult.) 
+
+         
+        謝謝。
+
+
+        劉揚愷
+        Decision Analytics Consulting
