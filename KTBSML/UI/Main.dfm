@@ -1,6 +1,6 @@
 object formMain: TformMain
-  Left = 131
-  Top = 108
+  Left = 115
+  Top = 74
   Width = 868
   Height = 600
   Caption = 'DAC'#28136#20540#25151#36024#35413#20998#31995#32113#9472#25552#20379#20140#22478#37504#34892#20351#29992
@@ -159,7 +159,7 @@ object formMain: TformMain
           Top = 20
           Width = 95
           Height = 21
-          ImeMode = imClose
+          ImeMode = imOpen
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 1
         end
@@ -180,6 +180,7 @@ object formMain: TformMain
           Width = 25
           Height = 21
           EditMask = '000;1;_'
+          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 3
           TabOrder = 3
           Text = '   '
@@ -201,7 +202,10 @@ object formMain: TformMain
           Top = 48
           Width = 121
           Height = 21
+          Enabled = False
+          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 5
+          Visible = False
         end
       end
       object GroupBoxProd: TGroupBox
@@ -324,6 +328,7 @@ object formMain: TformMain
           Top = 20
           Width = 41
           Height = 21
+          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 1
         end
         object medtAppFee: TMaskEdit
@@ -332,6 +337,7 @@ object formMain: TformMain
           Width = 44
           Height = 21
           EditMask = '999999;0;_'
+          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 6
           TabOrder = 3
         end
@@ -449,7 +455,7 @@ object formMain: TformMain
           Top = 24
           Width = 121
           Height = 21
-          ImeMode = imClose
+          ImeMode = imOpen
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 0
         end
@@ -458,7 +464,7 @@ object formMain: TformMain
           Top = 48
           Width = 553
           Height = 21
-          ImeMode = imClose
+          ImeMode = imOpen
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 3
         end
@@ -567,7 +573,7 @@ object formMain: TformMain
           Width = 121
           Height = 21
           Enabled = False
-          ImeMode = imClose
+          ImeMode = imOpen
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 1
         end
@@ -577,7 +583,7 @@ object formMain: TformMain
           Width = 553
           Height = 21
           Enabled = False
-          ImeMode = imClose
+          ImeMode = imOpen
           ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           TabOrder = 4
         end
@@ -628,6 +634,7 @@ object formMain: TformMain
         Top = 328
         Width = 57
         Height = 21
+        ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
         TabOrder = 4
       end
       object edtAuditor: TEdit
@@ -635,6 +642,7 @@ object formMain: TformMain
         Top = 328
         Width = 57
         Height = 21
+        ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
         TabOrder = 5
       end
       object edtEmpID: TEdit
@@ -642,6 +650,7 @@ object formMain: TformMain
         Top = 328
         Width = 65
         Height = 21
+        ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
         TabOrder = 6
       end
     end
@@ -1005,6 +1014,7 @@ object formMain: TformMain
           Height = 21
           EditMask = '999999999;0;_'
           ImeMode = imClose
+          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 9
           TabOrder = 2
         end
@@ -1183,6 +1193,7 @@ object formMain: TformMain
           Enabled = False
           EditMask = '999999999;0;_'
           ImeMode = imClose
+          ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
           MaxLength = 9
           TabOrder = 2
         end

@@ -50,6 +50,7 @@ void init_UI()
   formMain->edtEmpID->Clear();
 
   formMain->medtPrimaryID->SetFocus();
+//  formMain->lblMessage->Caption = "";
   message = "";
   formMain->Refresh();
 };

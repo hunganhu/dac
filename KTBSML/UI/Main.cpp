@@ -116,6 +116,7 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
   unsigned int min;
   unsigned int sec;
   int income;
+  int monthly_income;
   double apr;
   unsigned int application_fee;
   int period;
@@ -141,11 +142,35 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
         get_time(year, month, day, hour, min, sec);
         sprintf(header, "A%04d%02d%02d", year, month, day);
         msn = get_case_sn(header);
-        msn = edtCaseNo->Text;     // comment out after test
+        //msn = edtCaseNo->Text;     // comment out after test
         sprintf(system_date, "%04d%02d%02d%02d%02d%02d", year, month, day, hour, min, sec);
-     // insert into app_info
-        if (cbP2->Checked)
-           sql_stmt = "insert into app_info (msn, system_date, applicant_id, applicant_name, "
+        // insert into app_info
+        bool contiune = check_and_cleanup_result(msn, Data->query);
+        if (!contiune)
+           throw Exception("申請件重複，使用者選擇終止評分。\n");
+//comment out
+////////// Connect to GSS EJCIC SYSTEM ////////////////////////////////
+        message += "申請件資料通過檢核，正在取回聯徵資料。\n";
+        lblMessage->Caption = message;
+        formMain->Refresh();
+
+        success = request_for_jcic_data(Data->ejcic_query, medtPrimaryID->Text.Trim(), query_sn, jcic_inquiry_result, ejcic_error_code);
+        if (success) {
+           message += "聯徵資料已取回，正在儲存聯徵資料。\n";
+           lblMessage->Caption = message;
+           formMain->Refresh();
+           jcic_inquiry_date =
+             get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn, msn, medtPrimaryID->Text, system_date);
+//comment out
+           message += "聯徵資料已儲存，正在評分中. . .\n";
+           lblMessage->Caption = message;
+           formMain->Refresh();
+
+//           jcic_inquiry_date =
+//             get_jcic_inquriy_date(msn, Data->query);  //**** temp function
+           // insert into app_info after JCIC data is successfully retrieved.
+           if (cbP2->Checked)
+              sql_stmt = "insert into app_info (msn, system_date, applicant_id, applicant_name, "
                    " zip, income, app_qualified, app_amt, period, "
                    " apr, app_fee, branch, emp_id, auditor,"
                    " owner_id1, owner_name1, land_num1, relationship1, "
@@ -157,8 +182,8 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
                    " :owner_id1, :owner_name1, :land_num1, :relationship1, "
                    " :owner_id2, :owner_name2, :land_num2, :relationship2, "
                    " :inquiry_date);";
-        else
-           sql_stmt = "insert into app_info (msn, system_date, applicant_id, applicant_name, "
+           else
+              sql_stmt = "insert into app_info (msn, system_date, applicant_id, applicant_name, "
                    " zip, income, app_qualified, app_amt, period, "
                    " apr, app_fee, branch, emp_id, auditor, "
                    " owner_id1, owner_name1, land_num1, relationship1, "
@@ -169,87 +194,53 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
                    " :owner_id1, :owner_name1, :land_num1, :relationship1, "
                    " :inquiry_date);";
 
-        sql_stmt = sql_stmt.UpperCase();
-        Data->command->CommandText = sql_stmt;
-        Data->command->Parameters->ParamValues["msn"] = msn;
-        Data->command->Parameters->ParamValues["system_date"] = system_date;
-        Data->command->Parameters->ParamValues["applicant_id"] = medtPrimaryID->Text;
-        Data->command->Parameters->ParamValues["applicant_name"] = edtPrimaryName->Text;
-        Data->command->Parameters->ParamValues["zip"] = medtZip->Text;
-        income = StrToInt(edtIncome->Text) * 10000;
-        Data->command->Parameters->ParamValues["income"] = income;
-        Data->command->Parameters->ParamValues["app_qualified"] = rgAppQualified->ItemIndex;
-        Data->command->Parameters->ParamValues["app_amt"] = StrToInt(edtAppAmount->Text) * 10000;
-//        switch(cbPeriod->ItemIndex) {
-//           case 1: period = 3 * 12; break;
-//           case 2: period = 5 * 12; break;
-//           case 3: period = 7 * 12; break;
-//        }
-        period = cbPeriod->ItemIndex * 12;
-        Data->command->Parameters->ParamValues["period"] = period;
-        Data->command->Parameters->ParamValues["branch"] = edtBranch->Text;
-        Data->command->Parameters->ParamValues["auditor"] = edtAuditor->Text;
-        Data->command->Parameters->ParamValues["emp_id"] = edtEmpID->Text;
-        Data->command->Parameters->ParamValues["owner_id1"] = edtOwnerID1->Text;
-        Data->command->Parameters->ParamValues["owner_name1"] = edtOwnerName1->Text;
-        Data->command->Parameters->ParamValues["land_num1"] = edtLandNum1->Text;
-        Data->command->Parameters->ParamValues["relationship1"] = relationship1->ItemIndex - 1;
+           sql_stmt = sql_stmt.UpperCase();
+           Data->command->CommandText = sql_stmt;
+           Data->command->Parameters->ParamValues["MSN"] = msn;
+           Data->command->Parameters->ParamValues["SYSTEM_DATE"] = system_date;
+           Data->command->Parameters->ParamValues["APPLICANT_ID"] = medtPrimaryID->Text;
+           Data->command->Parameters->ParamValues["APPLICANT_NAME"] = edtPrimaryName->Text;
+           Data->command->Parameters->ParamValues["ZIP"] = medtZip->Text;
+           income = StrToInt(edtIncome->Text) * 10000;
+           monthly_income = static_cast<int>(income / 12.0 + 0.5);
+           Data->command->Parameters->ParamValues["INCOME"] = income;
+           Data->command->Parameters->ParamValues["APP_QUALIFIED"] = rgAppQualified->ItemIndex;
+           Data->command->Parameters->ParamValues["APP_AMT"] = StrToInt(edtAppAmount->Text) * 10000;
+           period = cbPeriod->ItemIndex * 12;
+           Data->command->Parameters->ParamValues["APR"] = StrToFloat(edtAPR->Text) / 100.0;
+           Data->command->Parameters->ParamValues["APP_FEE"] = StrToInt(medtAppFee->Text);
+           Data->command->Parameters->ParamValues["PERIOD"] = period;
+           Data->command->Parameters->ParamValues["BRANCH"] = edtBranch->Text;
+           Data->command->Parameters->ParamValues["AUDITOR"] = edtAuditor->Text;
+           Data->command->Parameters->ParamValues["EMP_ID"] = edtEmpID->Text;
+           Data->command->Parameters->ParamValues["OWNER_ID1"] = edtOwnerID1->Text;
+           Data->command->Parameters->ParamValues["OWNER_NAME1"] = edtOwnerName1->Text;
+           Data->command->Parameters->ParamValues["LAND_NUM1"] = edtLandNum1->Text;
+           Data->command->Parameters->ParamValues["RELATIONSHIP1"] = relationship1->ItemIndex - 1;
 
-        if (cbP2->Checked) {
-           Data->command->Parameters->ParamValues["owner_id2"] = edtOwnerID2->Text;
-           Data->command->Parameters->ParamValues["owner_name2"] = edtOwnerName2->Text;
-           Data->command->Parameters->ParamValues["land_num2"] = edtLandNum2->Text;
-           Data->command->Parameters->ParamValues["relationship2"] = relationship2->ItemIndex - 1;
-        }
+           if (cbP2->Checked) {
+              Data->command->Parameters->ParamValues["OWNER_ID2"] = edtOwnerID2->Text;
+              Data->command->Parameters->ParamValues["OWNER_NAME2"] = edtOwnerName2->Text;
+              Data->command->Parameters->ParamValues["LAND_NUM2"] = edtLandNum2->Text;
+              Data->command->Parameters->ParamValues["RELATIONSHIP2"] = relationship2->ItemIndex - 1;
+           }
 //        get_product_code(msn, product_code, Data->query);
 //        get_product_feature(product_code, Data->query, apr, application_fee);
 //        Data->command->Parameters->ParamValues["apr"] = apr;
 //        Data->command->Parameters->ParamValues["app_fee"] = application_fee;
-        Data->command->Parameters->ParamValues["apr"] = StrToFloat(edtAPR->Text) / 100.0;
-        Data->command->Parameters->ParamValues["app_fee"] = StrToInt(medtAppFee->Text);
-        bool contiune = check_and_cleanup_result(msn, Data->query);
-        if (!contiune)
-           throw Exception("申請件重複，使用者選擇終止評分。");
-/* //comment out- start
-////////// Connect to GSS EJCIC SYSTEM ////////////////////////////////
-        message += "申請件資料通過檢核，正在取回聯徵資料。\n";
-        lblMessage->Caption = message;
-        formMain->Refresh();
-
-
-        success = request_for_jcic_data(Data->ejcic_query, medtPrimaryID->Text.Trim(), query_sn, jcic_inquiry_result, ejcic_error_code);
-        if (success) {
-           message += "聯徵資料已取回，正在儲存聯徵資料。\n";
-           lblMessage->Caption = message;
-           formMain->Refresh();
-           jcic_inquiry_date =
-             get_store_jcic_data(Data->ejcic_connection, Data->ejcic_query, Data->command, query_sn, msn, medtPrimaryID->Text, system_date);
-//comment out- end */
-           message += "聯徵資料已儲存，正在評分中. . .\n";
-           lblMessage->Caption = message;
-           formMain->Refresh();
-
-           jcic_inquiry_date =
-             get_jcic_inquriy_date(msn, Data->query);  //**** temp function
-           // insert into app_info after JCIC data is successfully retrieved.
            Data->command->Parameters->ParamValues["inquiry_date"] = jcic_inquiry_date;
            Data->command->Execute();   // save to app_info
            message += "案件 " + msn + " 已新增。\n";
            lblMessage->Caption = message;
            formMain->Refresh();
 
-           // call prescreen function
+        // call prescreen function
            status = DAC_SML_PRESCREEN(medtPrimaryID->Text.c_str(), msn.c_str(), jcic_inquiry_date.c_str(),
-                                      ole_str.c_str(), income/12, error_msg);
-//           if (status < 0) {
-//              message = message + error_msg + "\n";
-//           } else if (status > 0) {
-//              message = message + error_msg + "\n";
-//           }
+                                      ole_str.c_str(), monthly_income, error_msg);
            message = message + error_msg + "\n";
            lblMessage->Caption = message;
            formMain->Refresh();
-/* // comment out- start
+ // comment out
         }
         else {
   //        log_error(Data->command, medtPrimaryID->Text, jcic_inquiry_result, ejcic_error_code);
@@ -258,13 +249,13 @@ void __fastcall TformMain::btnPrescreenClick(TObject *Sender)
             formMain->Refresh();
             status = -1;
         } // end of if (success)
-// comment out- end */
-      if (status >= 0){
-         message += "評分完成。可以輸入下一筆。\n";
-         lblMessage->Caption = message;
-         formMain->Refresh();
-         init_UI();
-      }
+// comment out
+        if (status >= 0){
+           message += "評分完成。可以輸入下一筆。\n";
+           lblMessage->Caption = message;
+           formMain->Refresh();
+           init_UI();
+        }
 //////////////////////////////////////////
      } // end of if(!is_input_error)
   } // end of try
@@ -637,7 +628,7 @@ void __fastcall TformMain::SelectClick(TObject *Sender)
            hidden_InquiryDate->Caption = Data->query->FieldValues["INQUIRY_DATE"];
         else
            hidden_InquiryDate->Caption = "";
-        hidden_monthly_income->Caption = Data->query->FieldValues["INCOME"]/12;
+        hidden_monthly_income->Caption = static_cast<int>(Data->query->FieldValues["INCOME"]/12.0+0.5);
         lblPrimaryName->Caption = Data->query->FieldValues["APPLICANT_NAME"];
         lblPrimaryID->Caption = Data->query->FieldValues["APPLICANT_ID"];
         lblAppFee->Caption = Data->query->FieldValues["APP_FEE"];

@@ -6,8 +6,8 @@ object Data: TData
   Width = 341
   object connection: TADOConnection
     ConnectionString = 
-      'Provider=SQLOLEDB.1;Password=TEST;Persist Security Info=True;Use' +
-      'r ID=TEST;Initial Catalog=TNB;Data Source=BASE'
+      'Provider=SQLOLEDB.1;Password=dac_sml;Persist Security Info=True;' +
+      'User ID=dac_sml;Initial Catalog=KTB_SML;Data Source=dac-db2'
     LoginPrompt = False
     Provider = 'SQLOLEDB.1'
     Left = 88
