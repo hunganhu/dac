@@ -3,7 +3,7 @@ GO
 
 CREATE TABLE BAM086 (
 	CASE_NO		    CHAR(14) NOT NULL, -- '申請編號';
-	INQUIRY_DATE	    CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+	INQUIRY_DATE	    CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';
 	IDN		    CHAR(10) NOT NULL, -- '申請人身分證號';
 	DATA_YYY            CHAR(3),           -- '資料年度';
 	DATA_MM             CHAR(2),           -- '資料月份';
@@ -32,7 +32,7 @@ GO
 
 CREATE TABLE JAS002 (
 	CASE_NO		CHAR(14) NOT NULL, -- '申請編號';
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';
 	EVER_DELINQUENT CHAR(1),           -- '授信異常 YN';
 	DELINQUENT_DATE CHAR(7),           -- '最近授信異常日期';
@@ -48,7 +48,7 @@ GO
 
 CREATE TABLE KRM021 (
 	CASE_NO		CHAR(14) NOT NULL, -- '申請編號';
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';
         CARD_BRAND      Char(1),           --  卡名代號  (對照表)
         CARD_TYPE       Char(1),           --  標章代號  (對照表)
@@ -72,7 +72,7 @@ GO
 
 CREATE TABLE KRM023 (
 	CASE_NO		CHAR(14) NOT NULL, -- '申請編號';
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';
 	YRMON 		CHAR (5),          -- '資料年月';
 	ISSUE 		CHAR (3),          -- '發卡機構代號';
@@ -88,7 +88,7 @@ GO
 
 CREATE TABLE KRM037 (
 	CASE_NO		CHAR(14) NOT NULL, -- '申請編號';
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';
 	IDN_BAN		CHAR(10),          -- '繳款人ID';
 	BILL_DATE	CHAR(7),           -- '結帳日';
@@ -115,7 +115,7 @@ GO
 
 CREATE TABLE STM007 (
 	CASE_NO		CHAR(14) NOT NULL, -- '申請編號';
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';
 	QUERY_DATE 	CHAR(7),           -- '查詢日期';
  	BANK_CODE 	CHAR(7),           -- '查詢單位代號';
@@ -130,7 +130,7 @@ GO
 
 create table VAM102 (                      -- '補充/註記資訊'
 	CASE_NO		char(12) not null, -- '申請編號';                                        
-	INQUIRY_DATE	char(10) not null, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';    
+	INQUIRY_DATE	char(10) not null, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';    
 	IDN		char(10) not null, -- '申請人身分證號';                               
 	IDN_BAN 	char(10),          -- '統編/身分證號';                               
 	DATA_DATE 	char(7),           -- '訊息登錄日期';                                
@@ -144,7 +144,7 @@ create index i_vam102 on VAM102(CASE_NO, IDN);
 
 
 CREATE TABLE COUNTER (
-	SEQ_TYPE	CHAR(9) NOT NULL,               -- '序號類型, Ayyyymmdd: A20060412';
+	SEQ_TYPE	CHAR(9) NOT NULL,               -- '序號類型, yyyymmdd: 20060412';
 	SEQ_NO		NUMERIC(5) NOT NULL DEFAULT 1   -- '序號值';
 );
 ALTER TABLE COUNTER ADD CONSTRAINT P_COUNTER PRIMARY KEY (SEQ_TYPE);
@@ -242,7 +242,7 @@ CREATE TABLE APP_INFO (
 -- Collateral
 	OWNER_ID	CHAR(10),              -- 所有人身分證字號
 	OWNER_NAME	VARCHAR(30),           -- 所有人姓名
-	LAND_NUM	VARCHAR(30),	       -- 地號/建號
+	LAND_NUM	VARCHAR(256),	       -- 地號/建號
 	RELATIONSHIP	INT, 	               -- 與申請人關係 0:本人 / 1:父母 / 2;配偶 / 3:子女 / 4:其他
 	GAV		FLOAT,                 -- 房屋毛值
 	NAV		FLOAT,                 -- 房屋淨值
