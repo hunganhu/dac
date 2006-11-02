@@ -849,6 +849,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   ostrstream aprMem2(msg2, 64);
   ostrstream aprMem3(msg3, 64);
   ostrstream oMem(oApproval_msg, 513);
+  int appFee;
 
   Debug("Enter LoanApp.write_result()");
   strcpy(oCase_SN, case_sn);
@@ -925,6 +926,8 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
      oLowest_Rate_3_ind = -1;
   Info("apr_msg= %s\n", apr_msg);
   
+  appFee = Fee_1 + Fee_2 * App_amt;
+  
 // write output message 
 //  old message with unsecured amount 
 //  if (decision <= TYPE_II)
@@ -945,7 +948,9 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                  oMem << apply_date
                       << " 申請，建議核准(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
                       << App_amt/10000
-                      << " 萬元，模組預估每年轉壞帳之機率為 "
+                      << " 萬元，開辦費為新台幣 "
+                      << appFee
+                      << " 元，模組預估每年轉壞帳之機率為 "
                       << setiosflags(ios::fixed)
                       << setprecision(2)
                       << applicantPB_adjust*100
@@ -959,7 +964,9 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                  oMem << apply_date
                       << " 申請，初評未達核准標準(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
                       << App_amt/10000
-                      << " 萬元，模組預估每年轉壞帳之機率為 "
+                      << " 萬元，開辦費為新台幣 "
+                      << appFee
+                      << " 元，模組預估每年轉壞帳之機率為 "
                       << setiosflags(ios::fixed)
                       << setprecision(2)
                       << applicantPB_adjust*100
@@ -973,7 +980,9 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                  oMem << apply_date
                       << " 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
                       << App_amt/10000
-                      << " 萬元，因已超出新台幣80萬元門檻，且無(或無合格)保人，所以僅提供模組PB參考，模組預估每年轉壞帳之機率為 "
+                      << " 萬元，開辦費為新台幣 "
+                      << appFee
+                      << " 元，因已超出新台幣80萬元門檻，且無(或無合格)保人，所以僅提供模組PB參考，模組預估每年轉壞帳之機率為 "
                       << setiosflags(ios::fixed)
                       << setprecision(2)
                       << applicantPB_adjust*100
@@ -984,7 +993,9 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                  oMem << apply_date
                       << " 申請，請人工授信(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
                       << App_amt/10000
-                      << " 萬元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，模組預估每年轉壞帳之機率為 "
+                      << " 萬元，開辦費為新台幣 "
+                      << appFee
+                      << " 元，因已超出新台幣160萬元門檻，所以僅提供模組PB參考，模組預估每年轉壞帳之機率為 "
                       << setiosflags(ios::fixed)
                       << setprecision(2)
                       << applicantPB_adjust*100
@@ -995,7 +1006,9 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                  oMem << apply_date
                       << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
                       << App_amt/10000
-                      << " 萬元，模組預估每年轉壞帳之機率為 "
+                      << " 萬元，開辦費為新台幣 "
+                      << appFee
+                      << " 元，模組預估每年轉壞帳之機率為 "
                       << setiosflags(ios::fixed)
                       << setprecision(2)
                       << applicantPB_adjust*100
