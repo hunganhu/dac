@@ -24,7 +24,7 @@ object Data: TData
   object ejcic_connection: TADOConnection
     ConnectionString = 
       'Provider=OraOLEDB.Oracle.1;Password=DAC_USER2;Persist Security I' +
-      'nfo=True;User ID=DAC_USER2;Data Source=JCICTDB'
+      'nfo=True;User ID=DAC_USER2;Data Source=JCICDB'
     Provider = 'OraOLEDB.Oracle.1'
     Left = 64
     Top = 144

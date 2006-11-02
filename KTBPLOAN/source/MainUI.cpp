@@ -534,9 +534,13 @@ void init_UI()
   frmMainUI->medtInterestRate->Clear();
   frmMainUI->medtTerms->Clear();
   frmMainUI->edtChannel->Clear();
-//  frmMainUI->edtBranch->Clear();
+  frmMainUI->edtBranch->Clear();
   frmMainUI->cmbProduct->ItemIndex = -1;
+  frmMainUI->cmbMarriage->ItemIndex = -1;
+  frmMainUI->cmbChildren->ItemIndex = -1;
+  frmMainUI->cmbEducation->ItemIndex = -1;
   frmMainUI->medtAnnualIncome->Clear();
+  frmMainUI->medtApplicationFee->Clear();
   frmMainUI->Refresh();
 };
 
@@ -752,7 +756,8 @@ void __fastcall TfrmMainUI::btnScoreClick(TObject *Sender)
       AnsiString query_sn;
       AnsiString jcic_inquiry_result;
       AnsiString jcic_inquiry_date;
-      AnsiString ole_db = "Provider=SQLOLEDB.1;Password=dac_usr1;Persist Security Info=True;User ID=dac_usr1;Initial Catalog=PLOAN;Data Source=DAC-DB2";
+//      AnsiString ole_db = "Provider=SQLOLEDB.1;Password=dac_usr1;Persist Security Info=True;User ID=dac_usr1;Initial Catalog=PLOAN;Data Source=DAC-DB2";
+      AnsiString ole_db = Data->connection->ConnectionString;
       char error[256];
       int module_operation;
       bool success;

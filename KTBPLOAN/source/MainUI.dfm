@@ -1,6 +1,6 @@
 object frmMainUI: TfrmMainUI
-  Left = 172
-  Top = 79
+  Left = 252
+  Top = 87
   BorderStyle = bsDialog
   Caption = 'DAC '#20491#20154#20449#36024#35413#20998#31995#32113' - '#25552#20379#20140#22478#37504#34892#20351#29992
   ClientHeight = 599
@@ -520,13 +520,13 @@ object frmMainUI: TfrmMainUI
           object medtCellRegion: TMaskEdit
             Left = 36
             Top = 24
-            Width = 33
+            Width = 31
             Height = 24
-            EditMask = '!999;1;_'
+            EditMask = '!9999;1;_'
             ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
-            MaxLength = 3
+            MaxLength = 4
             TabOrder = 0
-            Text = '   '
+            Text = '    '
           end
           object medtCellNumber: TMaskEdit
             Left = 111

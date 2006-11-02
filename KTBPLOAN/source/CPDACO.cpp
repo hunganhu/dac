@@ -749,7 +749,7 @@ void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
 
   sql_stmt = "UPDATE " + krm023 + " SET ";
   sql_stmt += "PAYMENT_AMT = (CASE WHEN PAYMENT_AMT > LIMIT THEN LIMIT ";
-  sql_stmt += "ELSE PAYMENT_AMNT END) WHERE LIMIT > 0 ";
+  sql_stmt += "ELSE PAYMENT_AMT END) WHERE LIMIT > 0 ";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
