@@ -952,7 +952,7 @@ void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
   sql_stmt += "WHEN ISSUE = '021' AND CARD_TYPE = 'D' THEN 'CTD' ";
   sql_stmt += "WHEN ISSUE = 'A82' AND CARD_TYPE = 'A' THEN 'AEA' ";
   sql_stmt += "WHEN ISSUE = 'A82' AND CARD_TYPE = 'E' THEN 'AEE' ELSE ISSUE END), ";
-  sql_stmt += "ISSUE_NAME, PERM_LIMIT, LAST_PAYA, REVOL_BAL / 1000.0, ";
+  sql_stmt += "ISSUE_NAME, PERM_LIMIT, LAST_PAYA, CAST(REVOL_BAL AS INT) / 1000.0, ";
   sql_stmt += "(CASE WHEN CASH_LENT > 0 THEN 'Y' ELSE 'N' END), ";
   sql_stmt += "(CASE WHEN DEBT_CODE IN ('A', 'B') THEN 'F' ";
   sql_stmt += "WHEN PAY_STAT = 'X' AND PAY_CODE = 'X' THEN 'X' ";
@@ -963,7 +963,7 @@ void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
   sql_stmt += "WHEN PAY_STAT = '3' AND PAY_CODE BETWEEN '1' AND '7' THEN 'E' ";
   sql_stmt += "WHEN PAY_STAT = '4' AND PAY_CODE BETWEEN '1' AND '7' THEN 'F' ";
   sql_stmt += "ELSE NULL END), ";
-  sql_stmt += "PRE_OWED / 1000.0 ";
+  sql_stmt += "CAST(PRE_OWED AS INT) / 1000.0 ";
   sql_stmt += "FROM " + krm037;
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
@@ -2938,9 +2938,12 @@ catch(Exception &E){
              " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM023_RANGE_TMP]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
              "   drop table [KRM023_RANGE_TMP]; "
-             " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM037_CONVERT]')"
+             " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM023_TMP]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
-             "   drop table [KRM037_CONVERT]; ";
+             "   drop table [KRM023_TMP]; ";
+             " if exists (select * from dbo.sysobjects where id = object_id(N'[KRM023_TMP1]')"
+             "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
+             "   drop table [KRM023_TMP1]; ";
   command->CommandText = sql_stmt;
   command->Execute();
 
