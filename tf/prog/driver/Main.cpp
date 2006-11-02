@@ -129,7 +129,7 @@ void __fastcall TForm1::SpecificClick(TObject *Sender)
   TADOHandler *dbhandle;             // pass connection object to function
 
   AnsiString sql_stmt, sql_stmt2;
-  AnsiString app_sn, app_date, ts_date, jcic_date;
+  AnsiString app_sn, app_date, ts_date, jcic_date, tsn;
   char errMsg[257];
   char ole_str[256];
   AnsiString oledbString;
@@ -160,7 +160,7 @@ void __fastcall TForm1::SpecificClick(TObject *Sender)
     dbhandle = new TADOHandler();     // pass connection object to function
     dbhandle->OpenDatabase(ole_str);  // pass connection object to function
 
-    sql_stmt = "select app_sn, app_date, ts_date, jcic_date from test_in order by app_sn";
+    sql_stmt = "select app_sn, app_date, ts_date, jcic_date, tsn from test_in order by app_sn";
     Query->Close();
     Query->SQL->Clear();
     Query->SQL->Add(sql_stmt);
@@ -172,6 +172,7 @@ void __fastcall TForm1::SpecificClick(TObject *Sender)
        app_date = Query->FieldValues["app_date"];
        ts_date = Query->FieldValues["ts_date"];
        jcic_date = Query->FieldValues["jcic_date"];
+       tsn = Query->FieldValues["tsn"];
 
        Label2->Caption = app_sn;
        Label3->Caption = app_date;
@@ -181,8 +182,8 @@ void __fastcall TForm1::SpecificClick(TObject *Sender)
 
        *errMsg = '\0';
        // call the validation function
-       status = specific_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                            "1", ole_str, errMsg/*, dbhandle*/);
+       status = specific_cal_test(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                            tsn.c_str(), ole_str, errMsg, dbhandle);
 
           if (status != 0) {
              sql_stmt2 = "insert into test_out (app_sn, ts_date, jcic_date, app_date, status, return_msg) values ";
@@ -481,7 +482,7 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
      AnsiString minor_deviation="DEF";
      AnsiString decline_code="R";
      AnsiString manual_code="XYZ";
-     int decision = 1;
+//     int decision = 1;
 /*
      status = decision_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
                             tsn.c_str(), decision, ole_str,
@@ -489,8 +490,8 @@ void __fastcall TForm1::UnitTestClick(TObject *Sender)
                  minor_deviation.c_str(), decline_code.c_str(), manual_code.c_str(),
                  errMsg);
 */
-    status = specific_cal(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
-                          tsn.c_str(), ole_str, errMsg/*, dbhandle*/);
+    status = specific_cal_test(app_sn.c_str(), ts_date.c_str(), jcic_date.c_str(), app_date.c_str(),
+                          tsn.c_str(), ole_str, errMsg, dbhandle);
 
     Label2->Caption = Edit2->Text;
     Label3->Caption = Edit3->Text;

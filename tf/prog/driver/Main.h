@@ -53,6 +53,12 @@ int decision_cal(char *app_sn, char *ts_data_date, char *jcic_data_date,
                  char *audit_userno1, char *change_code, char *major_deviation,
                  char *minor_deviation, char *decline_code, char *manual_code,
                  char *error_message);
+
+extern "C" __declspec(dllexport)
+int specific_cal_test(char *app_sn, char *ts_data_date, char *jcic_data_date,
+                char *app_data_time, char *tsn, char *ole_db, char *error_message,
+                TADOHandler *dbhandle);
+
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {

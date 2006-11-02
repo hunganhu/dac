@@ -239,8 +239,8 @@ object Form1: TForm1
     ParentFont = False
     TabOrder = 1
     Text = 
-      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
-      'e;User ID=sa;Initial Catalog=dacdb;Data Source=oliver\daisy'
+      'Provider=SQLOLEDB.1;Password=jcic;Persist Security Info=True;Use' +
+      'r ID=jcic;Initial Catalog=TF_RELOAD_11102005;Data Source=giza'
   end
   object CheckBox1: TCheckBox
     Left = 40
@@ -363,8 +363,8 @@ object Form1: TForm1
   end
   object ADOConnection1: TADOConnection
     ConnectionString = 
-      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
-      'e;User ID=sa;Initial Catalog=dacdb;Data Source=OLIVER\DAISY'
+      'Provider=SQLOLEDB.1;Password=jcic;Persist Security Info=True;Use' +
+      'r ID=jcic;Initial Catalog=TF_RELOAD_11102005;Data Source=giza'
     Provider = 'SQLOLEDB.1'
     Left = 416
     Top = 272
