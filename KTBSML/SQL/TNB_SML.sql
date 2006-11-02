@@ -3,7 +3,7 @@ GO
 
 CREATE TABLE BAM086 (
 	MSN		    CHAR(14) NOT NULL, -- '申請編號';                                                                      
-	INQUIRY_DATE	    CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';                                     
+	INQUIRY_DATE	    CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';                                     
 	IDN		    CHAR(10) NOT NULL, -- '申請人身分證號';                                                                
 	DATA_YYY            CHAR(3),           -- '資料年度';                                                                      
 	DATA_MM             CHAR(2),           -- '資料月份';                                                                      
@@ -12,9 +12,9 @@ CREATE TABLE BAM086 (
 	ACCOUNT_CODE        CHAR(1),           -- '會計科目  (對照表)';                                                            
 	ACCOUNT_CODE2       CHAR(1),           -- '會計科目註記  S 表示有擔保';                                                    
 	PURPOSE_CODE        CHAR(1),           -- '用途別  (對照表)';                                                              
-	CONTRACT_AMT        CHAR(10),          -- '訂約金額 (千元)';                                                               
-	LOAN_AMT            CHAR(10),          -- '放款未逾期 (千元)';                                                             
-	PASS_DUE_AMT        CHAR(10),          -- '逾期未還金額 (千元)';                                                           
+	CONTRACT_AMT        INT,               -- '訂約金額 (千元)';                                                               
+	LOAN_AMT            INT,               -- '放款未逾期 (千元)';                                                             
+	PASS_DUE_AMT        INT,               -- '逾期未還金額 (千元)';                                                           
 	PAY_CODE_12         CHAR(12),          -- '最近12個月還款紀錄  (對照表)';                                                  
 	CO_LOAN             CHAR(1),           -- '共同借款註記  * 表示有共同借款';                                                
 --	UN_MARK             CHAR(1),           -- '國際聯貸註記  * 表示為國際聯貸';                                                
@@ -27,12 +27,12 @@ CREATE TABLE BAM086 (
 --	REFUND_AMT          CHAR(10),          -- '還款金額 (千元)';                                                               
 --	CK_REF              CHAR(1)            -- '還款記錄  Y:全部還清 N:部分還清 1.還清 2.清償積欠本息 3.清償積欠利息 4.轉正常'; 
 );
-CREATE INDEX I_BAM086 ON BAM086(MSN, IDN);
+CREATE INDEX I_BAM086 ON BAM086(MSN);
 GO
 
 CREATE TABLE JAS002 (
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                                                       
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';                                      
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';                                      
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                                                                 
 	EVER_DELINQUENT CHAR(1),           -- '授信異常 YN';                                                                    
 	DELINQUENT_DATE CHAR(7),           -- '最近授信異常日期';                                                               
@@ -43,12 +43,12 @@ CREATE TABLE JAS002 (
 	EVER_STOP_CARD  CHAR(1),           -- '強制停卡異常 YN';                                                                
 	STOP_CARD_DATE  CHAR(7)            -- '最近強制停卡日期';                                                               
 );                                                                                                          
-CREATE INDEX I_JAS002 ON JAS002(MSN, IDN);
+CREATE INDEX I_JAS002 ON JAS002(MSN);
 GO
 
 CREATE TABLE KRM021 (	
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                   
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';   
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';   
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                              
         CARD_BRAND      Char(1),           --    卡名代號  (對照表)
         CARD_TYPE       Char(1),           --    標章代號  (對照表)
@@ -67,12 +67,12 @@ CREATE TABLE KRM021 (
         CNAME           Char(12),          --   〔僅附卡〕主卡人姓名
         REMARK          Char(40)           --   註記
 );
-CREATE INDEX I_KRM021 ON KRM021(MSN, IDN);
+CREATE INDEX I_KRM021 ON KRM021(MSN);
 GO
 
 CREATE TABLE KRM023 (
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                        
-	INQUIRY_DATE	CHAR(10),          -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';       
+	INQUIRY_DATE	CHAR(10),          -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';       
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                                  
 	YRMON 		CHAR (5),          -- '資料年月';                                        
 	ISSUE 		CHAR (3),          -- '發卡機構代號';                                    
@@ -83,38 +83,38 @@ CREATE TABLE KRM023 (
 	CASH 		CHAR (1),          -- '預借現金有無(YN)';                                
 	PAY_CODE 	CHAR (1)           -- '繳款狀況代號  (對照表)';                          
 );
-CREATE INDEX I_KRM023 ON KRM023(MSN, IDN);
+CREATE INDEX I_KRM023 ON KRM023(MSN);
 GO
 
 CREATE TABLE KRM037 (
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                                                                                                                                                                                 
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';                                                                                                                                                                
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';                                                                                                                                                                
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                                                                                                                                                                                           
 	BILL_DATE	CHAR(7),           -- '結帳日';                                                                                                                                                                                                   
 	ISSUE		CHAR(3),           -- '發卡機構代號';                                                                                                                                                                                             
 	ISSUE_NAME 	CHAR(24),          -- '發卡機構名稱';                                                                                                                                                                                             
 	CARD_TYPE 	CHAR(7),           -- '信用卡別';                                                                                                                                                                                                 
-	PERM_LIMIT 	CHAR(7),           -- '永久額度  單位:千元';                                                                                                                                                                                      
-	TEMP_LIMIT 	CHAR(7),           -- '臨時額度  單位:千元';                                                                                                                                                                                      
-	CASH_LIMIT 	CHAR(7),           -- '預借現金額度  單位:千元';                                                                                                                                                                                  
+	PERM_LIMIT 	INT,               -- '永久額度  單位:千元';                                                                                                                                                                                      
+	TEMP_LIMIT 	INT,               -- '臨時額度  單位:千元';                                                                                                                                                                                      
+	CASH_LIMIT 	INT,               -- '預借現金額度  單位:千元';                                                                                                                                                                                  
 	PAYABLE 	CHAR(3),           -- '本期應付帳款(級距)';                                                                                                                                                                                       
-	CASH_LENT 	CHAR(8),           -- '本期預借現金  單位:元';                                                                                                                                                                                    
+	CASH_LENT 	INT,               -- '本期預借現金  單位:元';                                                                                                                                                                                    
 	LAST_PAYA 	CHAR(3),           -- '上期應付帳款(級距)';                                                                                                                                                                                       
-	REVOL_BAL 	CHAR(9),           -- '上期循環信用  單位:元';                                                                                                                                                                                    
+	REVOL_BAL 	INT,               -- '上期循環信用  單位:元';                                                                                                                                                                                    
 	PAY_STAT 	CHAR(1),           -- '上期繳款狀況代號(金額)  (對照表)';                                                                                                                                                                         
 	PAY_CODE 	CHAR(1),           -- '上期繳款狀況代號(時間)  (對照表)';                                                                                                                                                                         
-	REVOL_RATE 	CHAR(4),           -- '上期循環比率REVOL_BAL/PERM_LIMIT,精確度至小數點後2位(四捨五入),非百分比';                                                                                                                                  
-	PRE_OWED 	CHAR(8),           -- '未到期分期償還待付金額,未到期代墊消費款金額(格式22欄項)+未到期分期償還預借現金金額(格式23欄項),不包括本期新增餘額代償(18欄)';                                                                              
+	REVOL_RATE 	INT,               -- '上期循環比率REVOL_BAL/PERM_LIMIT,精確度至小數點後2位(四捨五入),非百分比';                                                                                                                                  
+	PRE_OWED 	INT,               -- '未到期分期償還待付金額,未到期代墊消費款金額(格式22欄項)+未到期分期償還預借現金金額(格式23欄項),不包括本期新增餘額代償(18欄)';                                                                              
 	DEBT_CODE 	CHAR(1),           -- '債權狀態註記';                                                                                                                                                                                             
 	CLOSE_CODE 	CHAR(1),           -- '債權結案註記(對照表)';                                                                                                                                                                                     
 	CLEAR_DATE 	CHAR(7)            -- '不良債權結案日期';                                                                                                                                                                                         
 );
-CREATE INDEX I_KRM037 ON KRM037(MSN, IDN);
+CREATE INDEX I_KRM037 ON KRM037(MSN);
 GO
 
 CREATE TABLE STM007 (
 	MSN		CHAR(14) NOT NULL, -- '申請編號';                                                             
-	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';                            
+	INQUIRY_DATE	CHAR(10) NOT NULL, -- 'JCIC 資料查詢日期(yyyymmdd, yyyy為西元年)';                            
 	IDN		CHAR(10) NOT NULL, -- '申請人身分證號';                                                       
 	QUERY_DATE 	CHAR(7),           -- '查詢日期';                                                             
  	BANK_CODE 	CHAR(7),           -- '查詢單位代號';                                                         
@@ -124,7 +124,21 @@ CREATE TABLE STM007 (
 	INQ_PURPOSE	CHAR(30)           -- '查詢理由碼(中文註解)1:新業務申請2:原業務往來3:新業務申請及原業務往來'; 
 
 );
-CREATE INDEX I_STM007 ON STM007(MSN, IDN);
+CREATE INDEX I_STM007 ON STM007(MSN);
+GO
+
+CREATE TABLE VAM102 (
+	MSN char (14) NOT NULL,
+	IDN char (11),
+	INQUIRY_DATE char (8),
+	DATA_DATE char (7),
+	MAINCODE char (1),
+	MAINNOTE char (36),
+	SUBCODE char (1),
+	SUBNOTE char (60),
+	NOTE char (256)
+) ON PRIMARY
+CREATE INDEX I_VAM102 ON VAM102(MSN);
 GO
 
 CREATE TABLE APP_INFO (
@@ -145,7 +159,7 @@ CREATE TABLE APP_INFO (
 -- PROPERTY1
 	OWNER_ID1	CHAR(10) NOT NULL,     -- 所有人身分證字號
 	OWNER_NAME1	VARCHAR(30) NOT NULL,  -- 所有人姓名
-	LAND_NUM1	VARCHAR(30) NOT NULL,  -- 擔保品門牌號碼
+	LAND_NUM1	VARCHAR(60) NOT NULL,  -- 擔保品門牌號碼
 	FIRST_LIEN1	INT,           -- 已抵押總金額                                                  
 	RELATIONSHIP1	INT, 	       -- 與申請人關係 0:本人 / 1:父母 / 2;配偶 / 3:子女 / 4:其他     
 	NAV1		FLOAT,         -- 鑑估淨值
@@ -154,7 +168,7 @@ CREATE TABLE APP_INFO (
 -- PROPERTY2 
 	OWNER_ID2	CHAR(10),      -- 所有人身分證字號 
 	OWNER_NAME2	VARCHAR(30),   -- 所有人姓名       
-	LAND_NUM2	VARCHAR(30),   -- 擔保品門牌號碼        
+	LAND_NUM2	VARCHAR(60),   -- 擔保品門牌號碼        
 	FIRST_LIEN2	INT,           -- 已抵押總金額                                                                 
 	RELATIONSHIP2	INT,           -- 與申請人關係 0:本人 / 1:父母 / 2;配偶 / 3:子女 / 4:其他                                   
 	NAV2		FLOAT,         -- 鑑估淨值                                                                     
@@ -246,11 +260,11 @@ CREATE TABLE PRELIMITARY_REPORT (
 	AUDITOR CHAR (10),
 	OWNER_ID1 CHAR (10),
 	OWNER_NAME1 VARCHAR (30),
-	LAND_NUM1 VARCHAR (30),
+	LAND_NUM1 VARCHAR (60),
 	RELATIONSHIP1 INT,
 	OWNER_ID2 CHAR (10),
 	OWNER_NAME2 VARCHAR (30),
-	LAND_NUM2 VARCHAR (30),
+	LAND_NUM2 VARCHAR (60),
 	RELATIONSHIP2 INT,
 	ZIP CHAR (3),
 	INQUIRY_DATE CHAR (8)
@@ -280,7 +294,7 @@ CREATE TABLE FINAL_REPORT (
 	AUDITOR CHAR (10),
 	OWNER_ID1 CHAR (10),
 	OWNER_NAME1 VARCHAR (30),
-	LAND_NUM1 VARCHAR (30),
+	LAND_NUM1 VARCHAR (60),
 	FIRST_LIEN1 INT,
 	RELATIONSHIP1 INT,
 	NAV1 FLOAT,
@@ -288,7 +302,7 @@ CREATE TABLE FINAL_REPORT (
 	QUALIFIED1 INT,
 	OWNER_ID2 CHAR (10),
 	OWNER_NAME2 VARCHAR (30),
-	LAND_NUM2 VARCHAR (30),
+	LAND_NUM2 VARCHAR (60),
 	FIRST_LIEN2 INT,
 	RELATIONSHIP2 INT,
 	NAV2 FLOAT,
