@@ -926,7 +926,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
      oLowest_Rate_3_ind = -1;
   Info("apr_msg= %s\n", apr_msg);
   
-  appFee = Fee_1 + Fee_2 * App_amt;
+  appFee = static_cast<int>(Fee_1 + Fee_2 * App_amt + 0.5);  // rounding
   
 // write output message 
 //  old message with unsecured amount 

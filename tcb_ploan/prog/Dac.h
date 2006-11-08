@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1cal
   (JNIEnv *, jobject, jstring, jstring, jstring, jstring);
 
+/*
+ * Class:     Dac
+ * Method:    dac_pl_fnl
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1fnl
+  (JNIEnv *, jobject, jstring, jstring, jstring, jstring);
+
 #ifdef __cplusplus
 }
 #endif

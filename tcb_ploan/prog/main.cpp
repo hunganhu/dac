@@ -44,16 +44,16 @@ int main(int argc, char *argv[])
   EXEC SQL END DECLARE SECTION;
 */
   // check the command line arguments
-  strcpy (alias, "escore");
-  strcpy (uid, "escorap1");
-  strcpy (upw, "escorap1");
-  strcpy (case_sn, "000000002950");
+//  strcpy (alias, "escore");
+//  strcpy (uid, "escorap1");
+//  strcpy (upw, "escorap1");
+//  strcpy (case_sn, "000000002950");
+//
 
-/*
   strcpy (alias, "dacdb");
   strcpy (uid, "ejcicap1");
   strcpy (upw, "ejcicap1");
-*/
+
 //  rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
 //  if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
 

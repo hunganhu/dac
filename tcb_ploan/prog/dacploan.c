@@ -1,14 +1,15 @@
 /****************************************************************************
 ** Licensed Materials - Property of DAC
 **
-** (C) COPYRIGHT Decision Analytics Consulting 2004
+** (C) COPYRIGHT Decision Analytics Consulting 2005
 ** All Rights Reserved.
 **
 *****************************************************************************
 **
 ** SOURCE FILE NAME: dacploan.c
-**
-**
+** Description: A JNI C function call by Java main program. It receives case_sn,
+**              database name, user id and user password. Then call dac_pl_cal()
+**              to calculate PB and NPV, and to write output into app_result.
 *****************************************************************************/
 
 #include <jni.h>
@@ -120,4 +121,76 @@ char * CurrTime ()
  sprintf (buf, "%04d/%02d/%02d %02d:%02d:%02d", tblock->tm_year+1900, tblock->tm_mon+1,
           tblock->tm_mday, tblock->tm_hour, tblock->tm_min, tblock->tm_sec);
  return (buf);
+}
+
+
+JNIEXPORT jstring JNICALL Java_Dac_dac_1pl_1fnl
+  (JNIEnv *env, jobject obj, jstring case_sn, jstring alias, jstring uid, jstring upw)
+{
+	
+     char c_case_sn[32], c_alias[32], c_uid[32], c_upw[32], c_error_msg[512];
+     int rc = 0;
+     int index = 0;
+     FILE *fp;
+     const char *caseSN;
+     const char *dbName;
+     const char *userID;
+     const char *userPW;
+     char errMsg[512];
+     jstring result;
+     jbyteArray bytes;
+     /* get case_sn */
+     caseSN = (*env)->GetStringUTFChars(env, case_sn, NULL);
+     if (caseSN == NULL) {
+         return NULL; /* OutOfMemoryError already thrown */
+     }
+     strcpy(c_case_sn, caseSN);
+     (*env)->ReleaseStringUTFChars(env, case_sn, caseSN);
+
+     /* get alias */
+     dbName = (*env)->GetStringUTFChars(env, alias, NULL);
+     if (dbName == NULL) {
+         return NULL; /* OutOfMemoryError already thrown */
+     }
+     strcpy(c_alias, dbName);
+     (*env)->ReleaseStringUTFChars(env, alias, dbName);
+
+     /* get uid */
+     userID = (*env)->GetStringUTFChars(env, uid, NULL);
+     if (userID == NULL) {
+         return NULL; /* OutOfMemoryError already thrown */
+     }
+     strcpy(c_uid, userID);
+     (*env)->ReleaseStringUTFChars(env, uid, userID);
+
+     /* get upw */
+     userPW = (*env)->GetStringUTFChars(env, upw, NULL);
+     if (userPW == NULL) {
+         return NULL; /* OutOfMemoryError already thrown */
+     }
+     strcpy(c_upw, userPW);
+     (*env)->ReleaseStringUTFChars(env, upw, userPW);
+     errMsg[0] = '\0';
+
+     rc = dac_pl_fnl(c_case_sn, c_alias, c_uid, c_upw, errMsg);
+     sprintf (c_error_msg, "%04d%s", rc, errMsg);
+
+  Class_java_lang_String = (*env)->FindClass(env, "java/lang/String");
+  MID_String_init = (*env)->GetMethodID(env, Class_java_lang_String,
+				"<init>", "([B)V");
+  MID_String_getBytes = (*env)->GetMethodID(env, Class_java_lang_String,
+				"getBytes", "()[B");
+
+     if ((*env)->EnsureLocalCapacity(env, 2) < 0) {
+        return NULL;
+     }
+     int len = strlen(c_error_msg);
+     bytes = (*env)->NewByteArray(env, len);
+     if (bytes != NULL) {
+        (*env)->SetByteArrayRegion(env, bytes, 0, len, (jbyte *) c_error_msg);
+        result = (*env)->NewObject(env, Class_java_lang_String, MID_String_init, bytes);
+        (*env)->DeleteLocalRef(env,bytes);
+        return result;
+     }
+     return NULL;
 }

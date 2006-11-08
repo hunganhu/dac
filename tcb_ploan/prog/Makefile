@@ -74,9 +74,6 @@ mainfnl: mainfnl.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o mainfnl -ldb2 -L$(DB2PATH)/lib \
 	 mainfnl.o $(DLL_OBJ)
 
-mainl: main.o 
-	$(CPP) $(EXTRA_CFLAG) -o mainl main.o -ldac -L. -ldb2 -L$(DB2PATH)/lib
-
 main.o: main.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c main.cpp
 
@@ -127,7 +124,7 @@ financial.o: financial.cpp financial.h
 
 clean :
 	$(ERASE) *.o *.so *.bak *~
-	$(ERASE) *.bnd *.C
+	$(ERASE) *.bnd *.C main mainfnl
 
 install: libdac_1_5.so
 	 cp -f libdac_1_5.so $(DESDIR)

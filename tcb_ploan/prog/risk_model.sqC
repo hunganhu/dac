@@ -124,9 +124,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      update krm037_dedup
        set mon_since = (case when length(bill_date) = 4 and left(bill_date,1) between '1' and '9'
                                   then cast(left(bill_date, 2) as int) * 12 + cast(right(bill_date, 2) as int)
-                             when length(bill_date) = 7 and cast(right(bill_date,2) as int) > 15
-                                  then cast(left(bill_date, 3)as int) * 12 + cast(substr(bill_date, 4, 2) as int)
-                             when length(bill_date) = 7 then cast(left(bill_date, 3) as int) * 12 + cast(substr(bill_date, 4, 2) as int) - 1
+                             when length(bill_date) = 7 then cast(left(bill_date, 3) as int) * 12 + cast(substr(bill_date, 4, 2) as int)
                              else null end)
        where case_sn = :pjtCase_Sn and idn = :pjtIdn;
   EMB_SQL_CHECK("Update-KRM037-mon_since.");
@@ -255,41 +253,41 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
        where case_sn = :pjtCase_Sn and idn = :pjtIdn
        group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
   EMB_SQL_CHECK("Insert-BAM086.");
-/*
-  EXEC SQL
-     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
-        select case_sn, idn, inquiry_date, 'D', data_yyymmdd
-        from bas001
-        where (data_yyymmdd is not null and rtrim(ltrim(data_yyymmdd)) <> '')
-          and EVER_DELINQUENT='Y'
-          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 5.");
 
-  EXEC SQL
-     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
-        select case_sn, idn, inquiry_date, 'B', latest_bounce
-        from das006
-        where (latest_bounce is not null and rtrim(ltrim(latest_bounce)) <> '')
-          and rtrim(ltrim(latest_bounce)) <> 'N'
-          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 6.");
+//  EXEC SQL
+//     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+//        select case_sn, idn, inquiry_date, 'D', data_yyymmdd
+//        from bas001
+//        where (data_yyymmdd is not null and rtrim(ltrim(data_yyymmdd)) <> '')
+//          and EVER_DELINQUENT='Y'
+//          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+//  EMB_SQL_CHECK("Insert-Select 5.");
+//
+//  EXEC SQL
+//     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+//        select case_sn, idn, inquiry_date, 'B', latest_bounce
+//        from das006
+//        where (latest_bounce is not null and rtrim(ltrim(latest_bounce)) <> '')
+//          and rtrim(ltrim(latest_bounce)) <> 'N'
+//          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+//  EMB_SQL_CHECK("Insert-Select 6.");
+//
+//  EXEC SQL
+//     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+//        select case_sn, idn, inquiry_date, 'R', beg_date
+//        from dam203
+//        where (beg_date is not null and rtrim(ltrim(beg_date)) <> '')
+//          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+//  EMB_SQL_CHECK("Insert-Select 7.");
+//
+//  EXEC SQL
+//     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
+//        select case_sn, idn, inquiry_date, 'S', stop_date
+//        from krm001
+//        where stop_code = '3'
+//          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
+//  EMB_SQL_CHECK("Insert-Select 8.");
 
-  EXEC SQL
-     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
-        select case_sn, idn, inquiry_date, 'R', beg_date
-        from dam203
-        where (beg_date is not null and rtrim(ltrim(beg_date)) <> '')
-          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 7.");
-
-  EXEC SQL
-     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
-        select case_sn, idn, inquiry_date, 'S', stop_date
-        from krm001
-        where stop_code = '3'
-          and case_sn = :pjtCase_Sn and idn = :pjtIdn;
-  EMB_SQL_CHECK("Insert-Select 8.");
-*/
  //remove comment when JCIC changed
   EXEC SQL
      insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
