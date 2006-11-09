@@ -191,6 +191,20 @@ void write_header(ofstream &report, const AnsiString &report_date,
     else if(dimension_one_content.Trim() == "4")
       dimension_one_description = "新台幣100萬元以上";
   }
+  else if(dimension_one == "產品"){
+    if(dimension_one_content.Trim() == "1")
+      dimension_one_description = "簡易小額信貸";
+    else if(dimension_one_content.Trim() == "2")
+      dimension_one_description = "公教人員貸款";
+    else if(dimension_one_content.Trim() == "3")
+      dimension_one_description = "U利貸款";
+    else if(dimension_one_content.Trim() == "4")
+      dimension_one_description = "其他";
+    else if(dimension_one_content.Trim() == "5")
+      dimension_one_description = "農家樂貸款";
+    else if(dimension_one_content.Trim() == "6")
+      dimension_one_description = "房貸";
+  }
   else if(dimension_one == "利率"){
     if(dimension_one_content.Trim() == "1")
       dimension_one_description = "百分之六以下";
@@ -210,6 +224,20 @@ void write_header(ofstream &report, const AnsiString &report_date,
     else if(dimension_two_content.Trim() == "4")
       dimension_two_description = "新台幣100萬元以上";
   }
+  else if(dimension_two == "產品"){
+    if(dimension_two_content.Trim() == "1")
+      dimension_two_description = "簡易小額信貸";
+    else if(dimension_two_content.Trim() == "2")
+      dimension_two_description = "公教人員貸款";
+    else if(dimension_two_content.Trim() == "3")
+      dimension_two_description = "U利貸款";
+    else if(dimension_two_content.Trim() == "4")
+      dimension_two_description = "其他";
+    else if(dimension_two_content.Trim() == "5")
+      dimension_two_description = "農家樂貸款";
+    else if(dimension_two_content.Trim() == "6")
+      dimension_two_description = "房貸";
+  }
   else if(dimension_two == "利率"){
     if(dimension_two_content.Trim() == "1")
       dimension_two_description = "百分之六以下";
@@ -227,7 +255,7 @@ void write_header(ofstream &report, const AnsiString &report_date,
   if(dimension_two != "")
     report << dimension_two.c_str() << ": " << dimension_two_description.c_str() << endl;
   else
-    report << endl;  
+    report << endl;
   report << "壞帳機率範圍" << "," << "無法評分" << "," << "<=0.5%" << "," << "0.5% - 1.0%" << "," << "1.0% - 1.5%" << "," << "1.5% - 2.0%" << "," << "2.0% - 2.5%" << "," << "2.5% - 3.0%" << "," << "3.0% - 3.5%" << "," << "3.5% - 4.0%" << "," << "4.0% - 4.5%" << "," << ">4.5%" << "," << "Total" << endl;
 };
 
@@ -324,7 +352,9 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       category_create_string += dimension_one + " varchar(20), ";
     else if (dimension_one == "APR_GROUP")
       category_create_string += dimension_one + " int, ";
-  };
+    else if (dimension_one == "PRODUCT_TYPE_CODE")
+      category_create_string += dimension_one + " int, ";
+  }
   if(dimension_two.Length() != 0){
     if (dimension_two == "CI_KEY")
       category_create_string += dimension_two + " char(10), ";
@@ -334,7 +364,9 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       category_create_string += dimension_two + " varchar(20), ";
     else if (dimension_two == "APR_GROUP")
       category_create_string += dimension_two + " int, ";
-  };
+    else if (dimension_one == "PRODUCT_TYPE_CODE")
+      category_create_string += dimension_one + " int, ";
+  }
   AnsiString category_query_string_single = "";
   AnsiString category_query_string_multiple = "";
   AnsiString category_group_string = "";
@@ -562,18 +594,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 9 AND Module_decision = 1 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS IXA, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 10 AND Module_decision = 1 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS XA, ";
   sql_stmt += "       SUM(CASE WHEN Module_decision = 1 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS XIA, ";
-/*  sql_stmt += "       0, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS ID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 2 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 3 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 4 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IVD, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 5 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VD, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 6 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 7 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 8 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VIIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 9 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IXD, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 10 AND Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS XD, ";
-  sql_stmt += "       SUM(CASE WHEN Module_decision = 1 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS XID, ";  */
   sql_stmt += "       0,        ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND Module_decision = 1 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS IAD, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 2 AND Module_decision = 1 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS IIAD, ";
@@ -669,18 +689,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 9 AND Module_decision = 2 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS IXA, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 10 AND Module_decision = 2 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS XA, ";
   sql_stmt += "       SUM(CASE WHEN MODULE_DECISION = 2 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS XIA, ";
-/*  sql_stmt += "       SUM(CASE WHEN NPV IS NULL AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS NSD, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS ID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 20 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.010 AND PB <= 0.015 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.015 AND PB_GROUP = 10 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IVD, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.0050 AND PB_GROUP = 15 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VD, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.0055 AND PB <= 0.030 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.030 AND PB <= 0.035 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.035 AND PB <= 0.010 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VIIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.010 AND PB <= 0.015 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IXD, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.015 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS XD, ";
-  sql_stmt += "       SUM(CASE WHEN MODULE_DECISION = 2 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS XID, ";  */
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 0 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS NSAD,               ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS IAD, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 2 AND MODULE_DECISION = 2 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS IIAD, ";
@@ -896,18 +904,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 9 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS IXA, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 10 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS XA, ";
   sql_stmt += "       SUM(CASE WHEN MODULE_DECISION = 3 AND APPROVAL_FINAL = 1 THEN 1 ELSE 0 END) AS XIA, ";
-/*  sql_stmt += "       SUM(CASE WHEN NPV IS NULL AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS NSD, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS ID, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 20 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.010 AND PB <= 0.015 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.015 AND PB_GROUP = 10 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IVD, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.0050 AND PB_GROUP = 15 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VD, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.0055 AND PB <= 0.030 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.030 AND PB <= 0.035 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.035 AND PB <= 0.010 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS VIIID, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.010 AND PB <= 0.015 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS IXD, ";
-  sql_stmt += "       SUM(CASE WHEN PB > 0.015 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS XD, ";
-  sql_stmt += "       SUM(CASE WHEN MODULE_DECISION = 3 AND APPROVAL_FINAL = 0 THEN 1 ELSE 0 END) AS XID, "; */
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 0 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS NSAD,               ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS IAD, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 2 AND MODULE_DECISION = 3 AND APPROVAL_FINAL = 1 THEN APPROVAL_AMOUNT ELSE 0 END) AS IIAD, ";
@@ -3385,7 +3381,11 @@ AnsiString get_dimension(const AnsiString &dimension_Chinese, unsigned int &type
   else if(dimension_Chinese == "利率"){
     return_message = "APR_GROUP";
     type = 0;
-  };
+  }
+  else if(dimension_Chinese == "產品"){
+    return_message = "PRODUCT_TYPE_CODE";
+    type = 0;
+  }
   return return_message;
 }
 //---------------------------------------------------------------------------
@@ -3406,7 +3406,5 @@ void fill_dimension(const AnsiString &dimension,
     query->Next();
   };
 }
-
-
-
+//---------------------------------------------------------------------------
 
