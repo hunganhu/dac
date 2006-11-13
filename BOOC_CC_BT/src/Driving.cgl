@@ -1,0 +1,109 @@
+Functions called:
+ strcpy (3 times)
+ localtime (3 times)
+ time (3 times)
+ SysReallocMem (2949 times)
+ realloc (1 times)
+ SysFreeMem (15374 times)
+ SysGetMem (15412 times)
+ memcpy (229 times)
+ delete (39 times)
+ delete[] (2 times)
+ free (99 times)
+ new[] (14 times)
+ new (53 times)
+ calloc (5 times)
+ malloc (93 times)
+Resource types used:
+ object array (14 allocs, 13 max)
+ object (53 allocs, 38 max)
+ memory block (15511 allocs, 571 max)
+Modules used:
+ 00400000 04/27/2006 11:10:22 C:\Documents and Settings\GSSADMIN\Desktop\Files
+ to be filed\орн▒\TMP\BOOC\BOOC
+ model\BOOC_Release_Dolloar_Bad_at_DB\Driving.exe
+ 00410000 04/28/2006 13:06:24 C:\Documents and Settings\GSSADMIN\Desktop\Files
+ to be filed\орн▒\TMP\BOOC\BOOC
+ model\BOOC_Release_Dolloar_Bad_at_DB\CC_AM.DLL
+ 004E0000 01/30/2003 06:04:00 C:\PROGRA~1\Borland\CBUILD~1\Bin\STLPMT45.DLL
+ 01190000 02/01/2002 22:00:00 C:\PROGRA~1\Borland\CBUILD~1\Bin\BORLNDMM.DLL
+ 020D0000 08/03/2004 22:21:48 C:\Program Files\Common Files\System\OLE
+ DB\SQLOLEDB.RLL
+ 02160000 08/04/2004 00:56:14 C:\Program Files\Common
+ Files\System\MSADC\msadcer.dll
+ 0CD00000 02/01/2002 22:00:00 C:\PROGRA~1\Borland\CBUILD~1\Bin\CG32.DLL
+ 0FFD0000 08/03/2004 22:31:44 C:\WINDOWS\system32\rsaenh.dll
+ 20000000 08/04/2004 00:56:38 C:\WINDOWS\system32\xpsp2res.dll
+ 32600000 01/30/2003 06:04:00 C:\PROGRA~1\Borland\CBUILD~1\Bin\CC3260MT.DLL
+ 40000000 01/30/2003 06:04:00 C:\WINDOWS\system32\rtl60.bpl
+ 400B0000 02/01/2002 22:00:00 C:\WINDOWS\system32\vcl60.bpl
+ 40310000 02/01/2002 22:00:00 C:\WINDOWS\system32\dbrtl60.bpl
+ 40640000 02/01/2002 22:00:00 C:\WINDOWS\system32\adortl60.bpl
+ 4BD70000 08/04/2004 00:56:44 C:\WINDOWS\system32\DBnmpNTw.dll
+ 4DD00000 08/04/2004 00:56:46 C:\Program Files\Common Files\System\OLE
+ DB\sqloledb.dll
+ 4DE10000 08/04/2004 00:56:44 C:\Program Files\Common
+ Files\System\ADO\msado15.dll
+ 5AD70000 08/04/2004 00:56:48 C:\WINDOWS\system32\uxtheme.dll
+ 5B860000 08/04/2004 00:56:46 C:\WINDOWS\system32\NETAPI32.dll
+ 5D090000 08/04/2004 00:56:42 C:\WINDOWS\system32\comctl32.dll
+ 605D0000 08/04/2004 00:56:44 C:\WINDOWS\system32\mslbui.dll
+ 60E30000 08/04/2004 00:56:44 C:\Program Files\Common Files\System\OLE
+ DB\MSDATL3.dll
+ 629C0000 08/04/2004 00:56:44 C:\WINDOWS\system32\LPK.DLL
+ 63000000 01/09/2004 14:09:38 C:\WINDOWS\system32\SynTPFcs.dll
+ 68100000 08/03/2004 22:31:44 C:\WINDOWS\system32\dssenh.dll
+ 6D4F0000 08/04/2004 00:56:44 C:\WINDOWS\system32\DBNETLIB.DLL
+ 71AA0000 08/04/2004 00:56:48 C:\WINDOWS\system32\WS2HELP.dll
+ 71AB0000 08/04/2004 00:56:48 C:\WINDOWS\system32\WS2_32.dll
+ 71AD0000 08/04/2004 00:56:48 C:\WINDOWS\system32\wsock32.dll
+ 71B20000 08/04/2004 00:56:44 C:\WINDOWS\system32\mpr.dll
+ 71F80000 08/04/2004 00:56:46 C:\WINDOWS\system32\security.dll
+ 73000000 08/04/2004 00:56:58 C:\WINDOWS\system32\winspool.drv
+ 73160000 08/04/2004 00:56:46 C:\Program Files\Common Files\System\OLE
+ DB\oledb32.dll
+ 74060000 08/04/2004 00:56:44 C:\Program Files\Common
+ Files\System\MSADC\msadce.dll
+ 74720000 08/04/2004 00:56:44 C:\WINDOWS\system32\MSCTF.dll
+ 74CD0000 08/06/2000 01:51:52 C:\WINDOWS\system32\DBmsLPCn.dll
+ 74D30000 08/24/2001 05:00:00 C:\WINDOWS\system32\oledlg.dll
+ 74D90000 08/04/2004 00:56:48 C:\WINDOWS\system32\USP10.dll
+ 750B0000 08/04/2004 00:56:46 C:\WINDOWS\system32\RESUTILS.DLL
+ 750F0000 07/26/2005 12:39:48 C:\WINDOWS\system32\MTXCLU.DLL
+ 75130000 07/26/2005 12:39:44 C:\WINDOWS\system32\colbact.DLL
+ 75350000 08/04/2004 00:56:46 C:\Program Files\Common Files\System\OLE
+ DB\OLEDB32R.DLL
+ 755C0000 08/04/2004 00:56:14 C:\WINDOWS\system32\msctfime.ime
+ 76390000 08/04/2004 00:56:44 C:\WINDOWS\system32\IMM32.DLL
+ 763B0000 08/04/2004 00:56:42 C:\WINDOWS\system32\comdlg32.dll
+ 765B0000 08/04/2004 00:56:44 C:\WINDOWS\system32\MSDART.DLL
+ 76620000 07/26/2005 12:39:44 C:\WINDOWS\system32\comsvcs.dll
+ 767A0000 08/04/2004 00:56:46 C:\WINDOWS\system32\ntdsapi.dll
+ 767F0000 08/04/2004 00:56:46 C:\WINDOWS\system32\schannel.dll
+ 769C0000 08/04/2004 00:56:48 C:\WINDOWS\system32\USERENV.dll
+ 76D10000 08/04/2004 00:56:42 C:\WINDOWS\system32\CLUSAPI.DLL
+ 76D60000 08/04/2004 00:56:44 C:\WINDOWS\system32\iphlpapi.dll
+ 76F20000 08/04/2004 00:56:44 C:\WINDOWS\system32\DNSAPI.dll
+ 76F60000 08/04/2004 00:56:48 C:\WINDOWS\system32\WLDAP32.dll
+ 76FD0000 07/26/2005 12:39:44 C:\WINDOWS\system32\CLBCATQ.DLL
+ 77050000 08/04/2004 00:56:42 C:\WINDOWS\system32\COMRes.dll
+ 77120000 08/04/2004 00:56:46 C:\WINDOWS\system32\oleaut32.dll
+ 773D0000 08/04/2004 00:57:02
+ C:\WINDOWS\WinSxS\x86_Microsoft.Windows.Common-Controls_6595b64144ccf1df_6.0.
+2600.2180_x-ww_a84f1ff9\comctl32.dll
+ 774E0000 07/26/2005 12:39:48 C:\WINDOWS\system32\ole32.dll
+ 77A80000 08/04/2004 00:56:42 C:\WINDOWS\system32\crypt32.dll
+ 77B20000 08/04/2004 00:56:44 C:\WINDOWS\system32\MSASN1.dll
+ 77C00000 08/04/2004 00:56:48 C:\WINDOWS\system32\version.dll
+ 77C10000 08/04/2004 00:56:44 C:\WINDOWS\system32\msvcrt.dll
+ 77C70000 08/04/2004 00:56:44 C:\WINDOWS\system32\msv1_0.dll
+ 77D40000 03/03/2005 02:09:30 C:\WINDOWS\system32\user32.dll
+ 77DD0000 08/04/2004 00:56:42 C:\WINDOWS\system32\advapi32.dll
+ 77E70000 08/04/2004 00:56:46 C:\WINDOWS\system32\RPCRT4.dll
+ 77F10000 12/29/2005 10:54:36 C:\WINDOWS\system32\GDI32.dll
+ 77F60000 03/04/2006 11:33:44 C:\WINDOWS\system32\SHLWAPI.dll
+ 77FE0000 08/04/2004 00:56:46 C:\WINDOWS\system32\Secur32.dll
+ 7C800000 08/04/2004 00:56:44 C:\WINDOWS\system32\kernel32.dll
+ 7C900000 08/04/2004 00:56:38 C:\WINDOWS\system32\ntdll.dll
+ 7C9C0000 03/17/2006 12:03:54 C:\WINDOWS\system32\SHELL32.dll
+==========================================
