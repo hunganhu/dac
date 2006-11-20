@@ -82,7 +82,8 @@ int TNB_Ploan_AM(char *idno, char *jcic_inquiry_date, char *app_input_time,
       copy_table(command, "KRM021", KRM001, idn, jcic_date, input_time);
       copy_table(command, "KRM023", KRM023, idn, jcic_date, input_time);
       copy_table(command, "KRM037", KRM037, idn, jcic_date, input_time);
-      copy_table(command, "BAM086", BAM086, idn, jcic_date, input_time);
+      copy_table(command, "BAM087", BAM086, idn, jcic_date, input_time);
+//      copy_table(command, "BAM086", BAM086, idn, jcic_date, input_time);
       copy_table(command, "STM007", STM001, idn, jcic_date, input_time);
       copy_table(command, "JAS002", JAS002, idn, jcic_date, input_time);
 
@@ -374,10 +375,14 @@ catch(Exception &E){
     sql_stmt += "KR_CODE, LIMIT, PAYMENT, CASH, PAY_CODE, Input_Time";
   }
   else if(source_table == "BAM087"){
-    sql_stmt += "GROUP BY IDN, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ";
-    sql_stmt += "ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, ";
-    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
-    sql_stmt += "Input_Time, ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
+//    sql_stmt += "GROUP BY IDN, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ";
+//    sql_stmt += "ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, ";
+//    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
+//    sql_stmt += "Input_Time, ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
+    sql_stmt += " GROUP BY IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, "
+                "  ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, "
+                "  IS_KIND, PROJECT_CODE, CO_LOAN, UN_MARK, U_YYYMMDD, U_RATE, IB_MARK, IAB_BAN, IAB_NAME, "
+                "  CONTRACT_MARK, CONTRACT_CODE, CONTRACT_CODE1, CON_BAN, CON_NAME, ACT_Y_MARK, CONTRACT_AMT_Y, Input_Time ";
   }
   else if(source_table == "BAM086"){
     sql_stmt += "GROUP BY IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, ";
@@ -1007,6 +1012,16 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table, int now)
   command->Execute();
 
   sql_stmt = "UPDATE " + table + " SET BANK_CODE2 = LEFT(BANK_CODE,3);";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = " UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();

@@ -51,7 +51,8 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
 	 copy_table(command, "KRM021", KRM001, msn_no, time_stamp_no);
  	 copy_table(command, "KRM023", KRM023, msn_no, time_stamp_no);
          copy_table(command, "KRM037", KRM037, msn_no, time_stamp_no);
-   	 copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
+//   	 copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
+   	 copy_table(command, "BAM087", BAM086, msn_no, time_stamp_no);
      	 copy_table(command, "STM007", STM007, msn_no, time_stamp_no);
      	 copy_table(command, "JAS002", JAS002, msn_no, time_stamp_no);
 
@@ -689,10 +690,14 @@ catch(Exception &E){
     sql_stmt += "KR_CODE, LIMIT, PAYMENT, CASH, PAY_CODE";
   }
   else if(source_table == "BAM087"){
-    sql_stmt += "GROUP BY MSN, IDN, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ";
-    sql_stmt += "ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, ";
-    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
-    sql_stmt += "ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
+//    sql_stmt += "GROUP BY MSN, IDN, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ";
+//    sql_stmt += "ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, ";
+//    sql_stmt += "CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, ";
+//    sql_stmt += "ACT_Y_MARK, CONTRACT_AMT_Y, Inquiry_Date";
+    sql_stmt += " GROUP BY MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, "
+                "  ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, "
+                "  IS_KIND, PROJECT_CODE, CO_LOAN, UN_MARK, U_YYYMMDD, U_RATE, IB_MARK, IAB_BAN, IAB_NAME, "
+                "  CONTRACT_MARK, CONTRACT_CODE, CONTRACT_CODE1, CON_BAN, CON_NAME, ACT_Y_MARK, CONTRACT_AMT_Y, Input_Time ";
   }
   else if(source_table == "BAM086"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, ";
@@ -1384,6 +1389,17 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table)
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
+
+  sql_stmt = " UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
 
   sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[BAM086_BUCKET]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "

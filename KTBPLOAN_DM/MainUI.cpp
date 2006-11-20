@@ -503,7 +503,7 @@ bool check_phone(const AnsiString &region_code, const AnsiString &phone_no, bool
   }
   else{
     AnsiString long_phone_no = region_code.Trim() + phone_no.Trim();
-    int len = long_phone_no.Length();
+//    int len = long_phone_no.Length();
     if((long_phone_no.Length() != 10) && (long_phone_no.Length() != 9) && (!check_region_code(region_code.Trim())))
       return_value = false;
   };
@@ -712,7 +712,7 @@ AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
   while (!ejcic_query->Eof){
   	command->Parameters->ParamValues["MSN"] = msn;
   	command->Parameters->ParamValues["IDN"] = idn;
-    command->Parameters->ParamValues["INQUIRY_DATE"] = INQUIRY_DATE;
+        command->Parameters->ParamValues["INQUIRY_DATE"] = INQUIRY_DATE;
 	  command->Parameters->ParamValues["BILL_DATE"] = ejcic_query->FieldValues["BILL_DATE"];
 	  command->Parameters->ParamValues["ISSUE"] = ejcic_query->FieldValues["ISSUE"];
 	  command->Parameters->ParamValues["ISSUE_NAME"] = ejcic_query->FieldValues["ISSUE_NAME"];
@@ -770,6 +770,61 @@ AnsiString get_store_jcic_data(TADOConnection *ejcic_connection,
     ejcic_query->Next();
   };
 
+  sql_stmt  = "INSERT INTO BAM087(MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, ";
+  sql_stmt += "BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, CONTRACT_AMT, ";
+  sql_stmt += "LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, IS_KIND, PROJECT_CODE, CO_LOAN, ";
+  sql_stmt += "UN_MARK, U_YYYMMDD, U_RATE, IB_MARK, IAB_BAN, IAB_NAME, CONTRACT_MARK, ";
+  sql_stmt += "CONTRACT_CODE, CONTRACT_CODE1, CON_BAN, CON_NAME, ACT_Y_MARK, CONTRACT_AMT_Y,";
+  sql_stmt += "INPUT_TIME) VALUES (:msn, :idn, ";
+  sql_stmt += ":inquiry_date, :data_yyy, :data_mm, :bank_code, :bank_name, ";
+  sql_stmt += ":account_code, :account_code2, :purpose_code, :contract_amt1, :contract_amt,";
+  sql_stmt += ":loan_amt, :pass_due_amt, :pay_code_12, :is_kind, :project_code, :co_loan, ";
+  sql_stmt += ":un_mark, :u_yyymmdd, :u_rate, :ib_mark, :iab_ban, :iab_name, :contract_mark, ";
+  sql_stmt += ":contract_code, :contract_code1, :con_ban, :con_name, :act_y_mark, :contract_amt_y, ";
+  sql_stmt += ":input_time);";
+  command->CommandText = sql_stmt;
+
+  ejcic_sql_stmt = "SELECT * FROM TNBB_JCIC.MQ_T_BAM087 WHERE QSEQNO = :query_sn";
+  ejcic_query->SQL->Clear();
+  ejcic_query->SQL->Add(ejcic_sql_stmt);
+  ejcic_query->Parameters->ParamValues["query_sn"] = query_sn;
+  ejcic_query->Open();
+  while (!ejcic_query->Eof){
+  	command->Parameters->ParamValues["idn"] = idn;
+  	command->Parameters->ParamValues["msn"] = msn;
+	  command->Parameters->ParamValues["inquiry_date"] = INQUIRY_DATE;
+	  command->Parameters->ParamValues["data_yyy"] = ejcic_query->FieldValues["DATA_YYY"];
+	  command->Parameters->ParamValues["data_mm"] = ejcic_query->FieldValues["DATA_MM"];
+ 	  command->Parameters->ParamValues["bank_code"] = ejcic_query->FieldValues["BANK_CODE"];
+	  command->Parameters->ParamValues["bank_name"] = ejcic_query->FieldValues["BANK_NAME"];
+	  command->Parameters->ParamValues["account_code"] = ejcic_query->FieldValues["ACCOUNT_CODE"];
+	  command->Parameters->ParamValues["account_code2"] = ejcic_query->FieldValues["ACCOUNT_CODE2"];
+	  command->Parameters->ParamValues["purpose_code"] = ejcic_query->FieldValues["PURPOSE_CODE"];
+	  command->Parameters->ParamValues["contract_amt1"] = ejcic_query->FieldValues["CONTRACT_AMT1"];
+	  command->Parameters->ParamValues["contract_amt"] = ejcic_query->FieldValues["CONTRACT_AMT"];
+	  command->Parameters->ParamValues["loan_amt"] = ejcic_query->FieldValues["LOAN_AMT"];
+	  command->Parameters->ParamValues["pass_due_amt"] = ejcic_query->FieldValues["PASS_DUE_AMT"];
+	  command->Parameters->ParamValues["pay_code_12"] = ejcic_query->FieldValues["PAY_CODE_12"];
+	  command->Parameters->ParamValues["is_kind"] = ejcic_query->FieldValues["IS_KIND"];
+	  command->Parameters->ParamValues["project_code"] = ejcic_query->FieldValues["PROJECT_CODE"];
+	  command->Parameters->ParamValues["co_loan"] = ejcic_query->FieldValues["CO_LOAN"];
+	  command->Parameters->ParamValues["un_mark"] = ejcic_query->FieldValues["UN_MARK"];
+	  command->Parameters->ParamValues["u_yyymmdd"] = ejcic_query->FieldValues["U_YYYMMDD"];
+	  command->Parameters->ParamValues["u_rate"] = ejcic_query->FieldValues["U_RATE"];
+	  command->Parameters->ParamValues["ib_mark"] = ejcic_query->FieldValues["IB_MARK"];
+	  command->Parameters->ParamValues["iab_ban"] = ejcic_query->FieldValues["IAB_BAN"];
+	  command->Parameters->ParamValues["iab_name"] = ejcic_query->FieldValues["IAB_NAME"];
+	  command->Parameters->ParamValues["contract_mark"] = ejcic_query->FieldValues["CONTRACT_MARK"];
+	  command->Parameters->ParamValues["contract_code"] = ejcic_query->FieldValues["CONTRACT_CODE"];
+	  command->Parameters->ParamValues["contract_code1"] = ejcic_query->FieldValues["CONTRACT_CODE1"];
+	  command->Parameters->ParamValues["con_ban"] = ejcic_query->FieldValues["CON_BAN"];
+	  command->Parameters->ParamValues["con_name"] = ejcic_query->FieldValues["CON_NAME"];
+	  command->Parameters->ParamValues["act_y_mark"] = ejcic_query->FieldValues["ACT_Y_MARK"];
+	  command->Parameters->ParamValues["contract_amt_y"] = ejcic_query->FieldValues["CONTRACT_AMT_Y"];
+	  command->Parameters->ParamValues["input_time"] = input_time;
+    command->Execute();
+    ejcic_query->Next();
+  };
 
   sql_stmt = "INSERT INTO JAS002(MSN, IDN, INQUIRY_DATE, EVER_DELINQUENT, DELINQUENT_DATE, ";
   sql_stmt += "EVER_BAD_CHECK, BAD_CHECK_DATE, EVER_REJECT, REJECT_DATE, ";
