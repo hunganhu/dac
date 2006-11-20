@@ -53,9 +53,8 @@ object Form1: TForm1
     ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
     TabOrder = 2
     Text = 
-      'Provider=SQLOLEDB.1;Password=thisisatest;Persist Security Info=T' +
-      'rue;User ID=test;Initial Catalog=BOOC_Inquiry;Data Source=NBCOMP' +
-      'UTER'
+      'Provider=SQLOLEDB.1;Password=Emily1013;Persist Security Info=Tru' +
+      'e;User ID=sa;Initial Catalog=BOOC_CC;Data Source=oliver\daisy'
   end
   object cmbProduct: TComboBox
     Left = 104

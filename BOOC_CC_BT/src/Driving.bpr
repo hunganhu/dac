@@ -10,7 +10,7 @@
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES) driver.dfm"/>
-    <LIBFILES value="CC_AM_LNK.lib"/>
+    <LIBFILES value="CC_AM.lib"/>
     <LIBRARIES value=""/>
     <SPARELIBS value="vcl.lib rtl.lib dbrtl.lib adortl.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
@@ -55,7 +55,7 @@
       <FILE FILENAME="Driving.res" FORMNAME="" UNITNAME="Driving.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="Driving.cpp" FORMNAME="" UNITNAME="Driving" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="driver.cpp" FORMNAME="Form1" UNITNAME="driver" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="CC_AM_LNK.lib" FORMNAME="" UNITNAME="CC_AM_LNK.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="CC_AM.lib" FORMNAME="" UNITNAME="CC_AM.lib" CONTAINERID="LibTool" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

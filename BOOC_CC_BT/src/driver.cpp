@@ -51,11 +51,11 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
     strcpy(time_stamp, query->FieldByName("Inquiry_Date")->AsString.c_str());
     int gender = query->FieldValues["gender"];
     int product_type = (cmbProduct->ItemIndex + 1); //1 for credit card; 2 for BT
-    status = BOOC_CC_BT_AM(app_sn, idn, time_stamp, product_type,
-                           "010", ole_db, error_msg);
+//    status = BOOC_CC_BT_AM(app_sn, idn, time_stamp, product_type,
+//                           "010", ole_db, error_msg);
 
-//          status = BOOC_CC_BT_AM(app_sn, idn,
-//                                 product_type, "010", ole_db, error_msg);
+          status = BOOC_CC_BT_AM(app_sn, idn,
+                                 product_type, "010", ole_db, error_msg);
 
     if(status < -1) {
       Application->MessageBox(error_msg, app_sn, MB_OK);

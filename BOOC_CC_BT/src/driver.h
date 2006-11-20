@@ -28,7 +28,7 @@ extern PACKAGE TForm1 *Form1;
 //---------------------------------------------------------------------------
 #endif
 
-extern "C" __declspec(dllimport)int BOOC_CC_BT_AM(char *app_sn, char *idn, char *jcic_data_date,
+extern "C" __declspec(dllimport)int BOOC_CC_BT_AM(char *app_sn, char *idn, /*char *jcic_data_date, */
                       int product_type, char *bank_code, char *ole_db_str,
                       char *error);
 
