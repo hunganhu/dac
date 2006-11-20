@@ -1174,6 +1174,16 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table, int now)
   command->CommandText = sql_stmt;
   command->Execute();
 
+  sql_stmt = " UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
   build_bam_bucket(command, table, now);
 };
 
@@ -2918,12 +2928,13 @@ unsigned int in_daco41(TADOQuery *query,
   	query->Close();
     if(count > 0)
       exclusion |= 0x40;
+
     sql_stmt = "SELECT case_sn, SUM(CASE WHEN ACCOUNT_CODE = 'Y' AND ";
-    sql_stmt+="((CASE WHEN CONTRACT_AMT > CONTRACT_AMT1 THEN CONTRACT_AMT ELSE CONTRACT_AMT1 END) * " + static_cast<AnsiString>(cash_card_util_cap) + ") <= (ISNULL(LOAN_AMT,0) + ISNULL(PASS_DUE_AMT,0)) AND ";
-    sql_stmt+="ISNULL((CASE WHEN CONTRACT_AMT > CONTRACT_AMT1 THEN CONTRACT_AMT ELSE CONTRACT_AMT1 END),0) > 0 ";
-    sql_stmt+="THEN 1 ELSE 0 END) AS CNT ";
-		sql_stmt+="FROM " + bam085 + " ";
-    sql_stmt+="WHERE case_sn = :case_sn GROUP BY case_sn;";
+    sql_stmt+= " (CONTRACT_AMT * " + static_cast<AnsiString>(cash_card_util_cap) + ") <= (ISNULL(LOAN_AMT,0) + ISNULL(PASS_DUE_AMT,0)) AND ";
+    sql_stmt+= " ISNULL(CONTRACT_AMT,0) > 0 ";
+    sql_stmt+= " THEN 1 ELSE 0 END) AS CNT ";
+    sql_stmt+= "FROM " + bam085 + " ";
+    sql_stmt+= "WHERE case_sn = :case_sn GROUP BY case_sn;";
     sql_stmt = sql_stmt.UpperCase();
   	query->Close();
   	query->SQL->Clear();
@@ -5086,7 +5097,7 @@ double tf_a2(TADOQuery *query, TADOCommand *command,
     sql_stmt += "from " + bam085;
     sql_stmt += " where account_code = 'Y' ";
     sql_stmt += "and ((convert(float, isnull(loan_amt, 0)) + convert(float, isnull(pass_due_amt, 0))) / ";
-    sql_stmt += " (case when isnull((CASE WHEN CONTRACT_AMT > CONTRACT_AMT1 THEN CONTRACT_AMT ELSE CONTRACT_AMT1 END), 0) = 0 then null else convert(float, (CASE WHEN CONTRACT_AMT > CONTRACT_AMT1 THEN CONTRACT_AMT ELSE CONTRACT_AMT1 END)) end)) >= 0.98 ";
+    sql_stmt += " (case when isnull(CONTRACT_AMT, 0) = 0 then null else convert(float, CONTRACT_AMT) end)) >= 0.98 ";
     sql_stmt += "group by case_sn ";
     sql_stmt = sql_stmt.UpperCase();
 	  command->CommandText = sql_stmt;
@@ -6740,6 +6751,9 @@ double get_dollar_bad(TADOQuery *query, unsigned int risk_twentile,
    return_value = query->FieldValues["P4"];
   return return_value;
 };
+
+
+
 
 
 

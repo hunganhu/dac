@@ -27,7 +27,7 @@
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
     <RELEASELIBPATH value="$(BCB)\lib\release"/>
     <LINKER value="ilink32"/>
-    <USERDEFINES value=""/>
+    <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT;_RTLDLL;USEPACKAGES"/>
     <MAINSOURCE value="CC_AM.bpf"/>
     <INCLUDEPATH value="&quot;C:\Documents and Settings\Administrator\桌面\TNB\Credit card&quot;;$(BCB)\include;$(BCB)\include\vcl"/>
@@ -36,13 +36,15 @@
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-I&quot;C:\Documents and Settings\Administrator\桌面\TNB\Credit card&quot; 
-      -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix cpp -boa"/>
-    <CFLAG1 value="-WD -O2 -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -a8 -b- -k- -vi -tWD -tWM -c"/>
-    <PFLAGS value="-$Y- -$L- -$D- -$A8 -v -JPHNE -M"/>
+    <IDLCFLAGS value="-src_suffix cpp -D_DEBUG 
+      -I&quot;C:\Documents and Settings\Administrator\桌面\TNB\Credit card&quot; 
+      -I$(BCB)\include -I$(BCB)\include\vcl -boa"/>
+    <CFLAG1 value="-WD -Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- 
+      -tWD -tWM -c"/>
+    <PFLAGS value="-$Y+ -$W -$O- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
-    <AFLAGS value="/mx /w2 /zn"/>
-    <LFLAGS value="-D&quot;&quot; -aa -Tpd -x -Gn -Gi"/>
+    <AFLAGS value="/mx /w2 /zi"/>
+    <LFLAGS value="-D&quot;&quot; -aa -Tpd -x -Gn -Gi -v"/>
     <OTHERFILES value=""/>
   </OPTIONS>
   <LINKER>
@@ -90,6 +92,9 @@ ProductName=BOOC Credit Card / BT Approval Module
 ProductVersion=1.2.8.0
 Comments=
 
+[Excluded Packages]
+c:\program files\borland\cbuilder6\Bin\dclite60.bpl=Borland Integrated Translation Environment
+
 [Debugging]
 DebugSourceDirs=$(BCB)\source\vcl
 
@@ -98,7 +103,7 @@ RunParams=
 Launcher=
 UseLauncher=0
 DebugCWD=
-HostApplication=C:\Documents and Settings\GSSADMIN\My Documents\Projects\BOOC\BOOC model\BOOC_Release_Dolloar_Bad_at_DB\Driving.exe
+HostApplication=C:\project\BOOC_CC_BT\src\Driving.exe
 RemoteHost=
 RemotePath=
 RemoteLauncher=
@@ -114,11 +119,6 @@ LinkCGLIB=0
 AddServerUnit=1
 AddClientUnit=1
 PrecompiledHeaders=1
-
-[Language]
-ActiveLang=
-ProjectLang=
-RootDir=
 
 [Linker]
 LibPrefix=
