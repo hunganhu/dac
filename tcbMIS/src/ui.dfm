@@ -96,6 +96,7 @@ object Form1: TForm1
       Top = 28
       Width = 121
       Height = 21
+      ImeMode = imClose
       ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       TabOrder = 0
     end
@@ -104,6 +105,7 @@ object Form1: TForm1
       Top = 83
       Width = 121
       Height = 21
+      ImeMode = imClose
       ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
       PasswordChar = '*'
       TabOrder = 1

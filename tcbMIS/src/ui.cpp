@@ -46,7 +46,8 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
   AnsiString DBServer = "ESCORE";
 //  AnsiString DB = edtDB->Text;
   AnsiString account = edtAccount->Text;
-  AnsiString location = "10.0.31.71:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\""; 
+//  AnsiString location = "10.0.31.71:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\"";
+  AnsiString location = "10.0.5.47:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\""; 
   AnsiString ExtendedProperties = "\"\"";
   AnsiString passowrd = edtPassword->Text;
   ConnectionString = "Provider=IBMDADB2.1;Password=" + passowrd;
@@ -295,7 +296,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
 
   sql_stmt = "CREATE TABLE REPORT_BASE(";
   sql_stmt += "CASE_SN VARCHAR(12), APPLICATION_AMOUNT FLOAT, CI_KEY CHAR(10), BRANCH VARCHAR(20), ";
-  sql_stmt += "PB DECIMAL(7,4), MODULE_NPV FLOAT, MODULE_DECISION INT, ";
+  sql_stmt += "PRODUCT_TYPE_CODE INT, PB DECIMAL(7,4), MODULE_NPV FLOAT, MODULE_DECISION INT, ";
   sql_stmt += "APPROVAL_FINAL INT, APPROVAL_AMOUNT FLOAT, NPV_FINAL FLOAT, ";
   sql_stmt += "APP_AMT_CAT INT, APR1 FLOAT, APR2 FLOAT, APR3 FLOAT, ";
   sql_stmt += "APR_GROUP INT, PB_GROUP INT)";
@@ -303,16 +304,16 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   command->CommandText = sql_stmt;
   command->Execute();
 
-  sql_stmt = "INSERT INTO REPORT_BASE(CASE_SN, APPLICATION_AMOUNT, CI_KEY, BRANCH, ";
+  sql_stmt = "INSERT INTO REPORT_BASE(CASE_SN, APPLICATION_AMOUNT, CI_KEY, BRANCH, PRODUCT_TYPE_CODE, ";
   sql_stmt += "PB, MODULE_NPV, MODULE_DECISION, APPROVAL_FINAL, APPROVAL_AMOUNT, NPV_FINAL, ";
   sql_stmt += "APP_AMT_CAT, APR1, APR2, APR3, APR_GROUP, PB_GROUP) ";
-  sql_stmt += "SELECT A.CASE_SN, A.APP_AMT, A.CI_KEY, A.BRANCH, ";
+  sql_stmt += "SELECT A.CASE_SN, A.APP_AMT, A.CI_KEY, A.BRANCH, A.PRODUCT_TYPE_CODE, ";
   sql_stmt += "B.APPLICANT_PB_adj, B.NPV, (CASE ";
   sql_stmt += "WHEN B.APPROVAL_CODE IN (5, 3104, 3110) THEN 3 ";
   sql_stmt += "WHEN B.APPROVAL_CODE > 1 THEN 2 ELSE B.APPROVAL_CODE END), "; // 1 for approved; 2 for decilined; 3 for manual
   sql_stmt += "(CASE WHEN A.APPROVAL_FINAL = 2 THEN 1 ELSE 0 END), ";// 1 for funds remitted; 0 for funds not remitted
   sql_stmt += "A.LOAN_AMT, A.NPV_FINAL, (CASE ";
-  sql_stmt += "WHEN APP_AMT > 0 AND APP_AMT < 400000 THEN 1 ";
+  sql_stmt += "WHEN APP_AMT >= 0 AND APP_AMT < 400000 THEN 1 ";
   sql_stmt += "WHEN APP_AMT >= 400000 AND APP_AMT < 500000 THEN 2 ";
   sql_stmt += "WHEN APP_AMT >= 500000 AND APP_AMT < 1000000 THEN 3 ";
   sql_stmt += "WHEN APP_AMT >= 1000000 THEN 4 END), ";
@@ -364,8 +365,8 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       category_create_string += dimension_two + " varchar(20), ";
     else if (dimension_two == "APR_GROUP")
       category_create_string += dimension_two + " int, ";
-    else if (dimension_one == "PRODUCT_TYPE_CODE")
-      category_create_string += dimension_one + " int, ";
+    else if (dimension_two == "PRODUCT_TYPE_CODE")
+      category_create_string += dimension_two + " int, ";
   }
   AnsiString category_query_string_single = "";
   AnsiString category_query_string_multiple = "";
@@ -666,7 +667,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt = "CREATE TABLE FOUR_I (";
   sql_stmt += category_create_string;
   sql_stmt += " NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
-//  sql_stmt += " NSD float, ID float, IID float, IIID float, IVD float, VD float, VID float, VIID float, VIIID float, IXD float, XD float, XID float, ";
   sql_stmt += " NSAD float, IAD float, IIAD float, IIIAD float, IVAD float, VAD float, VIAD float, VIIAD float, VIIIAD float, IXAD float, XAD float, XIAD float, ";
   sql_stmt += " NSPB float, IPB float, IIPB float, IIIPB float, IVPB float, VPB float, VIPB float, VIIPB float, VIIIPB float, IXPB float, XPB float, XIPB float, ";
   sql_stmt += " NSPBD float, IPBD float, IIPBD float, IIIPBD float, IVPBD float, VPBD float, VIPBD float, VIIPBD float, VIIIPBD float, IXPBD float, XPBD float, XIPBD float,  ";
@@ -760,7 +760,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt = "CREATE TABLE FOUR (";
   sql_stmt += category_create_string;
   sql_stmt += " NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
-//  sql_stmt += " NSD float, ID float, IID float, IIID float, IVD float, VD float, VID float, VIID float, VIIID float, IXD float, XD float, XID float, ";
   sql_stmt += " NSAD float, IAD float, IIAD float, IIIAD float, IVAD float, VAD float, VIAD float, VIIAD float, VIIIAD float, IXAD float, XAD float, XIAD float, ";
   sql_stmt += " NSPB float, IPB float, IIPB float, IIIPB float, IVPB float, VPB float, VIPB float, VIIPB float, VIIIPB float, IXPB float, XPB float, XIPB float, ";
   sql_stmt += " NSPBD float, IPBD float, IIPBD float, IIIPBD float, IVPBD float, VPBD float, VIPBD float, VIIPBD float, VIIIPBD float, IXPBD float, XPBD float, XIPBD float,  ";
@@ -880,7 +879,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt = "CREATE TABLE FIVE_I (";
   sql_stmt += category_create_string;
   sql_stmt += " NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
-//  sql_stmt += " NSD float, ID float, IID float, IIID float, IVD float, VD float, VID float, VIID float, VIIID float, IXD float, XD float, XID float, ";
   sql_stmt += " NSAD float, IAD float, IIAD float, IIIAD float, IVAD float, VAD float, VIAD float, VIIAD float, VIIIAD float, IXAD float, XAD float, XIAD float, ";
   sql_stmt += " NSPB float, IPB float, IIPB float, IIIPB float, IVPB float, VPB float, VIPB float, VIIPB float, VIIIPB float, IXPB float, XPB float, XIPB float, ";
   sql_stmt += " NSPBD float, IPBD float, IIPBD float, IIIPBD float, IVPBD float, VPBD float, VIPBD float, VIIPBD float, VIIIPBD float, IXPBD float, XPBD float, XIPBD float,  ";
@@ -992,7 +990,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += "SELECT ";
   sql_stmt += category_query_string_multiple;
   sql_stmt += " B.NSA , B.IA , B.IIA , B.IIIA , B.IVA , B.VA , B.VIA , B.VIIA , B.VIIIA , B.IXA , B.XA , B.XIA , ";
-//  sql_stmt += " NSD , ID , IID , IIID , IVD , VD , VID , VIID , VIIID , IXD , XD , XID , ";
   sql_stmt += " B.NSAD , B.IAD , B.IIAD , B.IIIAD , B.IVAD , B.VAD , B.VIAD , B.VIIAD , B.VIIIAD , B.IXAD , B.XAD , B.XIAD , ";
   sql_stmt += " B.NSPB , B.IPB , B.IIPB , B.IIIPB , B.IVPB , B.VPB , B.VIPB , B.VIIPB , B.VIIIPB , B.IXPB , B.XPB , B.XIPB , ";
   sql_stmt += " B.NSPBD , B.IPBD , B.IIPBD , B.IIIPBD , B.IVPBD , B.VPBD , B.VIPBD , B.VIIPBD , B.VIIIPBD , B.IXPBD , B.XPBD , B.XIPBD ,  ";
@@ -1211,7 +1208,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
 
   sql_stmt = "CREATE TABLE PART_FIVE ";
   sql_stmt += "(NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
-//  sql_stmt += " NSD float, ID float, IID float, IIID float, IVD float, VD float, VID float, VIID float, VIIID float, IXD float, XD float, XID float, ";
   sql_stmt += " NSAD float, IAD float, IIAD float, IIIAD float, IVAD float, VAD float, VIAD float, VIIAD float, VIIIAD float, IXAD float, XAD float, XIAD float, ";
   sql_stmt += " NSAR float, IAR float, IIAR float, IIIAR float, IVAR float, VAR float, VIAR float, VIIAR float, VIIIAR float, IXAR float, XAR float, XIAR float, ";
   sql_stmt += " NSARD float, IARD float, IIARD float, IIIARD float, IVARD float, VARD float, VIARD float, VIIARD float, VIIIARD float, IXARD float, XARD float, XIARD float, ";
@@ -1858,7 +1854,7 @@ void generate_type_one_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM2"] = dimension_two_content.ToInt();
     else
       command->Parameters->ParamValues["DIM2"] = dimension_two_content;
-  };     
+  };
   command->Execute();
 };
 
@@ -1933,9 +1929,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "SUM(NSMR), SUM(IMR), SUM(IIMR), SUM(IIIMR), SUM(IVMR), SUM(VMR), SUM(VIMR), SUM(VIIMR), SUM(VIIIMR), SUM(IXMR), SUM(XMR), SUM(XIMR), ";
   sql_stmt += "SUM(NSMRD), SUM(IMRD), SUM(IIMRD), SUM(IIIMRD), SUM(IVMRD), SUM(VMRD), SUM(VIMRD), SUM(VIIMRD), SUM(VIIIMRD), SUM(IXMRD), SUM(XMRD), SUM(XIMRD), ";
   sql_stmt += "0, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "0, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "SUM(IPB), SUM(IIPB), SUM(IIIPB), SUM(IVPB), SUM(VPB), SUM(VIPB), SUM(VIIPB), SUM(VIIIPB), SUM(IXPB), SUM(XPB), SUM(XIPB), ";
   sql_stmt += "SUM(IPBD), SUM(IIPBD), SUM(IIIPBD), SUM(IVPBD), SUM(VPBD), SUM(VIPBD), SUM(VIIPBD), SUM(VIIIPBD), SUM(IXPBD), SUM(XPBD), SUM(XIPBD),  ";
   sql_stmt += "SUM(INPV), SUM(IINPV), SUM(IIINPV), SUM(IVNPV), SUM(VNPV), SUM(VINPV), SUM(VIINPV), SUM(VIIINPV), SUM(IXNPV), SUM(XNPV), SUM(XINPV)  ";
@@ -2017,12 +2011,9 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "INPV, IINPV, IIINPV, IVNPV, VNPV, VINPV, VIINPV, VIIINPV, IXNPV, XNPV, XINPV) ";
   sql_stmt += "SELECT ";
   sql_stmt += "0, SUM(IA), SUM(IIA), SUM(IIIA), SUM(IVA), SUM(VA), SUM(VIA), SUM(VIIA), SUM(VIIIA), SUM(IXA), SUM(XA), SUM(XIA), ";
-/*  sql_stmt += "0, SUM(ID), SUM(IID), SUM(IIID), SUM(IVD), SUM(VD), SUM(VID), SUM(VIID), SUM(VIIID), SUM(IXD), SUM(XD), SUM(XID), ";*/
   sql_stmt += "0, SUM(IAD), SUM(IIAD), SUM(IIIAD), SUM(IVAD), SUM(VAD), SUM(VIAD), SUM(VIIAD), SUM(VIIIAD), SUM(IXAD), SUM(XAD), SUM(XIAD), ";
   sql_stmt += "0, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "0, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "SUM(IPB), SUM(IIPB), SUM(IIIPB), SUM(IVPB), SUM(VPB), SUM(VIPB), SUM(VIIPB), SUM(VIIIPB), SUM(IXPB), SUM(XPB), SUM(XIPB), ";
   sql_stmt += "SUM(IPBD), SUM(IIPBD), SUM(IIIPBD), SUM(IVPBD), SUM(VPBD), SUM(VIPBD), SUM(VIIPBD), SUM(VIIIPBD), SUM(IXPBD), SUM(XPBD), SUM(XIPBD),  ";
   sql_stmt += "SUM(INPV), SUM(IINPV), SUM(IIINPV), SUM(IVNPV), SUM(VNPV), SUM(VINPV), SUM(VIINPV), SUM(VIIINPV), SUM(IXNPV), SUM(XNPV), SUM(XINPV)  ";
@@ -2125,10 +2116,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "IANPV, IIANPV, IIIANPV, IVANPV, VANPV, VIANPV, VIIANPV, VIIIANPV, IXANPV, XANPV, XIANPV) ";
   sql_stmt += "SELECT ";
   sql_stmt += "SUM(NSA), SUM(IA), SUM(IIA), SUM(IIIA), SUM(IVA), SUM(VA), SUM(VIA), SUM(VIIA), SUM(VIIIA), SUM(IXA), SUM(XA), SUM(XIA), ";
-/*  sql_stmt += "SUM(NSD), SUM(ID), SUM(IID), SUM(IIID), SUM(IVD), SUM(VD), SUM(VID), SUM(VIID), SUM(VIIID), SUM(IXD), SUM(XD), SUM(XID), ";*/
   sql_stmt += "SUM(NSAD), SUM(IAD), SUM(IIAD), SUM(IIIAD), SUM(IVAD), SUM(VAD), SUM(VIAD), SUM(VIIAD), SUM(VIIIAD), SUM(IXAD), SUM(XAD), SUM(XIAD), ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "SUM(IPB), SUM(IIPB), SUM(IIIPB), SUM(IVPB), SUM(VPB), SUM(VIPB), SUM(VIIPB), SUM(VIIIPB), SUM(IXPB), SUM(XPB), SUM(XIPB), ";
   sql_stmt += "SUM(IPBD), SUM(IIPBD), SUM(IIIPBD), SUM(IVPBD), SUM(VPBD), SUM(VIPBD), SUM(VIIPBD), SUM(VIIIPBD), SUM(IXPBD), SUM(XPBD), SUM(XIPBD),  ";
   sql_stmt += "SUM(INPV), SUM(IINPV), SUM(IIINPV), SUM(IVNPV), SUM(VNPV), SUM(VINPV), SUM(VIINPV), SUM(VIIINPV), SUM(IXNPV), SUM(XNPV), SUM(XINPV),  ";
@@ -2303,12 +2291,9 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "IANPV, IIANPV, IIIANPV, IVANPV, VANPV, VIANPV, VIIANPV, VIIIANPV, IXANPV, XANPV, XIANPV) ";
   sql_stmt += "SELECT ";
   sql_stmt += "SUM(NSA), SUM(IA), SUM(IIA), SUM(IIIA), SUM(IVA), SUM(VA), SUM(VIA), SUM(VIIA), SUM(VIIIA), SUM(IXA), SUM(XA), SUM(XIA), ";
-/*  sql_stmt += "SUM(NSD), SUM(ID), SUM(IID), SUM(IIID), SUM(IVD), SUM(VD), SUM(VID), SUM(VIID), SUM(VIIID), SUM(IXD), SUM(XD), SUM(XID), ";*/
   sql_stmt += "SUM(NSAD), SUM(IAD), SUM(IIAD), SUM(IIIAD), SUM(IVAD), SUM(VAD), SUM(VIAD), SUM(VIIAD), SUM(VIIIAD), SUM(IXAD), SUM(XAD), SUM(XIAD), ";
   sql_stmt += "0, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "0, ";
-//  sql_stmt += "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ";
   sql_stmt += "SUM(IPB), SUM(IIPB), SUM(IIIPB), SUM(IVPB), SUM(VPB), SUM(VIPB), SUM(VIIPB), SUM(VIIIPB), SUM(IXPB), SUM(XPB), SUM(XIPB), ";
   sql_stmt += "SUM(IPBD), SUM(IIPBD), SUM(IIIPBD), SUM(IVPBD), SUM(VPBD), SUM(VIPBD), SUM(VIIPBD), SUM(VIIIPBD), SUM(IXPBD), SUM(XPBD), SUM(XIPBD),  ";
   sql_stmt += "SUM(INPV), SUM(IINPV), SUM(IIINPV), SUM(IVNPV), SUM(VNPV), SUM(VINPV), SUM(VIINPV), SUM(VIIINPV), SUM(IXNPV), SUM(XNPV), SUM(XINPV),  ";
@@ -3154,30 +3139,6 @@ void clean_up(TADOCommand *command)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
   };*/
-
-  try{
-    sql_stmt = "DROP TABLE TMP1;";
-    command->CommandText = sql_stmt;
-    command->Execute();
-  }
-  catch(Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
-        command->Connection->Errors->Clear();
-  //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-
-  try{
-    sql_stmt = "DROP TABLE TMP2;";
-    command->CommandText = sql_stmt;
-    command->Execute();
-  }
-  catch(Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
-        command->Connection->Errors->Clear();
-  //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
 
   try{
     sql_stmt = "DROP TABLE ONE;";
