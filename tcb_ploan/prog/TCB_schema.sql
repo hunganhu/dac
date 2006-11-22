@@ -131,6 +131,77 @@ COMMENT ON COLUMN BAM086.R_YYYMMDD	IS '還款日期';
 COMMENT ON COLUMN BAM086.REFUND_AMT	IS '還款金額 (千元)';
 COMMENT ON COLUMN BAM086.CK_REF		IS '還款記錄  Y:全部還清 N:部分還清 1.還清 2.清償積欠本息 3.清償積欠利息 4.轉正常';
 
+
+create table BAM087(
+	CASE_SN		    char(12) not null,
+	inquiry_date	    char(10) not null,
+	IDN		    char(10) not null,
+	DATA_YYY	    char(3),
+	DATA_MM		    char(2),
+	BANK_CODE	    char(7),
+	BANK_NAME	    char(40),
+	ACCOUNT_CODE	    char(1),
+	ACCOUNT_CODE2	    char(1),
+	PURPOSE_CODE	    char(1),
+	CONTRACT_AMT1	    char(10),
+	CONTRACT_AMT	    char(10),
+	LOAN_AMT	    char(10),
+	PASS_DUE_AMT	    char(10),
+	PAY_CODE_12	    char(12),
+	IS_KIND		    char(2),
+	PROJECT_CODE	    char(2),
+	CO_LOAN		    char(1),
+	UN_MARK		    char(1),
+	U_YYYMMDD	    char(8),
+	U_RATE		    char(3),
+	IB_MARK		    char(1),
+	IAB_BAN		    char(8),
+	IAB_NAME	    char(60),
+	CONTRACT_MARK	    char(1),
+	CONTRACT_CODE	    char(50),
+	CONTRACT_CODE1	    char(50),
+	CON_BAN		    char(10),
+	CON_NAME	    char(60),
+	ACT_Y_MARK	    char(1),
+	CONTRACT_AMT_Y	    char(10)
+) IN "ESCORETABSP";
+create index i_BAM087 on BAM087(CASE_SN, IDN);
+
+COMMENT ON TABLE BAM087 IS '授信額度,擔保品,金額,還款紀錄資訊 (多筆 B33,資料年月自9405開始)';
+COMMENT ON COLUMN BAM087.CASE_SN	IS '申請編號';
+COMMENT ON COLUMN BAM087.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
+COMMENT ON COLUMN BAM087.IDN	 	IS '申請人身分證號';
+COMMENT ON COLUMN BAM087.DATA_YYY	IS '資料年度';
+COMMENT ON COLUMN BAM087.DATA_MM	IS '資料月份';
+COMMENT ON COLUMN BAM087.BANK_CODE	IS '行庫代號';
+COMMENT ON COLUMN BAM087.BANK_NAME	IS '行庫名稱';
+COMMENT ON COLUMN BAM087.ACCOUNT_CODE	IS '科目別 (對照表)';
+COMMENT ON COLUMN BAM087.ACCOUNT_CODE2	IS '科目別註記 (對照表)';
+COMMENT ON COLUMN BAM087.PURPOSE_CODE	IS '用途別 (對照表)';
+COMMENT ON COLUMN BAM087.CONTRACT_AMT1	IS '綜合額度金額 (千元)';
+COMMENT ON COLUMN BAM087.CONTRACT_AMT	IS '分項額度金額 (千元)';
+COMMENT ON COLUMN BAM087.LOAN_AMT	IS '未逾期金額 (千元)';
+COMMENT ON COLUMN BAM087.PASS_DUE_AMT	IS '逾期未還金額 (千元)';
+COMMENT ON COLUMN BAM087.PAY_CODE_12	IS '12期還款記錄';
+COMMENT ON COLUMN BAM087.IS_KIND	IS '擔保品類別 (對照表)';
+COMMENT ON COLUMN BAM087.PROJECT_CODE	IS '政府專案貸款分類代碼 (對照表)';
+COMMENT ON COLUMN BAM087.CO_LOAN	IS '共同借款註記 (* 表有共同借款)';
+COMMENT ON COLUMN BAM087.UN_MARK 	IS '聯貸註記 (A 表國內, B 表國際聯貸)';
+COMMENT ON COLUMN BAM087.U_YYYMMDD	IS '聯貸日期 西元YYYYMMDD';
+COMMENT ON COLUMN BAM087.U_RATE		IS '參貸比例';
+COMMENT ON COLUMN BAM087.IB_MARK	IS '資金流向註記 (* 表流向非法人組織)';
+COMMENT ON COLUMN BAM087.IAB_BAN	IS '資金流向非法人組織 統編';
+COMMENT ON COLUMN BAM087.IAB_NAME	IS '資金流向非法人組織 名稱';
+COMMENT ON COLUMN BAM087.CONTRACT_MARK	IS '額度特別註記(* 表最高階額度所有者ID不同)';
+COMMENT ON COLUMN BAM087.CONTRACT_CODE	IS '本階額度代碼';
+COMMENT ON COLUMN BAM087.CONTRACT_CODE1	IS '最高階額度代碼';
+COMMENT ON COLUMN BAM087.CON_BAN	IS '最高階額度所屬公司統編';
+COMMENT ON COLUMN BAM087.CON_NAME	IS '最高階額度所屬公司名稱';
+COMMENT ON COLUMN BAM087.ACT_Y_MARK	IS 'Ｙ科目之額度註記 (* 表有現金卡日報資料) 本欄位將於 94/10/01 開始提供查詢';
+COMMENT ON COLUMN BAM087.CONTRACT_AMT_Y	IS '現金卡日報Ｙ科目之可動用額度 (千元) 本欄位將於 94/10/01 開始提供查詢';
+
+
+
 create table BAM302 (
 	CASE_SN		    char(12) not null,
 	inquiry_date	    char(10) not null,
@@ -368,7 +439,7 @@ create index i_jas002 on jas002(CASE_SN, IDN);
 
 COMMENT ON TABLE  jas002	IS '信用異常紀錄 (B, D, K)';
 COMMENT ON COLUMN jas002.CASE_SN	IS '申請編號';
-COMMENT ON COLUMN jas002.IDN	 	IS '申請人身分證號'; 
+COMMENT ON COLUMN jas002.IDN	 	IS '申請人身分證號';
 COMMENT ON COLUMN jas002.inquiry_date	IS 'JCIC 資料查詢日期(yyy/mm/dd, yyy為民國年)';
 COMMENT ON COLUMN jas002.ever_delinquent	IS '授信異常 YN';
 COMMENT ON COLUMN jas002.delinquent_date	IS '最近授信異常日期';
@@ -858,6 +929,42 @@ COMMENT ON COLUMN branch.Zone		IS '區域';
  ) IN "ESCORETABSP";
  create index i_bam086_bucket on bam086_bucket(CASE_SN, IDN);
 
+create table bam087_dedup(
+	case_sn		    char(12) not null,
+	inquiry_date	    char(10) not null,
+	idn		    char(10) not null,
+	data_yyy	    char(3),
+	data_mm		    char(2),
+	bank_code	    char(7),
+	bank_name	    char(40),
+	account_code	    char(1),
+	account_code2	    char(1),
+	purpose_code	    char(1),
+	contract_amt1	    numeric(10),
+	contract_amt	    numeric(10),
+	loan_amt	    numeric(10),
+	pass_due_amt	    numeric(10),
+	pay_code_12	    char(12),
+	is_kind		    char(2),
+	project_code	    char(2),
+	co_loan		    char(1),
+	un_mark		    char(1),
+	u_yyymmdd	    char(8),
+	u_rate		    char(3),
+	ib_mark		    char(1),
+	iab_ban		    char(8),
+	iab_name	    char(60),
+	contract_mark	    char(1),
+	contract_code	    char(50),
+	contract_code1	    char(50),
+	con_ban		    char(10),
+	con_name	    char(60),
+	act_y_mark	    char(1),
+	contract_amt_y	    numeric(10),
+	cnt		    int
+) IN "ESCORETABSP";
+create index i_bam087_dedup on bam087_dedup(case_sn, idn);
+
  create table krm001_dedup (
  	case_sn		char(12),
  	idn		char(11),
@@ -965,7 +1072,7 @@ COMMENT ON COLUMN branch.Zone		IS '區域';
  	cnt		int
  ) IN "ESCORETABSP";
  create index i_krm037_dedup on krm037_dedup(CASE_SN, IDN);
- 
+
  create table stm001_dedup (
  	case_sn		char(12),
  	idn		char(11),
@@ -1129,7 +1236,7 @@ create index i_stm007_dedup on stm007_dedup(CASE_SN, IDN);
 	reserve8	float,
 	reserve9	varchar(20),
 	reserve10	varchar(20)
-	
+
  ) IN "ESCORETABSP";
  create index i_pdaco_cal on pdaco_cal(CASE_SN, IDN);
 

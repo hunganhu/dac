@@ -53,7 +53,7 @@ DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o 
 #		   2a - make all (srv + all_client)
 #****************************************************************************
 
-all : libdac_1_5.so java  main mainfnl
+all : libdac_1_6.so java  main mainfnl
 .PHONY : all
 	
 java: Dac.class 
@@ -89,9 +89,9 @@ cutpoint.o: cutpoint.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c cutpoint.cpp
 #	gcc -g  -c cutpoint.c
 	
-libdac_1_5.so: $(DLL_OBJ)
-	$(ERASE) libdac_1_5.so
-	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_5.so $(DLL_OBJ)
+libdac_1_6.so: $(DLL_OBJ)
+	$(ERASE) libdac_1_6.so
+	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_6.so $(DLL_OBJ)
 #libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
@@ -126,8 +126,8 @@ clean :
 	$(ERASE) *.o *.so *.bak *~
 	$(ERASE) *.bnd *.C main mainfnl
 
-install: libdac_1_5.so
-	 cp -f libdac_1_5.so $(DESDIR)
+install: libdac_1_6.so
+	 cp -f libdac_1_6.so $(DESDIR)
 	 touch install
 	 cd $(DESDIR)
-	 ln -f -s libdac_1_5.so libdac.so
+	 ln -f -s libdac_1_6.so libdac.so
