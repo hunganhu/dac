@@ -40,14 +40,16 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
     config << report_dir.c_str() << endl;
     config.clear();
     config.close();
-  };
+  }
 
   AnsiString ConnectionString;
-  AnsiString DBServer = "ESCORE";
+//  AnsiString DBServer = "ESCORE";
+  AnsiString DBServer = "TCBSCORE";
 //  AnsiString DB = edtDB->Text;
   AnsiString account = edtAccount->Text;
 //  AnsiString location = "10.0.31.71:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\"";
-  AnsiString location = "10.0.5.47:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\""; 
+//  AnsiString location = "10.0.5.47:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\"";
+  AnsiString location = "192.168.1.13:50000"; //local test
   AnsiString ExtendedProperties = "\"\"";
   AnsiString passowrd = edtPassword->Text;
   ConnectionString = "Provider=IBMDADB2.1;Password=" + passowrd;
@@ -118,7 +120,7 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
       else{
         message += "報表已成功產生。";
         message += "\n";
-      };
+      }
       lblMessage->Caption = message;
       lblMessage->Refresh();
     }
@@ -142,8 +144,8 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
       edtAccount->Text = "";
       edtPassword->Text = "";
 //      edtDBServer->Focused();
-    };
-  };
+    }
+  }
   data->connection->Close();
 }
 //---------------------------------------------------------------------------
@@ -159,9 +161,9 @@ bool valid_date(const AnsiString &date)
       return false;
     if((year % 100 == 0) && (year% 400 != 0))
       return false;
-  };
+  }
   return true;
-};
+}
 
 void write_header(ofstream &report, const AnsiString &report_date,
                   const AnsiString &begin_date, const AnsiString &end_date,
@@ -258,7 +260,7 @@ void write_header(ofstream &report, const AnsiString &report_date,
   else
     report << endl;
   report << "壞帳機率範圍" << "," << "無法評分" << "," << "<=0.5%" << "," << "0.5% - 1.0%" << "," << "1.0% - 1.5%" << "," << "1.5% - 2.0%" << "," << "2.0% - 2.5%" << "," << "2.5% - 3.0%" << "," << "3.0% - 3.5%" << "," << "3.5% - 4.0%" << "," << "4.0% - 4.5%" << "," << ">4.5%" << "," << "Total" << endl;
-};
+}
 
 void prepare_report(TADOCommand *command, TADOQuery *query,
                     const AnsiString &begin_date, const AnsiString &end_date,
@@ -292,7 +294,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE REPORT_BASE(";
   sql_stmt += "CASE_SN VARCHAR(12), APPLICATION_AMOUNT FLOAT, CI_KEY CHAR(10), BRANCH VARCHAR(20), ";
@@ -375,14 +377,14 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
     category_query_string_single += dimension_one + ", ";
     category_query_string_multiple += "A." + dimension_one + ", ";
     category_group_string += dimension_one;
-  };
+  }
   if(dimension_two.Length() != 0){
     if(dimension_one.Length() != 0)
       category_group_string += ", ";
     category_group_string += dimension_two;
     category_query_string_single += dimension_two + ", ";
     category_query_string_multiple += "A." + dimension_two + ", ";
-  };
+  }
 
   try{
     sql_stmt = "DROP TABLE ONE;";
@@ -394,7 +396,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE ONE (";
   sql_stmt += category_create_string;
@@ -449,7 +451,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE TWO (";
   sql_stmt += category_create_string;
@@ -512,7 +514,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 7 AND MODULE_DECISION = 3 THEN APPLICATION_AMOUNT ELSE 0 END) AS VIIMRD, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 8 AND MODULE_DECISION = 3 THEN APPLICATION_AMOUNT ELSE 0 END) AS VIIIMRD, ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 9 AND MODULE_DECISION = 3 THEN APPLICATION_AMOUNT ELSE 0 END) AS IXMRD, ";
-  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 10 AND MODULE_DECISION = 2 THEN APPLICATION_AMOUNT ELSE 0 END) AS XMRD, ";
+  sql_stmt += "       SUM(CASE WHEN PB_GROUP = 10 AND MODULE_DECISION = 3 THEN APPLICATION_AMOUNT ELSE 0 END) AS XMRD, ";
   sql_stmt += "       SUM(CASE WHEN MODULE_DECISION = 3 THEN APPLICATION_AMOUNT ELSE 0 END) AS XIMRD,        ";
   sql_stmt += "       0,  ";
   sql_stmt += "       SUM(CASE WHEN PB_GROUP = 1 AND MODULE_DECISION = 1 THEN PB ELSE 0 END) AS IPB, ";
@@ -567,7 +569,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE THREE (";
   sql_stmt += category_create_string;
@@ -662,7 +664,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE FOUR_I (";
   sql_stmt += category_create_string;
@@ -754,7 +756,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
 
   sql_stmt = "CREATE TABLE FOUR (";
@@ -776,7 +778,6 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += "SELECT ";
   sql_stmt += category_query_string_multiple;
   sql_stmt += " B.NSA , B.IA , B.IIA , B.IIIA , B.IVA , B.VA , B.VIA , B.VIIA , B.VIIIA , B.IXA , B.XA , B.XIA , ";
-//  sql_stmt += " NSD , ID , IID , IIID , IVD , VD , VID , VIID , VIIID , IXD , XD , XID , ";
   sql_stmt += " B.NSAD , B.IAD , B.IIAD , B.IIIAD , B.IVAD , B.VAD , B.VIAD , B.VIIAD , B.VIIIAD , B.IXAD , B.XAD , B.XIAD , ";
   sql_stmt += " B.NSPB , B.IPB , B.IIPB , B.IIIPB , B.IVPB , B.VPB , B.VIPB , B.VIIPB , B.VIIIPB , B.IXPB , B.XPB , B.XIPB , ";
   sql_stmt += " B.NSPBD , B.IPBD , B.IIPBD , B.IIIPBD , B.IVPBD , B.VPBD , B.VIPBD , B.VIIPBD , B.VIIIPBD , B.IXPBD , B.XPBD , B.XIPBD ,  ";
@@ -794,7 +795,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
     	sql_stmt += dimension_one;
     	sql_stmt += " = B.";
     	sql_stmt += dimension_one;
-    };
+    }
     if(dimension_two != ""){
       if(dimension_one != "")
         sql_stmt += " AND ";
@@ -802,8 +803,8 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
     	sql_stmt += dimension_two;
     	sql_stmt += " = B.";
     	sql_stmt += dimension_two;
-    };
-  };
+    }
+  }
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
@@ -818,7 +819,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE FOUR_AR(";
   sql_stmt += category_create_string;
@@ -872,7 +873,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
 //Data for part five of the report
 
@@ -966,14 +967,13 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
 //Data for part five of the report
 
   sql_stmt = "CREATE TABLE FIVE (";
   sql_stmt += category_create_string;
   sql_stmt += " NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
-//  sql_stmt += " NSD float, ID float, IID float, IIID float, IVD float, VD float, VID float, VIID float, VIIID float, IXD float, XD float, XID float, ";
   sql_stmt += " NSAD float, IAD float, IIAD float, IIIAD float, IVAD float, VAD float, VIAD float, VIIAD float, VIIIAD float, IXAD float, XAD float, XIAD float, ";
   sql_stmt += " NSPB float, IPB float, IIPB float, IIIPB float, IVPB float, VPB float, VIPB float, VIIPB float, VIIIPB float, IXPB float, XPB float, XIPB float, ";
   sql_stmt += " NSPBD float, IPBD float, IIPBD float, IIIPBD float, IVPBD float, VPBD float, VIPBD float, VIIPBD float, VIIIPBD float, IXPBD float, XPBD float, XIPBD float,  ";
@@ -1007,7 +1007,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
     	sql_stmt += dimension_one;
     	sql_stmt += " = B.";
     	sql_stmt += dimension_one;
-    };
+    }
     if(dimension_two != ""){
       if(dimension_one != "")
         sql_stmt += " AND ";
@@ -1015,8 +1015,8 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
     	sql_stmt += dimension_two;
     	sql_stmt += " = B.";
     	sql_stmt += dimension_two;
-    };
-  };
+    }
+  }
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
@@ -1031,7 +1031,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE FIVE_AR(";
   sql_stmt += category_create_string;
@@ -1086,7 +1086,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE PART_ONE ";
   sql_stmt += "(NS float, I float, II float, III float, IV float, V float, VI float, VII float, VIII float, IX float, X float, XI float, ";
@@ -1105,7 +1105,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE PART_TWO ";
   sql_stmt += "(NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
@@ -1131,7 +1131,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE PART_THREE ";
   sql_stmt += "(NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
@@ -1156,7 +1156,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
 
   sql_stmt = "CREATE TABLE PART_FOUR ";
@@ -1186,7 +1186,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE AR(NS float, I float, II float, III float, IV float, V  float, VI float, VII float, VIII float, IX float, X float, XI float, ";
   sql_stmt += "                 NSD float, ID float, IID float, IIID float, IVD float, VD  float, VID float, VIID float, VIIID float, IXD float, XD float, XID float);";
@@ -1204,7 +1204,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   sql_stmt = "CREATE TABLE PART_FIVE ";
   sql_stmt += "(NSA float, IA float, IIA float, IIIA float, IVA float, VA float, VIA float, VIIA float, VIIIA float, IXA float, XA float, XIA float, ";
@@ -1221,7 +1221,7 @@ void prepare_report(TADOCommand *command, TADOQuery *query,
   sql_stmt += " NSANPV float, IANPV float, IIANPV float, IIIANPV float, IVANPV float, VANPV float, VIANPV float, VIIANPV float, VIIIANPV float, IXANPV float, XANPV float, XIANPV float);";
   command->CommandText = sql_stmt;
   command->Execute();
-};
+}
 
 void write_to_missing_application(TADOQuery *query)
 {
@@ -1235,7 +1235,7 @@ void write_to_missing_application(TADOQuery *query)
   }
   log.clear();
   log.close();
-};
+}
 
 bool generate_report(TADOCommand *command, TADOQuery *query,
                      const AnsiString &report_date,
@@ -1261,7 +1261,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
     if(!report){
       error += "無法產生報表檔。 \n";
       return false;
-    };
+    }
     write_header(report, report_date, begin_date, end_date, dimension_one_name, dimension_two_name, "", "");
     write_part_one(query, report);
     write_part_two(query, report);
@@ -1282,7 +1282,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
       if(!report){
         error += "無法產生報表檔。 \n";
         return false;
-      };
+      }
       write_header(report, report_date, begin_date, end_date, dimension_one_name, dimension_two_name, "", (*iter_dim2));
       write_part_one(query, report);
       write_part_two(query, report);
@@ -1291,7 +1291,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
       write_part_five(query, report);
       report.clear();
       report.close();
-    };
+    }
   }
   else if(dimension_two_contents.empty()){
     vector<AnsiString>::iterator iter_dim1 = dimension_one_contents.begin();
@@ -1304,7 +1304,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
       if(!report){
         error += "無法產生報表檔。 \n";
         return false;
-      };
+      }
       write_header(report, report_date, begin_date, end_date, dimension_one_name, dimension_two_name, (*iter_dim1), "");
       write_part_one(query, report);
       write_part_two(query, report);
@@ -1313,7 +1313,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
       write_part_five(query, report);
       report.clear();
       report.close();
-    };
+    }
   }
   else{
     vector<AnsiString>::iterator iter_dim1 = dimension_one_contents.begin();
@@ -1330,7 +1330,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
         if(!report){
           error += "無法產生報表檔。 \n";
           return false;
-        };
+        }
         write_header(report, report_date, begin_date, end_date, dimension_one_name, dimension_two_name, (*iter_dim1), (*iter_dim2));
         write_part_one(query, report);
         write_part_two(query, report);
@@ -1339,12 +1339,12 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
         write_part_five(query, report);
         report.clear();
         report.close();
-      };
-    };
-  };
-  clean_up(command);
+      }
+    }
+  }
+//  clean_up(command);
   return true;
-};
+}
 
 void generate_type_one_report(TADOCommand *command,
                               const AnsiString &dimension_one,
@@ -1361,7 +1361,7 @@ void generate_type_one_report(TADOCommand *command,
   if(dimension_one_exist){
     condition_string += " WHERE A." + dimension_one + " = :DIM1 ";
     join_string += " ON A." + dimension_one + " = B." + dimension_one;
-  };
+  }
   if(dimension_two_exist){
     if(dimension_one_exist){
       condition_string += " AND ";
@@ -1373,7 +1373,7 @@ void generate_type_one_report(TADOCommand *command,
     }
     condition_string += "A." + dimension_two + " = :DIM2 ";
     join_string += "A." + dimension_two + " = B." + dimension_two;
-  };
+  }
 
   AnsiString sql_stmt;
 
@@ -1410,13 +1410,13 @@ void generate_type_one_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_one_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_one_content;
-  };
+  }
   if(dimension_two_exist){
     if(dimension_two_type == 0)
       command->Parameters->ParamValues["DIM2"] = dimension_two_content.ToInt();
     else
       command->Parameters->ParamValues["DIM2"] = dimension_two_content;
-  };
+  }
   command->Execute();
 
   sql_stmt = "INSERT INTO PART_TWO ";
@@ -1494,13 +1494,13 @@ void generate_type_one_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_one_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_one_content;
-  };
+  }
   if(dimension_two_exist){
     if(dimension_two_type == 0)
       command->Parameters->ParamValues["DIM2"] = dimension_two_content.ToInt();
     else
       command->Parameters->ParamValues["DIM2"] = dimension_two_content;
-  };
+  }
   command->Execute();
 
 
@@ -1514,7 +1514,6 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "INPV, IINPV, IIINPV, IVNPV, VNPV, VINPV, VIINPV, VIIINPV, IXNPV, XNPV, XINPV) ";
   sql_stmt += "SELECT ";
   sql_stmt += "0, IA, IIA, IIIA, IVA, VA, VIA, VIIA, VIIIA, IXA, XA, XIA, ";
-//  sql_stmt += "0, THREE.ID, THREE.IID, THREE.IIID, THREE.IVD, THREE.VD, THREE.VID, THREE.VIID, THREE.VIIID, THREE.IXD, THREE.XD, THREE.XID, ";
   sql_stmt += "0, IAD, IIAD, IIIAD, IVAD, VAD, VIAD, VIIAD, VIIIAD, IXAD, XAD, XIAD, ";
   sql_stmt += "0, ";
   sql_stmt += "IA / (CASE WHEN A.I = 0 THEN NULL ELSE A.I END) AS IAR, ";
@@ -1576,13 +1575,13 @@ void generate_type_one_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_one_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_one_content;
-  };
+  }
   if(dimension_two_exist){
     if(dimension_two_type == 0)
       command->Parameters->ParamValues["DIM2"] = dimension_two_content.ToInt();
     else
       command->Parameters->ParamValues["DIM2"] = dimension_two_content;
-  };
+  }
   command->Execute();
 
 
@@ -1601,7 +1600,6 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "IANPV, IIANPV, IIIANPV, IVANPV, VANPV, VIANPV, VIIANPV, VIIIANPV, IXANPV, XANPV, XIANPV) ";
   sql_stmt += "SELECT ";
   sql_stmt += "NSA, IA, IIA, IIIA, IVA, VA, VIA, VIIA, VIIIA, IXA, XA, XIA, ";
-//  sql_stmt += "FOUR.NSD, FOUR.ID, FOUR.IID, FOUR.IIID, FOUR.IVD, FOUR.VD, FOUR.VID, FOUR.VIID, FOUR.VIIID, FOUR.IXD, FOUR.XD, FOUR.XID, ";
   sql_stmt += "NSAD, IAD, IIAD, IIIAD, IVAD, VAD, VIAD, VIIAD, VIIIAD, IXAD, XAD, XIAD, ";
   sql_stmt += "NSA / (CASE WHEN A.NS = 0 THEN NULL ELSE A.NS END) AS NSAR, ";
   sql_stmt += "IA / (CASE WHEN A.I = 0 THEN NULL ELSE A.I END) AS IAR, ";
@@ -1713,13 +1711,13 @@ void generate_type_one_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_one_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_one_content;
-  };
+  }
   if(dimension_two_exist){
     if(dimension_two_type == 0)
       command->Parameters->ParamValues["DIM2"] = dimension_two_content.ToInt();
     else
       command->Parameters->ParamValues["DIM2"] = dimension_two_content;
-  };
+  }
   command->Execute();
 
   sql_stmt = "INSERT INTO PART_FIVE ";
@@ -1737,7 +1735,6 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "IANPV, IIANPV, IIIANPV, IVANPV, VANPV, VIANPV, VIIANPV, VIIIANPV, IXANPV, XANPV, XIANPV) ";
   sql_stmt += "SELECT ";
   sql_stmt += "NSA, IA, IIA, IIIA, IVA, VA, VIA, VIIA, VIIIA, IXA, XA, XIA, ";
-//  sql_stmt += "B.NSD, B.ID, B.IID, B.IIID, B.IVD, B.VD, B.VID, B.VIID, B.VIIID, B.IXD, B.XD, B.XID, ";
   sql_stmt += "NSAD, IAD, IIAD, IIIAD, IVAD, VAD, VIAD, VIIAD, VIIIAD, IXAD, XAD, XIAD, ";
   sql_stmt += "NSA / (CASE WHEN A.NS = 0 THEN NULL ELSE A.NS END) AS NSAR, ";
   sql_stmt += "IA / (CASE WHEN A.I = 0 THEN NULL ELSE A.I END) AS IAR, ";
@@ -1812,7 +1809,8 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIAAD /(CASE WHEN A.VIIID = 0 THEN NULL ELSE A.VIIID END), ";
   sql_stmt += "IXAAD /(CASE WHEN A.IXD = 0 THEN NULL ELSE A.IXD END), ";
   sql_stmt += "XAAD /(CASE WHEN A.XD = 0 THEN NULL ELSE A.XD END), ";
-  sql_stmt += "XIAAD /(CASE WHEN A.XID = 0 THEN NULL ELSE A.XID END), ";//  sql_stmt += "NULL, ";
+  sql_stmt += "XIAAD /(CASE WHEN A.XID = 0 THEN NULL ELSE A.XID END), ";
+//  sql_stmt += "NULL, ";
   sql_stmt += "IAPB /(CASE WHEN IAA = 0 THEN NULL ELSE IAA END) AS IAPB, ";
   sql_stmt += "IIAPB /(CASE WHEN IIAA = 0 THEN NULL ELSE IIAA END) AS IIAPB, ";
   sql_stmt += "IIIAPB /(CASE WHEN IIIAA = 0 THEN NULL ELSE IIIAA END) AS IIIAPB, ";
@@ -1848,15 +1846,15 @@ void generate_type_one_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_one_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_one_content;
-  };
+  }
   if(dimension_two_exist){
     if(dimension_two_type == 0)
       command->Parameters->ParamValues["DIM2"] = dimension_two_content.ToInt();
     else
       command->Parameters->ParamValues["DIM2"] = dimension_two_content;
-  };
+  }
   command->Execute();
-};
+}
 
 
 
@@ -1869,7 +1867,7 @@ void generate_summary_report(TADOCommand *command,
   AnsiString condition_string = "";
   if(dimension_exist){
     condition_string += " WHERE " + dimension + " = :DIM1 ";
-  };
+  }
 
   AnsiString trailing = "";
 
@@ -1911,7 +1909,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
   command->CommandText = sql_stmt;
 
@@ -1942,7 +1940,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
   command->CommandText = sql_stmt;
 
@@ -2026,7 +2024,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
 
   sql_stmt = "UPDATE PART_THREE ";
@@ -2099,7 +2097,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
   command->CommandText = sql_stmt;
 
@@ -2134,7 +2132,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
   command->CommandText = sql_stmt;
 
@@ -2154,7 +2152,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "IXA / (CASE WHEN A.IX = 0 THEN NULL ELSE A.IX END), ";
   sql_stmt += "XA / (CASE WHEN A.X = 0 THEN NULL ELSE A.X END), ";
   sql_stmt += "XIA / (CASE WHEN A.XI = 0 THEN NULL ELSE A.XI END), ";
-  sql_stmt += "NSARD / (CASE WHEN A.NSD = 0 THEN NULL ELSE A.NSD END), ";
+  sql_stmt += "NSAD / (CASE WHEN A.NSD = 0 THEN NULL ELSE A.NSD END), ";
   sql_stmt += "IAD / (CASE WHEN A.ID = 0 THEN NULL ELSE A.ID END), ";
   sql_stmt += "IIAD / (CASE WHEN A.IID = 0 THEN NULL ELSE A.IID END), ";
   sql_stmt += "IIIAD / (CASE WHEN A.IIID = 0 THEN NULL ELSE A.IIID END), ";
@@ -2274,7 +2272,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
   command->CommandText = sql_stmt;
 
@@ -2299,7 +2297,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "SUM(INPV), SUM(IINPV), SUM(IIINPV), SUM(IVNPV), SUM(VNPV), SUM(VINPV), SUM(VIINPV), SUM(VIIINPV), SUM(IXNPV), SUM(XNPV), SUM(XINPV),  ";
   sql_stmt += "SUM(NSAA), SUM(IAA), SUM(IIAA), SUM(IIIAA), SUM(IVAA), SUM(VAA), SUM(VIAA), SUM(VIIAA), SUM(VIIIAA), SUM(IXAA), SUM(XAA), SUM(XIAA), ";
   sql_stmt += "SUM(NSAAD), SUM(IAAD), SUM(IIAAD), SUM(IIIAAD), SUM(IVAAD), SUM(VAAD), SUM(VIAAD), SUM(VIIAAD), SUM(VIIIAAD), SUM(IXAAD), SUM(XAAD), SUM(XIAAD), ";
-  sql_stmt += "SUM(IAPB), SUM(IIAPB), SUM(IIIAPB), SUM(IVAPB), SUM(VAPB), SUM(VIAPB), SUM(VIIAPB), SUM(VIIIAPB), SUM(IXAPB), SUM(XPB), SUM(XIAPB), ";
+  sql_stmt += "SUM(IAPB), SUM(IIAPB), SUM(IIIAPB), SUM(IVAPB), SUM(VAPB), SUM(VIAPB), SUM(VIIAPB), SUM(VIIIAPB), SUM(IXAPB), SUM(XAPB), SUM(XIAPB), ";
   sql_stmt += "SUM(IAPBD), SUM(IIAPBD), SUM(IIIAPBD), SUM(IVAPBD), SUM(VAPBD), SUM(VIAPBD), SUM(VIIAPBD), SUM(VIIIAPBD), SUM(IXAPBD), SUM(XAPBD), SUM(XIAPBD), ";
   sql_stmt += "SUM(IANPV), SUM(IIANPV), SUM(IIIANPV), SUM(IVANPV), SUM(VANPV), SUM(VIANPV), SUM(VIIANPV), SUM(VIIIANPV), SUM(IXANPV), SUM(XANPV), SUM(XIANPV) ";
   sql_stmt += "FROM FIVE ";
@@ -2311,7 +2309,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content.ToInt();
     else
       command->Parameters->ParamValues["DIM1"] = dimension_content;
-  };
+  }
   command->Execute();
   command->CommandText = sql_stmt;
 
@@ -2331,7 +2329,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "IXA / (CASE WHEN A.IX = 0 THEN NULL ELSE A.IX END), ";
   sql_stmt += "XA / (CASE WHEN A.X = 0 THEN NULL ELSE A.X END), ";
   sql_stmt += "XIA / (CASE WHEN A.XI = 0 THEN NULL ELSE A.XI END), ";
-  sql_stmt += "NSARD / (CASE WHEN A.NSD = 0 THEN NULL ELSE A.NSD END), ";
+  sql_stmt += "NSAD / (CASE WHEN A.NSD = 0 THEN NULL ELSE A.NSD END), ";
   sql_stmt += "IAD / (CASE WHEN A.ID = 0 THEN NULL ELSE A.ID END), ";
   sql_stmt += "IIAD / (CASE WHEN A.IID = 0 THEN NULL ELSE A.IID END), ";
   sql_stmt += "IIIAD / (CASE WHEN A.IIID = 0 THEN NULL ELSE A.IIID END), ";
@@ -2432,7 +2430,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "XIPBD = XIPBD / (CASE WHEN XIAD = 0 THEN NULL ELSE XIAD END);";
   command->CommandText = sql_stmt;
   command->Execute();
-};
+}
 
 void write_part_one(TADOQuery *query, ofstream &report)
 {
@@ -2469,7 +2467,7 @@ void write_part_one(TADOQuery *query, ofstream &report)
   report << query->FieldByName("XD")->AsFloat << ",";
   report << query->FieldByName("XID")->AsFloat << endl;
   query->Close();
-};
+}
 
 void write_part_two(TADOQuery *query, ofstream &report)
 {
@@ -2598,7 +2596,7 @@ void write_part_two(TADOQuery *query, ofstream &report)
   report << query->FieldByName("XNPV")->AsFloat << ",";
   report << query->FieldByName("XINPV")->AsFloat << endl;
   query->Close();
-};
+}
 
 void write_part_three(TADOQuery *query, ofstream &report)
 {
@@ -2714,7 +2712,7 @@ void write_part_three(TADOQuery *query, ofstream &report)
   report << query->FieldByName("XNPV")->AsFloat << ",";
   report << query->FieldByName("XINPV")->AsFloat << endl;
   query->Close();
-};
+}
 
 void write_part_four(TADOQuery *query, ofstream &report)
 {
@@ -2897,7 +2895,7 @@ void write_part_four(TADOQuery *query, ofstream &report)
   report << query->FieldByName("XANPV")->AsFloat << ",";
   report << query->FieldByName("XIANPV")->AsFloat << endl;*/
   query->Close();
-};
+}
 
 void write_part_five(TADOQuery *query, ofstream &report)
 {
@@ -3079,7 +3077,7 @@ void write_part_five(TADOQuery *query, ofstream &report)
   report << query->FieldByName("XANPV")->AsFloat << ",";
   report << query->FieldByName("XIANPV")->AsFloat << endl;
   query->Close();
-};
+}
 
 //---------------------------------------------------------------------------
 
@@ -3107,7 +3105,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 //    clear(buffer,2048);
     config.getline(buffer,2048);
     report_dir = buffer;
-  };
+  }
   config.clear();
   config.close();
 }
@@ -3138,7 +3136,7 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };*/
+  }*/
 
   try{
     sql_stmt = "DROP TABLE ONE;";
@@ -3150,7 +3148,7 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   try{
     sql_stmt = "DROP TABLE TWO;";
@@ -3162,7 +3160,7 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   try{
     sql_stmt = "DROP TABLE THREE;";
@@ -3174,7 +3172,18 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
+
+  try{
+    sql_stmt = "DROP TABLE FOUR_I;";
+    command->CommandText = sql_stmt;
+    command->Execute();
+  }
+  catch(Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
+        command->Connection->Errors->Clear();
+  }
 
   try{
     sql_stmt = "DROP TABLE FOUR;";
@@ -3186,8 +3195,8 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  
+  }
+
   try{
     sql_stmt = "DROP TABLE FOUR_AR;";
     command->CommandText = sql_stmt;
@@ -3198,8 +3207,19 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  
+  }
+
+  try{
+    sql_stmt = "DROP TABLE FIVE_I;";
+    command->CommandText = sql_stmt;
+    command->Execute();
+  }
+  catch(Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
+        command->Connection->Errors->Clear();
+  }
+
   try{
     sql_stmt = "DROP TABLE FIVE;";
     command->CommandText = sql_stmt;
@@ -3210,7 +3230,7 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   try{
     sql_stmt = "DROP TABLE FIVE_AR;";
@@ -3222,7 +3242,7 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
   
   try{
     sql_stmt = "DROP TABLE PART_ONE;";
@@ -3234,8 +3254,8 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  
+  }
+
   try{
     sql_stmt = "DROP TABLE PART_TWO;";
     command->CommandText = sql_stmt;
@@ -3246,8 +3266,8 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  
+  }
+
   try{
     sql_stmt = "DROP TABLE PART_THREE;";
     command->CommandText = sql_stmt;
@@ -3258,7 +3278,7 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
 
   try{
     sql_stmt = "DROP TABLE PART_FOUR;";
@@ -3270,7 +3290,18 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
+  }
+
+  try{
+    sql_stmt = "DROP TABLE AR;";
+    command->CommandText = sql_stmt;
+    command->Execute();
+  }
+  catch(Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
+        command->Connection->Errors->Clear();
+  }
 
   try{
     sql_stmt = "DROP TABLE PART_FIVE;";
@@ -3282,8 +3313,8 @@ void clean_up(TADOCommand *command)
       if(command->Connection->Errors->Item[0]->NativeError == err_no_drop)
         command->Connection->Errors->Clear();
   //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-};
+  }
+}
 
 //---------------------------------------------------------------------------
 
@@ -3314,7 +3345,7 @@ void __fastcall TForm1::btnRemoveDimension1Click(TObject *Sender)
   if(lblDimension1->Caption != ""){
     lbDimensions->Items->Add(lblDimension1->Caption);
     lblDimension1->Caption = "";
-  };
+  }
 }
 //---------------------------------------------------------------------------
 
@@ -3323,7 +3354,7 @@ void __fastcall TForm1::btnRemoveDimension2Click(TObject *Sender)
   if(lblDimension2->Caption != ""){
     lbDimensions->Items->Add(lblDimension2->Caption);
     lblDimension2->Caption = "";
-  };
+  }
 }
 //---------------------------------------------------------------------------
 //type: 0 for int; 1 for string; 2 for float
@@ -3365,7 +3396,7 @@ void fill_dimension(const AnsiString &dimension,
   while(!query->Eof){
     dimension_content.push_back(query->FieldValues["COL"]);
     query->Next();
-  };
+  }
 }
 //---------------------------------------------------------------------------
 
