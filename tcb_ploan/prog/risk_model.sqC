@@ -45,6 +45,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      char pjtIdn[12];
      long pjtInx;
      char pjtSqlStmt[512];
+     long counter;
   EXEC SQL END DECLARE SECTION;
   struct sqlca sqlca;
 
@@ -213,42 +214,54 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         group by case_sn, idn, inquiry_date, bank_code, bank_name, query_date, item_list;
   EMB_SQL_CHECK("Insert-STM007.");
 
-  EXEC SQL
-    insert into bam087_dedup(case_sn, inquiry_date, idn, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt1, contract_amt, loan_amt, pass_due_amt, pay_code_12, is_kind, project_code, co_loan, un_mark, u_yyymmdd, u_rate, ib_mark, iab_ban, iab_name, contract_mark, contract_code, contract_code1, con_ban, con_name, act_y_mark, contract_amt_y, cnt)
-       select case_sn, inquiry_date, idn, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, cast(contract_amt1 as int), cast(contract_amt as int), cast(loan_amt as int), cast(pass_due_amt as int), pay_code_12, is_kind, project_code, co_loan, un_mark, u_yyymmdd, u_rate, ib_mark, iab_ban, iab_name, contract_mark, contract_code, contract_code1, con_ban, con_name, act_y_mark, cast(contract_amt_y as int), count(*)
-       from bam087
-       where case_sn = :pjtCase_Sn and idn = :pjtIdn
-       group by case_sn, inquiry_date, idn, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt1, contract_amt, loan_amt, pass_due_amt, pay_code_12, is_kind, project_code, co_loan, un_mark, u_yyymmdd, u_rate, ib_mark, iab_ban, iab_name, contract_mark, contract_code, contract_code1, con_ban, con_name, act_y_mark, contract_amt_y;
-  EMB_SQL_CHECK("Dedup-BAM08.");
+// if bam087 contains data then get data from bam087 else get data from bam086.
+//
 
   EXEC SQL
-    update bam087_dedup
-       set contract_amt = contract_amt1
-       where contract_amt1 > contract_amt;
-  EMB_SQL_CHECK("Max(contract_amt, contract_amt1).");
-    
-  EXEC SQL
-    update bam087_dedup
-       set contract_amt = contract_amt_y
-       where account_code= 'Y' and contract_amt_y != 0;
-  EMB_SQL_CHECK("set cash card contract_amt.");
+     select count(*)
+     into :counter
+     from bam087
+     where case_sn = :pjtCase_Sn and idn = :pjtIdn;
+  EMB_SQL_CHECK("Check bam087 exists.");
 
-  EXEC SQL
-    insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan)
-       select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan
-       from bam087_dedup
-       where case_sn = :pjtCase_Sn and idn = :pjtIdn
-       group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
-  EMB_SQL_CHECK("Insert-BAM086.");
+  if (counter > 0) {
+     EXEC SQL
+       insert into bam087_dedup(case_sn, inquiry_date, idn, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt1, contract_amt, loan_amt, pass_due_amt, pay_code_12, is_kind, project_code, co_loan, un_mark, u_yyymmdd, u_rate, ib_mark, iab_ban, iab_name, contract_mark, contract_code, contract_code1, con_ban, con_name, act_y_mark, contract_amt_y, cnt)
+          select case_sn, inquiry_date, idn, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, cast(contract_amt1 as int), cast(contract_amt as int), cast(loan_amt as int), cast(pass_due_amt as int), pay_code_12, is_kind, project_code, co_loan, un_mark, u_yyymmdd, u_rate, ib_mark, iab_ban, iab_name, contract_mark, contract_code, contract_code1, con_ban, con_name, act_y_mark, cast(contract_amt_y as int), count(*)
+          from bam087
+          where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          group by case_sn, inquiry_date, idn, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt1, contract_amt, loan_amt, pass_due_amt, pay_code_12, is_kind, project_code, co_loan, un_mark, u_yyymmdd, u_rate, ib_mark, iab_ban, iab_name, contract_mark, contract_code, contract_code1, con_ban, con_name, act_y_mark, contract_amt_y;
+     EMB_SQL_CHECK("Dedup-BAM08.");
+   
+     EXEC SQL
+       update bam087_dedup
+          set contract_amt = contract_amt1
+          where contract_amt1 > contract_amt;
+     EMB_SQL_CHECK("Max(contract_amt, contract_amt1).");
+       
+     EXEC SQL
+       update bam087_dedup
+          set contract_amt = contract_amt_y
+          where account_code= 'Y' and contract_amt_y != 0;
+     EMB_SQL_CHECK("set cash card contract_amt.");
 
-//  EXEC SQL
-//    insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
-//       select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, cast(contract_amt as int), cast(loan_amt as int), cast(pass_due_amt as int), pay_code_12, co_loan, count(*)
-//       from bam086
-//       where case_sn = :pjtCase_Sn and idn = :pjtIdn
-//       group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
-//  EMB_SQL_CHECK("Insert-BAM086.");
-
+     EXEC SQL
+       insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan)
+          select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan
+          from bam087_dedup
+          where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
+     EMB_SQL_CHECK("Insert_dedup-BAM086.");
+  }
+  else {
+     EXEC SQL
+       insert into bam086_dedup (case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan, cnt)
+          select case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, cast(contract_amt as int), cast(loan_amt as int), cast(pass_due_amt as int), pay_code_12, co_loan, count(*)
+          from bam086
+          where case_sn = :pjtCase_Sn and idn = :pjtIdn
+          group by case_sn, idn, inquiry_date, data_yyy, data_mm, bank_code, bank_name, account_code, account_code2, purpose_code, contract_amt, loan_amt, pass_due_amt, pay_code_12, co_loan;
+     EMB_SQL_CHECK("Insert-BAM086.");
+  }
 //  EXEC SQL
 //     insert into jas002_t (case_sn, idn, inquiry_date, reason, date_happen)
 //        select case_sn, idn, inquiry_date, 'D', data_yyymmdd
@@ -1831,6 +1844,8 @@ int RiskModel::CleanTables(char *case_sn, char *idn)
   EMB_SQL_CHECK("delete bam086_dedup");
   EXEC SQL delete from bam086_bucket where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete bam086_bucket");
+  EXEC SQL delete from bam087_dedup where case_sn= :delCase_Sn and idn = :delIdn;
+  EMB_SQL_CHECK("delete bam087_dedup");
   EXEC SQL delete from stm001_dedup where case_sn= :delCase_Sn and idn = :delIdn;
   EMB_SQL_CHECK("delete stm001_dedup");
   EXEC SQL delete from jas002_t_dedup where case_sn= :delCase_Sn and idn = :delIdn;

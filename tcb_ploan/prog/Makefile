@@ -32,8 +32,8 @@ CPP=g++
 #  -DNPV_FLOWS: print cash flows of every term when calculating NPV
 #EXTRA_CFLAG= -g -Wno-deprecated -DDEBUG -DTRACE -DNPV_FLOWS
 #EXTRA_CFLAG= -g -Wno-deprecated -DTRACE -DNPV_FLOWS
-#EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
-EXTRA_CFLAG= -g -Wno-deprecated 
+EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
+#EXTRA_CFLAG= -g -Wno-deprecated 
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
