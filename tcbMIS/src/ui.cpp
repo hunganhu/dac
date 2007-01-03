@@ -43,13 +43,13 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
   }
 
   AnsiString ConnectionString;
-//  AnsiString DBServer = "ESCORE";
-  AnsiString DBServer = "TCBSCORE";
+  AnsiString DBServer = "ESCORE";
+//  AnsiString DBServer = "TCBSCORE"; // local test
 //  AnsiString DB = edtDB->Text;
   AnsiString account = edtAccount->Text;
-//  AnsiString location = "10.0.31.71:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\"";
+  AnsiString location = "10.0.31.71:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\"";
 //  AnsiString location = "10.0.5.47:50000"; //Testing:10.0.5.47:50000; production should use:10.0.31.71:50000 Local:"\"\"";
-  AnsiString location = "192.168.1.13:50000"; //local test
+//  AnsiString location = "192.168.1.13:50000"; //local test
   AnsiString ExtendedProperties = "\"\"";
   AnsiString passowrd = edtPassword->Text;
   ConnectionString = "Provider=IBMDADB2.1;Password=" + passowrd;
@@ -1342,7 +1342,7 @@ bool generate_report(TADOCommand *command, TADOQuery *query,
       }
     }
   }
-//  clean_up(command);
+  clean_up(command);
   return true;
 }
 
@@ -1636,7 +1636,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIPB / (CASE WHEN VIIIA = 0 THEN NULL ELSE VIIIA END) AS VIIIPB,  ";
   sql_stmt += "IXPB / (CASE WHEN IXA = 0 THEN NULL ELSE IXA END) AS IXPB,  ";
   sql_stmt += "XPB / (CASE WHEN XA = 0 THEN NULL ELSE XA END) AS XPB,  ";
-  sql_stmt += "XIPB / (CASE WHEN XIA = 0 THEN NULL ELSE XIA END) AS XIPB, ";
+  sql_stmt += "XIPB / (CASE WHEN (XIA-NSA) = 0 THEN NULL ELSE (XIA-NSA) END) AS XIPB, ";
 //  sql_stmt += "NULL,  ";
   sql_stmt += "IPBD / (CASE WHEN IAD = 0 THEN NULL ELSE IAD END) AS IPBD,  ";
   sql_stmt += "IIPBD / (CASE WHEN IIAD = 0 THEN NULL ELSE IIAD END) AS IIPBD,  ";
@@ -1648,7 +1648,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIPBD / (CASE WHEN VIIIAD = 0 THEN NULL ELSE VIIIAD END) AS VIIIPBD,  ";
   sql_stmt += "IXPBD / (CASE WHEN IXAD = 0 THEN NULL ELSE IXAD END) AS IXPBD,  ";
   sql_stmt += "XPBD / (CASE WHEN XAD = 0 THEN NULL ELSE XAD END) AS XPBD,  ";
-  sql_stmt += "XIPBD / (CASE WHEN XIAD = 0 THEN NULL ELSE XIAD END) AS XIPBD,  ";
+  sql_stmt += "XIPBD / (CASE WHEN XIAD-NSAD = 0 THEN NULL ELSE XIAD-NSAD END) AS XIPBD,  ";
 //  sql_stmt += "NULL,";
   sql_stmt += "INPV, IINPV, IIINPV, IVNPV, VNPV, VINPV, VIINPV, VIIINPV, IXNPV, XNPV, XINPV, ";
   sql_stmt += "NSAA /(CASE WHEN A.NS = 0 THEN NULL ELSE A.NS END), ";
@@ -1686,7 +1686,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIAPB /(CASE WHEN VIIIAA = 0 THEN NULL ELSE VIIIAA END) AS VIIIAPB, ";
   sql_stmt += "IXAPB /(CASE WHEN IXAA = 0 THEN NULL ELSE IXAA END) AS IXAPB, ";
   sql_stmt += "XAPB /(CASE WHEN XAA = 0 THEN NULL ELSE XAA END) AS XAPB, ";
-  sql_stmt += "XIAPB /(CASE WHEN XIAA = 0 THEN NULL ELSE XIAA END) AS XIAPB, ";
+  sql_stmt += "XIAPB /(CASE WHEN (XIAA-NSAA) = 0 THEN NULL ELSE (XIAA-NSAA) END) AS XIAPB, ";
 //  sql_stmt += "NULL, ";
   sql_stmt += "IAPBD /(CASE WHEN IAAD = 0 THEN NULL ELSE IAAD END) AS IAPBD, ";
   sql_stmt += "IIAPBD /(CASE WHEN IIAAD = 0 THEN NULL ELSE IIAAD END) AS IIAPBD, ";
@@ -1698,7 +1698,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIAPBD /(CASE WHEN VIIIAAD = 0 THEN NULL ELSE VIIIAAD END) AS VIIIAPBD, ";
   sql_stmt += "IXAPBD /(CASE WHEN IXAAD = 0 THEN NULL ELSE IXAAD END) AS IXAPBD, ";
   sql_stmt += "XAPBD /(CASE WHEN XAAD = 0 THEN NULL ELSE XAAD END) AS XAPBD, ";
-  sql_stmt += "XIAPBD /(CASE WHEN XIAAD = 0 THEN NULL ELSE XIAAD END) AS XIAPBD, ";
+  sql_stmt += "XIAPBD /(CASE WHEN XIAAD-NSAAD = 0 THEN NULL ELSE XIAAD-NSAAD END) AS XIAPBD, ";
 //  sql_stmt += "NULL, ";
   sql_stmt += "IANPV, IIANPV, IIIANPV, IVANPV, VANPV, VIANPV, VIIANPV, VIIIANPV, IXANPV, XANPV, XIANPV ";
   sql_stmt += "FROM FOUR AS B INNER JOIN ONE AS A  ";
@@ -1771,7 +1771,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIPB / (CASE WHEN VIIIA = 0 THEN NULL ELSE VIIIA END) AS VIIIPB,  ";
   sql_stmt += "IXPB / (CASE WHEN IXA = 0 THEN NULL ELSE IXA END) AS IXPB,  ";
   sql_stmt += "XPB / (CASE WHEN XA = 0 THEN NULL ELSE XA END) AS XPB,  ";
-  sql_stmt += "XIPB / (CASE WHEN XIA = 0 THEN NULL ELSE XIA END) AS XIPB, ";
+  sql_stmt += "XIPB / (CASE WHEN (XIA-NSA) = 0 THEN NULL ELSE (XIA-NSA) END) AS XIPB, ";
 //  sql_stmt += "NULL,  ";
   sql_stmt += "IPBD / (CASE WHEN IAD = 0 THEN NULL ELSE IAD END) AS IPBD,  ";
   sql_stmt += "IIPBD / (CASE WHEN IIAD = 0 THEN NULL ELSE IIAD END) AS IIPBD,  ";
@@ -1783,7 +1783,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIPBD / (CASE WHEN VIIIAD = 0 THEN NULL ELSE VIIIAD END) AS VIIIPBD,  ";
   sql_stmt += "IXPBD / (CASE WHEN IXAD = 0 THEN NULL ELSE IXAD END) AS IXPBD,  ";
   sql_stmt += "XPBD / (CASE WHEN XAD = 0 THEN NULL ELSE XAD END) AS XPBD,  ";
-  sql_stmt += "XIPBD / (CASE WHEN XIAD = 0 THEN NULL ELSE XIAD END) AS XIPBD,  ";
+  sql_stmt += "XIPBD / (CASE WHEN XIAD-NSAD = 0 THEN NULL ELSE XIAD-NSAD END) AS XIPBD,  ";
 //  sql_stmt += "NULL, ";
   sql_stmt += "INPV, IINPV, IIINPV, IVNPV, VNPV, VINPV, VIINPV, VIIINPV, IXNPV, XNPV, XINPV, ";
   sql_stmt += "NSAA /(CASE WHEN A.NS = 0 THEN NULL ELSE A.NS END), ";
@@ -1821,7 +1821,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIAPB /(CASE WHEN VIIIAA = 0 THEN NULL ELSE VIIIAA END) AS VIIIAPB, ";
   sql_stmt += "IXAPB /(CASE WHEN IXAA = 0 THEN NULL ELSE IXAA END) AS IXAPB, ";
   sql_stmt += "XAPB /(CASE WHEN XAA = 0 THEN NULL ELSE XAA END) AS XAPB, ";
-  sql_stmt += "XIAPB /(CASE WHEN XIAA = 0 THEN NULL ELSE XIAA END) AS XIAPB, ";
+  sql_stmt += "XIAPB /(CASE WHEN XIAA-NSAA = 0 THEN NULL ELSE XIAA-NSAA END) AS XIAPB, ";
 //  sql_stmt += "NULL, ";
   sql_stmt += "IAPBD /(CASE WHEN IAAD = 0 THEN NULL ELSE IAAD END) AS IAPBD, ";
   sql_stmt += "IIAPBD /(CASE WHEN IIAAD = 0 THEN NULL ELSE IIAAD END) AS IIAPBD, ";
@@ -1833,7 +1833,7 @@ void generate_type_one_report(TADOCommand *command,
   sql_stmt += "VIIIAPBD /(CASE WHEN VIIIAAD = 0 THEN NULL ELSE VIIIAAD END) AS VIIIAPBD, ";
   sql_stmt += "IXAPBD /(CASE WHEN IXAAD = 0 THEN NULL ELSE IXAAD END) AS IXAPBD, ";
   sql_stmt += "XAPBD /(CASE WHEN XAAD = 0 THEN NULL ELSE XAAD END) AS XAPBD, ";
-  sql_stmt += "XIAPBD /(CASE WHEN XIAAD = 0 THEN NULL ELSE XIAAD END) AS XIAPBD, ";
+  sql_stmt += "XIAPBD /(CASE WHEN XIAAD-NSAD = 0 THEN NULL ELSE XIAAD-NSAD END) AS XIAPBD, ";
 //  sql_stmt += "NULL,";
   sql_stmt += "IANPV, IIANPV, IIIANPV, IVANPV, VANPV, VIANPV, VIIANPV, VIIIANPV, IXANPV, XANPV, XIANPV ";
   sql_stmt += "FROM FIVE AS B INNER JOIN ONE AS A  ";
@@ -1911,7 +1911,7 @@ void generate_summary_report(TADOCommand *command,
       command->Parameters->ParamValues["DIM1"] = dimension_content;
   }
   command->Execute();
-  command->CommandText = sql_stmt;
+//  command->CommandText = sql_stmt;
 
   sql_stmt = "INSERT INTO PART_TWO ";
   sql_stmt += "(NSA, IA, IIA, IIIA, IVA, VA, VIA, VIIA, VIIIA, IXA, XA, XIA, ";
@@ -2181,7 +2181,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIAPB = VIIIAPB /(CASE WHEN VIIIAAR = 0 THEN NULL ELSE VIIIAAR END), ";
   sql_stmt += "IXAPB = IXAPB /(CASE WHEN IXAAR = 0 THEN NULL ELSE IXAAR END), ";
   sql_stmt += "XAPB = XAPB /(CASE WHEN XAAR = 0 THEN NULL ELSE XAAR END), ";
-  sql_stmt += "XIAPB = XIAPB /(CASE WHEN XIAAR = 0 THEN NULL ELSE XIAAR END), ";
+  sql_stmt += "XIAPB = XIAPB /(CASE WHEN XIAAR-NSAAR = 0 THEN NULL ELSE XIAAR-NSAAR END), ";
   sql_stmt += "IAPBD = IAPBD /(CASE WHEN IAARD = 0 THEN NULL ELSE IAARD END), ";
   sql_stmt += "IIAPBD = IIAPBD /(CASE WHEN IIAARD = 0 THEN NULL ELSE IIAARD END), ";
   sql_stmt += "IIIAPBD = IIIAPBD /(CASE WHEN IIIAARD = 0 THEN NULL ELSE IIIAARD END), ";
@@ -2192,7 +2192,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIAPBD = VIIIAPBD /(CASE WHEN VIIIAARD = 0 THEN NULL ELSE VIIIAARD END), ";
   sql_stmt += "IXAPBD = IXAPBD /(CASE WHEN IXAARD = 0 THEN NULL ELSE IXAARD END), ";
   sql_stmt += "XAPBD = XAPBD /(CASE WHEN XAARD = 0 THEN NULL ELSE XAARD END), ";
-  sql_stmt += "XIAPBD = XIAPBD /(CASE WHEN XIAARD = 0 THEN NULL ELSE XIAARD END);";
+  sql_stmt += "XIAPBD = XIAPBD /(CASE WHEN XIAARD-NSAARD = 0 THEN NULL ELSE XIAARD-NSAARD END);";
   command->CommandText = sql_stmt;
   command->Execute();
 
@@ -2240,7 +2240,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIPB = VIIIPB / (CASE WHEN VIIIA = 0 THEN NULL ELSE VIIIA END), ";
   sql_stmt += "IXPB = IXPB / (CASE WHEN IXA = 0 THEN NULL ELSE IXA END), ";
   sql_stmt += "XPB = XPB / (CASE WHEN XA = 0 THEN NULL ELSE XA END),";
-  sql_stmt += "XIPB = XIPB / (CASE WHEN XIA = 0 THEN NULL ELSE XIA END), ";
+  sql_stmt += "XIPB = XIPB / (CASE WHEN XIA-NSA = 0 THEN NULL ELSE XIA-NSA END), ";
   sql_stmt += "IPBD = IPBD / (CASE WHEN IAD = 0 THEN NULL ELSE IAD END), ";
   sql_stmt += "IIPBD = IIPBD / (CASE WHEN IIAD = 0 THEN NULL ELSE IIAD END), ";
   sql_stmt += "IIIPBD = IIIPBD / (CASE WHEN IIIAD = 0 THEN NULL ELSE IIIAD END), ";
@@ -2251,7 +2251,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIPBD = VIIIPBD / (CASE WHEN VIIIAD = 0 THEN NULL ELSE VIIIAD END), ";
   sql_stmt += "IXPBD = IXPBD / (CASE WHEN IXAD = 0 THEN NULL ELSE IXAD END), ";
   sql_stmt += "XPBD = XPBD / (CASE WHEN XAD = 0 THEN NULL ELSE XAD END),";
-  sql_stmt += "XIPBD = XIPBD / (CASE WHEN XIAD = 0 THEN NULL ELSE XIAD END);";
+  sql_stmt += "XIPBD = XIPBD / (CASE WHEN XIAD-NSAD = 0 THEN NULL ELSE XIAD-NSAD END);";
   command->CommandText = sql_stmt;
   command->Execute();
 
@@ -2357,7 +2357,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIAPB = VIIIAPB /(CASE WHEN VIIIAAR = 0 THEN NULL ELSE VIIIAAR END), ";
   sql_stmt += "IXAPB = IXAPB /(CASE WHEN IXAAR = 0 THEN NULL ELSE IXAAR END), ";
   sql_stmt += "XAPB = XAPB /(CASE WHEN XAAR = 0 THEN NULL ELSE XAAR END), ";
-  sql_stmt += "XIAPB = XIAPB /(CASE WHEN XIAAR = 0 THEN NULL ELSE XIAAR END), ";
+  sql_stmt += "XIAPB = XIAPB /(CASE WHEN XIAAR-NSAAR = 0 THEN NULL ELSE XIAAR-NSAAR END), ";
   sql_stmt += "IAPBD = IAPBD /(CASE WHEN IAARD = 0 THEN NULL ELSE IAARD END), ";
   sql_stmt += "IIAPBD = IIAPBD /(CASE WHEN IIAARD = 0 THEN NULL ELSE IIAARD END), ";
   sql_stmt += "IIIAPBD = IIIAPBD /(CASE WHEN IIIAARD = 0 THEN NULL ELSE IIIAARD END), ";
@@ -2368,7 +2368,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIAPBD = VIIIAPBD /(CASE WHEN VIIIAARD = 0 THEN NULL ELSE VIIIAARD END), ";
   sql_stmt += "IXAPBD = IXAPBD /(CASE WHEN IXAARD = 0 THEN NULL ELSE IXAARD END), ";
   sql_stmt += "XAPBD = XAPBD /(CASE WHEN XAARD = 0 THEN NULL ELSE XAARD END), ";
-  sql_stmt += "XIAPBD = XIAPBD /(CASE WHEN XIAARD = 0 THEN NULL ELSE XIAARD END);";
+  sql_stmt += "XIAPBD = XIAPBD /(CASE WHEN XIAARD-NSAARD = 0 THEN NULL ELSE XIAARD-NSAARD END);";
   command->CommandText = sql_stmt;
   command->Execute();
 
@@ -2416,7 +2416,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIPB = VIIIPB / (CASE WHEN VIIIA = 0 THEN NULL ELSE VIIIA END), ";
   sql_stmt += "IXPB = IXPB / (CASE WHEN IXA = 0 THEN NULL ELSE IXA END), ";
   sql_stmt += "XPB = XPB / (CASE WHEN XA = 0 THEN NULL ELSE XA END),";
-  sql_stmt += "XIPB = XIPB / (CASE WHEN XIA = 0 THEN NULL ELSE XIA END), ";
+  sql_stmt += "XIPB = XIPB / (CASE WHEN XIA-NSA = 0 THEN NULL ELSE XIA-NSA END), ";
   sql_stmt += "IPBD = IPBD / (CASE WHEN IAD = 0 THEN NULL ELSE IAD END), ";
   sql_stmt += "IIPBD = IIPBD / (CASE WHEN IIAD = 0 THEN NULL ELSE IIAD END), ";
   sql_stmt += "IIIPBD = IIIPBD / (CASE WHEN IIIAD = 0 THEN NULL ELSE IIIAD END), ";
@@ -2427,7 +2427,7 @@ void generate_summary_report(TADOCommand *command,
   sql_stmt += "VIIIPBD = VIIIPBD / (CASE WHEN VIIIAD = 0 THEN NULL ELSE VIIIAD END), ";
   sql_stmt += "IXPBD = IXPBD / (CASE WHEN IXAD = 0 THEN NULL ELSE IXAD END), ";
   sql_stmt += "XPBD = XPBD / (CASE WHEN XAD = 0 THEN NULL ELSE XAD END),";
-  sql_stmt += "XIPBD = XIPBD / (CASE WHEN XIAD = 0 THEN NULL ELSE XIAD END);";
+  sql_stmt += "XIPBD = XIPBD / (CASE WHEN XIAD-NSAD = 0 THEN NULL ELSE XIAD-NSAD END);";
   command->CommandText = sql_stmt;
   command->Execute();
 }
