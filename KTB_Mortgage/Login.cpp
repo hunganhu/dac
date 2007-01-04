@@ -31,6 +31,7 @@ void __fastcall TfrmLogin::btnLoginClick(TObject *Sender)
   connection_string += "Password=fm_user1;";
   connection_string += "Persist Security Info=True;User ID=fm_user1;";
   connection_string += "Initial Catalog=KTB_FM;Data Source=DAC-DB2";
+//  connection_string = "Provider=SQLOLEDB.1;Password=dac;Persist Security Info=True;User ID=dac;Initial Catalog=KTB_FM;Data Source=oliver\\daisy";
   Data->connection->ConnectionString = connection_string;
   Data->connection->ConnectionTimeout = 5;
   static int login_error = 0;

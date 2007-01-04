@@ -62,6 +62,7 @@ object frmLogin: TfrmLogin
     Top = 147
     Width = 120
     Height = 21
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
     TabOrder = 0
   end
   object edtPassword: TEdit
@@ -69,6 +70,7 @@ object frmLogin: TfrmLogin
     Top = 176
     Width = 121
     Height = 21
+    ImeName = #20013#25991' ('#32321#39636') - '#26032#27880#38899
     PasswordChar = '*'
     TabOrder = 1
   end
