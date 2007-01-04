@@ -52,14 +52,23 @@ int DAC_SML_PRESCREEN(char *idn, char *msn, char *time_stamp, char *ole_db,
  	 copy_table(command, "KRM023", KRM023, msn_no, time_stamp_no);
          copy_table(command, "KRM037", KRM037, msn_no, time_stamp_no);
 //   	 copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
-   	 copy_table(command, "BAM087", BAM086, msn_no, time_stamp_no);
+//   	 copy_table(command, "BAM087", BAM086, msn_no, time_stamp_no);
      	 copy_table(command, "STM007", STM007, msn_no, time_stamp_no);
      	 copy_table(command, "JAS002", JAS002, msn_no, time_stamp_no);
+
+         if (exist(query, "BAM087", msn_no, time_stamp_no)) {
+            copy_table(command, "BAM087", BAM087, msn_no, time_stamp_no);
+            prepare_BAM087(command, BAM087, BAM086);
+         }
+         else {
+            copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
+            prepare_BAM086(command, BAM086);
+         }
 
 //       prepare_KRM023(command, KRM023, now);
          merge_prepare_KRM023_KRM037(command, KRM023, KRM037, now);
   	 prepare_KRM001(command, KRM001, now);
- 	 prepare_BAM086(command, BAM086);
+// 	 prepare_BAM086(command, BAM086);
  	 prepare_STM007(command, STM007);
 	 prepare_JAS002(command, JAS002, JAS002_T);
  	 create_common_working_tables(command);
@@ -284,14 +293,22 @@ int DAC_SML_NPV(char *idn, char *msn, char *time_stamp, char *ole_db,
 	 copy_table(command, "KRM021", KRM001, msn_no, time_stamp_no);
  	 copy_table(command, "KRM023", KRM023, msn_no, time_stamp_no);
          copy_table(command, "KRM037", KRM037, msn_no, time_stamp_no);
-   	 copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
+//   	 copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
      	 copy_table(command, "STM007", STM007, msn_no, time_stamp_no);
      	 copy_table(command, "JAS002", JAS002, msn_no, time_stamp_no);
 
+         if (exist(query, "BAM087", msn_no, time_stamp_no)) {
+            copy_table(command, "BAM087", BAM087, msn_no, time_stamp_no);
+            prepare_BAM087(command, BAM087, BAM086);
+         }
+         else {
+            copy_table(command, "BAM086", BAM086, msn_no, time_stamp_no);
+            prepare_BAM086(command, BAM086);
+         }
 //       prepare_KRM023(command, KRM023, now);
          merge_prepare_KRM023_KRM037(command, KRM023, KRM037, now);
   	 prepare_KRM001(command, KRM001, now);
- 	 prepare_BAM086(command, BAM086);
+// 	 prepare_BAM086(command, BAM086);
  	 prepare_STM007(command, STM007);
 	 prepare_JAS002(command, JAS002, JAS002_T);
  	 create_common_working_tables(command);
@@ -697,7 +714,7 @@ catch(Exception &E){
     sql_stmt += " GROUP BY MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, "
                 "  ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT1, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, "
                 "  IS_KIND, PROJECT_CODE, CO_LOAN, UN_MARK, U_YYYMMDD, U_RATE, IB_MARK, IAB_BAN, IAB_NAME, "
-                "  CONTRACT_MARK, CONTRACT_CODE, CONTRACT_CODE1, CON_BAN, CON_NAME, ACT_Y_MARK, CONTRACT_AMT_Y, Input_Time ";
+                "  CONTRACT_MARK, CONTRACT_CODE, CONTRACT_CODE1, CON_BAN, CON_NAME, ACT_Y_MARK, CONTRACT_AMT_Y ";
   }
   else if(source_table == "BAM086"){
     sql_stmt += "GROUP BY MSN, IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, ";
@@ -781,6 +798,30 @@ int yrmon_to_mon(const AnsiString &inquiry_month,
     }
   }
   return (year - 1911) * 12 + month;
+}
+
+int exist(TADOQuery *query, const AnsiString &table,
+          const AnsiString &msn, const AnsiString &input_time)
+{
+  AnsiString sql_stmt;
+  int flag;
+
+  sql_stmt = "SELECT COUNT(*) AS HIT FROM "+ table +" WHERE MSN = :msn AND INQUIRY_DATE = :time_stamp ";
+  sql_stmt = sql_stmt.UpperCase();
+  query->Close();
+  query->SQL->Clear();
+  query->SQL->Add(sql_stmt);
+  query->Parameters->ParamValues["msn"] = msn;
+  query->Parameters->ParamValues["time_stamp"] = input_time;
+  query->Open();
+
+  if(query->FieldByName("HIT")->IsNull)
+    flag = 0;
+  else
+    flag = query->FieldValues["HIT"];
+
+  query->Close();
+  return flag;
 }
 
 void prepare_KRM023(TADOCommand *command, const AnsiString &table, int now)
@@ -1390,16 +1431,96 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table)
   command->CommandText = sql_stmt;
   command->Execute();
 
-  sql_stmt = " UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[BAM086_BUCKET]')"
+             "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
+             "   drop table [BAM086_BUCKET]; "
+             " CREATE TABLE BAM086_BUCKET (IDN CHAR(14), BANK_CODE CHAR(3), MON_SINCE INT, BUCKET FLOAT);";
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt =  "DECLARE @i INT SET @i=1 "
+              " while @i <= 12"
+              "    begin"
+              "       insert into bam086_bucket (idn, bank_code, mon_since, bucket) "
+              "          select idn, bank_code2, (mon_since - @i + 1), "
+              "                 (case when substring(rtrim(pay_code_12), @i, 1) = 'A' then 0.25"
+              "                       when substring(rtrim(pay_code_12), @i, 1) = 'B' then 0.5"
+              "                       when substring(rtrim(pay_code_12), @i, 1) = 'X' then 0"
+              "                       else convert(float, substring(rtrim(pay_code_12), @i, 1)) end)"
+              "          from " + table +
+              "          where cycle >= @i"
+              "       set @i = @i + 1"
+              "    end";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+}
+
+void prepare_BAM087(TADOCommand *command, const AnsiString &src_table, const AnsiString &table)
+{
+  AnsiString sql_stmt;
+
+  try{
+     sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + BAM086 + "')"
+                 " and objectproperty(id, N'isusertable') = 1) ";
+     sql_stmt += "DROP TABLE " + BAM086 + ";";
+     sql_stmt = sql_stmt.UpperCase();
+     command->CommandText = sql_stmt;
+     command->Execute();
+  }
+  catch(Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if (command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+  }
+  sql_stmt = "UPDATE " + src_table + " SET ";
+  sql_stmt += "MSN = (CASE WHEN MSN = '' THEN NULL ELSE MSN END), ";
+  sql_stmt += "INQUIRY_DATE = (CASE WHEN INQUIRY_DATE = '' THEN NULL ELSE INQUIRY_DATE END), ";
+  sql_stmt += "IDN = (CASE WHEN IDN = '' THEN NULL ELSE IDN END), ";
+  sql_stmt += "DATA_YYY = (CASE WHEN DATA_YYY = '' THEN NULL ELSE DATA_YYY END), ";
+  sql_stmt += "DATA_MM = (CASE WHEN DATA_MM = '' THEN NULL ELSE DATA_MM END), ";
+  sql_stmt += "BANK_CODE = (CASE WHEN BANK_CODE = '' THEN NULL ELSE BANK_CODE END), ";
+  sql_stmt += "BANK_NAME = (CASE WHEN BANK_NAME = '' THEN NULL ELSE BANK_NAME END), ";
+  sql_stmt += "ACCOUNT_CODE = (CASE WHEN ACCOUNT_CODE = '' THEN NULL ELSE ACCOUNT_CODE END), ";
+  sql_stmt += "ACCOUNT_CODE2 = (CASE WHEN ACCOUNT_CODE2 = '' THEN NULL ELSE ACCOUNT_CODE2 END), ";
+  sql_stmt += "PURPOSE_CODE = (CASE WHEN PURPOSE_CODE = '' THEN NULL ELSE PURPOSE_CODE END), ";
+  sql_stmt += "PAY_CODE_12 = (CASE WHEN PAY_CODE_12 = '' THEN NULL ELSE PAY_CODE_12 END), ";
+  sql_stmt += "CO_LOAN = (CASE WHEN CO_LOAN = '' THEN NULL ELSE CO_LOAN END);";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
-  sql_stmt = "UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
+//Create Bank_Code2 for BAM009
+  sql_stmt = "ALTER TABLE " + src_table + " ADD BANK_CODE2 CHAR(3), MON_SINCE INT, CYCLE INT;";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
+  sql_stmt = "UPDATE " + src_table + " SET BANK_CODE2 = LEFT(BANK_CODE,3),";
+  sql_stmt += " MON_SINCE = CAST(DATA_YYY AS INT)* 12 + CAST(DATA_MM AS INT),"
+              " CYCLE = LEN(LTRIM(RTRIM(PAY_CODE_12)));";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = " UPDATE " + src_table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + src_table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  // dedup converted bam087 to bam086
+  sql_stmt = "SELECT IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, BANK_CODE2, MON_SINCE, CYCLE ";
+  sql_stmt += "INTO " + table + " ";
+  sql_stmt += "FROM " + src_table + " ";
+  sql_stmt += "GROUP BY IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, BANK_CODE2, MON_SINCE, CYCLE ";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
 
   sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[BAM086_BUCKET]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
@@ -1424,7 +1545,6 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table)
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
-
 }
 
 void prepare_STM007(TADOCommand *command, const AnsiString &table)
@@ -2706,6 +2826,21 @@ catch(Exception &E){
       command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 }
+
+try{
+  AnsiString sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[" + BAM087 + "]')"
+             "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "
+             "DROP TABLE " + BAM087 + ";";
+  command->CommandText = sql_stmt;
+  command->Execute();
+}
+catch(Exception &E){
+  if (AnsiString(E.ClassName()) == "EOleException")
+    if(command->Connection->Errors->Item[0]->NativeError == 3701)
+      command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+}
+
 try{
   AnsiString sql_stmt = " if exists (select * from dbo.sysobjects where id = object_id(N'[" + KRM023 + "]')"
              "          and OBJECTPROPERTY(id, N'IsUserTable') = 1) "

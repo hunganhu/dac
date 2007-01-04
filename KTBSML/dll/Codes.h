@@ -14,6 +14,7 @@
 #pragma alias "@System@@CheckAutoResult$qqrv"="@System@@CheckAutoResult$qqrl"
 
 const AnsiString BAM086 = "BAM086_BASE";
+const AnsiString BAM087 = "BAM087_BASE";
 const AnsiString KRM023 = "KRM023_WITH_THREE_BUCKET";
 const AnsiString KRM037 = "KRM037_BASE";
 const AnsiString KRM001 = "KRM001_BASE";
@@ -137,13 +138,15 @@ void initialize_ado_objects(TADOConnection *connection, TADOQuery *query,
                             int command_timeout = 300);
 void connect(TADOConnection *connection, const AnsiString &connection_string="",
              int connection_timeout = 30,
-             int command_timeout = 300);                            
+             int command_timeout = 300);
 void copy_table(TADOCommand *command,
                 const AnsiString &source_table, const AnsiString &destination_table,
                 const AnsiString &msn, const AnsiString &time_stamp);
 int yrmon_to_mon(const AnsiString &inquiry_month="",
                  bool time_lock=false, const AnsiString &lock="",
                  bool archive=false, bool use_krm037=true);
+int exist(TADOQuery *query, const AnsiString &table,
+          const AnsiString &msn, const AnsiString &input_time);
 void prepare_KRM023(TADOCommand *command, const AnsiString &table, int now);
 void merge_prepare_KRM023_KRM037(TADOCommand *command, const AnsiString &krm023,
                                  const AnsiString &krm037, int now);
@@ -151,6 +154,7 @@ void merge_prepare_KRM023_KRM034(TADOCommand *command, const AnsiString &krm023,
                                  const AnsiString &krm034, int now);
 void prepare_KRM001(TADOCommand *command, const AnsiString &table, int now);
 void prepare_BAM086(TADOCommand *command, const AnsiString &table);
+void prepare_BAM087(TADOCommand *command, const AnsiString &src_table, const AnsiString &table);
 void prepare_STM007(TADOCommand *command, const AnsiString &table);
 void prepare_DAM103(TADOCommand *command, const AnsiString &table);
 void prepare_DAM203(TADOCommand *command, const AnsiString &table);

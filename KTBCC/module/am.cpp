@@ -42,7 +42,7 @@ int TNB_CC_AM(char *idn, char *jcic_inquiry_date, char *app_input_time,
   AnsiString connection_string = static_cast<AnsiString>(ole_db_str);
   int status = 0;
   AnsiString special_note= "";
-  AnsiString version = "1.53";
+  AnsiString version = "1.54";  // 20061218: change jcic source from bam086 to bam087
 
   AnsiString bank = static_cast<AnsiString>(bank_code);
   if(bank!= "054")
@@ -78,9 +78,17 @@ int TNB_CC_AM(char *idn, char *jcic_inquiry_date, char *app_input_time,
       copy_table(command, "KRM037", KRM037, idno, jcic_date, input_time);
 //      copy_table(command, "KRM034", KRM034, idno, jcic_date, input_time);
 //      copy_table(command, "BAM086", BAM086, idno, jcic_date, input_time);
-      copy_table(command, "BAM087", BAM086, idno, jcic_date, input_time);
       copy_table(command, "STM007", STM001, idno, jcic_date, input_time);
       copy_table(command, "JAS002", JAS002, idno, jcic_date, input_time);
+
+      if(exist(query, "BAM087", idno, input_time)) {
+         copy_table(command, "BAM087", BAM087, idno, jcic_date, input_time);
+         prepare_BAM087(command, BAM087, BAM086, now);
+      }
+      else {
+         copy_table(command, "BAM086", BAM086, idno, jcic_date, input_time);
+         prepare_BAM086(command, BAM086, now);
+      }
 
       vam102_message(query, idno, jcic_date, input_time, special_note);
 
@@ -88,7 +96,7 @@ int TNB_CC_AM(char *idn, char *jcic_inquiry_date, char *app_input_time,
       merge_prepare_KRM023_KRM037(command, KRM023, KRM037, now);
 //      merge_prepare_KRM023_KRM034(command, KRM023, KRM034, now);
       prepare_KRM001(command, KRM001, now);
-      prepare_BAM086(command, BAM086, now);
+//      prepare_BAM086(command, BAM086, now);
       prepare_STM001(command, STM001, "054");
       prepare_JAS002(command, JAS002, JAS002_T);
 
@@ -252,6 +260,29 @@ int yrmon_to_mon(const AnsiString &inquiry_month,
   return (year - 1911) * 12 + month;
 };
 
+int exist(TADOQuery *query, const AnsiString &table,
+          const AnsiString &idno, const AnsiString &input_time)
+{
+  AnsiString sql_stmt;
+  int flag;
+
+  sql_stmt = "SELECT COUNT(*) AS HIT FROM "+ table +" WHERE IDN = :idno AND INPUT_TIME=:input_time";
+  sql_stmt = sql_stmt.UpperCase();
+  query->Close();
+  query->SQL->Clear();
+  query->SQL->Add(sql_stmt);
+  query->Parameters->ParamValues["idno"] = idno;
+  query->Parameters->ParamValues["input_time"] = input_time;
+  query->Open();
+
+  if(query->FieldByName("HIT")->IsNull)
+    flag = 0;
+  else
+    flag = query->FieldValues["HIT"];
+
+  query->Close();
+  return flag;
+}
 
 void copy_table(TADOCommand *command,
                 const AnsiString &source_table, const AnsiString &destination_table,
@@ -948,12 +979,67 @@ void prepare_BAM086(TADOCommand *command, const AnsiString &table, int now)
   command->CommandText = sql_stmt;
   command->Execute();
 
-  sql_stmt = " UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  build_bam_bucket(command, table, now);
+};
+
+void prepare_BAM087(TADOCommand *command, const AnsiString &src_table, const AnsiString &table, int now)
+{
+  AnsiString sql_stmt;
+
+  try{
+     sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + BAM086 + "')"
+                 " and objectproperty(id, N'isusertable') = 1) ";
+     sql_stmt += "DROP TABLE " + BAM086 + ";";
+     sql_stmt = sql_stmt.UpperCase();
+     command->CommandText = sql_stmt;
+     command->Execute();
+  }
+  catch(Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if (command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+  }
+  sql_stmt = "UPDATE " + src_table + " SET ";
+  sql_stmt += "idn = (CASE WHEN idn = '' THEN NULL ELSE idn END), ";
+  sql_stmt += "DATA_YYY = (CASE WHEN DATA_YYY = '' THEN NULL ELSE DATA_YYY END), ";
+  sql_stmt += "DATA_MM = (CASE WHEN DATA_MM = '' THEN NULL ELSE DATA_MM END), ";
+  sql_stmt += "BANK_CODE = (CASE WHEN BANK_CODE = '' THEN NULL ELSE BANK_CODE END), ";
+  sql_stmt += "BANK_NAME = (CASE WHEN BANK_NAME = '' THEN NULL ELSE BANK_NAME END), ";
+  sql_stmt += "ACCOUNT_CODE = (CASE WHEN ACCOUNT_CODE = '' THEN NULL ELSE ACCOUNT_CODE END), ";
+  sql_stmt += "ACCOUNT_CODE2 = (CASE WHEN ACCOUNT_CODE2 = '' THEN NULL ELSE ACCOUNT_CODE2 END), ";
+  sql_stmt += "PURPOSE_CODE = (CASE WHEN PURPOSE_CODE = '' THEN NULL ELSE PURPOSE_CODE END), ";
+  sql_stmt += "PAY_CODE_12 = (CASE WHEN PAY_CODE_12 = '' THEN NULL ELSE PAY_CODE_12 END), ";
+  sql_stmt += "CO_LOAN = (CASE WHEN CO_LOAN = '' THEN NULL ELSE CO_LOAN END);";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
 
-  sql_stmt = "UPDATE " + table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
+//Create Bank_Code2 for BAM009
+  sql_stmt = "ALTER TABLE " + src_table + " ADD BANK_CODE2 CHAR(3);";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + src_table + " SET BANK_CODE2 = LEFT(BANK_CODE,3);";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = " UPDATE " + src_table + " SET CONTRACT_AMT = CONTRACT_AMT1  where CONTRACT_AMT1 > CONTRACT_AMT";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  sql_stmt = "UPDATE " + src_table + " SET CONTRACT_AMT = CONTRACT_AMT_Y where ACCOUNT_CODE= 'Y' and CONTRACT_AMT_Y != 0";
+  sql_stmt = sql_stmt.UpperCase();
+  command->CommandText = sql_stmt;
+  command->Execute();
+
+  // dedup converted bam087 to bam086
+  sql_stmt = "SELECT IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, INPUT_TIME, BANK_CODE2 ";
+  sql_stmt += "INTO " + table + " ";
+  sql_stmt += "FROM " + src_table + " ";
+  sql_stmt += "GROUP BY IDN, INQUIRY_DATE, DATA_YYY, DATA_MM, BANK_CODE, BANK_NAME, ACCOUNT_CODE, ACCOUNT_CODE2, PURPOSE_CODE, CONTRACT_AMT, LOAN_AMT, PASS_DUE_AMT, PAY_CODE_12, CO_LOAN, INPUT_TIME, BANK_CODE2 ";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
   command->Execute();
@@ -3550,20 +3636,38 @@ void clean_up(TADOCommand *command)
 {
   AnsiString sql_stmt;
 	try{
-  	sql_stmt = "DROP TABLE " + BAM086 + ";";
-    sql_stmt = sql_stmt.UpperCase();
-  	command->CommandText = sql_stmt;
-  	command->Execute();
+          sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + BAM086 + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	  sql_stmt += "DROP TABLE " + BAM086 + ";";
+          sql_stmt = sql_stmt.UpperCase();
+  	  command->CommandText = sql_stmt;
+  	  command->Execute();
 	}
 	catch(Exception &E){
-  	if (AnsiString(E.ClassName()) == "EOleException")
-    	if(command->Connection->Errors->Item[0]->NativeError == 3701)
-      	command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-	};
+  	  if (AnsiString(E.ClassName()) == "EOleException")
+    	    if (command->Connection->Errors->Item[0]->NativeError == 3701)
+      	      command->Connection->Errors->Clear();
+	}
+
 	try{
-  	sql_stmt = "DROP TABLE " + KRM023 + ";";
-    sql_stmt = sql_stmt.UpperCase();
+          sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + BAM087 + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	  sql_stmt += "DROP TABLE " + BAM087 + ";";
+          sql_stmt = sql_stmt.UpperCase();
+  	  command->CommandText = sql_stmt;
+  	  command->Execute();
+	}
+	catch(Exception &E){
+  	  if (AnsiString(E.ClassName()) == "EOleException")
+    	    if (command->Connection->Errors->Item[0]->NativeError == 3701)
+      	      command->Connection->Errors->Clear();
+	}
+
+	try{
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + KRM023 + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE " + KRM023 + ";";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3574,8 +3678,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE " + KRM001 + ";";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + KRM001 + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE " + KRM001 + ";";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3586,8 +3692,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE " + JAS002 + ";";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + JAS002 + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE " + JAS002 + ";";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3598,8 +3706,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE " + JAS002_T + ";";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + JAS002_T + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE " + JAS002_T + ";";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3610,8 +3720,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE " + STM001 + ";";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'" + STM001 + "')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE " + STM001 + ";";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
 	  command->Execute();
 	}
@@ -3622,8 +3734,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE TMP;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'TMP')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE TMP;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3634,8 +3748,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE TMP1;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'TMP1')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE TMP1;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3646,8 +3762,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE TMP2;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'TMP2')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE TMP2;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3658,20 +3776,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE PM;";
-    sql_stmt = sql_stmt.UpperCase();
-   	command->CommandText = sql_stmt;
-  	command->Execute();
-	}
-	catch(Exception &E){
-  	if (AnsiString(E.ClassName()) == "EOleException")
-    	if(command->Connection->Errors->Item[0]->NativeError == 3701)
-      	command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-	};
-	try{
-  	sql_stmt = "DROP TABLE IDN_LIST;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'IDN_LIST_TMP')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE IDN_LIST_TMP;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3682,20 +3790,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE IDN_LIST_TMP;";
-    sql_stmt = sql_stmt.UpperCase();
-  	command->CommandText = sql_stmt;
-  	command->Execute();
-	}
-	catch(Exception &E){
-  	if (AnsiString(E.ClassName()) == "EOleException")
-    	if(command->Connection->Errors->Item[0]->NativeError == 3701)
-      	command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-	};
-	try{
-    sql_stmt = "DROP TABLE OPEN_CARD;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'OPEN_CARD')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+        sql_stmt += "DROP TABLE OPEN_CARD;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3706,20 +3804,24 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE OPEN_LINE;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'OPEN_LINE')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE OPEN_LINE;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
 	catch(Exception &E){
   	if (AnsiString(E.ClassName()) == "EOleException")
 	    if(command->Connection->Errors->Item[0]->NativeError == 3701)
-      command->Connection->Errors->Clear();
+        command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE LATEST_STMT_MON;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'LATEST_STMT_MON')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE LATEST_STMT_MON;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3730,8 +3832,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE LATEST_LINE;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'LATEST_LINE')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE LATEST_LINE;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3742,8 +3846,10 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
 	try{
-  	sql_stmt = "DROP TABLE OPEN_ISSUER;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'OPEN_ISSUER')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE OPEN_ISSUER;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3753,81 +3859,83 @@ void clean_up(TADOCommand *command)
       	command->Connection->Errors->Clear();
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};
+
+  try{
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'y_BAM086_tmp')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+    sql_stmt += "DROP TABLE y_BAM086_tmp;";
+    sql_stmt = sql_stmt.UpperCase();
+    command->CommandText = sql_stmt;
+  	command->Execute();
+  }
+  catch( Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+  };
+
+  try{
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'KRM023_RANGE_TMP')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+    sql_stmt += "DROP TABLE KRM023_RANGE_TMP;";
+    sql_stmt = sql_stmt.UpperCase();
+    command->CommandText = sql_stmt;
+  	command->Execute();
+  }
+  catch( Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+  };
+  try{
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'KRM023_TMP')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+    sql_stmt += "DROP TABLE KRM023_TMP;";
+    sql_stmt = sql_stmt.UpperCase();
+    command->CommandText = sql_stmt;
+  	command->Execute();
+  }
+  catch( Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+  };
+  try{
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'KRM034_BASE')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+    sql_stmt += "DROP TABLE KRM034_BASE;";
+    sql_stmt = sql_stmt.UpperCase();
+    command->CommandText = sql_stmt;
+  	command->Execute();
+  }
+  catch( Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+  };
+  try{
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'KRM037_BASE')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+    sql_stmt += "DROP TABLE KRM037_BASE;";
+    sql_stmt = sql_stmt.UpperCase();
+    command->CommandText = sql_stmt;
+  	command->Execute();
+  }
+  catch( Exception &E){
+    if (AnsiString(E.ClassName()) == "EOleException")
+      if(command->Connection->Errors->Item[0]->NativeError == 3701)
+        command->Connection->Errors->Clear();
+//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
+  };
 	try{
-  	sql_stmt = "DROP TABLE DACO_V4_1_CAL;";
-    sql_stmt = sql_stmt.UpperCase();
-  	command->CommandText = sql_stmt;
-  	command->Execute();
-	}
-	catch(Exception &E){
-  	if (AnsiString(E.ClassName()) == "EOleException")
-	    if(command->Connection->Errors->Item[0]->NativeError == 3701)
-  	    command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-	};
-  try{
-    sql_stmt = "DROP TABLE y_BAM086_tmp;";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-  	command->Execute();
-  }
-  catch( Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == 3701)
-        command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  try{
-    sql_stmt = "DROP TABLE KRM023_RANGE_TMP;";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-  	command->Execute();
-  }
-  catch( Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == 3701)
-        command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  try{
-    sql_stmt = "DROP TABLE KRM023_TMP;";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-  	command->Execute();
-  }
-  catch( Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == 3701)
-        command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  try{
-    sql_stmt = "DROP TABLE KRM034_BASE;";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-  	command->Execute();
-  }
-  catch( Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == 3701)
-        command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-  try{
-    sql_stmt = "DROP TABLE KRM037_BASE;";
-    sql_stmt = sql_stmt.UpperCase();
-    command->CommandText = sql_stmt;
-  	command->Execute();
-  }
-  catch( Exception &E){
-    if (AnsiString(E.ClassName()) == "EOleException")
-      if(command->Connection->Errors->Item[0]->NativeError == 3701)
-        command->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
-  };
-	try{
-  	sql_stmt = "DROP TABLE KRM023_TMP1;";
-    sql_stmt = sql_stmt.UpperCase();
+        sql_stmt  = " if exists (select * from dbo.sysobjects where id = object_id(N'KRM023_TMP1')"
+                    " and objectproperty(id, N'isusertable') = 1) ";
+  	sql_stmt += "DROP TABLE KRM023_TMP1;";
+        sql_stmt = sql_stmt.UpperCase();
   	command->CommandText = sql_stmt;
   	command->Execute();
 	}
@@ -3862,7 +3970,7 @@ void clean_up(TADOCommand *command)
 //    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
 	};*/
 
-};
+}
 
 int credit_card_line(TADOQuery *query, double drisk_score, double propensity_score,
                      unsigned int highest_line,
@@ -3871,7 +3979,7 @@ int credit_card_line(TADOQuery *query, double drisk_score, double propensity_sco
 {
   int risk_twentile = 0;
   int propensity_twentile = 0;
-  int line;
+  unsigned int line;
 
   if(drisk_score>=0.350166) risk_twentile = 20;
   else if(drisk_score>= 0.250566) risk_twentile = 19;
@@ -3953,7 +4061,7 @@ int credit_card_line(TADOQuery *query, double drisk_score, double propensity_sco
  15, 11, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 9, 9, 10, 10, 11, 11, 
  15, 11, 9, 8, 9, 8, 8, 9, 9, 9, 9, 10, 10, 11, 9, 9, 10, 10, 11, 11,
  15, 10, 8, 8, 8, 7, 7, 8, 8, 8, 9, 9, 10, 11, 9, 9, 10, 10, 11, 11, 
- 16, 9, 7, 7, 7, 6, 7, 7, 7, 8, 8, 9, 10, 8, 8, 9, 10, 10, 10, 11, 
+ 16, 9, 7, 7, 7, 6, 7, 7, 7, 8, 8, 9, 10, 8, 8, 9, 10, 10, 10, 11,
  16, 9, 7, 6, 6, 6, 6, 6, 7, 7, 8, 8, 9, 8, 8, 9, 9, 10, 10, 11,
  16, 8, 6, 6, 5, 5, 5, 6, 6, 7, 7, 8, 6, 7, 8, 9, 9, 10, 10, 10, 
  16, 8, 6, 5, 5, 5, 5, 5, 6, 6, 5, 5, 6, 7, 8, 8, 9, 9, 10, 10, 
@@ -4526,6 +4634,11 @@ void lg(TADOQuery *query, TADOCommand *command,
   else
     dollar_bad = query->FieldValues["DOLLAR_BAD"];
 };
+
+
+
+
+
 
 
 

@@ -58,12 +58,14 @@ int TNB_Ploan_AM_Campaign(char *msno, char *jcic_inquiry_date, char *app_input_t
     dbhandle = new TADOHandler();    // commemt if past from argument
     dbhandle->OpenDatabase(ole_db_str);  // commemt if past from argument
 
+ // new risk model and calculate jcic variables
+    pdaco_app = new PDACO(msno, app_input_time);
+
  // Check credit card black list
     if (check_credit_card_block(dbhandle, msno) > 0)
        throw cc_error(PSCODE_110, msno, app_input_time);
 
  // new risk model and calculate jcic variables
-    pdaco_app = new PDACO(msno, app_input_time);
     pass = pdaco_app->GeneratePdaco61Score(dbhandle);
     note = pdaco_app->vam102_message(dbhandle);
 // npv test only, get loan info from table

@@ -10,6 +10,7 @@
 using namespace std;
 
 const AnsiString BAM086 = "BAM086_BASE";
+const AnsiString BAM087 = "BAM087_BASE";
 const AnsiString KRM023 = "KRM023_WITH_THREE_BUCKET";
 const AnsiString KRM037 = "KRM037_BASE";
 const AnsiString KRM034 = "KRM034_BASE";
@@ -32,6 +33,8 @@ void initialize_ado_objects(TADOConnection *connection, TADOQuery *query,
 int yrmon_to_mon(const AnsiString &inquiry_month="",
                  bool time_lock=false, const AnsiString &lock="",
                  bool archive=false, bool use_krm037=true);
+int exist(TADOQuery *query, const AnsiString &table,
+          const AnsiString &idno, const AnsiString &input_time);
 void copy_table(TADOCommand *command,
                 const AnsiString &source_table, const AnsiString &destination_table,
                 const AnsiString &idno, const AnsiString &jcic_date,
@@ -44,6 +47,7 @@ void merge_prepare_KRM023_KRM034(TADOCommand *command, const AnsiString &krm023,
 void prepare_KRM001(TADOCommand *command, const AnsiString &table, int now);
 void build_bam_bucket(TADOCommand *command, const AnsiString &bam085, int now);
 void prepare_BAM086(TADOCommand *command, const AnsiString &table, int now);
+void prepare_BAM087(TADOCommand *command, const AnsiString &src_table, const AnsiString &table, int now);
 void prepare_STM001(TADOCommand *command, const AnsiString &table,
                     const AnsiString &bank_atm_code);
 void prepare_JAS002(TADOCommand *command, const AnsiString &ori_table, const AnsiString &dest_table);
@@ -80,14 +84,14 @@ int credit_card_line(TADOQuery *query, double drisk_score, double propensity_sco
                      double &pb, double &dollar_bad, bool p1);
 double get_dollar_bad(TADOQuery *query, unsigned int risk_twentile,
                       unsigned int propensity_twentile, unsigned int line_index);
-                     
+
 
 void store_result(TADOCommand *command,
                   const AnsiString &idno,
                   const AnsiString &input_time, int result_code,
                   const AnsiString &result_message, int optimal_line,
                   unsigned int unsecured_balance,
-                  double pb, int risk_cut, int propensity_cut, double dollar_bad,  
+                  double pb, int risk_cut, int propensity_cut, double dollar_bad,
                   const AnsiString &note, const AnsiString &version, bool normal);
 void vam102_message(TADOQuery *query, const AnsiString &idn,
                     const AnsiString &jcic_date,
