@@ -2656,6 +2656,7 @@ JCIC data availability flag
 0x0200 : KRM023 data only on inquiry month or later
 0x0400 : Unsecured revolving balance(*) >= NT$500K
 0x1000 : Unsecured balance(**) >= NT$1M
+0x2000 : KRM023 pay_codes are all 'X' and 'X' only
 */
 
 unsigned int in_daco41(TADOQuery *query,
@@ -2733,7 +2734,6 @@ unsigned int in_daco41(TADOQuery *query,
       if (AnsiString(E.ClassName()) == "EOleException")
         if(query->Connection->Errors->Item[0]->NativeError == 3701)
           query->Connection->Errors->Clear();
-//    if(E.Message.SubString(0,16) == "無法 卸除 資料表");
     };
 
     sql_stmt = "CREATE TABLE KRM023_RANGE_TMP ";
@@ -2787,6 +2787,7 @@ unsigned int in_daco41(TADOQuery *query,
     query->Parameters->ParamValues["case_sn"] = case_sn;
     query->Open();
     ever_delinquent_line = query->FieldValues["LINES"];
+
 //Push propensity decile to 1 for dormat users
     sql_stmt = "SELECT COUNT(*) AS CNT FROM " + krm023 + " ";
     sql_stmt += "WHERE CASE_SN = :case_sn GROUP BY CASE_SN HAVING ";
@@ -2801,7 +2802,20 @@ unsigned int in_daco41(TADOQuery *query,
       p1 = false;
     else
       p1 = true;
+
+// filter code = 0x2000,  KRM023 all pay_codes are 'X' and only 'X'
+    sql_stmt = "SELECT count(*) As CNT FROM " + krm023 + " ";
+    sql_stmt +="WHERE case_sn = :case_sn AND PAY_CODE != 'X';";
+    sql_stmt = sql_stmt.UpperCase();
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    if (query->FieldValues["CNT"] == 0)
+      exclusion |= 0x2000;
   };
+
   if ((flag & 0x2)==0)
     exclusion |= 0x2;
   else{
@@ -2817,7 +2831,6 @@ unsigned int in_daco41(TADOQuery *query,
       if (static_cast<AnsiString>(E.ClassName()) == "EOleException")
         if(query->Connection->Errors->Item[0]->NativeError == 2714)
           query->Connection->Errors->Clear();
-//    if(E.Message.SubString(0, 20) == "資料庫已經有一個名為");
     }
     sql_stmt = "DELETE FROM IND_TMP;";
     sql_stmt = sql_stmt.UpperCase();
@@ -2841,11 +2854,11 @@ unsigned int in_daco41(TADOQuery *query,
     query->SQL->Clear();
     query->SQL->Add(sql_stmt);
     query->Open();
-
     int mons_before = now - query->FieldByName("Mon")->AsInteger;
     query->Close();
     if ((mons_before >= 1) && (mons_before < 7))
       exclusion |= 0x8;
+
     try{
       sql_stmt = "DROP TABLE IND_TMP;";
       sql_stmt = sql_stmt.UpperCase();
@@ -2865,67 +2878,68 @@ unsigned int in_daco41(TADOQuery *query,
     sql_stmt = "SELECT MAX(CONVERT(INT, LIMIT)) AS MAX_LINE FROM " + krm001 + " ";
     sql_stmt += "WHERE STOP_DATE ='9991231' AND M_S = 'Y' AND CASE_SN = :case_sn";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-    if(!query->FieldValues["MAX_LINE"].IsNull())
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    if (!query->FieldValues["MAX_LINE"].IsNull())
       max_line = query->FieldValues["MAX_LINE"] * 1000;
-    if(max_line == 0){
+    if (max_line == 0){
       sql_stmt = "SELECT MAX(CONVERT(INT, LIMIT)) AS MAX_LINE FROM " + krm001 + " ";
       sql_stmt += "WHERE STOP_DATE <> '9991231' AND M_S = 'Y' AND CASE_SN = :case_sn";
       sql_stmt = sql_stmt.UpperCase();
-    	query->Close();
-    	query->SQL->Clear();
-    	query->SQL->Add(sql_stmt);
-    	query->Parameters->ParamValues["case_sn"] = case_sn;
-    	query->Open();
+      query->Close();
+      query->SQL->Clear();
+      query->SQL->Add(sql_stmt);
+      query->Parameters->ParamValues["case_sn"] = case_sn;
+      query->Open();
       if(!query->FieldValues["MAX_LINE"].IsNull())
         max_line = query->FieldValues["MAX_LINE"] * 1000;
-    };
-    if(ever_delinquent_line > 0){
+    }
+    if (ever_delinquent_line > 0){
       sql_stmt = "SELECT COUNT(*) AS LINES FROM OPEN_LINE WHERE CASE_SN = :case_sn ";
       sql_stmt += "AND MON_SINCE = :now";
       sql_stmt = sql_stmt.UpperCase();
-    	query->Close();
-    	query->SQL->Clear();
-    	query->SQL->Add(sql_stmt);
-    	query->Parameters->ParamValues["case_sn"] = case_sn;
-    	query->Parameters->ParamValues["now"] = now;
-    	query->Open();
-        if(query->FieldValues["LINES"] <= 2)
-          exclusion |= 0x800;
-    };
-  };
-	if(flag & 0x4){
+      query->Close();
+      query->SQL->Clear();
+      query->SQL->Add(sql_stmt);
+      query->Parameters->ParamValues["case_sn"] = case_sn;
+      query->Parameters->ParamValues["now"] = now;
+      query->Open();
+      if (query->FieldValues["LINES"] <= 2)
+         exclusion |= 0x800;
+    }
+  }
+
+  if(flag & 0x4){
 /*----FS044----*/
-		sql_stmt ="SELECT case_sn, SUM(CASE WHEN PASS_DUE_AMT > 0 THEN 1 ELSE 0 END) AS CNT ";
-		sql_stmt +="FROM " + bam085 + " ";
-		sql_stmt +="WHERE case_sn = :case_sn GROUP BY case_sn;";
+    sql_stmt ="SELECT case_sn, SUM(CASE WHEN PASS_DUE_AMT > 0 THEN 1 ELSE 0 END) AS CNT ";
+    sql_stmt +="FROM " + bam085 + " ";
+    sql_stmt +="WHERE case_sn = :case_sn GROUP BY case_sn;";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
-    if(count > 0)
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    count = query->FieldValues["CNT"];
+    query->Close();
+    if (count > 0)
       exclusion |= 0x10;
     sql_stmt = "SELECT case_sn, SUM(CASE WHEN ACCOUNT_CODE = 'Y' AND ";
     sql_stmt+="                           ISNULL(LEFT(PAY_CODE_12,1), '0') NOT IN ('0', 'X') ";
     sql_stmt+="                      THEN 1 ELSE 0 END) AS CNT ";
-		sql_stmt+="FROM " + bam085 + " ";
+    sql_stmt+="FROM " + bam085 + " ";
     sql_stmt+="WHERE case_sn = :case_sn GROUP BY case_sn;";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    count = query->FieldValues["CNT"];
+    query->Close();
     if(count > 0)
       exclusion |= 0x40;
 
@@ -2936,42 +2950,42 @@ unsigned int in_daco41(TADOQuery *query,
     sql_stmt+= "FROM " + bam085 + " ";
     sql_stmt+= "WHERE case_sn = :case_sn GROUP BY case_sn;";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-  	count = query->FieldValues["CNT"];
-  	query->Close();
-    if(count > 0)
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    count = query->FieldValues["CNT"];
+    query->Close();
+    if (count > 0)
       exclusion |= 0x80;
 
     sql_stmt = "SELECT case_sn, MAX(Bucket) as cnt FROM y_BAM086_tmp ";
     sql_stmt += "WHERE case_sn = :case_sn GROUP BY case_sn;";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-    if(query->FieldValues["CNT"].IsNull())
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    if (query->FieldValues["CNT"].IsNull())
       count = 0;
     else
-  	  count = query->FieldValues["CNT"];
-  	query->Close();
-    if(count > 1)
+      count = query->FieldValues["CNT"];
+    query->Close();
+    if (count > 1)
       exclusion |= 0x100;
 
     sql_stmt = "SELECT SUM(ISNULL(LOAN_AMT, 0) + ISNULL(PASS_DUE_AMT, 0)) ";
     sql_stmt += "AS BAL FROM " + bam085 + " ";
     sql_stmt += "WHERE CASE_SN = :case_sn AND ACCOUNT_CODE = 'Y';";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-    if(!query->FieldValues["BAL"].IsNull())
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    if (!query->FieldValues["BAL"].IsNull())
       cash_card_balance = query->FieldValues["BAL"];
     cash_card_balance *= 1000;
 
@@ -2980,47 +2994,45 @@ unsigned int in_daco41(TADOQuery *query,
     sql_stmt += "WHERE CASE_SN = :case_sn AND ACCOUNT_CODE NOT IN ('K', 'Y') AND ";
     sql_stmt += "(ACCOUNT_CODE2 = 'N' OR (ACCOUNT_CODE2 IS NULL));";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-  	query->Parameters->ParamValues["case_sn"] = case_sn;
-  	query->Open();
-    if(!query->FieldValues["BAL"].IsNull()){
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    if (!query->FieldValues["BAL"].IsNull()){
       unsecured_loan_balance = query->FieldValues["BAL"];
       unsecured_loan_balance *= 1000;
     };
     query->Close();
-	};
+  };
 
-  if((credit_card_rev_balance_opt + cash_card_balance) >= cc_balance_cap)
+  if ((credit_card_rev_balance_opt + cash_card_balance) >= cc_balance_cap)
     exclusion |= 0x400;
 
   unsecured_amount_opt = (credit_card_rev_balance_opt + cash_card_balance + unsecured_loan_balance);
   unsecured_amount_per = (credit_card_rev_balance_per + cash_card_balance + unsecured_loan_balance);
 
-  if(flag & 0x10){
-//		sql_stmt ="SELECT case_sn, SUM(CASE WHEN :now - E_MON_SINCE <= 36 THEN 1 ELSE 0 END) AS CNT ";
-		sql_stmt ="SELECT case_sn, COUNT(*) AS CNT ";
-		sql_stmt +="FROM " + jas002 + " ";
-		sql_stmt +="WHERE case_sn = :case_sn GROUP BY case_sn;";
+  if (flag & 0x10){
+    sql_stmt ="SELECT case_sn, COUNT(*) AS CNT ";
+    sql_stmt +="FROM " + jas002 + " ";
+    sql_stmt +="WHERE case_sn = :case_sn GROUP BY case_sn;";
     sql_stmt = sql_stmt.UpperCase();
-  	query->Close();
-  	query->SQL->Clear();
-  	query->SQL->Add(sql_stmt);
-//	  query->Parameters->ParamValues["now"] = now;
-	  query->Parameters->ParamValues["case_sn"] = case_sn;
-	  query->Open();
-	  int count;
-    if(query->FieldByName("CNT")->IsNull)
+    query->Close();
+    query->SQL->Clear();
+    query->SQL->Add(sql_stmt);
+    query->Parameters->ParamValues["case_sn"] = case_sn;
+    query->Open();
+    int count;
+    if (query->FieldByName("CNT")->IsNull)
       count = 0;
     else
       count = query->FieldValues["CNT"];
-	  query->Close();
-	  if(count > 0)
+    query->Close();
+    if(count > 0)
       exclusion |= 0x20;
-  };
+  }
   return exclusion;
-};
+}
 
 double daco41(TADOQuery *query, TADOCommand *command,
               const AnsiString &krm023, const AnsiString &krm001,
@@ -3037,7 +3049,7 @@ double daco41(TADOQuery *query, TADOCommand *command,
   	sql_stmt += "fs031 float, ms203_3m_1k float, ms203_6m_1k float, ms203_9m_1k float, app_last_month_bucket float,";
   	sql_stmt += "fs008_12mplus float, ms011_3m float, ms011_6m float, ms011_9m float, ms011_12m float,";
   	sql_stmt += "ms009_3m float, ms009_6m float, fs005_3m_1k float, ms056_6m_1k float, ";
-    sql_stmt += "ms110_3m float, ms110_6m float, ms106_3m float, ms106_6m float, ";
+        sql_stmt += "ms110_3m float, ms110_6m float, ms106_3m float, ms106_6m float, ";
   	sql_stmt += "mt110_43 float, fs002_6m_1k_q float, ms056_6m_1k_tran float, fs069_tran float, int015_9m float,";
   	sql_stmt += "fs031_tran float, mt203_42_1k float, app_last_month_bucket_t1 float, fs008_12mplus_r float,";
   	sql_stmt += "mt011_31 float, mt009_43 float, sex_tran int, ";
@@ -3045,9 +3057,9 @@ double daco41(TADOQuery *query, TADOCommand *command,
   	sql_stmt += "mt011_31_z float, mt009_43_q float,";
   	sql_stmt += "mt203_42_1k_r_tran float, mt009_43_q_tran2 float,";
   	sql_stmt += "score decimal(9,8))";
-    sql_stmt = sql_stmt.UpperCase();
-		command->CommandText = sql_stmt;
-		command->Execute();
+        sql_stmt = sql_stmt.UpperCase();
+	command->CommandText = sql_stmt;
+	command->Execute();
   }
   catch(Exception &E){
   if (static_cast<AnsiString>(E.ClassName()) == "EOleException")
@@ -3056,17 +3068,17 @@ double daco41(TADOQuery *query, TADOCommand *command,
 //    if(E.Message.SubString(0, 20) == "資料庫已經有一個名為");
   };
   sql_stmt = "INSERT INTO DACO_V4_1_CAL(case_sn, HIT, EXCLUSION, GENDER) ";
-	sql_stmt += "VALUES (:case_sn, :hit, :exclusion, :gender);";
+  sql_stmt += "VALUES (:case_sn, :hit, :exclusion, :gender);";
   sql_stmt = sql_stmt.UpperCase();
   command->CommandText = sql_stmt;
-	command->Parameters->ParamValues["case_sn"] = case_sn;
-	command->Parameters->ParamValues["hit"] = data_flag;
-	command->Parameters->ParamValues["gender"] = gender;
-	command->Parameters->ParamValues["exclusion"] = exclusion;
-	command->Execute();
-
-	bool run_model = true;
-  if(((exclusion & 0x1) == 0x1) ||  ((exclusion & 0x2) == 0x2))
+  command->Parameters->ParamValues["case_sn"] = case_sn;
+  command->Parameters->ParamValues["hit"] = data_flag;
+  command->Parameters->ParamValues["gender"] = gender;
+  command->Parameters->ParamValues["exclusion"] = exclusion;
+  command->Execute();
+  
+  bool run_model = true;
+  if (((exclusion & 0x1) == 0x1) ||  ((exclusion & 0x2) == 0x2))
     run_model = false;
 
 	if (run_model){
@@ -6648,6 +6660,8 @@ void prescreen_out(unsigned int filter_flag, AnsiString app_no, AnsiString idno,
     throw cc_error(203, app_no, idno, app_date, product_type, amount, cash_card_util_cap, credit_card_util_cap, cc_balance_cap);
   if (filter_flag & 0x800)
     throw cc_error(204, app_no, idno, app_date, product_type, amount, cash_card_util_cap, credit_card_util_cap, cc_balance_cap);
+  if (filter_flag & 0x2000)
+    throw cc_error(201, app_no, idno, app_date, product_type, amount, cash_card_util_cap, credit_card_util_cap, cc_balance_cap);
 };
 
 bool check_tf_a2_krm023(TADOQuery *query, const AnsiString &KRM023, const int now)
