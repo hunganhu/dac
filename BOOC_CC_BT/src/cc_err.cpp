@@ -38,11 +38,14 @@ AnsiString cc_error::ShowMessage()
   case 105:
     message = "建議婉拒，貸款繳款記錄不良。";
     break;
-  case 108:
-    message = "建議婉拒，信用卡與現金卡餘額大於新台幣" + static_cast<AnsiString>(_cc_balance_cap) + "元。";
-    break;
   case 106:
     message = "建議婉拒，對華僑銀行貢獻度過低。";
+    break;
+  case 107:
+    message = "建議婉拒，信用卡有催收或呆帳註記。";
+    break;
+  case 108:
+    message = "建議婉拒，信用卡與現金卡餘額大於新台幣" + static_cast<AnsiString>(_cc_balance_cap) + "元。";
     break;
   case 201:
     message = "建議人工審核，JCIC資料不足。";
