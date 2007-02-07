@@ -67,7 +67,7 @@ int TNB_CC_AM(char *idn, char *jcic_inquiry_date, char *app_input_time,
 
   try{
 
-    int now = yrmon_to_mon(jcic_date, timelock, "20070131", no_archive, use_krm037);
+    int now = yrmon_to_mon(jcic_date, timelock, "20070430", no_archive, use_krm037);
 
     if(now > 0){
       connect(connection, connection_string);
