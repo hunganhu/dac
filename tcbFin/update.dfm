@@ -72,7 +72,7 @@ object Form1: TForm1
     Font.Name = #26032#32048#26126#39636
     Font.Style = []
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 5
     Visible = False
     OnClick = UpdateClick
   end
@@ -88,7 +88,7 @@ object Form1: TForm1
     Font.Name = #26032#32048#26126#39636
     Font.Style = []
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 6
     OnClick = EndClick
   end
   object connect: TButton
@@ -103,7 +103,7 @@ object Form1: TForm1
     Font.Name = #26032#32048#26126#39636
     Font.Style = []
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 4
     OnClick = connectClick
   end
   object GroupBox1: TGroupBox
@@ -279,7 +279,7 @@ object Form1: TForm1
     Height = 105
     TabOrder = 2
     object Label1: TLabel
-      Left = 40
+      Left = 32
       Top = 16
       Width = 64
       Height = 16
@@ -292,7 +292,7 @@ object Form1: TForm1
       ParentFont = False
     end
     object Label9: TLabel
-      Left = 40
+      Left = 32
       Top = 56
       Width = 106
       Height = 16
@@ -355,6 +355,54 @@ object Form1: TForm1
       Font.Style = []
       ParentFont = False
       TabOrder = 1
+    end
+  end
+  object GroupBox4: TGroupBox
+    Left = 360
+    Top = 248
+    Width = 273
+    Height = 105
+    TabOrder = 3
+    object Label3: TLabel
+      Left = 32
+      Top = 16
+      Width = 113
+      Height = 16
+      AutoSize = False
+      Caption = 'NPV '#26680#20934#38272#27323
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = #26032#32048#26126#39636
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label6: TLabel
+      Left = 240
+      Top = 16
+      Width = 29
+      Height = 25
+      AutoSize = False
+      Caption = #20803
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = #26032#32048#26126#39636
+      Font.Style = []
+      ParentFont = False
+    end
+    object npv: TEdit
+      Left = 160
+      Top = 16
+      Width = 73
+      Height = 21
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = #26032#32048#26126#39636
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
     end
   end
 end

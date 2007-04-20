@@ -49,6 +49,10 @@ __published:	// IDE-managed Components
         TLabel *Label12;
         TLabel *Label15;
         TLabel *message;
+        TGroupBox *GroupBox4;
+        TLabel *Label3;
+        TEdit *npv;
+        TLabel *Label6;
         void __fastcall EndClick(TObject *Sender);
         void __fastcall UpdateClick(TObject *Sender);
         void __fastcall connectClick(TObject *Sender);

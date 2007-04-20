@@ -22,15 +22,18 @@ __published:	// IDE-managed Components
 private:	// User declarations
 public:		// User declarations
         __fastcall TForm2(TComponent* Owner);
-        class DataEx {
-           public:
-              String message;
-              DataEx (String msg) {
-                 message = msg;
-              }
-        };
-        
+
 };
+
+class DataEx {
+   public:
+      String message;
+      DataEx (String msg) {
+         message = msg;
+      }
+};
+void displayInfo();
+
 //---------------------------------------------------------------------------
 extern PACKAGE TForm2 *Form2;
 //---------------------------------------------------------------------------
