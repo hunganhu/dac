@@ -821,12 +821,13 @@ create table TCB_FIN_INFO (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Commission	decimal(7,4)
+	Commission	decimal(7,4),
+	NPV_HURDLE DECIMAL(9,2)
 ) IN "ESCORETABSP";
 
 insert into TCB_FIN_INFO (Fund_deposit_pct, Fund_bank_pct, Fund_self_pct,
-                             Fund_free_pct, COF_deposit, COF_bank, ROE, Commission)
-      values (80.0, 14.0, 3.0, 3.0, 1.26, 1.38, 1.68, 0.0);
+                             Fund_free_pct, COF_deposit, COF_bank, ROE, Commission, NPV_HURDLE)
+      values (80.0, 14.0, 3.0, 3.0, 1.26, 1.38, 1.68, 0.0, 8000.0);
 
 
 COMMENT ON TABLE TCB_FIN_INFO	IS 'DAC個人信貸模組財務資訊';
@@ -838,6 +839,7 @@ COMMENT ON COLUMN TCB_FIN_INFO.COF_deposit	IS '存款平均利率';
 COMMENT ON COLUMN TCB_FIN_INFO.COF_bank		IS '同業拆款利率';
 COMMENT ON COLUMN TCB_FIN_INFO.ROE		IS 'ROE';
 COMMENT ON COLUMN TCB_FIN_INFO.Commission	IS '業務獎金';
+COMMENT ON COLUMN TCB_FIN_INFO.NPV_HURDLE	IS 'NPV 核准門檻';
 
 
 create table TCB_FIN_INFO_LOG (
@@ -850,7 +852,8 @@ create table TCB_FIN_INFO_LOG (
 	COF_deposit	decimal(7,4),
 	COF_bank	decimal(7,4),
 	ROE		decimal(7,4),
-	Commission	decimal(7,4)
+	Commission	decimal(7,4),
+	NPV_HURDLE DECIMAL(9,2)
 ) IN "ESCORETABSP";
 
 COMMENT ON TABLE TCB_FIN_INFO_LOG	IS 'DAC個人信貸模組財務資訊修改紀錄';
@@ -864,6 +867,7 @@ COMMENT ON COLUMN TCB_FIN_INFO_LOG.COF_deposit	IS '存款平均利率';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.COF_bank		IS '同業拆款利率';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.ROE		IS 'ROE';
 COMMENT ON COLUMN TCB_FIN_INFO_LOG.Commission	IS '業務獎金';
+COMMENT ON COLUMN TCB_FIN_INFO_LOG.NPV_HURDLE	IS 'NPV 核准門檻';
 
 -- Trigger for table TCB_FIN_INFO_LOG need to be added here
 
@@ -873,9 +877,9 @@ CREATE TRIGGER TCB_FIN_UPDATE
   FOR EACH ROW MODE DB2SQL
   INSERT INTO TCB_FIN_INFO_LOG
     (SYSTEM_TIME, USER_ID, FUND_DEPOSIT_PCT, FUND_BANK_PCT, FUND_SELF_PCT, FUND_FREE_PCT,
-     COF_DEPOSIT, COF_BANK, ROE, COMMISSION)
+     COF_DEPOSIT, COF_BANK, ROE, COMMISSION, NPV_HURDLE)
   VALUES (CURRENT TIMESTAMP, USER, O.FUND_DEPOSIT_PCT, O.FUND_BANK_PCT, O.FUND_SELF_PCT, O.FUND_FREE_PCT,
-    O.COF_DEPOSIT, O.COF_BANK, O.ROE, O.COMMISSION);
+    O.COF_DEPOSIT, O.COF_BANK, O.ROE, O.COMMISSION, O.NPV_HURDLE);
 
 CREATE TABLE branch (
 	Branch char (4) NOT NULL,

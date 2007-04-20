@@ -132,6 +132,9 @@ int decisionCode[] = {
 /*Type V Code*/
 5
 };
+
+double ApprovedNPV; // 20070416 This value is retrieved from table TCB_FIN_INFO
+
 //--------------------------------------------------------------------------------------------------
 LoanApp::LoanApp(char *caseSN)
 {
@@ -449,6 +452,7 @@ int LoanApp::get_fin_info()
     float iCOF_bank;
     float iROE;
     float iCommission;
+    float iNPV_HURDLE;
  EXEC SQL END DECLARE SECTION;
   struct sqlca sqlca;
   int code;
@@ -457,9 +461,9 @@ int LoanApp::get_fin_info()
 
   EXEC SQL
      select Fund_deposit_pct, Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit,
-            COF_bank, ROE, Commission
+            COF_bank, ROE, Commission, NPV_HURDLE
      into :iFund_deposit_pct, :iFund_bank_pct, :iFund_self_pct, :iFund_free_pct, :iCOF_deposit,
-          :iCOF_bank, :iROE, :iCommission
+          :iCOF_bank, :iROE, :iCommission, :iNPV_HURDLE
      from  TCB_FIN_INFO;
   EMB_SQL_CHECK("Select TCB_FIN_INFO .");
 
@@ -476,7 +480,8 @@ int LoanApp::get_fin_info()
   COF_bank         = iCOF_bank / 100.0;
   ROE              = iROE / 100.0;
   Commission       = iCommission / 100.0;
-
+  ApprovedNPV      = iNPV_HURDLE;
+  
   Debug("Exit LoanApp.get_fin_info()");
   return (0);
 } //LoanApp::get_fin_info()
