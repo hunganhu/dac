@@ -31,12 +31,10 @@
 #endif
 #include "GetOpt.h"
 #include "loan_app.h"
+#include "closecases.h"
 
 char MESSAGE[1024];
-int call_final_npv();
-char * CurrMonth();
 ofstream logFile;
-const char *DEFAULT_LOG_DIRECTORY = "/home/escorap1/log"; // default log directory
 
 int main(int argc, char *argv[])
 {
