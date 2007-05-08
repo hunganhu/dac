@@ -1,0 +1,236 @@
+/****************************************************************************
+** Licensed Materials - Property of DAC
+**
+** (C) COPYRIGHT Decision Analytics Consulting 2005
+** All Rights Reserved.
+**
+*****************************************************************************
+**
+** SOURCE FILE NAME: main.C 
+**    
+** Description: How to modify a database
+**
+**         This is a tutorial sample showing basic database
+**         modification. For a more comprehensive sample, see dbuse.sqC.
+**           
+****************************************************************************/
+#include <string.h>
+#include <sqlenv.h>
+#include <sqlutil.h>
+#include <sqlutil.h>
+#include "utilemb.h"
+#include "error.h"
+#if ((__cplusplus >= 199711L) && !defined DB2HP) || \
+    (DB2LINUX && (__LP64__ || (__GNUC__ >= 3)) )
+   #include <iostream>
+   #include <fstream>
+   using namespace std; 
+#else
+   #include <iostream.h>
+   #include <fstream.h>
+#endif
+#include "GetOpt.h"
+#include "loan_app.h"
+
+char MESSAGE[1024];
+int call_final_npv();
+char * CurrMonth();
+ofstream logFile;
+const char *DEFAULT_LOG_DIRECTORY = "/home/escorap1/log"; // default log directory
+
+int main(int argc, char *argv[])
+{
+  int rc = 0;
+  char alias[32], uid[32], upw[32], case_sn[16], msg[1024], logName[128];
+  DbEmb db;
+  struct sqlca sqlca;
+  int index = 0;
+  GetOpt getopt (argc, argv, "u:U:p:P:d:D:l:L:hH?");
+  char *user, *password, *database, *logdir;
+  int option_char;
+
+  user = password = database = logdir = (char *) NULL;  //initialized to NULL pointers
+  // check the command line arguments
+  while ((option_char = getopt ()) != EOF)
+    switch (option_char)
+      {
+         case 'U':
+         case 'u':
+           user = getopt.optarg;
+//           fprintf (stderr,"user: %s\n", user); 
+           break;
+         case 'P':
+         case 'p':
+           password = getopt.optarg;
+//           fprintf (stderr,"password: %s\n", password); 
+					 break;
+         case 'D':
+         case 'd':
+           database = getopt.optarg;
+//           fprintf (stderr,"database: %s\n", database); 
+           break;
+         case 'L':
+         case 'l':
+           logdir = getopt.optarg;
+//           fprintf (stderr,"log dir: %s\n", logdir); 
+           break;
+         case 'H':
+         case 'h':
+         case '?':
+         default:
+           fprintf (stderr,"usage: closecases -u user -p password -d database -l directory\n\n");
+           fprintf (stderr,"\tuser: user name to connect to DB2 server.\n");
+           fprintf (stderr,"\tpassword: password to connect to DB2 server.\n");
+           fprintf (stderr,"\tdatabase: database name in which tables are resided.\n");
+           fprintf (stderr,"\tdirectory: directory name in which log is resided.\n");
+           fprintf (stderr,"\t           Default is /home/escorap1/log.\n");
+           fprintf (stderr,"\n\t-h, -?: disply this help message.\n");
+           return (0);
+      }
+  if (argc < 7 || password == (char*) NULL || user == (char*) NULL || database == (char*) NULL) {
+     fprintf (stderr,"The options, user, password, and database, are REQUIRED.\n");
+     fprintf (stderr,"usage: closecases -u user -p password -d database -l directory\n\n");
+     fprintf (stderr,"\tuser: user name to connect to DB2 server.\n");
+     fprintf (stderr,"\tpassword: password to connect to DB2 server.\n");
+     fprintf (stderr,"\tdatabase: database name in which tables are resided.\n");
+     fprintf (stderr,"\tdirectory: directory name in which log is resided.\n");
+     fprintf (stderr,"\t           Default is /home/escorap1/log.\n");
+     fprintf (stderr,"\n\t-h, -?: disply this help message.\n");
+     return (0);
+  }
+  if (logdir == (char*) NULL)
+     strcpy (logName, DEFAULT_LOG_DIRECTORY);
+  else {
+     strcpy (logName, logdir);
+     if (logName[strlen(logName)-1] == '/')
+        logName[strlen(logName)-1] = '\0';
+  }
+  
+  strcat (logName, "/DAC_");
+  strcat (logName, CurrMonth());
+  strcat (logName, ".log");
+
+  logFile.open (logName, ios::app | ios::out);
+  if (logFile.fail()) {
+     cout << logName << " 開啟失敗." << endl;
+  }
+  logFile.setf(ios::left, ios::adjustfield);
+  logFile << endl;
+  logFile << CurrDateTime() << ": " << "批次作業開始." << endl; 
+  
+  strcpy (alias, database);
+  strcpy (uid, user);
+  strcpy (upw, password);
+
+  memset(MESSAGE, '\0', sizeof(MESSAGE));   // clear MESSAGE
+
+  db.setDb(alias, uid, upw);                // set connection parameters
+  rc = db.Connect();                        // connect to db2
+  if (rc != 0)  {
+     logFile << CurrDateTime() << ": " << MESSAGE << endl; 
+     return SYSTEM_ERROR;
+  }
+  rc = call_final_npv();
+  if (rc != 0 && rc != 100) {            // not (sucess or no_data)
+    logFile << "- " << MESSAGE << endl; 
+    return rc;
+  } if (rc == 100)
+    return rc;
+  else
+    db.TransCommit();              // Commit work     
+
+  // disconnect from the database
+  rc = db.Disconnect();
+  if (rc != 0) {
+    logFile << CurrDateTime() << ": " << MESSAGE << endl; 
+    return SYSTEM_ERROR;
+  }
+  logFile << CurrDateTime() << ": " << "批次作業完成." << endl; 
+
+  return 0;
+} //main
+
+
+int call_final_npv() {
+  EXEC SQL BEGIN DECLARE SECTION;
+    char Case_Sn[20];
+  EXEC SQL END DECLARE SECTION;
+  int index = 0;
+  int rc = 0;
+  struct sqlca sqlca;
+
+//  EXEC SQL DECLARE c1 CURSOR FOR
+//    SELECT a.case_sn 
+//       FROM app_info a, app_result b 
+//       WHERE a.case_sn = b.case_sn 
+//         and applicant_pb_adj is not null
+//         AND approval_final = 2 
+//         and npv_final is null;
+         
+  EXEC SQL DECLARE c1 CURSOR FOR
+    SELECT a.case_sn
+    FROM TABLE(SELECT case_sn FROM APP_RESULT WHERE applicant_pb_adj is not null) as a,
+         TABLE(SELECT case_sn FROM APP_info WHERE approval_final = 2 and npv_final is null) as b
+    WHERE a.case_sn = b.case_sn;   
+
+  EMB_SQL_CHECK("Cursor -- Declare");
+
+  EXEC SQL OPEN c1;
+  EMB_SQL_CHECK("Cursor -- Open");
+
+  EXEC SQL FETCH c1 INTO :Case_Sn;
+  EMB_SQL_CHECK("Cursor -- Fetch");
+
+  if (sqlca.sqlcode == 100){
+     strcpy (MESSAGE, "無待結案資料.");
+     logFile << CurrDateTime() << ": " << MESSAGE << endl; 
+     return(sqlca.sqlcode);
+  }
+
+  while (sqlca.sqlcode != 100) {
+    index++;
+    logFile << CurrDateTime() << ": " << index << "- " << Case_Sn << " "; 
+    LoanApp app = LoanApp(Case_Sn);
+    // get application information
+    rc = app.initial();
+    if (rc < 0)       return SYSTEM_ERROR;
+    else if (rc > 0)  return rc;
+
+    // get loan information
+    rc = app.get_loan_info();
+    if (rc < 0)       return SYSTEM_ERROR;
+    else if (rc > 0)  return rc;
+
+    // get financial information
+    rc = app.get_fin_info();
+    if (rc < 0)       return SYSTEM_ERROR;
+    else if (rc > 0)  return rc;
+
+   // update npv according to loan_amt
+    if (app.get_product_type() <= 5) { // NO pb and npv output for newly added products
+       rc = app.update_final_npv(); 
+    }
+    if (rc < 0)       return SYSTEM_ERROR;
+    else if (rc > 0)  return rc;
+    logFile << "已完成." << endl; 
+  
+    EXEC SQL FETCH c1 INTO :Case_Sn;
+    EMB_SQL_CHECK("Cursor -- Fetch");
+  }
+
+  EXEC SQL CLOSE c1;
+  EMB_SQL_CHECK("Cursor -- Close");
+
+ return 0;
+}
+char * CurrMonth ()
+{
+ time_t timer;
+ struct tm *tblock;
+ static char buf[20];
+
+ timer = time(NULL);
+ tblock = localtime(&timer);
+ sprintf (buf, "%04d%02d", tblock->tm_year+1900, tblock->tm_mon+1);
+ return (buf);
+}

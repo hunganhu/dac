@@ -20,7 +20,9 @@
 DB2PATH = /home/db2inst1/sqllib
 DB2INC = $(DB2PATH)/include
 DB2LIB = $(DB2PATH)/lib
-DESDIR = /home/escorap1/lib
+DESDIR = /home/escorap1
+DESLIB = $(DESDIR)/lib
+DESBIN = $(DESDIR)/bin
 
 #Set up precompiler and C++ compiler
 EMBPREP=embprep
@@ -37,13 +39,13 @@ EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-#ALIAS=dacdb
-ALIAS=escore
+ALIAS=dacdb
+#ALIAS=escore
 # Set UID and PWD if neccesary
-#UID=ejcicap1
-#PWD=ejcicap1
-UID=escorap1
-PWD=escorap1
+UID=ejcicap1
+PWD=ejcicap1
+#UID=escorap1
+#PWD=escorap1
 
 ERASE=rm -f
 
@@ -53,7 +55,7 @@ DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o 
 #		   2a - make all (srv + all_client)
 #****************************************************************************
 
-all : libdac_1_7.so java  main mainfnl
+all : libdac_1_7.so java  main mainfnl closecases
 .PHONY : all
 	
 java: Dac.class 
@@ -73,6 +75,17 @@ main: main.o $(DLL_OBJ)
 mainfnl: mainfnl.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o mainfnl -ldb2 -L$(DB2PATH)/lib \
 	 mainfnl.o $(DLL_OBJ)
+
+closecases: closecases.o GetOpt.o $(DLL_OBJ)
+	$(CPP) $(EXTRA_CFLAG) -o closecases -ldb2 -L$(DB2PATH)/lib \
+	 closecases.o GetOpt.o utilemb.o loan_app.o functions.o financial.o
+#closecases: CaseClose.o GetOpt.o
+#	$(CPP) $(EXTRA_CFLAG) -o CaseClose -ldb2 -ldac -L$(DB2PATH)/lib -L$(DESLIB) \
+#	 CaseClose.o GetOpt.o
+
+closecases.o: closecases.sqC functions.h error.h
+	$(EMBPREP) closecases $(ALIAS) $(UID) $(PWD)
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c closecases.C
 
 main.o: main.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c main.cpp
@@ -118,16 +131,20 @@ functions.o: functions.cpp functions.h
 financial.o: financial.cpp financial.h
 	$(CPP) $(EXTRA_CFLAG) -c financial.cpp
 
+GetOpt.o: GetOpt.cpp GetOpt.h
+	$(CPP) $(EXTRA_CFLAG) -c GetOpt.cpp
+
 #****************************************************************************
 # make clean
 #****************************************************************************
 
 clean :
 	$(ERASE) *.o *.so *.bak *~
-	$(ERASE) *.bnd *.C main mainfnl
+	$(ERASE) *.bnd *.C main mainfnl CaseClose
 
-install: libdac_1_7.so
-	 cp -f libdac_1_7.so $(DESDIR)
+install: libdac_1_7.so closecases
+	 cp -f libdac_1_7.so $(DESLIB)
+	 cp -f closecases $(DESBIN)
 	 touch install
-	 cd $(DESDIR)
+	 cd $(DESLIB)
 	 ln -f -s libdac_1_7.so libdac.so
