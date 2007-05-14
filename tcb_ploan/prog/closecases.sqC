@@ -129,23 +129,14 @@ int main(int argc, char *argv[])
      return SYSTEM_ERROR;
   }
   rc = call_final_npv();
-  if (rc != 0 && rc != 100) {            // not (sucess or no_data)
-    logFile << "- " << MESSAGE << endl; 
-    return rc;
-  } if (rc == 100)
-    return rc;
-  else
-    db.TransCommit();              // Commit work     
-
+  if (rc == 0)                    // success
+     db.TransCommit();              // Commit work     
+  
+  logFile << CurrDateTime() << ": " << "批次作業結束." << endl; 
   // disconnect from the database
-  rc = db.Disconnect();
-  if (rc != 0) {
-    logFile << CurrDateTime() << ": " << MESSAGE << endl; 
-    return SYSTEM_ERROR;
-  }
-  logFile << CurrDateTime() << ": " << "批次作業完成." << endl; 
+  db.Disconnect();
 
-  return 0;
+  return rc;
 } //main
 
 
@@ -155,6 +146,7 @@ int call_final_npv() {
   EXEC SQL END DECLARE SECTION;
   int index = 0;
   int rc = 0;
+  int result = 0;
   struct sqlca sqlca;
 
 //  EXEC SQL DECLARE c1 CURSOR FOR
@@ -191,26 +183,31 @@ int call_final_npv() {
     LoanApp app = LoanApp(Case_Sn);
     // get application information
     rc = app.initial();
-    if (rc < 0)       return SYSTEM_ERROR;
-    else if (rc > 0)  return rc;
-
-    // get loan information
-    rc = app.get_loan_info();
-    if (rc < 0)       return SYSTEM_ERROR;
-    else if (rc > 0)  return rc;
-
-    // get financial information
-    rc = app.get_fin_info();
-    if (rc < 0)       return SYSTEM_ERROR;
-    else if (rc > 0)  return rc;
-
-   // update npv according to loan_amt
-    if (app.get_product_type() <= 5) { // NO pb and npv output for newly added products
-       rc = app.update_final_npv(); 
+    if (rc != 0) 
+       result = rc;
+    else {
+       // get loan information
+       rc = app.get_loan_info();
+       if (rc != 0)
+          result = rc;
+       else {
+          // get financial information
+          rc = app.get_fin_info();
+          if (rc != 0)
+             result = rc;
+          else {
+             // update npv according to loan_amt
+             if (app.get_product_type() <= 5) { // NO pb and npv output for newly added products
+                rc = app.update_final_npv(); 
+             }
+             if (rc != 0)
+                result = rc;
+             else 
+                strcpy(MESSAGE, "已完成.");
+          }
+       }
     }
-    if (rc < 0)       return SYSTEM_ERROR;
-    else if (rc > 0)  return rc;
-    logFile << "已完成." << endl; 
+    logFile << MESSAGE << endl; 
   
     EXEC SQL FETCH c1 INTO :Case_Sn;
     EMB_SQL_CHECK("Cursor -- Fetch");
@@ -219,7 +216,7 @@ int call_final_npv() {
   EXEC SQL CLOSE c1;
   EMB_SQL_CHECK("Cursor -- Close");
 
- return 0;
+ return result;
 }
 char * CurrMonth ()
 {

@@ -39,13 +39,13 @@ EXTRA_CFLAG= -g -Wno-deprecated -DTRACE
 
 # To connect to a remote DAC P-Loan database cataloged on the client machine
 # with another name, update the ALIAS variable.
-ALIAS=dacdb
-#ALIAS=escore
+#ALIAS=dacdb
+ALIAS=escore
 # Set UID and PWD if neccesary
-UID=ejcicap1
-PWD=ejcicap1
-#UID=escorap1
-#PWD=escorap1
+#UID=ejcicap1
+#PWD=ejcicap1
+UID=escorap1
+PWD=escorap1
 
 ERASE=rm -f
 
@@ -79,11 +79,11 @@ mainfnl: mainfnl.o $(DLL_OBJ)
 closecases: closecases.o GetOpt.o $(DLL_OBJ)
 	$(CPP) $(EXTRA_CFLAG) -o closecases -ldb2 -L$(DB2PATH)/lib \
 	 closecases.o GetOpt.o utilemb.o loan_app.o functions.o financial.o
-#closecases: CaseClose.o GetOpt.o
-#	$(CPP) $(EXTRA_CFLAG) -o CaseClose -ldb2 -ldac -L$(DB2PATH)/lib -L$(DESLIB) \
-#	 CaseClose.o GetOpt.o
+closecases1: closecases.o GetOpt.o
+	$(CPP) $(EXTRA_CFLAG) -o closecases1 -L$(DB2PATH)/lib -ldb2 -L. -ldac \
+	closecases.o GetOpt.o
 
-closecases.o: closecases.sqC functions.h error.h
+closecases.o: closecases.sqC closecases.h loan_app.h utilemb.h error.h
 	$(EMBPREP) closecases $(ALIAS) $(UID) $(PWD)
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c closecases.C
 
@@ -111,28 +111,28 @@ libdac_1_7.so: $(DLL_OBJ)
 
 dac_pl_cal.o: dac_pl_cal.sqC dac_pl_cal.h loan_app.h error.h functions.h financial.h
 	$(EMBPREP) dac_pl_cal $(ALIAS) $(UID) $(PWD)
-	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c dac_pl_cal.C
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -fPIC -c dac_pl_cal.C
 
 utilemb.o: utilemb.sqC utilemb.h
 	$(EMBPREP) utilemb $(ALIAS) $(UID) $(PWD)
-	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c utilemb.C
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -fPIC -c utilemb.C
 
 risk_model.o: risk_model.sqC risk_model.h functions.h error.h
 	$(EMBPREP) risk_model $(ALIAS) $(UID) $(PWD)
-	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c risk_model.C
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -fPIC -c risk_model.C
 
 loan_app.o: loan_app.sqC loan_app.h error.h attrition.h functions.h financial.h
 	$(EMBPREP) loan_app $(ALIAS) $(UID) $(PWD)
-	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c loan_app.C
+	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -fPIC -c loan_app.C
 
 functions.o: functions.cpp functions.h
-	$(CPP) $(EXTRA_CFLAG) -c functions.cpp
+	$(CPP) $(EXTRA_CFLAG) -fPIC -c functions.cpp
 
 financial.o: financial.cpp financial.h
-	$(CPP) $(EXTRA_CFLAG) -c financial.cpp
+	$(CPP) $(EXTRA_CFLAG) -fPIC -c financial.cpp
 
 GetOpt.o: GetOpt.cpp GetOpt.h
-	$(CPP) $(EXTRA_CFLAG) -c GetOpt.cpp
+	$(CPP) $(EXTRA_CFLAG) -fPIC -c GetOpt.cpp
 
 #****************************************************************************
 # make clean
@@ -140,11 +140,11 @@ GetOpt.o: GetOpt.cpp GetOpt.h
 
 clean :
 	$(ERASE) *.o *.so *.bak *~
-	$(ERASE) *.bnd *.C main mainfnl CaseClose
+	$(ERASE) *.bnd *.C main mainfnl closecases
 
 install: libdac_1_7.so closecases
 	 cp -f libdac_1_7.so $(DESLIB)
 	 cp -f closecases $(DESBIN)
 	 touch install
 	 cd $(DESLIB)
-	 ln -f -s libdac_1_7.so libdac.so
+	 ln -fs libdac_1_7.so libdac.so
