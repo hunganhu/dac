@@ -865,7 +865,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   oPS_code = ps_code_a;
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
-  oApproval_code = decisionCode[decision];
+  oApproval_code = decision;
 
   oFund_deposit_pct = Fund_deposit_pct * 100.0;
   oFund_bank_pct    = Fund_bank_pct * 100.0;

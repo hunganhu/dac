@@ -17,7 +17,7 @@
 #include <string>
 
 enum DecisionCodes {
-	TYPE_I,
+	TYPE_I = 1,
 	TYPE_II,
 	TYPE_III,
 	TYPE_IV,
