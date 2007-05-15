@@ -131,7 +131,9 @@ int main(int argc, char *argv[])
   rc = call_final_npv();
   if (rc == 0)                    // success
      db.TransCommit();              // Commit work     
-  
+  else
+     logFile << CurrDateTime() << ": " << MESSAGE << endl; 
+    
   logFile << CurrDateTime() << ": " << "批次作業結束." << endl; 
   // disconnect from the database
   db.Disconnect();
@@ -173,7 +175,7 @@ int call_final_npv() {
 
   if (sqlca.sqlcode == 100){
      strcpy (MESSAGE, "無待結案資料.");
-     logFile << CurrDateTime() << ": " << MESSAGE << endl; 
+//     logFile << CurrDateTime() << ": " << MESSAGE << endl; 
      return(sqlca.sqlcode);
   }
 
