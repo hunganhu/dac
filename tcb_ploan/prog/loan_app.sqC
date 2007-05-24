@@ -1596,13 +1596,13 @@ double LoanApp::find_lowest_rate (double offset, double delta_r)
 
  npv = calculate_npv(target_r);
 
- if (trace) {
-     fstream outf;
-    
-     outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
-     outf << "Case SN: " << case_sn << " offset: " << offset 
-          << " delta: " << delta_r << " NPV: " << npv << endl;
- }
+// if (trace) {
+//     fstream outf;
+//    
+//     outf.open("NPV_trace.txt", ios::app | ios::out);  // Open for ouput and append
+//     outf << "Case SN: " << case_sn << " offset: " << offset 
+//          << " delta: " << delta_r << " NPV: " << npv << endl;
+// }
  if ((delta_r < 0.000001 && delta_r > -0.000001) ||            // abs(delta_r) < 0.000001
      (npv >= ApprovedNPV && npv <= (ApprovedNPV + Allowance)))  // or  2000 =< npv <= 2010
     return (ceil(target_r * 100000) / 100000.0); // carry to 4th decimal
