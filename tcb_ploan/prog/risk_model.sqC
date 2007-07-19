@@ -1104,14 +1104,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 3
-               and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 3
-                        and mon_since <= now - curr_inqmon
                         and cast(limit as int) > 100
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1124,14 +1122,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 6
-               and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 6
-                        and mon_since <= now - curr_inqmon
                         and cast(limit as int) > 100
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1144,14 +1140,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 9
-               and mon_since <= now - curr_inqmon
                and cast(limit as int) > 100
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 9
-                        and mon_since <= now - curr_inqmon
                         and cast(limit as int) > 100
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1185,14 +1179,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 3
-               and mon_since <= now - curr_inqmon
                and bucket_f_1k >= 2
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 3
-                        and mon_since <= now - curr_inqmon
                         and bucket_f_1k >= 2
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1213,13 +1205,11 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 1
-               and mon_since <= now - curr_inqmon
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 1
-                        and mon_since <= now - curr_inqmon
                      )
           and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("PDACO Update 10.");
@@ -1233,14 +1223,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 3
-               and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 3
-                        and mon_since <= now - curr_inqmon
                         and bucket_ef_1k >= 1
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1253,14 +1241,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 6
-               and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 6
-                        and mon_since <= now - curr_inqmon
                         and bucket_ef_1k >= 1
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1273,14 +1259,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 9
-               and mon_since <= now - curr_inqmon
                and bucket_ef_1k >= 1
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 9
-                        and mon_since <= now - curr_inqmon
                         and bucket_ef_1k >= 1
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1311,14 +1295,12 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 3
-               and mon_since <= now - curr_inqmon
                and cash = 'Y'
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 3
-                        and mon_since <= now - curr_inqmon
                         and cash = 'Y'
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1331,13 +1313,11 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 3
-               and mon_since <= now - curr_inqmon
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 3
-                        and mon_since <= now - curr_inqmon
                      )
           and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("PDACO Update 16.");
@@ -1374,7 +1354,6 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 9
-               and mon_since <= now - curr_inqmon
                and pay_code in ('A', 'B')
              group by s.case_sn
             )
@@ -1382,7 +1361,6 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 9
-                        and mon_since <= now - curr_inqmon
                         and pay_code in ('A', 'B')
                      )
           and case_sn = :Case_Sn and idn = :Idn;
@@ -1395,13 +1373,11 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
              from krm023_dedup s
              where p.case_sn = s.case_sn
                and mon_since >= now - 9
-               and mon_since <= now - curr_inqmon
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
                         and mon_since >= now - 9
-                        and mon_since <= now - curr_inqmon
                      )
           and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("PDACO Update 19.");
@@ -1556,7 +1532,6 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
               and pay_code in ('C', 'D', 'E', 'F')
               and payment_amt > 1
               and (s.now - mon_since) <= 3
-              and (s.now - mon_since) >= curr_inqmon
            group by case_sn
           )
        where exists (select *
@@ -1567,7 +1542,6 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
                        and pay_code in ('C', 'D', 'E', 'F')
                        and payment_amt > 1
                        and (s.now - mon_since) <= 3
-                       and (s.now - mon_since) >= curr_inqmon
                     )
          and case_sn = :Case_Sn and idn = :Idn;
   EMB_SQL_CHECK("PDACO Update 29.");

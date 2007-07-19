@@ -23,7 +23,7 @@ enum DecisionCodes {
 	TYPE_IV,
 	TYPE_V
 };
-const int TERM = 120;
+const int TERM = 1000;
 const double m1_to_m7_ratio = 5.0;
 const double YearMonths = 12.0;
 const double YearDays = 365.0;

@@ -115,7 +115,8 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      db.Disconnect();
      return rc;
   }
-  if (app.get_product_type() > 5) { // NO pb and npv output for newly added products
+
+  if (app.get_product_type() > 6) { // NO pb and npv output for newly added products
      app.write_result_unsupported_product();
      if (rc < 0)  {
         strcpy (error_message, MESSAGE);

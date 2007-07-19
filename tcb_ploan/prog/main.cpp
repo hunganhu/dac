@@ -52,15 +52,14 @@ int main(int argc, char *argv[])
   strcpy (uid, "ejcicap1");
   strcpy (upw, "ejcicap1");
 
-//  rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
-//  if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
-
   while (!infile.eof()) { 
      infile.getline(case_sn, 16);
-     index++;
-     cout << CurrDateTime() << ": " << index << "- " << case_sn << endl; 
-     rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
-     if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
+//     if (strlen(case_sn) > 0) {
+        index++;
+        cout << CurrDateTime() << ": " << index << "- " << case_sn << endl; 
+        rc = dac_pl_cal(case_sn, alias, uid, upw, msg);
+        if (rc != 0) cout << CurrDateTime() << ": " << msg << endl; 
+//     }
   }
 
   return 0;
