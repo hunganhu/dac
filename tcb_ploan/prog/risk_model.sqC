@@ -896,7 +896,7 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
   EXEC SQL
     update pdaco_cal p
        set ind001 =
-           (select (case when min(now) - min(start_mon_since) >= 7 then 1 else 0 end)
+           (select (case when min(now) - min(start_mon_since) >= 6 then 1 else 0 end)
             from krm001_dedup s
             where p.case_sn = s.case_sn
               and s.end_mon_since > s.now

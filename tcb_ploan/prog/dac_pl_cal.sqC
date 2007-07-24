@@ -230,49 +230,34 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
         aPB = aPB /2.0;
      app.set_applicant_pb_adj(aPB);
         
-     max_apr = app.get_max_apr();
-     periods = app.get_periods();
-     app_amount = app.get_apply_amount();
-/* cutpoint is used in Phase I, use npv instead in Phase II */
-//     cut_point = get_risk_cut_point(app_amount, periods, max_apr);
-//     app.set_cutpoint(cut_point);
-
-     /* calculate NPV with no interest rate bias*/
-     npv_value = app.calculate_npv(0.0);
-/*
-     rc = app.write_npv(npv_value); // write npv to working table
-     if (rc != 0) {
-        strcpy (error_message, MESSAGE);
-        rc = db.Disconnect();
-        return SYSTEM_ERROR;
-     } 
-*/     
-     /* find the lowest rate to make NPV > Approved_line (2000) */
-     app.set_npv(npv_value);
-     round_npv = static_cast<int>(rint(npv_value / 100) * 100); //round to hundred dollar
-
-     if (npv_value > (ApprovedNPV + Allowance)) {
-        delta_apr = 0.0 - max_apr;
-        lowest_delta = app.find_lowest_rate(0.0, delta_apr);
+     if (app.get_product_type() != 6) { // NO npv output for mortgage
+        max_apr = app.get_max_apr();
+        periods = app.get_periods();
+        app_amount = app.get_apply_amount();
+   /* cutpoint is used in Phase I, use npv instead in Phase II */
+   //     cut_point = get_risk_cut_point(app_amount, periods, max_apr);
+   //     app.set_cutpoint(cut_point);
+   
+        /* calculate NPV with no interest rate bias*/
+        npv_value = app.calculate_npv(0.0);
+   
+        /* find the lowest rate to make NPV > Approved_line (2000) */
+        app.set_npv(npv_value);
+        round_npv = static_cast<int>(rint(npv_value / 100) * 100); //round to hundred dollar
+   
+        if (npv_value > (ApprovedNPV + Allowance)) {
+           delta_apr = 0.0 - max_apr;
+           lowest_delta = app.find_lowest_rate(0.0, delta_apr);
+        }
+        else if (npv_value < ApprovedNPV) {
+           delta_apr = max_apr + 0.3;
+           lowest_delta = app.find_lowest_rate(0.0, delta_apr);
+        }   
+        else
+           lowest_delta = 0.0;
+        
+        app.set_lowest_rate(lowest_delta);     
      }
-     else if (npv_value < ApprovedNPV) {
-        delta_apr = max_apr + 0.3;
-        lowest_delta = app.find_lowest_rate(0.0, delta_apr);
-     }   
-     else
-        lowest_delta = 0.0;
-     
-     app.set_lowest_rate(lowest_delta);     
-/*
-     npv_value = app.calculate_npv(lowest_delta);
-     // write lowest delta rate and corresponding npv to working table
-     rc = app.write_delta_rate(lowest_delta, npv_value);
-     if (rc != 0) {
-        strcpy (error_message, MESSAGE);
-        rc = db.Disconnect();
-        return SYSTEM_ERROR;
-     } 
-*/
      /* make decision*/
      if ((productType = app.get_product_type())!= 1) { //product- 1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:房貸
         rc = app.write_result(TYPE_V, round_npv, unsecured_balance); // for product type 2,3,4,5 output PB only
