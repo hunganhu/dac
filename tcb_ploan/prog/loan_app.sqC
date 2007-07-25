@@ -694,6 +694,7 @@ char * LoanApp::get_sysdate()
     float oGuarantor_PB;
     float oApplicant_PB_adj;
     long  oNPV;
+    short oNPV_ind;
     long  oPS_code;
     char  oPS_msg[257];
     long  oPS_code_g;
@@ -906,6 +907,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   oApplicant_PB = applicantPB;
   oApplicant_PB_adj = applicantPB_adjust;
   oNPV = npv_value;
+  oNPV_ind = 0;  // initial indicator of oNPV to 0 (not null)
   oPS_code = ps_code_a;
   strcpy(oPS_msg, ps_msg_a);
   oGuarantor_pass = Guarantor_pass;
@@ -977,6 +979,12 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
 
   appFee = static_cast<int>(Fee_1 + Fee_2 * App_amt + 0.5);  // rounding
 
+  if (Product_type_code == 6) { //for mortgage(code=6), NPV & lowest_rate set to NULL
+     oNPV_ind = -1;
+     oLowest_Rate_1_ind = -1;
+     oLowest_Rate_2_ind = -1;
+     oLowest_Rate_3_ind = -1;
+  }
 // write output message
 //  old message with unsecured amount
 //  if (decision <= TYPE_II)
@@ -1089,7 +1097,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                        Commission, Approval_code, Approval_msg, Lowest_Rate_1, Lowest_Rate_2, Lowest_Rate_3)
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oGuarantor_PB, :oApplicant_PB_adj,
-                      :oNPV, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
+                      :oNPV:oNPV_ind, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
                       :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
                       :oApproval_code, :oApproval_msg, :oLowest_Rate_1:oLowest_Rate_1_ind,
                       :oLowest_Rate_2:oLowest_Rate_2_ind, :oLowest_Rate_3:oLowest_Rate_3_ind);
@@ -1102,7 +1110,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                        Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                        Commission, Approval_code, Approval_msg, Lowest_Rate_1, Lowest_Rate_2, Lowest_Rate_3)
               values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
-                      :oNPV, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
+                      :oNPV:oNPV_ind, :oPS_code, :oPS_msg, :oPS_code_g, :oPS_msg_g, :oGuarantor_pass,:oFund_deposit_pct,
                       :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
                       :oApproval_code, :oApproval_msg, :oLowest_Rate_1:oLowest_Rate_1_ind,
                       :oLowest_Rate_2:oLowest_Rate_2_ind, :oLowest_Rate_3:oLowest_Rate_3_ind);
@@ -1116,7 +1124,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                     Fund_bank_pct, Fund_self_pct, Fund_free_pct, COF_deposit, COF_bank, ROE,
                     Commission, Approval_code, Approval_msg, Lowest_Rate_1, Lowest_Rate_2, Lowest_Rate_3)
            values (:oCase_SN, :osystem_time, :oApplicant_PB, :oApplicant_PB_adj,
-                    :oNPV, :oPS_code, :oPS_msg, :oGuarantor_pass,:oFund_deposit_pct,
+                    :oNPV:oNPV_ind, :oPS_code, :oPS_msg, :oGuarantor_pass,:oFund_deposit_pct,
                     :oFund_bank_pct, :oFund_self_pct, :oFund_free_pct, :oCOF_deposit, :oCOF_bank, :oROE, :oCommission,
                     :oApproval_code, :oApproval_msg, :oLowest_Rate_1:oLowest_Rate_1_ind,
                       :oLowest_Rate_2:oLowest_Rate_2_ind, :oLowest_Rate_3:oLowest_Rate_3_ind);

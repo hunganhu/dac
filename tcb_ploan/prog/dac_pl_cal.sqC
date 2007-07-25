@@ -230,7 +230,10 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
         aPB = aPB /2.0;
      app.set_applicant_pb_adj(aPB);
         
-     if (app.get_product_type() != 6) { // NO npv output for mortgage
+     if (app.get_product_type() == 6) { // NO npv output for mortgage
+        round_npv = 0;                  // NPV temporately set to 0 and set to NULL
+        app.set_lowest_rate(0.0);       // when write to table app_result
+     } else {                           // npv output for other's product
         max_apr = app.get_max_apr();
         periods = app.get_periods();
         app_amount = app.get_apply_amount();
