@@ -162,7 +162,7 @@ int call_final_npv() {
   EXEC SQL DECLARE c1 CURSOR FOR
     SELECT a.case_sn
     FROM TABLE(SELECT case_sn FROM APP_RESULT WHERE applicant_pb_adj is not null) as a,
-         TABLE(SELECT case_sn FROM APP_info WHERE approval_final = 2 and npv_final is null) as b
+         TABLE(SELECT case_sn FROM APP_info WHERE approval_final = 2 and npv_final is null and product_type_code < 6) as b
     WHERE a.case_sn = b.case_sn;   
 
   EMB_SQL_CHECK("Cursor -- Declare");
