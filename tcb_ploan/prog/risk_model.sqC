@@ -409,6 +409,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 /*apply 30-day rule, now = year_month of inquiry_date minus one month 
   15-day rule which if day part of inquiry_date > 15 then now = year_month of inquiry_date
      else now = year_month of inquiry_date minus one month, is unuse.
+2007/08/01, use 15-day rule for inquiry month     
 */
   EXEC SQL
      update krm001_dedup
@@ -421,7 +422,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      			else cast(left(stop_date, 3) as int) * 12 + cast(right(left(stop_date, 5), 2) as int)
      		     end),
             now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end)
@@ -451,7 +452,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
         		  else cast(left(ltrim(date_happen), 3) as int)* 12 + cast(right(left(rtrim(date_happen), 5), 2) as int)
       	  	         end),
             now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end)
@@ -481,7 +482,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
   EXEC SQL
      update krm023_dedup
         set now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end),
@@ -506,7 +507,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
      			else cast(left(query_date, 3) as int) * 12 + cast(right(left(query_date, 5), 2) as int)
      		       end),
             now = (case when substr(inquiry_date, 8, 2) > '15' then
-                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
+                      (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int)
                    else
                       (cast(substr(inquiry_date,1,3) as int))*12 + cast(substr(inquiry_date,5,2) as int) -1
                    end)
@@ -896,16 +897,14 @@ int RiskModel::GenerateScreenVars(char *case_sn, char *idn, char *birthday, char
   EXEC SQL
     update pdaco_cal p
        set ind001 =
-           (select (case when min(now) - min(start_mon_since) >= 6 then 1 else 0 end)
+           (select (case when min(now) - min(start_mon_since) > 6 then 1 else 0 end)
             from krm001_dedup s
             where p.case_sn = s.case_sn
-              and s.end_mon_since > s.now
               and s.m_s = 'Y'
             group by case_sn)
        where exists (select *
                      from krm001_dedup s
                      where p.case_sn = s.case_sn
-                       and s.end_mon_since > s.now
                        and s.m_s = 'Y')
          and case_sn = :psCase_Sn and idn = :psIdn;
   EMB_SQL_CHECK("Update 10.");
@@ -1103,12 +1102,14 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
             (select count(distinct issue)
              from krm023_dedup s
              where p.case_sn = s.case_sn
+               and mon_since <  now
                and mon_since >= now - 3
                and cast(limit as int) > 100
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
+                        and mon_since <  now
                         and mon_since >= now - 3
                         and cast(limit as int) > 100
                      )
@@ -1121,12 +1122,14 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
             (select count(distinct issue)
              from krm023_dedup s
              where p.case_sn = s.case_sn
+               and mon_since <  now
                and mon_since >= now - 6
                and cast(limit as int) > 100
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
+                        and mon_since <  now
                         and mon_since >= now - 6
                         and cast(limit as int) > 100
                      )
@@ -1139,12 +1142,14 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
             (select count(distinct issue)
              from krm023_dedup s
              where p.case_sn = s.case_sn
+               and mon_since <  now
                and mon_since >= now - 9
                and cast(limit as int) > 100
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
+                        and mon_since <  now
                         and mon_since >= now - 9
                         and cast(limit as int) > 100
                      )
@@ -1353,6 +1358,7 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
             (select count(distinct issue)
              from krm023_dedup s
              where p.case_sn = s.case_sn
+               and mon_since <  now
                and mon_since >= now - 9
                and pay_code in ('A', 'B')
              group by s.case_sn
@@ -1360,6 +1366,7 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
+                        and mon_since <  now
                         and mon_since >= now - 9
                         and pay_code in ('A', 'B')
                      )
@@ -1372,11 +1379,13 @@ int RiskModel::GeneratePdacoScore(char *case_sn, char *idn)
             (select count(distinct issue)
              from krm023_dedup s
              where p.case_sn = s.case_sn
+               and mon_since <  now
                and mon_since >= now - 9
             )
         where exists (select *
                       from krm023_dedup s
                       where p.case_sn = s.case_sn
+                        and mon_since <  now
                         and mon_since >= now - 9
                      )
           and case_sn = :Case_Sn and idn = :Idn;
