@@ -55,7 +55,7 @@ DLL_OBJ = dac_pl_cal.o utilemb.o risk_model.o dacploan.o loan_app.o functions.o 
 #		   2a - make all (srv + all_client)
 #****************************************************************************
 
-all : libdac_1_9.so java  main mainfnl closecases
+all : libdac_1_10.so java  main mainfnl closecases
 .PHONY : all
 	
 java: Dac.class 
@@ -102,9 +102,9 @@ cutpoint.o: cutpoint.cpp
 	$(CPP) $(EXTRA_CFLAG) -I$(DB2INC) -c cutpoint.cpp
 #	gcc -g  -c cutpoint.c
 	
-libdac_1_9.so: $(DLL_OBJ)
-	$(ERASE) libdac_1_9.so
-	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_9.so $(DLL_OBJ)
+libdac_1_10.so: $(DLL_OBJ)
+	$(ERASE) libdac_1_10.so
+	$(CPP) -shared -ldb2 -L$(DB2LIB) -o libdac_1_10.so $(DLL_OBJ)
 #libdac.a: $(DLL_OBJ)
 #	$(ERASE) $@
 #	ar cq $@ $(DLL_OBJ)
@@ -142,8 +142,8 @@ clean :
 	$(ERASE) *.o *.so *.bak *~
 	$(ERASE) *.bnd *.C main mainfnl closecases
 
-install: libdac_1_9.so closecases
-	 cp -f libdac_1_9.so $(DESLIB)
+install: libdac_1_10.so closecases
+	 cp -f libdac_1_10.so $(DESLIB)
 	 cp -f closecases $(DESBIN)
 	 touch install
-	 ln -fs $(DESLIB)/libdac_1_9.so $(DESLIB)/libdac.so
+	 ln -fs $(DESLIB)/libdac_1_10.so $(DESLIB)/libdac.so

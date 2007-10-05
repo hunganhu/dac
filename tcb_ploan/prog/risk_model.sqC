@@ -641,7 +641,7 @@ int RiskModel::PrepareJcicTables(char *case_sn, char *idn)
 } // RiskModel::PrepareJcicTables()
 
 //--------------------------------------------------------------------------------------------------
-int RiskModel::Prescreen(char *case_sn, char *idn)
+int RiskModel::Prescreen(char *case_sn, char *idn, int product_type_code)
 {
   EXEC SQL BEGIN DECLARE SECTION;
     char pfCase_Sn[20];
@@ -700,8 +700,8 @@ int RiskModel::Prescreen(char *case_sn, char *idn)
  cust_foreigner = foreigner(idn);
  
  ps_code = 0; // initialize to 0
- 
- if (age >= 60) {
+ //age is not checked if product is mortgage (code=6 or 7)
+ if (age >= 60 && (product_type_code != 6 && product_type_code != 7)) {
     strcpy(MESSAGE, "¦~ÄÖ > 60 ·³¡C");
     ps_code = 3101;
  }
@@ -1901,7 +1901,7 @@ int RiskModel::SaveScore(char *case_sn, char *idn)
 } //RiskModel::SaveScore()
 
 //--------------------------------------------------------------------------------------------------
-int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday, char *sysdate)
+int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday, char *sysdate, int product_type_code)
 {
   struct sqlca sqlca;
   int rc = 0;
@@ -1918,7 +1918,7 @@ int RiskModel::Calculate_PB(char *case_sn, char *idn, char *birthday, char *sysd
   rc = GenerateScreenVars(case_sn, idn, birthday, sysdate);
   if (rc != 0)  return rc;
 
-  rc = Prescreen(case_sn, idn);
+  rc = Prescreen(case_sn, idn, product_type_code);
 
   if (rc != 0) {
 #ifdef TRACE

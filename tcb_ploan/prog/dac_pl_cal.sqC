@@ -116,7 +116,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return rc;
   }
 
-  if (app.get_product_type() > 6) { // NO pb and npv output for newly added products
+  if (app.get_product_type() > 7) { // NO pb and npv output for newly added products
      app.write_result_unsupported_product();
      if (rc < 0)  {
         strcpy (error_message, MESSAGE);
@@ -129,7 +129,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      return 0;
   }
 
-  rc = rm.Calculate_PB(case_sn, aID, app.get_birthday(), app.get_sysdate());
+  rc = rm.Calculate_PB(case_sn, aID, app.get_birthday(), app.get_sysdate(), app.get_product_type());
   if (rc < 0) {
      strcpy (error_message, MESSAGE);
      db.Disconnect();
@@ -192,7 +192,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
      if (gID[0] == '\0' || gID[0] == ' ')
         qualified_guarantor = 0;
      else {
-        rc = rm.Calculate_PB(case_sn, gID, "", app.get_sysdate()); // set birthday to "" cause no such info for guarantor
+        rc = rm.Calculate_PB(case_sn, gID, "", app.get_sysdate(), app.get_product_type()); // set birthday to "" cause no such info for guarantor
         if (rc < 0) {
            strcpy (error_message, MESSAGE);
            db.Disconnect();
@@ -230,7 +230,7 @@ int dac_pl_cal(char *case_sn, char *alias, char *uid, char *upw, char *error_mes
         aPB = aPB /2.0;
      app.set_applicant_pb_adj(aPB);
         
-     if (app.get_product_type() == 6) { // NO npv output for mortgage
+     if (app.get_product_type() == 6 || app.get_product_type() == 7) { // NO npv output for mortgage (code=6|7)
         round_npv = 0;                  // NPV temporately set to 0 and set to NULL
         app.set_lowest_rate(0.0);       // when write to table app_result
      } else {                           // npv output for other's product

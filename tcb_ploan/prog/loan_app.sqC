@@ -234,11 +234,11 @@ int LoanApp::initial()
   strcpy (System_date, iSystem_date);
   //  printf("system_date=%s.\n", System_date);
 
-  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:房貸"
+  // check product_type_code "1:簡易小額信貸 2:公教人員貸款 3:U利貸款 5:農家樂貸款 4:其他(只算壞帳機率)6:一般房貸7:整批房貸"
   if (Product_type_code_ind == -1) Product_type_code = 4;
   else Product_type_code = iProduct_type_code;
 
-  if (Product_type_code > 6)  //NO data check for product > 6
+  if (Product_type_code > 7)  //NO data check for product > 7
     return(code);
 
   // if ((Product_type_code < 1) || (Product_type_code > 6)) {
@@ -361,7 +361,7 @@ int LoanApp::initial()
         strcat(MESSAGE, DataErrorMsg(DATA_ERR_1016));
         term_code = code = DataErrorCode(DATA_ERR_1016);
      }
-     if (Product_type_code == 6) { // if product is mortgage, use bigger criteria
+     if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage (6 or 7), use bigger criteria
         if (Term_1 > 999) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1033));
            term_code = code = DataErrorCode(DATA_ERR_1033);
@@ -376,7 +376,7 @@ int LoanApp::initial()
      // check term_2  0~84，月
      if (Term_2_ind == -1) Term_2 = 0;
      else Term_2 = iTerm_2;
-     if (Product_type_code == 6) { // if product is mortgage, use bigger criteria
+     if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage, use bigger criteria
         if ((Term_2 < 0) || (Term_2 > 999)) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1034));
            term_code = code = DataErrorCode(DATA_ERR_1034);
@@ -391,7 +391,7 @@ int LoanApp::initial()
      // check term_3  0~84，月 (期數一、二、三，加起來需>=6 & <=84)
      if (Term_3_ind == -1) Term_3 = 0;
      else Term_3 = iTerm_3;
-     if (Product_type_code == 6) { // if product is mortgage, use bigger criteria
+     if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage, use bigger criteria
         if ((Term_3 < 0) || (Term_3 > 999)) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1035));
            term_code = code = DataErrorCode(DATA_ERR_1035);
@@ -407,7 +407,7 @@ int LoanApp::initial()
         periods = Term_1 + Term_2 + Term_3;
         if (periods < 6) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1020)); code = DataErrorCode(DATA_ERR_1020);}
-        if (Product_type_code == 6) { // if product is mortgage, use bigger criteria
+        if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage, use bigger criteria
            if (periods > 999) {
               strcat(MESSAGE, DataErrorMsg(DATA_ERR_1036)); code = DataErrorCode(DATA_ERR_1036);}
         } else {
@@ -895,9 +895,12 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   struct sqlca sqlca;
   char apply_date[10];
   char apr_msg[192], msg1[64], msg2[64], msg3[64];
+  char msg4[64], msg5[64], mortgage_msg[128];
   ostrstream aprMem1(msg1, 64);
   ostrstream aprMem2(msg2, 64);
   ostrstream aprMem3(msg3, 64);
+  ostrstream mortMem1(msg4, 64);
+  ostrstream mortMem2(msg5, 64);
   ostrstream oMem(oApproval_msg, 513);
   int appFee;
 
@@ -929,11 +932,11 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   apply_date[7] = System_date[5];
   apply_date[8] = System_date[6];
   apply_date[9] = '\0';
+  
 // compose lowest interest rate message
   if (Term_1 > 0) {
      oLowest_Rate_1 = Lowest_rate_1 * 100;
      oLowest_Rate_1_ind = 0;
-//     sprintf(msg1, "損益兩平之參考利率為第一期：%5.2f%%", Lowest_rate_1*100);
      aprMem1 << "損益兩平之參考利率為第一期："
             << setiosflags(ios::fixed)
             << setprecision(2)
@@ -948,7 +951,6 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   if (Term_2 > 0) {
      oLowest_Rate_2 = Lowest_rate_2 * 100;
      oLowest_Rate_2_ind = 0;
-//     sprintf(msg1, "，第二期：%5.2f%%", Lowest_rate_2*100);
      aprMem2 << "，第二期："
             << setiosflags(ios::fixed)
             << setprecision(2)
@@ -963,7 +965,6 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
   if (Term_3 > 0) {
      oLowest_Rate_3 = Lowest_rate_3 * 100;
      oLowest_Rate_3_ind = 0;
-//     sprintf(msg1, "，第三期：%5.2f%%", Lowest_rate_3*100);
      aprMem3 << "，第三期："
             << setiosflags(ios::fixed)
             << setprecision(2)
@@ -979,11 +980,34 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
 
   appFee = static_cast<int>(Fee_1 + Fee_2 * App_amt + 0.5);  // rounding
 
-  if (Product_type_code == 6) { //for mortgage(code=6), NPV & lowest_rate set to NULL
+// compose append messge for mortgage, output applicant orginal pb and gurantor pb
+// if exists
+  if (Product_type_code == 6 || Product_type_code == 7) { //for mortgage(code=6|7), NPV & lowest_rate set to NULL
      oNPV_ind = -1;
      oLowest_Rate_1_ind = -1;
      oLowest_Rate_2_ind = -1;
      oLowest_Rate_3_ind = -1;
+     mortgage_msg[0] = '\0';  // initialize to null string
+
+     mortMem1 << "，申請人的壞帳機率為 "
+            << setiosflags(ios::fixed)
+            << setprecision(2)
+            << applicantPB*100
+            << "%"
+            << ends;                   // end the buffer with '\0'
+     strcpy (mortgage_msg, msg4);
+
+     if (gID[0] != '\0' && gID[0] != ' ') { // with Guarantor
+        if (oPS_code_g == 0) { // guarantor prescreen pass
+           mortMem2 << "，保證人的壞帳機率為 "
+                  << setiosflags(ios::fixed)
+                  << setprecision(2)
+                  << guarantorPB*100
+                  << "%"
+                  << ends;                   // end the buffer with '\0'
+           strcat (mortgage_msg, msg5);
+        }
+     }
   }
 // write output message
 //  old message with unsecured amount
@@ -1060,17 +1084,35 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                       << ends;                   // end the buffer with '\0'
                  break;
     case TYPE_V:
-                 oMem << apply_date
-                      << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
-                      << App_amt/10000
-                      << " 萬元，開辦費為新台幣 "
-                      << appFee
-                      << " 元，模組預估每年轉壞帳之機率為 "
-                      << setiosflags(ios::fixed)
-                      << setprecision(2)
-                      << applicantPB_adjust*100
-                      << "%。"
-                      << ends;                   // end the buffer with '\0'
+// remove comments when product_type_code 7 is implemented    
+//                 if (Product_type_code == 6 || Product_type_code == 7) { //For product mortgage (code=6|7)
+//                    oMem << apply_date
+//                         << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
+//                         << App_amt/10000
+//                         << " 萬元，開辦費為新台幣 "
+//                         << appFee
+//                         << " 元，模組預估每年轉壞帳之機率為 "
+//                         << setiosflags(ios::fixed)
+//                         << setprecision(2)
+//                         << applicantPB_adjust*100
+//                         << "%"
+//                         << mortgage_msg
+//                         << "。"
+//                         << ends;                   // end the buffer with '\0'
+//                 }
+//                 else {
+                    oMem << apply_date
+                         << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
+                         << App_amt/10000
+                         << " 萬元，開辦費為新台幣 "
+                         << appFee
+                         << " 元，模組預估每年轉壞帳之機率為 "
+                         << setiosflags(ios::fixed)
+                         << setprecision(2)
+                         << applicantPB_adjust*100
+                         << "%。"
+                         << ends;                   // end the buffer with '\0'
+//                 }     
                  break;
   }
   Info("output_msg= %s\n", oApproval_msg);
