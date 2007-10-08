@@ -49,7 +49,7 @@ Invalid_Msg tcbMsg[] = {
 	{1002, "申請人生日需填寫 "},
 	{1003, "無效的生日 "},
 	{1004, "申請人所得需填寫 "},
-	{1005, "申請人所得超出999萬 "},
+	{1005, "申請人所得超出9999萬 "},
 	{1006, "申請人現址已居住年數需填寫 "},
 	{1007, "申請人現址已居住年數超出99年 "},
 	{1008, "車籍資料(年份)大於輸入日期 "},
@@ -82,7 +82,7 @@ Invalid_Msg tcbMsg[] = {
           {1035, "房貸貸款期數 (第三期)超出999個月 "},
           {1036, "房貸貸款期數一、二、三，加起來超出999個月 "},
           {1037, "房貸寬限期超出99個月 "},
-          {1038, "房貸申貸金額超出9,999萬 "},
+          {1038, "房貸申貸金額超出9億9999萬 "},
 	{1101, "申貸編號不存在於APP_INFO "},
 	{1102, "申貸編號不存在於APP_RESULT "},
 	{1103, "撥貸金額必須大於零 "},
@@ -284,12 +284,12 @@ int LoanApp::initial()
         strcat(MESSAGE, DataErrorMsg(DATA_ERR_1031)); code = DataErrorCode(DATA_ERR_1031);}
   }
 */
-  // check annual income 新台幣萬元，最多三位數 (999)
+  // check annual income 新台幣萬元，最多四位數 (9999)
   if (Annual_Income_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1004)); code = DataErrorCode(DATA_ERR_1004);}
   else {
      Annual_Income = iAnnual_Income;
-     if ((Annual_Income < 0) || (Annual_Income > 9990000)) {
+     if ((Annual_Income < 0) || (Annual_Income > 99990000)) {
         strcat(MESSAGE, DataErrorMsg(DATA_ERR_1005)); code = DataErrorCode(DATA_ERR_1005);}
   }
 /*
@@ -361,7 +361,7 @@ int LoanApp::initial()
         strcat(MESSAGE, DataErrorMsg(DATA_ERR_1016));
         term_code = code = DataErrorCode(DATA_ERR_1016);
      }
-     if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage (6 or 7), use bigger criteria
+     if (Product_type_code == 6 || Product_type_code == 7) { // For mortgage(code=6|7), use bigger criteria
         if (Term_1 > 999) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1033));
            term_code = code = DataErrorCode(DATA_ERR_1033);
@@ -376,7 +376,7 @@ int LoanApp::initial()
      // check term_2  0~84，月
      if (Term_2_ind == -1) Term_2 = 0;
      else Term_2 = iTerm_2;
-     if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage, use bigger criteria
+     if (Product_type_code == 6 || Product_type_code == 7) { // For mortgage(code=6|7), use bigger criteria
         if ((Term_2 < 0) || (Term_2 > 999)) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1034));
            term_code = code = DataErrorCode(DATA_ERR_1034);
@@ -391,7 +391,7 @@ int LoanApp::initial()
      // check term_3  0~84，月 (期數一、二、三，加起來需>=6 & <=84)
      if (Term_3_ind == -1) Term_3 = 0;
      else Term_3 = iTerm_3;
-     if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage, use bigger criteria
+     if (Product_type_code == 6 || Product_type_code == 7) { // For mortgage(code=6|7), use bigger criteria
         if ((Term_3 < 0) || (Term_3 > 999)) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1035));
            term_code = code = DataErrorCode(DATA_ERR_1035);
@@ -407,7 +407,7 @@ int LoanApp::initial()
         periods = Term_1 + Term_2 + Term_3;
         if (periods < 6) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1020)); code = DataErrorCode(DATA_ERR_1020);}
-        if (Product_type_code == 6 || Product_type_code == 7) { // if product is mortgage, use bigger criteria
+        if (Product_type_code == 6 || Product_type_code == 7) { // For mortgage(code=6|7), use bigger criteria
            if (periods > 999) {
               strcat(MESSAGE, DataErrorMsg(DATA_ERR_1036)); code = DataErrorCode(DATA_ERR_1036);}
         } else {
@@ -435,13 +435,13 @@ int LoanApp::initial()
      }
   }
 
-  // check apply amount 0~200，新台幣萬元; Mortgage: 0~9999，新台幣萬元
+  // check apply amount 0~200，新台幣萬元; Mortgage: 0~99999，新台幣萬元
   if (App_amt_ind == -1) {
      strcat(MESSAGE, DataErrorMsg(DATA_ERR_1025)); code = DataErrorCode(DATA_ERR_1025);}
   else {
      App_amt = iApp_amt;
-     if (Product_type_code == 6) {  // if product is mortgage, use bigger criteria
-        if ((App_amt < 0) || (App_amt > 99990000)) {
+     if (Product_type_code == 6 || Product_type_code == 7) {  // For mortgage(code=6|7), use bigger criteria
+        if ((App_amt < 0) || (App_amt > 999990000)) {
            strcat(MESSAGE, DataErrorMsg(DATA_ERR_1038)); code = DataErrorCode(DATA_ERR_1038);}
      } else {
         if ((App_amt < 0) || (App_amt > 2000000)) {
