@@ -1084,23 +1084,22 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                       << ends;                   // end the buffer with '\0'
                  break;
     case TYPE_V:
-// remove comments when product_type_code 7 is implemented    
-//                 if (Product_type_code == 6 || Product_type_code == 7) { //For product mortgage (code=6|7)
-//                    oMem << apply_date
-//                         << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
-//                         << App_amt/10000
-//                         << " 萬元，開辦費為新台幣 "
-//                         << appFee
-//                         << " 元，模組預估每年轉壞帳之機率為 "
-//                         << setiosflags(ios::fixed)
-//                         << setprecision(2)
-//                         << applicantPB_adjust*100
-//                         << "%"
-//                         << mortgage_msg
-//                         << "。"
-//                         << ends;                   // end the buffer with '\0'
-//                 }
-//                 else {
+                 if (Product_type_code == 6 || Product_type_code == 7) { //For product mortgage (code=6|7)
+                    oMem << apply_date
+                         << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
+                         << App_amt/10000
+                         << " 萬元，開辦費為新台幣 "
+                         << appFee
+                         << " 元，模組預估每年轉壞帳之機率為 "
+                         << setiosflags(ios::fixed)
+                         << setprecision(2)
+                         << applicantPB_adjust*100
+                         << "%"
+                         << mortgage_msg
+                         << "。"
+                         << ends;                   // end the buffer with '\0'
+                 }
+                 else {
                     oMem << apply_date
                          << " 申請(請辦理第一類票據信用查詢，如有未清償註記之票據者，建議婉拒)，模組審核之申貸金額為新台幣 "
                          << App_amt/10000
@@ -1112,7 +1111,7 @@ int LoanApp::write_result(int decision, int npv_value, int unsecured_amt)
                          << applicantPB_adjust*100
                          << "%。"
                          << ends;                   // end the buffer with '\0'
-//                 }     
+                 }     
                  break;
   }
   Info("output_msg= %s\n", oApproval_msg);
